@@ -80,6 +80,7 @@ var path = '<%= request.getContextPath()%>';
 <script type="text/javascript" src="js/jquery-promises.js"></script>
 <script type="text/javascript" src="js/typeahead.bundle.js"></script>
 <script type="text/javascript" src="js/bootstrap-tagsinput.js"></script>
+<script type="text/javascript" src="js/jquery.searchabledropdown-1.0.8.min.js"></script>
 <script>
 var nr = 0;
 function CheckDati() {
