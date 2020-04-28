@@ -74,7 +74,6 @@ var path = '<%= request.getContextPath()%>';
 <script type="text/javascript" src="js/ui.core.js"></script>
 <script type="text/javascript" src="js/ui.dialog.js"></script>
 <script type="text/javascript" src="js/ui.slider.js"></script>
-
 <style type="text/css">@import url(css/bootstrap-tagsinput.css);</style>
 <script type="text/javascript" src="js/jquery-on.js"></script>
 <script type="text/javascript" src="js/jquery-promises.js"></script>

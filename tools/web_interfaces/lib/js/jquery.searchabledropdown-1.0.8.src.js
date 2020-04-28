@@ -41,7 +41,8 @@
         ignoreCase: true,
         warnNoMatch: "--",
         latency: 200,
-        zIndex: "auto"
+        zIndex: "auto",
+        disableInput: false
     };
 
 	/**
@@ -113,8 +114,14 @@
 	         */
 	        selected: function() {
 	        	var sel = $(selector).children('.combobox-item-selected');
-	        	//console.log('elemento selezionato: ' + sel.text());
-	        	return sel;
+	        	if(sel && sel.length > 0) {
+	        		//console.log('elemento selezionato 1: ' + sel.text());
+	        		return sel;
+	        	} 
+	        	var selIdx = this.selectedIndex();
+	        	sel = $(selector).children(".combobox-item").get(selIdx);
+	        	//console.log('elemento selezionato 2: ' + sel.text());
+        		return sel;
 	        },
 	        /**
 	         * Get or Set the selectedIndex of the selector element
@@ -122,11 +129,17 @@
 	         */
 	        selectedIndex: function(idx) {
 	        	if(idx > -1){
+	        		var oldSelected = $($(selector).children('.combobox-item').get(selector.get(0).selectedIndex));
+	        		//var oldSelected = $(selector).children(".combobox-item").children("input[id='divOpt_origIdx_"+selector.get(0).selectedIndex+"']").parent();
+	        		oldSelected.removeClass('combobox-item-selected');
+	        		
 	        		//console.log('Idx nuovo: ' + idx);
 	        		selector.get(0).selectedIndex = idx;
 	        		
-	        		this.selected().removeClass('combobox-item-selected');
-	        		$($(selector).children('.combobox-item').get(idx)).addClass('combobox-item-selected');
+	        		var selParent = $($(selector).children('.combobox-item').get(selector.get(0).selectedIndex)); 
+	        			//var selParent = $(selector).children(".combobox-item").children("input[id='divOpt_origIdx_"+idx+"']").parent();
+	        		//console.log('elemento selezionato tmp: ' + selParent.text());
+	        		selParent.addClass('combobox-item-selected');
 	        		
 	        		return selector.get(0).selectedIndex;
 	        	}
@@ -147,8 +160,12 @@
 	            
 	        	var cVal = '';
         	  	for (var i=0; i < len; i++) {
-        	  		var divI = optionToDiv($(self.get(0).options[i]), i , cVal);
+        	  		var divI = optionToDiv($(self.get(0).options[i]), i, i, cVal);
     				selector.append(divI);
+    				divI.get(0).addEventListener("click", function(e) {
+    					//console.log('BBB');
+    				});
+//    				$(document).on('click', '#' + divI.attr('id') , { idx : i }, divclick);
 	            }
         	  	
         	  	 this.selectedIndex(idx);	      
@@ -162,9 +179,9 @@
          * EVENT HANDLING
          */
         var suspendBlur = false;
-        overlay.mouseover(function() {
-        	suspendBlur = true;
-        });
+//        overlay.mouseover(function() {
+//        	suspendBlur = true;
+//        });
         overlay.mouseout(function() {
         	suspendBlur = false;
         });
@@ -178,10 +195,10 @@
         	if(!enabled)
     			enable(e, true);
     		else
-    			disable(e, true);
+    			disable(e, false);
         });
         input.blur(function(e) {
-        	disable(e,suspendBlur);
+        	disable(e, suspendBlur);
         });
         self.keydown(function(e) {
         	if(e.keyCode != 9 && !e.shiftKey && !e.ctrlKey && !e.altKey)
@@ -202,10 +219,16 @@
         	if(!suspendBlur)
         		disable(e, true);
         });
+        selector.mousemove(function(e) {
+        	// modificato inserendo la gestione dell'hover sul singolo div
+        });
 
         // toggle click event on overlay div
         overlay.click(function(e) {
-    		input.click();
+        	if(!enabled)
+    			enable(e, true);
+    		else
+    			disable(e, true);
         });
 
         // trigger event keyup
@@ -299,7 +322,8 @@
             // wrapper styles
             wrapper.css("position", "relative");
             wrapper.css("width", self.outerWidth());
-            wrapper.css("margin-left", "232px");
+            wrapper.css("margin-left", "0px");
+            wrapper.css("display", "inline-flex");
             
             // relative div needs an z-index (related to IE z-index bug)
             if($.browser.msie)
@@ -462,10 +486,12 @@
         		selector.show();
 
     		// show search field
-    		input.show();
-            input.focus();
-            input.select();
-
+        	if(!settings.disableInput){
+        		input.show();
+        		input.focus();
+        		input.select();
+        	}
+        	
         	if(typeof e != "undefined")
         		e.stopPropagation();
         };
@@ -493,6 +519,8 @@
         	if(populateChanges)
         		populate();
 
+        	console.log('check:' + e.target);
+        	
             if(typeof e != "undefined")
             	e.stopPropagation();
         };
@@ -510,12 +538,14 @@
          * Populate changes to select element
          */
         function populate() {
+        	//console.log('populate: ' + selectorHelper.selectedIndex());
         	if(selectorHelper.selectedIndex() < 0)
         		return;
 
         	// store selectedIndex
         	// estrazione del idx corrispondente per la select
         	var val = $(selectorHelper.selected()).children("input[id*='divOpt_origIdx_']").val();
+        	//console.log('populate idx select originale: ' + val);
     		self.get(0).selectedIndex = val;
 
         	// trigger change event
@@ -526,6 +556,7 @@
          * Synchronize selected item on dropdown replacement with source select element
          */
         function synchronize() {
+        	//console.log('synch: ' + selectorHelper.selectedIndex());
         	if(selectorHelper.selectedIndex() > -1){
         		input.val(selector.find(".combobox-item-selected").text());
         	}else
@@ -535,7 +566,7 @@
         /**
          * Crea il div a partire dalla option
          */
-        function optionToDiv(option, i, searchVal) {
+        function optionToDiv(option, i, origIdx, searchVal) {
         	var text = option.text();
         	if(searchVal && searchVal.length > 0) {
         		text = createHighlightItem(option.text(), searchVal);
@@ -561,7 +592,7 @@
         	// salvo il vecchio indice
         	var inputOrigIdx = $("<input/>");
         	inputOrigIdx.attr("type", "hidden");
-        	inputOrigIdx.attr("value", i);
+        	inputOrigIdx.attr("value", origIdx);
         	inputOrigIdx.attr("id", "divOpt_origIdx_" + i);
         	div.append(inputOrigIdx);
         	
@@ -575,8 +606,20 @@
         	return div;
         };
         
+        function divclick(e) {
+        	console.log('CLICK');
+        	console.log(e.data);
+        	console.log(e.target);
+        };
+        
+        function calcolaIdx(idValue) {
+        	var pos = idValue.indexOf("_");
+        	return parseInt(idValue.substr(pos + 1));
+        };
+        
         function hoverOn(e) {
-        	var val = $(this).children("input[id*='divOpt_origIdx_']").val();
+        	var val = calcolaIdx($(this).attr('id'));
+        	//console.log('Hover:' + val);
         	selectorHelper.selectedIndex(val);
         };
         
@@ -633,8 +676,12 @@
             for(var i=0; i < self.get(0).length; i++){
             	// search
                 if(search.length == 0 || search.test(self.get(0).options[i].text)){
-                	var divI = optionToDiv($(self.get(0).options[i]), i , searchCache);
+                	var divI = optionToDiv($(self.get(0).options[i]), matches , i, searchCache);
     				selector.append(divI);
+    				divI.get(0).addEventListener("click", function(e) {
+    				//	console.log('BBB');
+    				});
+//    				$(document).on('click', '#' +  divI.attr('id') , { idx : i }, divclick);
                     matches++;
                 }
             }
@@ -642,10 +689,9 @@
             // result actions
             if(matches >= 1){
                 selectorHelper.selectedIndex(0);
-                
             }
             // allineo il comportamento degli altri componenti se la ricerca non da risultati visualizzo il div vuoto
-//            else if(matches == 0){
+//            else if(matches == 0){	
                // selector.append(noMatchItem);
 //            }
 
@@ -691,7 +737,8 @@
     	// bind function to jQuery fn object
     	$.fn[nsp] = function(settings) {
     		// extend default settings
-    		settings = $.extend(plugin.defaults, settings);
+    		settings = $.extend({}, plugin.defaults, settings);
+//    		settings = $.extend(plugin.defaults, settings);
 
     		var elmSize = this.size();
             return this.each(function(index) {

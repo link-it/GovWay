@@ -87,7 +87,7 @@ public class DataElement {
 	boolean required=false;
 	boolean bold=false;
 	boolean postBack=false;
-	boolean abilitaFiltroOpzioniSelect=false;
+	boolean abilitaFiltroOpzioniSelect=true;
 	
 	String note = null;
 	String styleClass = null;
@@ -866,8 +866,8 @@ public class DataElement {
 		return this.abilitaFiltroOpzioniSelect;
 	}
 	
-	public void abilitaFiltroOpzioniSelect() {
-		this.setAbilitaFiltroOpzioniSelect(true);
+	public void disabilitaFiltroOpzioniSelect() {
+		this.setAbilitaFiltroOpzioniSelect(false);
 	}
 
 	public void setAbilitaFiltroOpzioniSelect(boolean abilitaFiltroOpzioniSelect) {

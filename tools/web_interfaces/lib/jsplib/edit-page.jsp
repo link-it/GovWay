@@ -629,20 +629,18 @@ for (int i = 0; i < dati.size(); i++) {
 		                            									} //end for values
 		                                        					}
 		                          									%></select>
-		                          									<%
-														      		if(de.isAbilitaFiltroOpzioniSelect()){
-														      			%>
-			                          									<script>
-				                          									$(document).ready(function() {
-				                          										$("#<%= selId %>").searchable();
-				                          									});
-			                          									</script>
+		                          									
+		                          									<script>
+			                          									$(document).ready(function() {
 			                          									<%
-														      		}
-														      		%> 
-		                          									
-		                          									
-		                          									
+			                          										String disabilitaSearch= "{disableInput : false}";
+															      			if(!de.isAbilitaFiltroOpzioniSelect()){
+															      				disabilitaSearch = "{disableInput : true}";
+															      			}
+															      		%> 
+															      		$("#<%= selId %>").searchable(<%= disabilitaSearch %>);
+		                          										});
+		                          									</script>
 		                          									<%
 														      		if(deInfo != null){
 														      			String idDivIconInfo = "divIconInfo_"+i;
