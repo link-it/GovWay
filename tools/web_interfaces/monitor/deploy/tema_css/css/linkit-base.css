@@ -53,7 +53,7 @@ a:hover {
 }
 
 a:visited {
-	color: ${a.color};
+	color: ${a.visited.color};
 	text-decoration: none;
 }
 	
