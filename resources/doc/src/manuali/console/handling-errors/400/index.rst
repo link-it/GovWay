@@ -3,7 +3,7 @@
 Errori 400 (Bad Request)
 ------------------------
 
-In questa sezione vengono raccolti tutti i possibili codici di errore generati da GovWay riguardanti una richiesta del client malformata.
+In questa sezione vengono riportati tutti i possibili codici di errore generati da GovWay relativi ad una richiesta client malformata.
 
 .. toctree::
         :maxdepth: 2
