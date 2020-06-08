@@ -7,7 +7,7 @@ In questa sezione vengono riportati tutti i possibili codici di errore generati 
 
 Gli errori descritti in questa sezione, nella configurazione di default di GovWay, sono tutti restituiti al client con il solo codice di errore :ref:`errori_502_InvalidResponse`. La scelta è finalizzata ad evitare disclosure di informazioni relative al domino interno.
 
-È possibile abilitare temporaneamente la generazione dei codici più specifici accendendo alla voce 'Strumenti - Runtime' della console di gestione e abilitando la 'Gestione Risposta' nella sezione 'Errori generati dal Gateway' (:numref:`error502specifici`).
+È possibile abilitare temporaneamente la generazione dei codici puntuali accendendo alla voce 'Strumenti - Runtime' della console di gestione e selezionando 'Errore Puntuale' per la 'Risposta' nella sezione "Errori generati dal Gateway - Codici di errore 'GovWay-Transaction-ErrorType'" (:numref:`error502specifici`).
 
    .. figure:: ../../_figure_console/errori502.png
     :scale: 50%

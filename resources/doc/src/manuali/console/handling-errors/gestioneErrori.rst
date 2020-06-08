@@ -26,7 +26,7 @@ La tabella :numref:`gestioneErroriTab` riporta l'elenco dei possibili codici di 
       429 / Client     LimitExceeded - :ref:`errori_429`       No
       429 / Client     TooManyRequests - :ref:`errori_429`     Sì
       502 / Server     :ref:`errori_502`                       Sì, se idempotente 
-      503 / Server     :ref:`errori_503`                       Sì,
+      503 / Server     :ref:`errori_503`                       Sì
       504 / Server     :ref:`errori_504`                       Sì, se idempotente
       ============     ===================================     =================
 

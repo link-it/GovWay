@@ -7,11 +7,11 @@ Nella configurazione di default di GovWay, gli errori restituiti ai
 client non contengono dettagli che possano causare disclosure di
 informazioni relative al dominio interno. In alcuni casi, per
 facilitare il supporto alla risoluzione di problemi, è comunque possibile
-abilitare la generazione di codici più specifici di errorem ritornati
+abilitare la generazione di codici più specifici di errore ritornati
 al client nell'header http 'GovWay-Transaction-ErrorStatus'
 e nel claim 'govway_status' del :ref:`rfc7807`.
 
-È possibile abilitare temporaneamente la generazione dei codici specifici accendendo alla voce 'Strumenti - Runtime' della console di gestione e abilitando 'Http Header / Problem Detail' nella sezione "Codici di errore 'GovWay-Transaction-ErrorStatus' (:numref:`govwayStatusSpecifici`)".
+È possibile abilitare temporaneamente la generazione dei codici specifici accendendo alla voce 'Strumenti - Runtime' della console di gestione e abilitando 'Http Header / Problem Detail' nella sezione "Codici di errore specifici 'GovWay-Transaction-ErrorStatus' (:numref:`govwayStatusSpecifici`)".
 
    .. figure:: ../_figure_console/govwayStatusSpecifici.png
     :scale: 50%
@@ -51,7 +51,7 @@ Di seguito viene riportato un esempio di errore generato in seguito al rilevamen
 
 Il codice di errore specifico può essere generato anche all'interno del SOAP Fault come 'Fault Code' al posto di quello di default generato da GovWay e descritto nella sezione :ref:`gestioneErrori`.
 
-È possibile abilitare temporaneamente la generazione all'interno del SOAP Fault Code accendendo alla voce 'Strumenti - Runtime' della console di gestione e abilitando 'SOAP Fault Code' nella sezione "Codici di errore 'GovWay-Transaction-ErrorStatus'" (:numref:`govwayStatusSpecificiSoapFault`).
+È possibile abilitare temporaneamente la generazione all'interno del SOAP Fault Code accendendo alla voce 'Strumenti - Runtime' della console di gestione e abilitando 'SOAP Fault Code' nella sezione "Codici di errore specifici 'GovWay-Transaction-ErrorStatus'" (:numref:`govwayStatusSpecificiSoapFault`).
 
    .. figure:: ../_figure_console/govwayStatusSpecificiSoapFault.png
     :scale: 50%
