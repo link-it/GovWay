@@ -47,6 +47,7 @@ import org.openspcoop2.core.id.IDServizio;
 import org.openspcoop2.core.id.IDServizioApplicativo;
 import org.openspcoop2.core.id.IDSoggetto;
 import org.openspcoop2.utils.certificate.CertificateInfo;
+import org.openspcoop2.utils.crypt.CryptConfig;
 
 /**
  * Interfaccia per la ricerca informazioni di oggetti presenti in una
@@ -232,8 +233,17 @@ public interface IDriverConfigurazioneGet extends IBeanUtilities {
 	 * @return Il servizio applicativo che include le credenziali passate come parametro. 
 	 * 
 	 */
-	public ServizioApplicativo getServizioApplicativoByCredenzialiBasic(String aUser,String aPassword) throws DriverConfigurazioneException,DriverConfigurazioneNotFound;
+	public ServizioApplicativo getServizioApplicativoByCredenzialiBasic(String aUser,String aPassword, CryptConfig config) throws DriverConfigurazioneException,DriverConfigurazioneNotFound;
 
+	/**
+	 * Restituisce Il servizio applicativo che include le credenziali passate come parametro. 
+	 *
+	 * @param aUser User utilizzato come appId o all'interno del token
+	 * @param aPassword Password presente all'interno del token
+	 * @return Il servizio applicativo che include le credenziali passate come parametro. 
+	 * 
+	 */
+	public ServizioApplicativo getServizioApplicativoByCredenzialiApiKey(String aUser,String aPassword, boolean appId, CryptConfig config) throws DriverConfigurazioneException,DriverConfigurazioneNotFound;
 	
 	/**
 	 * Restituisce Il servizio applicativo che include le credenziali passate come parametro. 

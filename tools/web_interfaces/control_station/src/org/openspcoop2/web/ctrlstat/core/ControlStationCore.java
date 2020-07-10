@@ -50,6 +50,7 @@ import org.openspcoop2.core.config.AccessoRegistro;
 import org.openspcoop2.core.config.AccessoRegistroRegistro;
 import org.openspcoop2.core.config.Configurazione;
 import org.openspcoop2.core.config.ConfigurazioneMultitenant;
+import org.openspcoop2.core.config.Credenziali;
 import org.openspcoop2.core.config.GenericProperties;
 import org.openspcoop2.core.config.GestioneErrore;
 import org.openspcoop2.core.config.MessaggiDiagnostici;
@@ -109,6 +110,7 @@ import org.openspcoop2.message.config.ServiceBindingConfiguration;
 import org.openspcoop2.message.constants.MessageType;
 import org.openspcoop2.message.constants.ServiceBinding;
 import org.openspcoop2.pdd.core.CostantiPdD;
+import org.openspcoop2.pdd.core.autenticazione.ParametriAutenticazioneApiKey;
 import org.openspcoop2.pdd.core.autenticazione.ParametriAutenticazioneBasic;
 import org.openspcoop2.pdd.core.autenticazione.ParametriAutenticazionePrincipal;
 import org.openspcoop2.pdd.core.jmx.JMXUtils;
@@ -129,6 +131,10 @@ import org.openspcoop2.utils.LoggerWrapperFactory;
 import org.openspcoop2.utils.TipiDatabase;
 import org.openspcoop2.utils.UtilsException;
 import org.openspcoop2.utils.VersionUtilities;
+import org.openspcoop2.utils.crypt.CryptConfig;
+import org.openspcoop2.utils.crypt.CryptFactory;
+import org.openspcoop2.utils.crypt.CryptType;
+import org.openspcoop2.utils.crypt.ICrypt;
 import org.openspcoop2.utils.crypt.PasswordVerifier;
 import org.openspcoop2.utils.date.DateManager;
 import org.openspcoop2.utils.resources.ClassLoaderUtilities;
@@ -490,31 +496,232 @@ public class ControlStationCore {
 		return this.showJ2eeOptions;
 	}
 
-	/** Password Verifier */
-	private String passwordVerifierConfiguration = null;
-	public String getPasswordVerifierConfiguration() {
-		return this.passwordVerifierConfiguration;
+	/** Utenze Console */
+	
+	private static CryptConfig utenzePasswordEncryptEngine_apiMode = null;
+	public static CryptConfig getUtenzePasswordEncryptEngine_apiMode() {
+		return utenzePasswordEncryptEngine_apiMode;
 	}
-	private PasswordVerifier passwordVerifierEngine = null;
-	private synchronized void initPasswordVerifier() throws UtilsException {
-		if(this.passwordVerifierEngine==null){
-			this.passwordVerifierEngine = new PasswordVerifier(this.passwordVerifierConfiguration); 
+	public static void setUtenzePasswordEncryptEngine_apiMode(CryptConfig utenzePasswordEncryptEngine_apiMode) {
+		ControlStationCore.utenzePasswordEncryptEngine_apiMode = utenzePasswordEncryptEngine_apiMode;
+	}
+
+	private String utenzePasswordConfiguration = null;
+	public String getUtenzePasswordConfiguration() {
+		return this.utenzePasswordConfiguration;
+	}
+	private PasswordVerifier utenzePasswordVerifierEngine = null;
+	private CryptConfig utenzePasswordEncryptEngine = null;
+	private synchronized void initUtenzePassword() throws UtilsException {
+		if(this.utenzePasswordVerifierEngine==null){
+			this.utenzePasswordVerifierEngine = new PasswordVerifier(this.utenzePasswordConfiguration); 
+		}
+		if(this.utenzePasswordEncryptEngine==null){
+			this.utenzePasswordEncryptEngine = new CryptConfig(this.utenzePasswordConfiguration); 
 		}
 	}
-	public PasswordVerifier getPasswordVerifier() {
-		if(this.passwordVerifierConfiguration!=null){
-			if(this.passwordVerifierEngine==null){
+	public PasswordVerifier getUtenzePasswordVerifier() {
+		if(this.utenzePasswordConfiguration!=null){
+			if(this.utenzePasswordVerifierEngine==null){
 				try{
-					this.initPasswordVerifier();
+					this.initUtenzePassword();
 				}catch(Exception e){
 					log.error(e.getMessage(),e);
 				}
 			}
-			if(this.passwordVerifierEngine!=null && this.passwordVerifierEngine.existsRestriction()){
-				return this.passwordVerifierEngine;
+			if(this.utenzePasswordVerifierEngine!=null && this.utenzePasswordVerifierEngine.existsRestriction()){
+				return this.utenzePasswordVerifierEngine;
 			}
 		}
 		return null;
+	}
+	public CryptConfig getUtenzePasswordEncrypt() {
+		if(this.utenzePasswordConfiguration!=null){
+			if(this.utenzePasswordEncryptEngine==null){
+				try{
+					this.initUtenzePassword();
+				}catch(Exception e){
+					log.error(e.getMessage(),e);
+				}
+			}
+			return this.utenzePasswordEncryptEngine;
+		}
+		return null;
+	}
+	private int utenzeLunghezzaPasswordGenerate;
+	public int getUtenzeLunghezzaPasswordGenerate() {
+		return this.utenzeLunghezzaPasswordGenerate;
+	}
+	
+	protected ICrypt utenzePasswordManager;
+	protected ICrypt utenzePasswordManager_backwardCompatibility;
+	public ICrypt getUtenzePasswordManager() {
+		return this.utenzePasswordManager;
+	}
+	public ICrypt getUtenzePasswordManager_backwardCompatibility() {
+		return this.utenzePasswordManager_backwardCompatibility;
+	}
+	
+	/** Applicativi */
+	
+	private static CryptConfig applicativiPasswordEncryptEngine_apiMode = null;
+	public static CryptConfig getApplicativiPasswordEncryptEngine_apiMode() {
+		return applicativiPasswordEncryptEngine_apiMode;
+	}
+	public static void setApplicativiPasswordEncryptEngine_apiMode(CryptConfig applicativiPasswordEncryptEngine_apiMode) {
+		ControlStationCore.applicativiPasswordEncryptEngine_apiMode = applicativiPasswordEncryptEngine_apiMode;
+	}
+	private static PasswordVerifier applicativiPasswordVerifierEngine_apiMode = null;
+	public static PasswordVerifier getApplicativiPasswordVerifierEngine_apiMode() {
+		return applicativiPasswordVerifierEngine_apiMode;
+	}
+	public static void setApplicativiPasswordVerifierEngine_apiMode(
+			PasswordVerifier applicativiPasswordVerifierEngine_apiMode) {
+		ControlStationCore.applicativiPasswordVerifierEngine_apiMode = applicativiPasswordVerifierEngine_apiMode;
+	}
+
+	private String applicativiPasswordConfiguration = null;
+	public String getApplicativiPasswordConfiguration() {
+		return this.applicativiPasswordConfiguration;
+	}
+	private boolean applicativiBasicPasswordEnableConstraints = false;
+	public boolean isApplicativiBasicPasswordEnableConstraints() {
+		return this.applicativiBasicPasswordEnableConstraints;
+	}
+	private PasswordVerifier applicativiPasswordVerifierEngine = null;
+	private CryptConfig applicativiPasswordEncryptEngine = null;
+	private synchronized void initApplicativiPassword() throws UtilsException {
+		if(this.applicativiBasicPasswordEnableConstraints && this.applicativiPasswordVerifierEngine==null){
+			this.applicativiPasswordVerifierEngine = new PasswordVerifier(this.applicativiPasswordConfiguration); 
+		}
+		if(this.applicativiPasswordEncryptEngine==null){
+			this.applicativiPasswordEncryptEngine = new CryptConfig(this.applicativiPasswordConfiguration); 
+		}
+	}
+	public PasswordVerifier getApplicativiPasswordVerifier() {
+		if(this.applicativiBasicPasswordEnableConstraints && this.applicativiPasswordConfiguration!=null){
+			if(this.applicativiPasswordVerifierEngine==null){
+				try{
+					this.initApplicativiPassword();
+				}catch(Exception e){
+					log.error(e.getMessage(),e);
+				}
+			}
+			if(this.applicativiPasswordVerifierEngine!=null && this.applicativiPasswordVerifierEngine.existsRestriction()){
+				return this.applicativiPasswordVerifierEngine;
+			}
+		}
+		return null;
+	}
+	public CryptConfig getApplicativiPasswordEncrypt() {
+		if(this.applicativiPasswordConfiguration!=null){
+			if(this.applicativiPasswordEncryptEngine==null){
+				try{
+					this.initApplicativiPassword();
+				}catch(Exception e){
+					log.error(e.getMessage(),e);
+				}
+			}
+			return this.applicativiPasswordEncryptEngine;
+		}
+		return null;
+	}
+	public boolean isApplicativiPasswordEncryptEnabled() {
+		return this.getApplicativiPasswordEncrypt()!=null && !CryptType.PLAIN.equals(this.getApplicativiPasswordEncrypt().getCryptType());
+	}
+	private int applicativiBasicLunghezzaPasswordGenerate;
+	public int getApplicativiBasicLunghezzaPasswordGenerate() {
+		return this.applicativiBasicLunghezzaPasswordGenerate;
+	}
+	private int applicativiApiKeyLunghezzaPasswordGenerate;
+	protected int getApplicativiApiKeyLunghezzaPasswordGenerate() {
+		return this.applicativiApiKeyLunghezzaPasswordGenerate;
+	}
+	
+	protected ICrypt applicativiPasswordManager;
+	public ICrypt getApplicativiPasswordManager() {
+		return this.applicativiPasswordManager;
+	}
+	
+	/** Soggetti */
+	
+	private static CryptConfig soggettiPasswordEncryptEngine_apiMode = null;
+	public static CryptConfig getSoggettiPasswordEncryptEngine_apiMode() {
+		return soggettiPasswordEncryptEngine_apiMode;
+	}
+	public static void setSoggettiPasswordEncryptEngine_apiMode(CryptConfig soggettiPasswordEncryptEngine_apiMode) {
+		ControlStationCore.soggettiPasswordEncryptEngine_apiMode = soggettiPasswordEncryptEngine_apiMode;
+	}
+	private static PasswordVerifier soggettiPasswordVerifierEngine_apiMode = null;
+	public static PasswordVerifier getSoggettiPasswordVerifierEngine_apiMode() {
+		return soggettiPasswordVerifierEngine_apiMode;
+	}
+	public static void setSoggettiPasswordVerifierEngine_apiMode(
+			PasswordVerifier soggettiPasswordVerifierEngine_apiMode) {
+		ControlStationCore.soggettiPasswordVerifierEngine_apiMode = soggettiPasswordVerifierEngine_apiMode;
+	}
+	
+	private String soggettiPasswordConfiguration = null;
+	public String getSoggettiPasswordConfiguration() {
+		return this.soggettiPasswordConfiguration;
+	}
+	private boolean soggettiBasicPasswordEnableConstraints = false;
+	public boolean isSoggettiBasicPasswordEnableConstraints() {
+		return this.soggettiBasicPasswordEnableConstraints;
+	}
+	private PasswordVerifier soggettiPasswordVerifierEngine = null;
+	private CryptConfig soggettiPasswordEncryptEngine = null;
+	private synchronized void initSoggettiPassword() throws UtilsException {
+		if(this.soggettiBasicPasswordEnableConstraints && this.soggettiPasswordVerifierEngine==null){
+			this.soggettiPasswordVerifierEngine = new PasswordVerifier(this.soggettiPasswordConfiguration); 
+		}
+		if(this.soggettiPasswordEncryptEngine==null){
+			this.soggettiPasswordEncryptEngine = new CryptConfig(this.soggettiPasswordConfiguration); 
+		}
+	}
+	public PasswordVerifier getSoggettiPasswordVerifier() {
+		if(this.soggettiBasicPasswordEnableConstraints && this.soggettiPasswordConfiguration!=null){
+			if(this.soggettiPasswordVerifierEngine==null){
+				try{
+					this.initSoggettiPassword();
+				}catch(Exception e){
+					log.error(e.getMessage(),e);
+				}
+			}
+			if(this.soggettiPasswordVerifierEngine!=null && this.soggettiPasswordVerifierEngine.existsRestriction()){
+				return this.soggettiPasswordVerifierEngine;
+			}
+		}
+		return null;
+	}
+	public CryptConfig getSoggettiPasswordEncrypt() {
+		if(this.soggettiPasswordConfiguration!=null){
+			if(this.soggettiPasswordEncryptEngine==null){
+				try{
+					this.initSoggettiPassword();
+				}catch(Exception e){
+					log.error(e.getMessage(),e);
+				}
+			}
+			return this.soggettiPasswordEncryptEngine;
+		}
+		return null;
+	}
+	public boolean isSoggettiPasswordEncryptEnabled() {
+		return this.getSoggettiPasswordEncrypt()!=null && !CryptType.PLAIN.equals(this.getSoggettiPasswordEncrypt().getCryptType());
+	}
+	private int soggettiBasicLunghezzaPasswordGenerate;
+	public int getSoggettiBasicLunghezzaPasswordGenerate() {
+		return this.soggettiBasicLunghezzaPasswordGenerate;
+	}
+	private int soggettiApiKeyLunghezzaPasswordGenerate;
+	protected int getSoggettiApiKeyLunghezzaPasswordGenerate() {
+		return this.soggettiApiKeyLunghezzaPasswordGenerate;
+	}
+	
+	protected ICrypt soggettiPasswordManager;
+	public ICrypt getSoggettiPasswordManager() {
+		return this.soggettiPasswordManager;
 	}
 	
 	/** MessageSecurity PropertiesSourceConfiguration */
@@ -1584,23 +1791,7 @@ public class ControlStationCore {
 	public boolean isUsedByApi() {
 		return this.usedByApi;
 	}
-	
-	private static Properties passwordManagerConfig_APIMode = null;
-	private static boolean passwordManager_backwardCompatibility_APIMode = false;
-	public static Properties getPasswordManagerConfig_APIMode() {
-		return ControlStationCore.passwordManagerConfig_APIMode;
-	}
-	public static void setPasswordManagerConfig_APIMode(Properties passwordManagerConfig_APIMode) {
-		ControlStationCore.passwordManagerConfig_APIMode = passwordManagerConfig_APIMode;
-	}
-	public static boolean isPasswordManager_backwardCompatibility_APIMode() {
-		return ControlStationCore.passwordManager_backwardCompatibility_APIMode;
-	}
-	public static void setPasswordManager_backwardCompatibility_APIMode(
-			boolean passwordManager_backwardCompatibility_APIMode) {
-		ControlStationCore.passwordManager_backwardCompatibility_APIMode = passwordManager_backwardCompatibility_APIMode;
-	}
-	
+		
 	public ControlStationCore() throws Exception {
 		this(false,null,null);
 	}
@@ -1710,6 +1901,37 @@ public class ControlStationCore {
 			// Verifica Consistenza dei Protocolli
 			verificaConsistenzaProtocolli(this);
 			
+			// Inizializzo password manager
+			CryptConfig utenzeConfig = null;
+			CryptConfig applicativiConfig = null;
+			CryptConfig soggettiConfig = null;
+			if(ControlStationCore.isAPIMode()) {
+				utenzeConfig = ControlStationCore.getUtenzePasswordEncryptEngine_apiMode();
+				applicativiConfig = ControlStationCore.getApplicativiPasswordEncryptEngine_apiMode();
+				soggettiConfig = ControlStationCore.getSoggettiPasswordEncryptEngine_apiMode();
+				
+				this.applicativiPasswordConfiguration = "APIMode";
+				this.applicativiPasswordEncryptEngine = applicativiConfig;
+				this.applicativiPasswordVerifierEngine = ControlStationCore.getApplicativiPasswordVerifierEngine_apiMode();
+				this.applicativiBasicPasswordEnableConstraints = (this.applicativiPasswordVerifierEngine!=null);
+				
+				this.soggettiPasswordConfiguration = "APIMode";
+				this.soggettiPasswordEncryptEngine = soggettiConfig;
+				this.soggettiPasswordVerifierEngine = ControlStationCore.getSoggettiPasswordVerifierEngine_apiMode();
+				this.soggettiBasicPasswordEnableConstraints = (this.soggettiPasswordVerifierEngine!=null);
+			}
+			else {
+				utenzeConfig = this.getUtenzePasswordEncrypt();
+				applicativiConfig = this.getApplicativiPasswordEncrypt();
+				soggettiConfig = this.getSoggettiPasswordEncrypt();
+			}
+			this.utenzePasswordManager = CryptFactory.getCrypt(log, utenzeConfig);
+			if(utenzeConfig.isBackwardCompatibility()) {
+				this.utenzePasswordManager_backwardCompatibility = CryptFactory.getOldMD5Crypt(log);
+			}
+			this.applicativiPasswordManager = CryptFactory.getCrypt(log, applicativiConfig);
+			this.soggettiPasswordManager = CryptFactory.getCrypt(log, soggettiConfig);
+			
 		}catch(Exception e){
 			ControlStationCore.logError("Errore di inizializzazione: "+e.getMessage(), e);
 			throw e;
@@ -1788,8 +2010,35 @@ public class ControlStationCore {
 		/** J2EE Ambiente */
 		this.showJ2eeOptions = core.showJ2eeOptions;
 
-		/** Password Verifier */
-		this.passwordVerifierConfiguration = core.passwordVerifierConfiguration;
+		/** Utenze Console */
+		this.utenzePasswordConfiguration = core.utenzePasswordConfiguration;
+		this.utenzeLunghezzaPasswordGenerate = core.utenzeLunghezzaPasswordGenerate;
+		
+		/** Utenze Console */
+		this.utenzePasswordConfiguration = core.utenzePasswordConfiguration;
+		this.utenzeLunghezzaPasswordGenerate = core.utenzeLunghezzaPasswordGenerate;
+		this.utenzePasswordVerifierEngine = core.utenzePasswordVerifierEngine;
+		this.utenzePasswordEncryptEngine = core.utenzePasswordEncryptEngine;
+		this.utenzePasswordManager = core.utenzePasswordManager;
+		this.utenzePasswordManager_backwardCompatibility = core.utenzePasswordManager_backwardCompatibility;
+		
+		/** Applicativi Console */
+		this.applicativiPasswordConfiguration = core.applicativiPasswordConfiguration;
+		this.applicativiBasicPasswordEnableConstraints = core.applicativiBasicPasswordEnableConstraints;
+		this.applicativiBasicLunghezzaPasswordGenerate = core.applicativiBasicLunghezzaPasswordGenerate;
+		this.applicativiApiKeyLunghezzaPasswordGenerate = core.applicativiApiKeyLunghezzaPasswordGenerate;
+		this.applicativiPasswordVerifierEngine = core.applicativiPasswordVerifierEngine;
+		this.applicativiPasswordEncryptEngine = core.applicativiPasswordEncryptEngine;
+		this.applicativiPasswordManager = core.applicativiPasswordManager;
+		
+		/** Soggetti Console */
+		this.soggettiPasswordConfiguration = core.soggettiPasswordConfiguration;
+		this.soggettiBasicPasswordEnableConstraints = core.soggettiBasicPasswordEnableConstraints;
+		this.soggettiBasicLunghezzaPasswordGenerate = core.soggettiBasicLunghezzaPasswordGenerate;
+		this.soggettiApiKeyLunghezzaPasswordGenerate = core.soggettiApiKeyLunghezzaPasswordGenerate;
+		this.soggettiPasswordVerifierEngine = core.soggettiPasswordVerifierEngine;
+		this.soggettiPasswordEncryptEngine = core.soggettiPasswordEncryptEngine;
+		this.soggettiPasswordManager = core.soggettiPasswordManager;
 		
 		/** MessageSecurity PropertiesSourceConfiguration */
 		this.messageSecurityPropertiesSourceConfiguration = core.messageSecurityPropertiesSourceConfiguration;
@@ -2120,7 +2369,16 @@ public class ControlStationCore {
 			this.autorizzazione_generazioneAutomaticaPorteApplicative = consoleProperties.getAutorizzazione_GenerazioneAutomaticaPorteApplicative();
 			this.isAbilitatoControlloUnicitaImplementazioneAccordoPerSoggetto = consoleProperties.isAbilitatoControlloUnicitaImplementazioneAccordoPerSoggetto();
 			this.isAbilitatoControlloUnicitaImplementazionePortTypePerSoggetto = consoleProperties.isAbilitatoControlloUnicitaImplementazionePortTypePerSoggetto();
-			this.passwordVerifierConfiguration = consoleProperties.getConsolePasswordVerifier();
+			this.utenzePasswordConfiguration = consoleProperties.getConsoleUtenzePassword();
+			this.utenzeLunghezzaPasswordGenerate = consoleProperties.getConsoleUtenzeLunghezzaPasswordGenerate();
+			this.applicativiPasswordConfiguration = consoleProperties.getConsoleApplicativiPassword();
+			this.applicativiBasicPasswordEnableConstraints = consoleProperties.isConsoleApplicativiBasicPasswordEnableConstraints();
+			this.applicativiBasicLunghezzaPasswordGenerate = consoleProperties.getConsoleApplicativiBasicLunghezzaPasswordGenerate();
+			this.applicativiApiKeyLunghezzaPasswordGenerate = consoleProperties.getConsoleApplicativiApiKeyLunghezzaPasswordGenerate();
+			this.soggettiPasswordConfiguration = consoleProperties.getConsoleSoggettiPassword();
+			this.soggettiBasicPasswordEnableConstraints = consoleProperties.isConsoleSoggettiBasicPasswordEnableConstraints();
+			this.soggettiBasicLunghezzaPasswordGenerate = consoleProperties.getConsoleSoggettiBasicLunghezzaPasswordGenerate();
+			this.soggettiApiKeyLunghezzaPasswordGenerate = consoleProperties.getConsoleSoggettiApiKeyLunghezzaPasswordGenerate();			
 			this.messageSecurityPropertiesSourceConfiguration = consoleProperties.getMessageSecurityPropertiesSourceConfiguration();
 			this.policyGestioneTokenPropertiesSourceConfiguration = consoleProperties.getPolicyGestioneTokenPropertiesSourceConfiguration();
 			this.isControlloTrafficoPolicyGlobaleGroupByApi = consoleProperties.isControlloTrafficoPolicyGlobaleGroupByApi();
@@ -2661,7 +2919,6 @@ public class ControlStationCore {
 					// soggetto config/reg
 					if (oggetto instanceof SoggettoCtrlStat) {
 						SoggettoCtrlStat soggetto = (SoggettoCtrlStat) oggetto;
-
 						Soggetto sogConf = soggetto.getSoggettoConf();
 						if(this.registroServiziLocale){
 							driver.getDriverRegistroServiziDB().createSoggetto(soggetto.getSoggettoReg());
@@ -2729,7 +2986,6 @@ public class ControlStationCore {
 					if (oggetto instanceof org.openspcoop2.core.registry.Soggetto) {
 						
 						org.openspcoop2.core.registry.Soggetto sogReg = (org.openspcoop2.core.registry.Soggetto) oggetto;
-
 						if(this.registroServiziLocale){
 							driver.getDriverRegistroServiziDB().createSoggetto(sogReg);
 						}
@@ -2759,6 +3015,7 @@ public class ControlStationCore {
 					// ServizioApplicativo
 					if (oggetto instanceof ServizioApplicativo) {
 						ServizioApplicativo sa = (ServizioApplicativo) oggetto;
+						
 						driver.getDriverConfigurazioneDB().createServizioApplicativo(sa);
 						if (sa.getIdSoggetto() == null || sa.getIdSoggetto() < 0) {
 							sa.setIdSoggetto(DBUtils.getIdSoggetto(sa.getNomeSoggettoProprietario(), sa.getTipoSoggettoProprietario(), con, this.tipoDB, CostantiDB.SOGGETTI));
@@ -3175,7 +3432,7 @@ public class ControlStationCore {
 					// soggetto ctrlstat
 					if (oggetto instanceof SoggettoCtrlStat) {
 						SoggettoCtrlStat soggetto = (SoggettoCtrlStat) oggetto;
-
+						
 						// prima chiamo il driver registro in quanto la
 						// modifica
 						// del soggetto riflette
@@ -3281,6 +3538,7 @@ public class ControlStationCore {
 					// ServizioApplicativo
 					if (oggetto instanceof ServizioApplicativo) {
 						ServizioApplicativo sa = (ServizioApplicativo) oggetto;
+						
 						driver.getDriverConfigurazioneDB().updateServizioApplicativo(sa);
 						if (sa.getIdSoggetto() == null || sa.getIdSoggetto() < 0) {
 							sa.setIdSoggetto(DBUtils.getIdSoggetto(sa.getNomeSoggettoProprietario(), sa.getTipoSoggettoProprietario(), con, this.tipoDB, CostantiDB.SOGGETTI));
@@ -4351,6 +4609,8 @@ public class ControlStationCore {
 				tipoOperazione[i] = Tipologia.DEL;
 		}
 
+		this.cryptPassword(tipoOperazione, oggetti);
+		
 		IDOperazione [] idOperazione = null;
 		boolean auditDisabiltato = false;
 		try{
@@ -4390,6 +4650,8 @@ public class ControlStationCore {
 			tipoOperazione[i] = Tipologia.ADD;
 		}
 
+		this.cryptPassword(tipoOperazione, oggetti);
+		
 		IDOperazione [] idOperazione = null;
 		boolean auditDisabiltato = false;
 		try{
@@ -4430,6 +4692,8 @@ public class ControlStationCore {
 			tipoOperazione[i] = Tipologia.CHANGE;
 		}
 
+		this.cryptPassword(tipoOperazione, oggetti);
+		
 		IDOperazione [] idOperazione = null;
 		boolean auditDisabiltato = false;
 		try{
@@ -4470,7 +4734,9 @@ public class ControlStationCore {
 		for (int i = 0; i < oggetti.length; i++) {
 			tipoOperazione[i] = Tipologia.DEL;
 		}
-
+		
+		this.cryptPassword(tipoOperazione, oggetti);
+		
 		IDOperazione [] idOperazione = null;
 		boolean auditDisabiltato = false;
 		try{
@@ -6071,8 +6337,61 @@ public class ControlStationCore {
 				}
 			}
 		}
+		else if(TipoAutenticazione.APIKEY.equals(autenticazione)) {
+			
+			parametroAutenticazioneList = new ArrayList<>();
+			
+			// posizione 0: appId
+			_addValoreProprieta(list, ParametriAutenticazioneApiKey.APP_ID, parametroAutenticazioneList);
+			
+			// posizione 1: queryParameter
+			_addValoreProprieta(list, ParametriAutenticazioneApiKey.QUERY_PARAMETER, parametroAutenticazioneList);
+			
+			// posizione 2: header
+			_addValoreProprieta(list, ParametriAutenticazioneApiKey.HEADER, parametroAutenticazioneList);
+			
+			// posizione 3: cookie
+			_addValoreProprieta(list, ParametriAutenticazioneApiKey.COOKIE, parametroAutenticazioneList);
+			
+			// posizione 4: useOAS3Names
+			_addValoreProprieta(list, ParametriAutenticazioneApiKey.USE_OAS3_NAMES, parametroAutenticazioneList);
+			
+			// posizione 5: cleanApiKey
+			_addValoreProprieta(list, ParametriAutenticazioneApiKey.CLEAN_API_KEY, parametroAutenticazioneList);
+			
+			// posizione 6: cleanAppId
+			_addValoreProprieta(list, ParametriAutenticazioneApiKey.CLEAN_APP_ID, parametroAutenticazioneList);
+			
+			// posizione 7: queryParameterApiKey
+			_addValoreProprieta(list, ParametriAutenticazioneApiKey.NOME_QUERY_PARAMETER_API_KEY, parametroAutenticazioneList);
+						
+			// posizione 8: headerApiKey
+			_addValoreProprieta(list, ParametriAutenticazioneApiKey.NOME_HEADER_API_KEY, parametroAutenticazioneList);
+						
+			// posizione 9: cookieApiKey
+			_addValoreProprieta(list, ParametriAutenticazioneApiKey.NOME_COOKIE_API_KEY, parametroAutenticazioneList);
+						
+			// posizione 10: queryParameterAppId
+			_addValoreProprieta(list, ParametriAutenticazioneApiKey.NOME_QUERY_PARAMETER_APP_ID, parametroAutenticazioneList);
+						
+			// posizione 11: headerAppId
+			_addValoreProprieta(list, ParametriAutenticazioneApiKey.NOME_HEADER_APP_ID, parametroAutenticazioneList);
+			
+			// posizione 12: cookieAppId
+			_addValoreProprieta(list, ParametriAutenticazioneApiKey.NOME_COOKIE_APP_ID, parametroAutenticazioneList);
+			
+		}
 			
 		return parametroAutenticazioneList;
+	}
+	
+	private void _addValoreProprieta(List<Proprieta> list, String nome, List<String> parametroAutenticazioneList) {
+		for (Proprieta proprieta : list) {
+			if(nome.equals(proprieta.getNome())) {
+				parametroAutenticazioneList.add(proprieta.getValore());
+				break;
+			}
+		}
 	}
 
 	public List<Proprieta> convertToAutenticazioneProprieta(String autenticazione, TipoAutenticazionePrincipal autenticazionePrincipal,  List<String> autenticazioneParametroList){
@@ -6184,6 +6503,72 @@ public class ControlStationCore {
 				}
 				break;
 			}
+		}
+		else if(TipoAutenticazione.APIKEY.equals(autenticazione)) {
+			if(autenticazioneParametroList!=null && !autenticazioneParametroList.isEmpty()) {
+				for (int i = 0; i < autenticazioneParametroList.size(); i++) {
+					String autenticazioneParametro = autenticazioneParametroList.get(i);
+					if(autenticazioneParametro!=null && !"".equals(autenticazioneParametro)) {
+						Proprieta proprietaPar = new Proprieta();
+						proprietaPar.setValore(autenticazioneParametro);
+						
+						// posizione 0: appId
+						if(i==0) {
+							proprietaPar.setNome(ParametriAutenticazioneApiKey.APP_ID);
+						}
+						// posizione 1: queryParameter
+						else if(i==1) {
+							proprietaPar.setNome(ParametriAutenticazioneApiKey.QUERY_PARAMETER);
+						}
+						// posizione 2: header
+						else if(i==2) {
+							proprietaPar.setNome(ParametriAutenticazioneApiKey.HEADER);
+						}
+						// posizione 3: cookie
+						else if(i==3) {
+							proprietaPar.setNome(ParametriAutenticazioneApiKey.COOKIE);
+						}
+						// posizione 4: useOAS3Names
+						else if(i==4) {
+							proprietaPar.setNome(ParametriAutenticazioneApiKey.USE_OAS3_NAMES);
+						}
+						// posizione 5: cleanApiKey
+						else if(i==5) {
+							proprietaPar.setNome(ParametriAutenticazioneApiKey.CLEAN_API_KEY);
+						}
+						// posizione 6: cleanAppId
+						else if(i==6) {
+							proprietaPar.setNome(ParametriAutenticazioneApiKey.CLEAN_APP_ID);
+						}
+						// posizione 7: queryParameterApiKey
+						else if(i==7) {
+							proprietaPar.setNome(ParametriAutenticazioneApiKey.NOME_QUERY_PARAMETER_API_KEY);
+						}
+						// posizione 8: headerApiKey
+						else if(i==8) {
+							proprietaPar.setNome(ParametriAutenticazioneApiKey.NOME_HEADER_API_KEY);
+						}
+						// posizione 9: cookieApiKey
+						else if(i==9) {
+							proprietaPar.setNome(ParametriAutenticazioneApiKey.NOME_COOKIE_API_KEY);
+						}
+						// posizione 10: queryParameterAppId
+						else if(i==10) {
+							proprietaPar.setNome(ParametriAutenticazioneApiKey.NOME_QUERY_PARAMETER_APP_ID);
+						}
+						// posizione 11: headerAppId
+						else if(i==11) {
+							proprietaPar.setNome(ParametriAutenticazioneApiKey.NOME_HEADER_APP_ID);
+						}
+						// posizione 12: cookieAppId
+						else if(i==12) {
+							proprietaPar.setNome(ParametriAutenticazioneApiKey.NOME_COOKIE_APP_ID);
+						}
+						
+						list.add(proprietaPar);
+					}
+				}
+			}				
 		}
 		return list;
 	}
@@ -6633,6 +7018,60 @@ public class ControlStationCore {
 			return protocollo!=null && protocollo.equals(f.get(null));
 		}catch(Throwable t) {
 			return false;
+		}
+	}
+	
+	private void _cryptPassword(ServizioApplicativo sa) throws UtilsException {
+		if(this.isApplicativiPasswordEncryptEnabled() && this.applicativiPasswordManager!=null) {
+			if(sa.getInvocazionePorta()!=null && sa.getInvocazionePorta().sizeCredenzialiList()>0) {
+				for (Credenziali credenziali : sa.getInvocazionePorta().getCredenzialiList()) {
+					if(StringUtils.isNotEmpty(credenziali.getPassword()) && !credenziali.isCertificateStrictVerification()) {
+						credenziali.setPassword(this.applicativiPasswordManager.crypt(credenziali.getPassword()));
+						credenziali.setCertificateStrictVerification(true); // viene salvata a true per salvare l'informazione che è cifrata
+					}
+				}
+			}
+		}
+	} 
+	
+	private void _cryptPassword(org.openspcoop2.core.registry.Soggetto soggetto) throws UtilsException {
+		if(this.isSoggettiPasswordEncryptEnabled() && this.soggettiPasswordManager!=null) {
+			if(soggetto.getCredenziali()!=null) {
+				if(StringUtils.isNotEmpty(soggetto.getCredenziali().getPassword()) && !soggetto.getCredenziali().isCertificateStrictVerification()) {
+					soggetto.getCredenziali().setPassword(this.applicativiPasswordManager.crypt(soggetto.getCredenziali().getPassword()));
+					soggetto.getCredenziali().setCertificateStrictVerification(true); // viene salvata a true per salvare l'informazione che è cifrata
+				}
+			}
+		}
+	} 
+
+	private void cryptPassword(Tipologia[] tipoOperazione, Object ... oggetti) throws UtilsException {
+		if(oggetti!=null && oggetti.length>0) {
+			for (int i = 0; i < oggetti.length; i++) {
+				Object oggetto = oggetti[i];
+				
+				Tipologia tipo = tipoOperazione[i];
+				
+				if(!Tipologia.ADD.equals(tipo) && !Tipologia.CHANGE.equals(tipo)) {
+					continue;
+				}
+				
+				if (oggetto instanceof SoggettoCtrlStat) {
+					SoggettoCtrlStat soggetto = (SoggettoCtrlStat) oggetto;
+					if(soggetto.getSoggettoReg()!=null) {
+						this._cryptPassword(soggetto.getSoggettoReg());
+					}
+				}
+				else if (oggetto instanceof org.openspcoop2.core.registry.Soggetto) {
+					org.openspcoop2.core.registry.Soggetto sogReg = (org.openspcoop2.core.registry.Soggetto) oggetto;
+					this._cryptPassword(sogReg);
+				}
+				else if (oggetto instanceof ServizioApplicativo) {
+					ServizioApplicativo sa = (ServizioApplicativo) oggetto;
+					this._cryptPassword(sa);
+				}
+				
+			}
 		}
 	}
 }

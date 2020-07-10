@@ -34,7 +34,7 @@ public class AuthenticationHttpBasic  implements OneOfBaseCredenzialiCredenziali
   @Schema(example = "user", required = true, description = "")
   private String username = null;
   
-  @Schema(example = "pwd", required = true, description = "")
+  @Schema(example = "pwd", description = "")
   private String password = null;
  /**
    * Get modalitaAccesso
@@ -82,7 +82,6 @@ public class AuthenticationHttpBasic  implements OneOfBaseCredenzialiCredenziali
    * @return password
   **/
   @JsonProperty("password")
-  @NotNull
   @Valid
   public String getPassword() {
     return this.password;

@@ -94,6 +94,7 @@ import org.openspcoop2.utils.cache.CacheAlgorithm;
 import org.openspcoop2.utils.certificate.ArchiveLoader;
 import org.openspcoop2.utils.certificate.ArchiveType;
 import org.openspcoop2.utils.certificate.CertificateInfo;
+import org.openspcoop2.utils.crypt.CryptConfig;
 import org.openspcoop2.utils.resources.FileSystemUtilities;
 import org.slf4j.Logger;
 
@@ -194,7 +195,7 @@ public class ConfigurazionePdD  {
 			}
 		}
 	}
-	public void abilitaCache(Long dimensioneCache,Boolean algoritmoCacheLRU,Long itemIdleTime,Long itemLifeSecond) throws DriverConfigurazioneException{
+	public void abilitaCache(Long dimensioneCache,Boolean algoritmoCacheLRU,Long itemIdleTime,Long itemLifeSecond, CryptConfig config) throws DriverConfigurazioneException{
 		if(this.cache!=null)
 			throw new DriverConfigurazioneException("Cache gia' abilitata");
 		else{
@@ -215,7 +216,7 @@ public class ConfigurazionePdD  {
 				if(itemLifeSecond!=null){
 					configurazioneCache.setItemLifeSecond(itemLifeSecond+"");
 				}
-				initCacheConfigurazione(configurazioneCache, null, false);
+				initCacheConfigurazione(configurazioneCache, null, false, config);
 			}catch(Exception e){
 				throw new DriverConfigurazioneException(e.getMessage(),e);
 			}
@@ -288,7 +289,8 @@ public class ConfigurazionePdD  {
 	 * @param accessoConfigurazione Informazioni per accedere alla configurazione della PdD OpenSPCoop.
 	 */
 	public ConfigurazionePdD(AccessoConfigurazionePdD accessoConfigurazione,Logger alog,Logger alogConsole,Properties localProperties, 
-			String jndiNameDatasourcePdD, boolean forceDisableCache, boolean useOp2UtilsDatasource, boolean bindJMX, boolean prefillCache)throws DriverConfigurazioneException{
+			String jndiNameDatasourcePdD, boolean forceDisableCache, boolean useOp2UtilsDatasource, boolean bindJMX, 
+			boolean prefillCache, CryptConfig configApplicativi)throws DriverConfigurazioneException{
 
 		try{ 
 			// Inizializzo OpenSPCoopProperties
@@ -349,7 +351,8 @@ public class ConfigurazionePdD  {
 			}catch(DriverConfigurazioneNotFound notFound){}
 			if(accessoDatiConfigurazione!=null && accessoDatiConfigurazione.getCache()!=null){
 				if(forceDisableCache==false){
-					initCacheConfigurazione(accessoDatiConfigurazione.getCache(),alogConsole, prefillCache);
+					initCacheConfigurazione(accessoDatiConfigurazione.getCache(),alogConsole, 
+							prefillCache, configApplicativi);
 				}
 			}
 
@@ -362,7 +365,8 @@ public class ConfigurazionePdD  {
 		}
 	}
 
-	private void initCacheConfigurazione(org.openspcoop2.core.config.Cache configurazioneCache,Logger alogConsole, boolean prefillCache)throws Exception{
+	private void initCacheConfigurazione(org.openspcoop2.core.config.Cache configurazioneCache,Logger alogConsole, 
+			boolean prefillCache, CryptConfig configApplicativi)throws Exception{
 		this.cache = new Cache(CostantiConfigurazione.CACHE_CONFIGURAZIONE_PDD);
 
 		String msg = null;
@@ -520,7 +524,7 @@ public class ConfigurazionePdD  {
 		}
 		
 		if(prefillCache){
-			this.prefillCache(null,alogConsole);
+			this.prefillCache(null,alogConsole, configApplicativi);
 		}
 	}
 
@@ -544,7 +548,7 @@ public class ConfigurazionePdD  {
 
 
 	
-	public void prefillCache(Connection connectionPdD,Logger alogConsole){
+	public void prefillCache(Connection connectionPdD,Logger alogConsole, CryptConfig configApplicativi){
 		
 		String msg = "[Prefill] Inizializzazione cache (ConfigurazionePdD) in corso ...";
 		this.log.info(msg);
@@ -706,7 +710,15 @@ public class ConfigurazionePdD  {
 										if(CredenzialeTipo.BASIC.equals(credenziale.getTipo())){
 											try{
 												this.cache.remove(_getKey_getServizioApplicativoByCredenzialiBasic(credenziale.getUser(), credenziale.getPassword()));
-												this.getServizioApplicativoByCredenzialiBasic(connectionPdD, credenziale.getUser(), credenziale.getPassword());
+												this.getServizioApplicativoByCredenzialiBasic(connectionPdD, credenziale.getUser(), credenziale.getPassword(), configApplicativi);
+											}
+											catch(DriverConfigurazioneNotFound notFound){}
+											catch(Exception e){this.log.error("[prefill] errore"+e.getMessage(),e);}				
+										}
+										else if(CredenzialeTipo.APIKEY.equals(credenziale.getTipo())){
+											try{
+												this.cache.remove(_getKey_getServizioApplicativoByCredenzialiApiKey(credenziale.getUser(), credenziale.getPassword(), credenziale.isCertificateStrictVerification()));
+												this.getServizioApplicativoByCredenzialiApiKey(connectionPdD, credenziale.getUser(), credenziale.getPassword(), credenziale.isCertificateStrictVerification(), configApplicativi);
 											}
 											catch(DriverConfigurazioneNotFound notFound){}
 											catch(Exception e){this.log.error("[prefill] errore"+e.getMessage(),e);}				
@@ -969,7 +981,15 @@ public class ConfigurazionePdD  {
 							if(CredenzialeTipo.BASIC.equals(credenziale.getTipo())){
 								try{
 									this.cache.remove(_getKey_getServizioApplicativoByCredenzialiBasic(credenziale.getUser(), credenziale.getPassword()));
-									this.getServizioApplicativoByCredenzialiBasic(connectionPdD, credenziale.getUser(), credenziale.getPassword());
+									this.getServizioApplicativoByCredenzialiBasic(connectionPdD, credenziale.getUser(), credenziale.getPassword(), configApplicativi);
+								}
+								catch(DriverConfigurazioneNotFound notFound){}
+								catch(Exception e){this.log.error("[prefill] errore"+e.getMessage(),e);}				
+							}
+							else if(CredenzialeTipo.APIKEY.equals(credenziale.getTipo())){
+								try{
+									this.cache.remove(_getKey_getServizioApplicativoByCredenzialiApiKey(credenziale.getUser(), credenziale.getPassword(), credenziale.isCertificateStrictVerification()));
+									this.getServizioApplicativoByCredenzialiApiKey(connectionPdD, credenziale.getUser(), credenziale.getPassword(), credenziale.isCertificateStrictVerification(), configApplicativi);
 								}
 								catch(DriverConfigurazioneNotFound notFound){}
 								catch(Exception e){this.log.error("[prefill] errore"+e.getMessage(),e);}				
@@ -1430,6 +1450,9 @@ public class ConfigurazionePdD  {
 						throw new DriverConfigurazioneException(e.getMessage(),e);
 					}
 				}
+				if("getServizioApplicativoByCredenzialiApiKey".equals(methodName) && i==2) {
+					classArgoments[i] = boolean.class;
+				}
 				values[i] = instances[i];
 			}
 		}
@@ -1538,6 +1561,9 @@ public class ConfigurazionePdD  {
 						throw new DriverConfigurazioneException(e.getMessage(),e);
 					}
 				}
+				if("getServizioApplicativoByCredenzialiApiKey".equals(methodNameParam) && i==2) {
+					classArgoments[i] = boolean.class;
+				}
 				values[i] = instances[i];
 			}
 		}
@@ -1578,6 +1604,9 @@ public class ConfigurazionePdD  {
 				}else if(classArgoments.length==3){
 					Method method =  this.configurazionePdD_controlloTraffico.getClass().getMethod(methodName, Connection.class, classArgoments[0],classArgoments[1],classArgoments[2]);
 					obj = method.invoke(this.configurazionePdD_controlloTraffico, connectionPdD,values[0],values[1],values[2]);
+				}else if(classArgoments.length==4){
+					Method method =  this.configurazionePdD_controlloTraffico.getClass().getMethod(methodName, Connection.class, classArgoments[0],classArgoments[1],classArgoments[2],classArgoments[3]);
+					obj = method.invoke(this.configurazionePdD_controlloTraffico, connectionPdD,values[0],values[1],values[2],values[3]);
 				}else
 					throw new Exception("Troppi argomenti per gestire la chiamata del metodo");
 			}
@@ -1596,6 +1625,9 @@ public class ConfigurazionePdD  {
 				}else if(classArgoments.length==3){
 					Method method =  driver.getClass().getMethod(methodName,classArgoments[0],classArgoments[1],classArgoments[2]);
 					obj = method.invoke(driver,values[0],values[1],values[2]);
+				}else if(classArgoments.length==4){
+					Method method =  driver.getClass().getMethod(methodName,classArgoments[0],classArgoments[1],classArgoments[2],classArgoments[3]);
+					obj = method.invoke(driver,values[0],values[1],values[2],values[3]);
 				}else
 					throw new Exception("Troppi argomenti per gestire la chiamata del metodo");
 			}
@@ -2531,7 +2563,7 @@ public class ConfigurazionePdD  {
 		key = key +"_"+aUser+"_"+aPassword;
 		return key;
 	}
-	public ServizioApplicativo getServizioApplicativoByCredenzialiBasic(Connection connectionPdD,String aUser,String aPassword)throws DriverConfigurazioneException,DriverConfigurazioneNotFound{
+	public ServizioApplicativo getServizioApplicativoByCredenzialiBasic(Connection connectionPdD,String aUser,String aPassword, CryptConfig config)throws DriverConfigurazioneException,DriverConfigurazioneNotFound{
 
 		// Raccolta dati
 		if(aUser == null)
@@ -2560,9 +2592,54 @@ public class ConfigurazionePdD  {
 		// Algoritmo CACHE
 		ServizioApplicativo s = null;
 		if(this.cache!=null){
-			s = (ServizioApplicativo) this.getObjectCache(key,"getServizioApplicativoByCredenzialiBasic",connectionPdD,CONFIGURAZIONE_PORTA,aUser,aPassword);
+			s = (ServizioApplicativo) this.getObjectCache(key,"getServizioApplicativoByCredenzialiBasic",connectionPdD,CONFIGURAZIONE_PORTA,aUser,aPassword, config);
 		}else{
-			s = (ServizioApplicativo) this.getObject("getServizioApplicativoByCredenzialiBasic",connectionPdD,CONFIGURAZIONE_PORTA,aUser,aPassword);
+			s = (ServizioApplicativo) this.getObject("getServizioApplicativoByCredenzialiBasic",connectionPdD,CONFIGURAZIONE_PORTA,aUser,aPassword, config);
+		}
+
+		if(s!=null)
+			return s;
+		else
+			throw new DriverConfigurazioneNotFound("Servizio Applicativo non trovato");
+	} 
+	
+	private String _getKey_getServizioApplicativoByCredenzialiApiKey(String aUser,String aPassword, boolean appId){
+		String key = (appId ? "getServizioApplicativoByCredenzialiMultipleApiKey_" : "getServizioApplicativoByCredenzialiApiKey_");
+		key = key +"_"+aUser+"_"+aPassword;
+		return key;
+	}
+	public ServizioApplicativo getServizioApplicativoByCredenzialiApiKey(Connection connectionPdD,String aUser,String aPassword, boolean appId, CryptConfig config)throws DriverConfigurazioneException,DriverConfigurazioneNotFound{
+
+		// Raccolta dati
+		if(aUser == null)
+			throw new DriverConfigurazioneException("[getServizioApplicativo]: Parametro non definito (username)");	
+		if(aPassword == null)
+			throw new DriverConfigurazioneException("[getServizioApplicativo]: Parametro non definito (password)");	
+		
+		// se e' attiva una cache provo ad utilizzarla
+		String key = null;	
+		if(this.cache!=null){
+			key = this._getKey_getServizioApplicativoByCredenzialiApiKey(aUser, aPassword, appId);
+			org.openspcoop2.utils.cache.CacheResponse response = 
+					(org.openspcoop2.utils.cache.CacheResponse) this.cache.get(key);
+			if(response != null){
+				if(response.getException()!=null){
+					if(DriverConfigurazioneNotFound.class.getName().equals(response.getException().getClass().getName()))
+						throw (DriverConfigurazioneNotFound) response.getException();
+					else
+						throw (DriverConfigurazioneException) response.getException();
+				}else{
+					return ((ServizioApplicativo) response.getObject());
+				}
+			}
+		}
+
+		// Algoritmo CACHE
+		ServizioApplicativo s = null;
+		if(this.cache!=null){
+			s = (ServizioApplicativo) this.getObjectCache(key,"getServizioApplicativoByCredenzialiApiKey",connectionPdD,CONFIGURAZIONE_PORTA,aUser,aPassword, appId, config);
+		}else{
+			s = (ServizioApplicativo) this.getObject("getServizioApplicativoByCredenzialiApiKey",connectionPdD,CONFIGURAZIONE_PORTA,aUser,aPassword, appId, config);
 		}
 
 		if(s!=null)

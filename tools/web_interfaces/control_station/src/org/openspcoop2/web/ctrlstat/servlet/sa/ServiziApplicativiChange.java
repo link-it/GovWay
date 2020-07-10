@@ -66,6 +66,7 @@ import org.openspcoop2.core.constants.TransferLengthModes;
 import org.openspcoop2.core.controllo_traffico.ConfigurazioneGenerale;
 import org.openspcoop2.core.id.IDServizioApplicativo;
 import org.openspcoop2.core.id.IDSoggetto;
+import org.openspcoop2.pdd.core.autenticazione.ApiKey;
 import org.openspcoop2.protocol.engine.ProtocolFactoryManager;
 import org.openspcoop2.protocol.sdk.IProtocolFactory;
 import org.openspcoop2.protocol.sdk.ProtocolException;
@@ -224,6 +225,8 @@ public final class ServiziApplicativiChange extends Action {
 			String subjectSA = saHelper.getParameter(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_SUBJECT);
 			String principalSA = saHelper.getParameter(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_PRINCIPAL);
 			
+			String changepwd = saHelper.getParameter(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_CHANGE_PASSWORD);
+					
 			String tipoCredenzialiSSLSorgente = saHelper.getParameter(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_CONFIGURAZIONE_SSL);
 			if(tipoCredenzialiSSLSorgente == null) {
 				tipoCredenzialiSSLSorgente = ConnettoriCostanti.VALUE_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_CONFIGURAZIONE_SSL_UPLOAD_CERTIFICATO;
@@ -265,6 +268,11 @@ public final class ServiziApplicativiChange extends Action {
 				tipoCredenzialiSSLWizardStep = ConnettoriCostanti.VALUE_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_CONFIGURAZIONE_SSL_NO_WIZARD;
 			}
 			String oldTipoCredenzialiSSLWizardStep = tipoCredenzialiSSLWizardStep;
+			
+			String multipleApiKey = saHelper.getParameter(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_MULTIPLE_API_KEYS);
+			String appId = saHelper.getParameter(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_APP_ID);
+			String apiKey = saHelper.getParameter(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_API_KEY);
+						
 			String sbustamentoInformazioniProtocolloRisposta = saHelper.getParameter(ServiziApplicativiCostanti.PARAMETRO_SERVIZI_APPLICATIVI_SBUSTAMENTO_INFO_PROTOCOLLO_RISPOSTA);
 			
 			String faultactor = saHelper.getParameter(ServiziApplicativiCostanti.PARAMETRO_SERVIZI_APPLICATIVI_FAULT_ACTOR);
@@ -406,6 +414,11 @@ public final class ServiziApplicativiChange extends Action {
 				}
 			}
 			
+			boolean encryptOldPlainPwd = false;
+			if(oldCredenziali!=null && org.openspcoop2.core.config.constants.CredenzialeTipo.BASIC.equals(oldCredenziali.getTipo())) {
+				encryptOldPlainPwd = !oldCredenziali.isCertificateStrictVerification() && saCore.isApplicativiPasswordEncryptEnabled(); 
+			}
+			
 			InvocazioneServizio is = sa.getInvocazioneServizio();
 			InvocazioneCredenziali cis = is.getCredenziali();
 			Connettore connis = is.getConnettore();
@@ -510,6 +523,33 @@ public final class ServiziApplicativiChange extends Action {
 						tipoCredenzialiSSLWizardStep = ConnettoriCostanti.VALUE_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_CONFIGURAZIONE_SSL_WIZARD_STEP_CARICA_CERTIFICATO;
 					} else {
 						tipoCredenzialiSSLWizardStep = ConnettoriCostanti.VALUE_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_CONFIGURAZIONE_SSL_NO_WIZARD;
+						
+						if(oldCredenziali!=null && oldCredenziali.getTipo()!=null) {
+							if(oldCredenziali.getTipo().getValue().equals(tipoauthSA)) {
+								if(ConnettoriCostanti.AUTENTICAZIONE_TIPO_BASIC.equals(tipoauthSA)) {
+									utenteSA = oldCredenziali.getUser();
+									passwordSA = oldCredenziali.getPassword();
+									tipoCredenzialiSSLVerificaTuttiICampi = oldCredenziali.isCertificateStrictVerification() ? Costanti.CHECK_BOX_ENABLED : Costanti.CHECK_BOX_DISABLED;
+								}
+								if(ConnettoriCostanti.AUTENTICAZIONE_TIPO_APIKEY.equals(tipoauthSA)) {
+									utenteSA = oldCredenziali.getUser();
+									passwordSA = oldCredenziali.getPassword();
+									tipoCredenzialiSSLVerificaTuttiICampi = oldCredenziali.isCertificateStrictVerification() ? Costanti.CHECK_BOX_ENABLED : Costanti.CHECK_BOX_DISABLED;
+									multipleApiKey = oldCredenziali.isAppId() ? Costanti.CHECK_BOX_ENABLED : Costanti.CHECK_BOX_DISABLED;
+									appId = oldCredenziali.getUser();
+									apiKey = oldCredenziali.getPassword();
+								}
+								if(ConnettoriCostanti.AUTENTICAZIONE_TIPO_PRINCIPAL.equals(tipoauthSA)) {
+									principalSA = oldCredenziali.getUser();
+								}
+							}
+							else {
+								if(ConnettoriCostanti.AUTENTICAZIONE_TIPO_BASIC.equals(tipoauthSA) ||
+										ConnettoriCostanti.AUTENTICAZIONE_TIPO_APIKEY.equals(tipoauthSA)) {
+									tipoCredenzialiSSLVerificaTuttiICampi = Costanti.CHECK_BOX_DISABLED; // dovrà essere re-effettuata la cifratura
+								}
+							}
+						}
 					}
 				}
 
@@ -571,6 +611,35 @@ public final class ServiziApplicativiChange extends Action {
 					tipoCredenzialiSSLAliasCertificatoSelfSigned= "";
 					tipoCredenzialiSSLAliasCertificatoNotBefore= "";
 					tipoCredenzialiSSLAliasCertificatoNotAfter = "";
+				}
+				
+				// Change Password basic/api
+				if(postBackElementName.equalsIgnoreCase(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_CHANGE_PASSWORD)) {
+					if(!ServletUtils.isCheckBoxEnabled(changepwd)) {
+						if (oldCredenziali != null){
+							if(ConnettoriCostanti.AUTENTICAZIONE_TIPO_BASIC.equals(tipoauthSA)) {
+								passwordSA = oldCredenziali.getPassword();
+								tipoCredenzialiSSLVerificaTuttiICampi = oldCredenziali.isCertificateStrictVerification() ? Costanti.CHECK_BOX_ENABLED : Costanti.CHECK_BOX_DISABLED;
+							}
+							if(ConnettoriCostanti.AUTENTICAZIONE_TIPO_APIKEY.equals(tipoauthSA)) {
+								passwordSA = oldCredenziali.getPassword();
+								tipoCredenzialiSSLVerificaTuttiICampi = oldCredenziali.isCertificateStrictVerification() ? Costanti.CHECK_BOX_ENABLED : Costanti.CHECK_BOX_DISABLED;
+								multipleApiKey = oldCredenziali.isAppId() ? Costanti.CHECK_BOX_ENABLED : Costanti.CHECK_BOX_DISABLED;
+								appId = oldCredenziali.getUser();
+								apiKey = oldCredenziali.getPassword();
+							}
+						}
+					}
+					else {
+						appId = null;
+						apiKey = null;
+					}
+				}
+				
+				// apikey
+				if(postBackElementName.equalsIgnoreCase(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_MULTIPLE_API_KEYS)) {
+					appId = null;
+					apiKey = null;
 				}
 			}
 			
@@ -703,6 +772,33 @@ public final class ServiziApplicativiChange extends Action {
 				pd.setLabelBottoneInvia(labelButtonSalva);
 			}
 			
+			boolean multipleApiKeysEnabled = false;
+			boolean appIdModificabile = ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_APP_ID_MODIFICABILE;
+			if(ConnettoriCostanti.AUTENTICAZIONE_TIPO_APIKEY.equals(tipoauthSA) ) {
+				multipleApiKeysEnabled = ServletUtils.isCheckBoxEnabled(multipleApiKey);
+				if(appIdModificabile && multipleApiKeysEnabled) {
+					boolean saDefined = nomeParameter!=null && !"".equals(nomeParameter) && 
+							idSoggetto!=null && 
+							idSoggetto.getTipo()!=null && !"".equals(idSoggetto.getTipo()) && 
+							idSoggetto.getNome()!=null && !"".equals(idSoggetto.getNome());
+					if(appId==null || "".equals(appId)) {
+						if( saDefined ) {
+							IDServizioApplicativo idSA = new IDServizioApplicativo();
+							idSA.setNome(nomeParameter);
+							idSA.setIdSoggettoProprietario(idSoggetto);
+							appId = saCore.toAppId(nomeProtocollo, idSA, multipleApiKeysEnabled);
+						}
+					}
+				}
+			}
+			
+			boolean modificataTipoAutenticazione = false;
+			if(oldCredenziali!=null && oldCredenziali.getTipo()!=null) {
+				if(!oldCredenziali.getTipo().getValue().equals(tipoauthSA)) {
+					modificataTipoAutenticazione = true;
+				}
+			}
+			
 			// Se nomehid = null, devo visualizzare la pagina per la modifica
 			// dati
 			if(saHelper.isEditModeInProgress() || checkWizard){
@@ -775,6 +871,15 @@ public final class ServiziApplicativiChange extends Action {
 							tipoauthSA = credenziali.getTipo().toString();
 						utenteSA = credenziali.getUser();
 						passwordSA = credenziali.getPassword();
+						if(tipoauthSA!=null && ConnettoriCostanti.AUTENTICAZIONE_TIPO_BASIC.equals(tipoauthSA)){
+							tipoCredenzialiSSLVerificaTuttiICampi = credenziali.isCertificateStrictVerification() ? Costanti.CHECK_BOX_ENABLED : Costanti.CHECK_BOX_DISABLED;
+						}
+						else if(tipoauthSA!=null && ConnettoriCostanti.AUTENTICAZIONE_TIPO_APIKEY.equals(tipoauthSA)){
+							tipoCredenzialiSSLVerificaTuttiICampi = credenziali.isCertificateStrictVerification() ? Costanti.CHECK_BOX_ENABLED : Costanti.CHECK_BOX_DISABLED;
+							multipleApiKey = credenziali.isAppId() ? Costanti.CHECK_BOX_ENABLED : Costanti.CHECK_BOX_DISABLED;
+							appId = credenziali.getUser();
+							apiKey = credenziali.getPassword();
+						}
 						principalSA = credenziali.getUser();
 						
 						if(credenziali.getCertificate() != null) {
@@ -1205,6 +1310,8 @@ public final class ServiziApplicativiChange extends Action {
 						tipoCredenzialiSSLAliasCertificatoType, tipoCredenzialiSSLAliasCertificatoVersion, tipoCredenzialiSSLAliasCertificatoSerialNumber, 
 						tipoCredenzialiSSLAliasCertificatoSelfSigned, tipoCredenzialiSSLAliasCertificatoNotBefore, tipoCredenzialiSSLAliasCertificatoNotAfter, 
 						tipoCredenzialiSSLVerificaTuttiICampi, tipoCredenzialiSSLConfigurazioneManualeSelfSigned, issuerSA,tipoCredenzialiSSLWizardStep,
+						changepwd,
+						multipleApiKey, appId, apiKey,
 						autenticazioneToken,token_policy,tipoSA, useAsClient,
 						integrationManagerEnabled);
 
@@ -1311,6 +1418,8 @@ public final class ServiziApplicativiChange extends Action {
 						tipoCredenzialiSSLAliasCertificatoType, tipoCredenzialiSSLAliasCertificatoVersion, tipoCredenzialiSSLAliasCertificatoSerialNumber, 
 						tipoCredenzialiSSLAliasCertificatoSelfSigned, tipoCredenzialiSSLAliasCertificatoNotBefore, tipoCredenzialiSSLAliasCertificatoNotAfter, 
 						tipoCredenzialiSSLVerificaTuttiICampi, tipoCredenzialiSSLConfigurazioneManualeSelfSigned, issuerSA,tipoCredenzialiSSLWizardStep,
+						changepwd,
+						multipleApiKey, appId, apiKey,
 						autenticazioneToken,token_policy,tipoSA, useAsClient,
 						integrationManagerEnabled);
 
@@ -1332,6 +1441,7 @@ public final class ServiziApplicativiChange extends Action {
 			
 			if(isApplicativiServerEnabled && tipoSA.equals(ServiziApplicativiCostanti.VALUE_SERVIZI_APPLICATIVI_TIPO_SERVER)) {
 				tipoauthSA = ConnettoriCostanti.AUTENTICAZIONE_TIPO_BASIC;
+				modificataTipoAutenticazione = false;
 			}
 			
 			if(ruoloFruitore==null){
@@ -1351,6 +1461,12 @@ public final class ServiziApplicativiChange extends Action {
 			
 			
 			// *** Invocazione Porta ***
+			
+			boolean secret = false;
+			String secret_password  = null;
+			String secret_user = null;
+			boolean secret_appId = false;
+			
 			boolean showInvocazionePortaStep1 = ( (interfacciaAvanzata && !isApplicativiServerEnabled) || !TipologiaFruizione.DISABILITATO.getValue().equals(ruoloFruitore));
 			boolean showInvocazionePortaStep2 = !showInvocazionePortaStep1 && (!saHelper.isModalitaCompleta() && TipologiaFruizione.DISABILITATO.getValue().equals(ruoloFruitore));
 			
@@ -1381,11 +1497,56 @@ public final class ServiziApplicativiChange extends Action {
 				credenziali.setTipo(CredenzialeTipo.toEnumConstant(tipoauthSA));
 				credenziali.setUser("");
 				credenziali.setPassword("");
+
+				ApiKey apiKeyGenerated = null;
+				
 				if (tipoauthSA.equals(ConnettoriCostanti.AUTENTICAZIONE_TIPO_BASIC)) {
 					credenziali.setUser(utenteSA);
 					credenziali.setPassword(passwordSA);
+
+					if(ServletUtils.isCheckBoxEnabled(changepwd) || modificataTipoAutenticazione) {
+						credenziali.setCertificateStrictVerification(false); // se è abilitata la cifratura, verrà impostata a true nel perform update
+						if(saCore.isApplicativiPasswordEncryptEnabled()) {
+							secret = true;
+						}
+					}
+					else if(encryptOldPlainPwd) {
+						secret = true;
+					}
+					else {
+						credenziali.setCertificateStrictVerification(ServletUtils.isCheckBoxEnabled(tipoCredenzialiSSLVerificaTuttiICampi));
+					}
 				} 
-				if (tipoauthSA.equals(ConnettoriCostanti.AUTENTICAZIONE_TIPO_SSL)) {
+				else if(ConnettoriCostanti.AUTENTICAZIONE_TIPO_APIKEY.equals(tipoauthSA)){
+					credenziali.setAppId(multipleApiKeysEnabled);
+					credenziali.setUser(appId);
+					credenziali.setPassword(apiKey);
+					if(ServletUtils.isCheckBoxEnabled(changepwd) || modificataTipoAutenticazione) {
+						credenziali.setCertificateStrictVerification(false); // se è abilitata la cifratura, verrà impostata a true nel perform update
+						IDServizioApplicativo idSA = new IDServizioApplicativo();
+						idSA.setNome(nomeParameter);
+						idSA.setIdSoggettoProprietario(idSoggetto);
+						if(multipleApiKeysEnabled) {
+							apiKeyGenerated = saCore.newMultipleApiKey();
+							if(!appIdModificabile) {
+								appId = saCore.toAppId(nomeProtocollo, idSA, multipleApiKeysEnabled);
+							}
+						}
+						else {
+							appId = saCore.toAppId(nomeProtocollo, idSA, multipleApiKeysEnabled);
+							apiKeyGenerated = saCore.newApiKey(nomeProtocollo, idSA);
+						}
+						credenziali.setUser(appId);
+						credenziali.setPassword(apiKeyGenerated.getPassword());
+						if(soggettiCore.isApplicativiPasswordEncryptEnabled()) {
+							secret = true;
+						}
+					}
+					else {
+						credenziali.setCertificateStrictVerification(ServletUtils.isCheckBoxEnabled(tipoCredenzialiSSLVerificaTuttiICampi));
+					}
+				}
+				else if (tipoauthSA.equals(ConnettoriCostanti.AUTENTICAZIONE_TIPO_SSL)) {
 					if(tipoCredenzialiSSLSorgente.equals(ConnettoriCostanti.VALUE_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_CONFIGURAZIONE_SSL_UPLOAD_CERTIFICATO)) {
 						Certificate cSelezionato = null;
 						
@@ -1413,10 +1574,21 @@ public final class ServiziApplicativiChange extends Action {
 						}
 					}
 				}
-				if (tipoauthSA.equals(ConnettoriCostanti.AUTENTICAZIONE_TIPO_PRINCIPAL)) {
+				else if (tipoauthSA.equals(ConnettoriCostanti.AUTENTICAZIONE_TIPO_PRINCIPAL)) {
 					credenziali.setUser(principalSA);
 				} 
 				ip.addCredenziali(credenziali);
+				
+				if(secret) {
+					secret_user = credenziali.getUser();
+					if (apiKeyGenerated!=null) {
+						secret_password = apiKeyGenerated.getApiKey();
+					}
+					else {
+						secret_password = credenziali.getPassword();
+					}
+					secret_appId = credenziali.isAppId();
+				}
 				
 				if(interfacciaAvanzata) {
 					if(credenziali.getTipo()!=null){
@@ -1453,7 +1625,52 @@ public final class ServiziApplicativiChange extends Action {
 					}
 					credenziali.setPassword(passwordSA);
 					
-					if(tipoauthSA !=null  && ConnettoriCostanti.AUTENTICAZIONE_TIPO_SSL.equals(tipoauthSA)) {
+					ApiKey apiKeyGenerated = null;
+					
+					if(tipoauthSA!=null && ConnettoriCostanti.AUTENTICAZIONE_TIPO_BASIC.equals(tipoauthSA)){
+						if(ServletUtils.isCheckBoxEnabled(changepwd) || modificataTipoAutenticazione) {
+							credenziali.setCertificateStrictVerification(false); // se è abilitata la cifratura, verrà impostata a true nel perform update
+							if(saCore.isApplicativiPasswordEncryptEnabled()) {
+								secret = true;
+							}
+						}
+						else if(encryptOldPlainPwd) {
+							secret = true;
+						}
+						else {
+							credenziali.setCertificateStrictVerification(ServletUtils.isCheckBoxEnabled(tipoCredenzialiSSLVerificaTuttiICampi));
+						}
+					}
+					else if(ConnettoriCostanti.AUTENTICAZIONE_TIPO_APIKEY.equals(tipoauthSA)){
+						credenziali.setAppId(multipleApiKeysEnabled);
+						credenziali.setUser(appId);
+						credenziali.setPassword(apiKey);
+						if(ServletUtils.isCheckBoxEnabled(changepwd) || modificataTipoAutenticazione) {
+							credenziali.setCertificateStrictVerification(false); // se è abilitata la cifratura, verrà impostata a true nel perform update
+							IDServizioApplicativo idSA = new IDServizioApplicativo();
+							idSA.setNome(nomeParameter);
+							idSA.setIdSoggettoProprietario(idSoggetto);
+							if(multipleApiKeysEnabled) {
+								apiKeyGenerated = saCore.newMultipleApiKey();
+								if(!appIdModificabile) {
+									appId = saCore.toAppId(nomeProtocollo, idSA, multipleApiKeysEnabled);
+								}
+							}
+							else {
+								appId = saCore.toAppId(nomeProtocollo, idSA, multipleApiKeysEnabled);
+								apiKeyGenerated = saCore.newApiKey(nomeProtocollo, idSA);
+							}
+							credenziali.setUser(appId);
+							credenziali.setPassword(apiKeyGenerated.getPassword());
+							if(soggettiCore.isApplicativiPasswordEncryptEnabled()) {
+								secret = true;
+							}
+						}
+						else {
+							credenziali.setCertificateStrictVerification(ServletUtils.isCheckBoxEnabled(tipoCredenzialiSSLVerificaTuttiICampi));
+						}
+					}
+					else if(tipoauthSA !=null  && ConnettoriCostanti.AUTENTICAZIONE_TIPO_SSL.equals(tipoauthSA)) {
 						if(tipoCredenzialiSSLSorgente.equals(ConnettoriCostanti.VALUE_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_CONFIGURAZIONE_SSL_UPLOAD_CERTIFICATO)) {
 							Certificate cSelezionato = null;
 							
@@ -1480,6 +1697,20 @@ public final class ServiziApplicativiChange extends Action {
 								credenziali.setIssuer(issuerSA);
 							}
 						}
+					}
+					else if (tipoauthSA.equals(ConnettoriCostanti.AUTENTICAZIONE_TIPO_PRINCIPAL)) {
+						credenziali.setUser(principalSA);
+					} 
+					
+					if(secret) {
+						secret_user = credenziali.getUser();
+						if (apiKeyGenerated!=null) {
+							secret_password = apiKeyGenerated.getApiKey();
+						}
+						else {
+							secret_password = credenziali.getPassword();
+						}
+						secret_appId = credenziali.isAppId();
 					}
 				}
 				else{
@@ -1596,6 +1827,12 @@ public final class ServiziApplicativiChange extends Action {
 			saCore.performUpdateOperation(userLogin, saHelper.smista(), listOggettiDaAggiornare.toArray());
 
 			saHelper.deleteBinaryParameters(tipoCredenzialiSSLFileCertificato); 
+		
+			// Messaggio 'Please Copy'
+			if(secret) {
+				saHelper.setSecretPleaseCopy(secret_password, secret_user, secret_appId, tipoauthSA, false, sa.getNome());
+			}
+			
 			// Preparo la lista
 			Search ricerca = (Search) ServletUtils.getSearchObjectFromSession(session, Search.class);
 

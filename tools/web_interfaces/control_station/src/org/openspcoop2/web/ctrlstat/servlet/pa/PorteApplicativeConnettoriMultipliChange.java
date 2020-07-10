@@ -161,7 +161,12 @@ public final class PorteApplicativeConnettoriMultipliChange extends Action {
 			String getmsg = porteApplicativeHelper.getParameter(ServiziApplicativiCostanti.PARAMETRO_SERVIZI_APPLICATIVI_MESSAGE_BOX);
 			String getmsgUsername = porteApplicativeHelper.getParameter(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_USERNAME);
 			String getmsgPassword = porteApplicativeHelper.getParameter(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_PASSWORD);
-
+			String changepwd = porteApplicativeHelper.getParameter(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_CHANGE_PASSWORD);
+			String tipoCredenzialiSSLVerificaTuttiICampi = porteApplicativeHelper.getParameter(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_CONFIGURAZIONE_SSL_VERIFICA_TUTTI_CAMPI);
+			if (tipoCredenzialiSSLVerificaTuttiICampi == null) {
+				tipoCredenzialiSSLVerificaTuttiICampi = Costanti.CHECK_BOX_DISABLED;
+			}
+			
 			String invrifRichiesta = porteApplicativeHelper.getParameter(ServiziApplicativiCostanti.PARAMETRO_SERVIZI_APPLICATIVI_INVIO_PER_RIFERIMENTO_RICHIESTA);
 
 			String risprif = porteApplicativeHelper.getParameter(ServiziApplicativiCostanti.PARAMETRO_SERVIZI_APPLICATIVI_RISPOSTA_PER_RIFERIMENTO);
@@ -375,6 +380,7 @@ public final class PorteApplicativeConnettoriMultipliChange extends Action {
 			boolean initConnettoreFromSA = false;
 			boolean initConnettore = false;
 			if(postBackElementName != null ){
+				
 				if(postBackElementName.equalsIgnoreCase(ConnettoriCostanti.PARAMETRO_CONNETTORE_ABILITA_USO_APPLICATIVO_SERVER)){
 					// devo resettare il connettore se passo da SA Server a Default
 					if(!erogazioneServizioApplicativoServerEnabled) {
@@ -503,6 +509,15 @@ public final class PorteApplicativeConnettoriMultipliChange extends Action {
 						} else {
 							initConnettore = true;
 						} 
+					}
+				}
+				
+				// Change Password basic/api
+				if(postBackElementName.equalsIgnoreCase(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_CHANGE_PASSWORD)) {
+					if(!ServletUtils.isCheckBoxEnabled(changepwd)) {
+						if (invocazionePorta != null && invocazionePorta.sizeCredenzialiList()>0){
+							getmsgPassword = invocazionePorta.getCredenziali(0).getPassword();
+						}
 					}
 				}
 			}
@@ -719,6 +734,7 @@ public final class PorteApplicativeConnettoriMultipliChange extends Action {
 										if(CredenzialeTipo.BASIC.equals(c.getTipo())) {
 											getmsgUsername = c.getUser();
 											getmsgPassword = c.getPassword();
+											tipoCredenzialiSSLVerificaTuttiICampi = c.isCertificateStrictVerification() ? Costanti.CHECK_BOX_ENABLED : Costanti.CHECK_BOX_DISABLED;
 											break;
 										}
 									}
@@ -1084,7 +1100,8 @@ public final class PorteApplicativeConnettoriMultipliChange extends Action {
 							invrifRichiesta,risprif,nomeProtocollo,true,true, true,
 							parentPA,serviceBinding, accessoDaAPSParametro, erogazioneServizioApplicativoServerEnabled,
 							null, false,
-							integrationManagerEnabled);
+							integrationManagerEnabled,
+							TipoOperazione.CHANGE, tipoCredenzialiSSLVerificaTuttiICampi, changepwd);
 
 					dati = porteApplicativeHelper.addEndPointToDati(dati, connettoreDebug, endpointtype, autenticazioneHttp, 
 							null, //(porteApplicativeHelper.isModalitaCompleta() || !multitenant)?null:AccordiServizioParteSpecificaCostanti.LABEL_APS_APPLICATIVO_INTERNO_PREFIX , 
@@ -1118,7 +1135,8 @@ public final class PorteApplicativeConnettoriMultipliChange extends Action {
 							invrifRichiesta,risprif,nomeProtocollo,true,true, true,
 							parentPA,serviceBinding, accessoDaAPSParametro, true,
 							null, false,
-							integrationManagerEnabled);
+							integrationManagerEnabled,
+							TipoOperazione.CHANGE, tipoCredenzialiSSLVerificaTuttiICampi, changepwd);
 
 					dati = porteApplicativeHelper.addEndPointSAServerToDatiAsHidden(dati, erogazioneServizioApplicativoServerEnabled, erogazioneServizioApplicativoServer);
 
@@ -1198,7 +1216,8 @@ public final class PorteApplicativeConnettoriMultipliChange extends Action {
 							invrifRichiesta,risprif,nomeProtocollo,true,true, true,
 							parentPA,serviceBinding, accessoDaAPSParametro, erogazioneServizioApplicativoServerEnabled,
 							null, false,
-							integrationManagerEnabled);
+							integrationManagerEnabled,
+							TipoOperazione.CHANGE, tipoCredenzialiSSLVerificaTuttiICampi, changepwd);
 
 					dati = porteApplicativeHelper.addEndPointToDati(dati, connettoreDebug, endpointtype, autenticazioneHttp, 
 							null, //(porteApplicativeHelper.isModalitaCompleta() || !multitenant)?null:AccordiServizioParteSpecificaCostanti.LABEL_APS_APPLICATIVO_INTERNO_PREFIX , 
@@ -1232,7 +1251,8 @@ public final class PorteApplicativeConnettoriMultipliChange extends Action {
 							invrifRichiesta,risprif,nomeProtocollo,true,true, true,
 							parentPA,serviceBinding, accessoDaAPSParametro, true,
 							null, false,
-							integrationManagerEnabled);
+							integrationManagerEnabled,
+							TipoOperazione.CHANGE, tipoCredenzialiSSLVerificaTuttiICampi, changepwd);
 
 					dati = porteApplicativeHelper.addEndPointSAServerToDatiAsHidden(dati, erogazioneServizioApplicativoServerEnabled, erogazioneServizioApplicativoServer);
 
@@ -1380,6 +1400,11 @@ public final class PorteApplicativeConnettoriMultipliChange extends Action {
 				}
 			}
 
+			boolean secret = false;
+			String secret_password  = null;
+			String secret_user = null;
+			boolean secret_appId = false;
+			
 			if(visualizzaSezioneConnettore) {
 				// la modifica del connettore  
 				idSA = new IDServizioApplicativo();
@@ -1579,6 +1604,7 @@ public final class PorteApplicativeConnettoriMultipliChange extends Action {
 
 						if(CostantiConfigurazione.ABILITATO.toString().equals(getmsg)) {
 							boolean found = false;
+							boolean encryptOldPlainPwd = false;
 							if(invocazionePorta!=null && invocazionePorta.sizeCredenzialiList()>0) {
 								for (int i = 0; i < invocazionePorta.sizeCredenzialiList(); i++) {
 									Credenziali c = invocazionePorta.getCredenziali(i);
@@ -1586,6 +1612,27 @@ public final class PorteApplicativeConnettoriMultipliChange extends Action {
 										c.setUser(getmsgUsername);
 										c.setPassword(getmsgPassword);
 										found = true;
+										
+										encryptOldPlainPwd = !c.isCertificateStrictVerification() && saCore.isApplicativiPasswordEncryptEnabled();
+										
+										if(ServletUtils.isCheckBoxEnabled(changepwd)) {
+											c.setCertificateStrictVerification(false); // se è abilitata la cifratura, verrà impostata a true nel perform update
+											if(saCore.isApplicativiPasswordEncryptEnabled()) {
+												secret = true;
+											}
+										}
+										else if(encryptOldPlainPwd) {
+											secret = true;
+										}
+										else {
+											c.setCertificateStrictVerification(ServletUtils.isCheckBoxEnabled(tipoCredenzialiSSLVerificaTuttiICampi));
+										}
+										
+										if(secret) {
+											secret_user = c.getUser();
+											secret_password = c.getPassword();
+											secret_appId = c.isAppId();
+										}
 									}
 								}
 							}
@@ -1598,6 +1645,18 @@ public final class PorteApplicativeConnettoriMultipliChange extends Action {
 								c.setTipo(CredenzialeTipo.BASIC);
 								c.setUser(getmsgUsername);
 								c.setPassword(getmsgPassword);
+								
+								c.setCertificateStrictVerification(false); // se è abilitata la cifratura, verrà impostata a true nel perform update
+								if(saCore.isApplicativiPasswordEncryptEnabled()) {
+									secret = true;
+								}
+								
+								if(secret) {
+									secret_user = c.getUser();
+									secret_password = c.getPassword();
+									secret_appId = c.isAppId();
+								}
+								
 								invocazionePorta.addCredenziali(c);
 							}
 						}
@@ -1728,6 +1787,11 @@ public final class PorteApplicativeConnettoriMultipliChange extends Action {
 			// ricarico la configurazione
 			pa = porteApplicativeCore.getPortaApplicativa(Integer.parseInt(idPorta));
 
+			// Messaggio 'Please Copy'
+			if(secret) {
+				porteApplicativeHelper.setSecretPleaseCopy(secret_password, secret_user, secret_appId, ConnettoriCostanti.AUTENTICAZIONE_TIPO_BASIC, false, null);
+			}
+			
 			// Preparo la lista
 			Search ricerca = (Search) ServletUtils.getSearchObjectFromSession(session, Search.class);
 

@@ -45,6 +45,7 @@ import org.openspcoop2.core.registry.ProtocolProperty;
 import org.openspcoop2.core.registry.Soggetto;
 import org.openspcoop2.core.registry.constants.CredenzialeTipo;
 import org.openspcoop2.core.registry.constants.PddTipologia;
+import org.openspcoop2.pdd.core.autenticazione.ApiKey;
 import org.openspcoop2.protocol.engine.ProtocolFactoryManager;
 import org.openspcoop2.protocol.sdk.IProtocolFactory;
 import org.openspcoop2.protocol.sdk.ProtocolException;
@@ -168,6 +169,9 @@ public final class SoggettiChange extends Action {
 			this.passwordSoggetto = soggettiHelper.getParameter(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_PASSWORD);
 			this.subjectSoggetto = soggettiHelper.getParameter(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_SUBJECT);
 			this.principalSoggetto = soggettiHelper.getParameter(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_PRINCIPAL);
+			
+			String changepwd = soggettiHelper.getParameter(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_CHANGE_PASSWORD);
+						
 			String tipoCredenzialiSSLSorgente = soggettiHelper.getParameter(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_CONFIGURAZIONE_SSL);
 			if(tipoCredenzialiSSLSorgente == null) {
 				tipoCredenzialiSSLSorgente = ConnettoriCostanti.VALUE_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_CONFIGURAZIONE_SSL_UPLOAD_CERTIFICATO;
@@ -209,6 +213,10 @@ public final class SoggettiChange extends Action {
 				tipoCredenzialiSSLWizardStep = ConnettoriCostanti.VALUE_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_CONFIGURAZIONE_SSL_NO_WIZARD;
 			}
 			String oldTipoCredenzialiSSLWizardStep = tipoCredenzialiSSLWizardStep;
+			
+			String multipleApiKey = soggettiHelper.getParameter(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_MULTIPLE_API_KEYS);
+			String appId = soggettiHelper.getParameter(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_APP_ID);
+			String apiKey = soggettiHelper.getParameter(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_API_KEY);
 			
 			this.modificaOperativo = soggettiHelper.getParameter(SoggettiCostanti.PARAMETRO_SOGGETTO_MODIFICA_OPERATIVO);
 	
@@ -262,6 +270,12 @@ public final class SoggettiChange extends Action {
 				oldtipoprov = soggettoConfig.getTipo();
 			}
 
+			boolean encryptOldPlainPwd = false;
+			if(soggettoRegistry!=null && soggettoRegistry.getCredenziali()!=null && 
+					org.openspcoop2.core.registry.constants.CredenzialeTipo.BASIC.equals(soggettoRegistry.getCredenziali().getTipo())) {
+				encryptOldPlainPwd = !soggettoRegistry.getCredenziali().isCertificateStrictVerification() && soggettiCore.isSoggettiPasswordEncryptEnabled(); 
+			}
+			
 			// Tipi protocollo supportati
 			List<String> listaTipiProtocollo = soggettiCore.getProtocolli(session);
 			//tipiSoggetti = soggettiCore.getTipiSoggettiGestiti(versioneProtocollo); // all tipi soggetti gestiti
@@ -412,6 +426,34 @@ public final class SoggettiChange extends Action {
 						tipoCredenzialiSSLWizardStep = ConnettoriCostanti.VALUE_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_CONFIGURAZIONE_SSL_WIZARD_STEP_CARICA_CERTIFICATO;
 					} else {
 						tipoCredenzialiSSLWizardStep = ConnettoriCostanti.VALUE_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_CONFIGURAZIONE_SSL_NO_WIZARD;
+						
+						if(oldCredenziali!=null && oldCredenziali.getTipo()!=null) {
+							if(oldCredenziali.getTipo().getValue().equals(this.tipoauthSoggetto)) {
+								if(ConnettoriCostanti.AUTENTICAZIONE_TIPO_BASIC.equals(this.tipoauthSoggetto)) {
+									this.utenteSoggetto = oldCredenziali.getUser();
+									this.passwordSoggetto = oldCredenziali.getPassword();
+									tipoCredenzialiSSLVerificaTuttiICampi = oldCredenziali.isCertificateStrictVerification() ? Costanti.CHECK_BOX_ENABLED : Costanti.CHECK_BOX_DISABLED;
+								}
+								if(ConnettoriCostanti.AUTENTICAZIONE_TIPO_APIKEY.equals(this.tipoauthSoggetto)) {
+									this.utenteSoggetto = oldCredenziali.getUser();
+									this.passwordSoggetto = oldCredenziali.getPassword();
+									tipoCredenzialiSSLVerificaTuttiICampi = oldCredenziali.isCertificateStrictVerification() ? Costanti.CHECK_BOX_ENABLED : Costanti.CHECK_BOX_DISABLED;
+									multipleApiKey = oldCredenziali.isAppId() ? Costanti.CHECK_BOX_ENABLED : Costanti.CHECK_BOX_DISABLED;
+									appId = oldCredenziali.getUser();
+									apiKey = oldCredenziali.getPassword();
+								}
+								if(ConnettoriCostanti.AUTENTICAZIONE_TIPO_PRINCIPAL.equals(this.tipoauthSoggetto)) {
+									this.principalSoggetto = oldCredenziali.getUser();
+								}
+							}
+							else {
+								if(ConnettoriCostanti.AUTENTICAZIONE_TIPO_BASIC.equals(this.tipoauthSoggetto) || 
+										ConnettoriCostanti.AUTENTICAZIONE_TIPO_APIKEY.equals(this.tipoauthSoggetto)) {
+									tipoCredenzialiSSLVerificaTuttiICampi = Costanti.CHECK_BOX_DISABLED; // dovrà essere re-effettuata la cifratura
+								}
+							}
+						}
+
 					}
 				}
 
@@ -473,6 +515,35 @@ public final class SoggettiChange extends Action {
 					tipoCredenzialiSSLAliasCertificatoSelfSigned= "";
 					tipoCredenzialiSSLAliasCertificatoNotBefore= "";
 					tipoCredenzialiSSLAliasCertificatoNotAfter = "";
+				}
+				
+				// Change Password basic/api
+				if(postBackElementName.equalsIgnoreCase(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_CHANGE_PASSWORD)) {
+					if(!ServletUtils.isCheckBoxEnabled(changepwd)) {
+						if (oldCredenziali != null){
+							if(ConnettoriCostanti.AUTENTICAZIONE_TIPO_BASIC.equals(this.tipoauthSoggetto)) {
+								this.passwordSoggetto = oldCredenziali.getPassword();
+								tipoCredenzialiSSLVerificaTuttiICampi = oldCredenziali.isCertificateStrictVerification() ? Costanti.CHECK_BOX_ENABLED : Costanti.CHECK_BOX_DISABLED;
+							}
+							if(ConnettoriCostanti.AUTENTICAZIONE_TIPO_APIKEY.equals(this.tipoauthSoggetto)) {
+								this.passwordSoggetto = oldCredenziali.getPassword();
+								tipoCredenzialiSSLVerificaTuttiICampi = oldCredenziali.isCertificateStrictVerification() ? Costanti.CHECK_BOX_ENABLED : Costanti.CHECK_BOX_DISABLED;
+								multipleApiKey = oldCredenziali.isAppId() ? Costanti.CHECK_BOX_ENABLED : Costanti.CHECK_BOX_DISABLED;
+								appId = oldCredenziali.getUser();
+								apiKey = oldCredenziali.getPassword();
+							}
+						}
+					}
+					else {
+						appId = null;
+						apiKey = null;
+					}
+				}
+				
+				// apikey
+				if(postBackElementName.equalsIgnoreCase(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_MULTIPLE_API_KEYS)) {
+					appId = null;
+					apiKey = null;
 				}
 			}
 			
@@ -606,6 +677,30 @@ public final class SoggettiChange extends Action {
 				pd.setLabelBottoneInvia(labelButtonSalva);
 			}
 			
+			boolean multipleApiKeysEnabled = false;
+			boolean appIdModificabile = ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_APP_ID_MODIFICABILE;
+			if(ConnettoriCostanti.AUTENTICAZIONE_TIPO_APIKEY.equals(this.tipoauthSoggetto)) {
+				multipleApiKeysEnabled = ServletUtils.isCheckBoxEnabled(multipleApiKey);
+				if(appIdModificabile && multipleApiKeysEnabled) {
+					boolean soggettoDefined =
+							idSoggetto!=null && 
+							idSoggetto.getTipo()!=null && !"".equals(idSoggetto.getTipo()) && 
+							idSoggetto.getNome()!=null && !"".equals(idSoggetto.getNome());
+					if(appId==null || "".equals(appId)) {
+						if(soggettoDefined) {
+							appId = soggettiCore.toAppId(this.protocollo, idSoggetto, multipleApiKeysEnabled);
+						}
+					}
+				}
+			}
+			
+			boolean modificataTipoAutenticazione = false;
+			if(oldCredenziali!=null && oldCredenziali.getTipo()!=null) {
+				if(!oldCredenziali.getTipo().getValue().equals(this.tipoauthSoggetto)) {
+					modificataTipoAutenticazione = true;
+				}
+			}
+			
 			// Se nomehid = null, devo visualizzare la pagina per la modifica dati
 			if(ServletUtils.isEditModeInProgress(this.editMode) || checkWizard){
 
@@ -664,6 +759,15 @@ public final class SoggettiChange extends Action {
 									this.tipoauthSoggetto = credenziali.getTipo().toString();
 								this.utenteSoggetto = credenziali.getUser();
 								this.passwordSoggetto = credenziali.getPassword();
+								if(this.tipoauthSoggetto!=null && ConnettoriCostanti.AUTENTICAZIONE_TIPO_BASIC.equals(this.tipoauthSoggetto)){
+									tipoCredenzialiSSLVerificaTuttiICampi = credenziali.isCertificateStrictVerification() ? Costanti.CHECK_BOX_ENABLED : Costanti.CHECK_BOX_DISABLED;
+								}
+								else if(this.tipoauthSoggetto!=null && ConnettoriCostanti.AUTENTICAZIONE_TIPO_APIKEY.equals(this.tipoauthSoggetto)){
+									tipoCredenzialiSSLVerificaTuttiICampi = credenziali.isCertificateStrictVerification() ? Costanti.CHECK_BOX_ENABLED : Costanti.CHECK_BOX_DISABLED;
+									multipleApiKey = credenziali.isAppId() ? Costanti.CHECK_BOX_ENABLED : Costanti.CHECK_BOX_DISABLED;
+									appId = credenziali.getUser();
+									apiKey = credenziali.getPassword();
+								}
 								this.principalSoggetto = credenziali.getUser();
 								
 								if(credenziali.getCertificate() != null) {
@@ -767,7 +871,9 @@ public final class SoggettiChange extends Action {
 						tipoCredenzialiSSLAliasCertificato, tipoCredenzialiSSLAliasCertificatoSubject, tipoCredenzialiSSLAliasCertificatoIssuer,
 						tipoCredenzialiSSLAliasCertificatoType, tipoCredenzialiSSLAliasCertificatoVersion, tipoCredenzialiSSLAliasCertificatoSerialNumber, 
 						tipoCredenzialiSSLAliasCertificatoSelfSigned, tipoCredenzialiSSLAliasCertificatoNotBefore, tipoCredenzialiSSLAliasCertificatoNotAfter, 
-						tipoCredenzialiSSLVerificaTuttiICampi, tipoCredenzialiSSLConfigurazioneManualeSelfSigned, issuerSoggetto,tipoCredenzialiSSLWizardStep);
+						tipoCredenzialiSSLVerificaTuttiICampi, tipoCredenzialiSSLConfigurazioneManualeSelfSigned, issuerSoggetto,tipoCredenzialiSSLWizardStep,
+						changepwd,
+						multipleApiKey, appId, apiKey);
 
 				// aggiunta campi custom
 				dati = soggettiHelper.addProtocolPropertiesToDatiRegistry(dati, this.consoleConfiguration,this.consoleOperationType, this.protocolProperties,oldProtocolPropertyList,propertiesProprietario);
@@ -853,7 +959,9 @@ public final class SoggettiChange extends Action {
 						tipoCredenzialiSSLAliasCertificato, tipoCredenzialiSSLAliasCertificatoSubject, tipoCredenzialiSSLAliasCertificatoIssuer,
 						tipoCredenzialiSSLAliasCertificatoType, tipoCredenzialiSSLAliasCertificatoVersion, tipoCredenzialiSSLAliasCertificatoSerialNumber, 
 						tipoCredenzialiSSLAliasCertificatoSelfSigned, tipoCredenzialiSSLAliasCertificatoNotBefore, tipoCredenzialiSSLAliasCertificatoNotAfter, 
-						tipoCredenzialiSSLVerificaTuttiICampi, tipoCredenzialiSSLConfigurazioneManualeSelfSigned, issuerSoggetto,tipoCredenzialiSSLWizardStep);
+						tipoCredenzialiSSLVerificaTuttiICampi, tipoCredenzialiSSLConfigurazioneManualeSelfSigned, issuerSoggetto,tipoCredenzialiSSLWizardStep,
+						changepwd,
+						multipleApiKey, appId, apiKey);
 
 				// aggiunta campi custom
 				dati = soggettiHelper.addProtocolPropertiesToDatiRegistry(dati, this.consoleConfiguration,this.consoleOperationType, this.protocolProperties,oldProtocolPropertyList,propertiesProprietario);
@@ -894,6 +1002,11 @@ public final class SoggettiChange extends Action {
 				identificativoPortaCalcolato = soggettiCore.getIdentificativoPortaDefault(this.protocollo, idSoggetto);
 			}
 
+			boolean secret = false;
+			String secret_password  = null;
+			String secret_user = null;
+			boolean secret_appId = false;
+			
 			if(soggettiCore.isRegistroServiziLocale()){
 
 				soggettoRegistry.setIdentificativoPorta(identificativoPortaCalcolato);
@@ -917,8 +1030,49 @@ public final class SoggettiChange extends Action {
 						}
 						credenziali.setPassword(this.passwordSoggetto);
 						
+						ApiKey apiKeyGenerated = null;
 						
-						if(ConnettoriCostanti.AUTENTICAZIONE_TIPO_SSL.equals(this.tipoauthSoggetto)) {
+						if(this.tipoauthSoggetto!=null && ConnettoriCostanti.AUTENTICAZIONE_TIPO_BASIC.equals(this.tipoauthSoggetto)){
+							if(ServletUtils.isCheckBoxEnabled(changepwd) || modificataTipoAutenticazione) {
+								credenziali.setCertificateStrictVerification(false); // se è abilitata la cifratura, verrà impostata a true nel perform update
+								if(soggettiCore.isSoggettiPasswordEncryptEnabled()) {
+									secret = true;
+								}
+							}
+							else if(encryptOldPlainPwd) {
+								secret = true;
+							}
+							else {
+								credenziali.setCertificateStrictVerification(ServletUtils.isCheckBoxEnabled(tipoCredenzialiSSLVerificaTuttiICampi));
+							}
+						}	
+						else if(this.tipoauthSoggetto!=null && ConnettoriCostanti.AUTENTICAZIONE_TIPO_APIKEY.equals(this.tipoauthSoggetto)){
+							credenziali.setAppId(multipleApiKeysEnabled);
+							credenziali.setUser(appId);
+							credenziali.setPassword(apiKey);
+							if(ServletUtils.isCheckBoxEnabled(changepwd) || modificataTipoAutenticazione) {
+								credenziali.setCertificateStrictVerification(false); // se è abilitata la cifratura, verrà impostata a true nel perform update
+								if(multipleApiKeysEnabled) {
+									apiKeyGenerated = soggettiCore.newMultipleApiKey();
+									if(!appIdModificabile) {
+										appId = soggettiCore.toAppId(this.protocollo, idSoggetto, multipleApiKeysEnabled);
+									}
+								}
+								else {
+									appId = soggettiCore.toAppId(this.protocollo, idSoggetto, multipleApiKeysEnabled);
+									apiKeyGenerated = soggettiCore.newApiKey(this.protocollo, idSoggetto);
+								}
+								credenziali.setUser(appId);
+								credenziali.setPassword(apiKeyGenerated.getPassword());
+								if(soggettiCore.isSoggettiPasswordEncryptEnabled()) {
+									secret = true;
+								}
+							}
+							else {
+								credenziali.setCertificateStrictVerification(ServletUtils.isCheckBoxEnabled(tipoCredenzialiSSLVerificaTuttiICampi));
+							}
+						}
+						else if(ConnettoriCostanti.AUTENTICAZIONE_TIPO_SSL.equals(this.tipoauthSoggetto)) {
 							if(tipoCredenzialiSSLSorgente.equals(ConnettoriCostanti.VALUE_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_CONFIGURAZIONE_SSL_UPLOAD_CERTIFICATO)) {
 								Certificate cSelezionato = null;
 								
@@ -946,8 +1100,20 @@ public final class SoggettiChange extends Action {
 								}
 							}
 						}
+						else if(ConnettoriCostanti.AUTENTICAZIONE_TIPO_PRINCIPAL.equals(this.tipoauthSoggetto)) {
+							credenziali.setUser(this.principalSoggetto);
+						} 
 						
-						
+						if(secret) {
+							secret_user = credenziali.getUser();
+							if (apiKeyGenerated!=null) {
+								secret_password = apiKeyGenerated.getApiKey();
+							}
+							else {
+								secret_password = credenziali.getPassword();
+							}
+							secret_appId = credenziali.isAppId();
+						}
 						
 						soggettoRegistry.setCredenziali(credenziali);
 					}
@@ -1030,6 +1196,11 @@ public final class SoggettiChange extends Action {
 			}
 			
 			soggettiHelper.deleteBinaryParameters(tipoCredenzialiSSLFileCertificato); 
+			
+			// Messaggio 'Please Copy'
+			if(secret) {
+				soggettiHelper.setSecretPleaseCopy(secret_password, secret_user, secret_appId, this.tipoauthSoggetto, true, sog.getNome());
+			}
 			
 			// preparo lista
 			Search ricerca = (Search) ServletUtils.getSearchObjectFromSession(session, Search.class);

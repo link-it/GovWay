@@ -96,6 +96,9 @@ import org.openspcoop2.utils.certificate.Certificate;
 import org.openspcoop2.utils.certificate.CertificateInfo;
 import org.openspcoop2.utils.certificate.CertificateUtils;
 import org.openspcoop2.utils.certificate.PrincipalType;
+import org.openspcoop2.utils.crypt.CryptConfig;
+import org.openspcoop2.utils.crypt.CryptFactory;
+import org.openspcoop2.utils.crypt.ICrypt;
 import org.openspcoop2.utils.transport.http.HttpUtilities;
 import org.slf4j.Logger;
 
@@ -1505,10 +1508,24 @@ implements IDriverRegistroServiziGet,IDriverRegistroServiziCRUD, IDriverWS,IMoni
 
 	@Override
 	public Soggetto getSoggettoByCredenzialiBasic(
-			String user,String password) throws DriverRegistroServiziException, DriverRegistroServiziNotFound{
+			String user,String password, 
+			CryptConfig config) throws DriverRegistroServiziException, DriverRegistroServiziNotFound{
 		return this._getSoggettoAutenticato(CredenzialeTipo.BASIC, user, password, 
 				null, null, null, false,
-				null);
+				null,
+				config,
+				false);
+	}
+	
+	@Override
+	public Soggetto getSoggettoByCredenzialiApiKey(
+			String user,String password, boolean appId, 
+			CryptConfig config) throws DriverRegistroServiziException, DriverRegistroServiziNotFound{
+		return this._getSoggettoAutenticato(CredenzialeTipo.BASIC, user, password, 
+				null, null, null, false,
+				null,
+				config,
+				appId);
 	}
 	
 	@Override
@@ -1516,14 +1533,18 @@ implements IDriverRegistroServiziGet,IDriverRegistroServiziCRUD, IDriverWS,IMoni
 			String subject, String issuer) throws DriverRegistroServiziException, DriverRegistroServiziNotFound{
 		return this._getSoggettoAutenticato(CredenzialeTipo.SSL, null, null, 
 				subject, issuer, null, false,
-				null);
+				null,
+				null,
+				false);
 	}
 	
 	@Override
 	public Soggetto getSoggettoByCredenzialiSsl(CertificateInfo certificate, boolean strictVerifier) throws DriverRegistroServiziException,DriverRegistroServiziNotFound{
 		return this._getSoggettoAutenticato(CredenzialeTipo.SSL, null, null, 
 				null, null, certificate, strictVerifier,
-				null);
+				null,
+				null,
+				false);
 	}
 	
 	@Override
@@ -1531,11 +1552,15 @@ implements IDriverRegistroServiziGet,IDriverRegistroServiziCRUD, IDriverWS,IMoni
 			String principal) throws DriverRegistroServiziException, DriverRegistroServiziNotFound{
 		return this._getSoggettoAutenticato(CredenzialeTipo.PRINCIPAL, null, null, 
 				null, null, null, false,
-				principal);
+				principal,
+				null,
+				false);
 	}
 	private org.openspcoop2.core.registry.Soggetto _getSoggettoAutenticato(CredenzialeTipo tipoCredenziale, String user,String password, 
 			String aSubject, String aIssuer, CertificateInfo aCertificate, boolean aStrictVerifier, 
-			String principal) throws DriverRegistroServiziException,DriverRegistroServiziNotFound{
+			String principal, 
+			CryptConfig config,
+			boolean appId) throws DriverRegistroServiziException,DriverRegistroServiziNotFound{
 		
 		// conrollo consistenza
 		if (tipoCredenziale == null)
@@ -1547,6 +1572,12 @@ implements IDriverRegistroServiziGet,IDriverRegistroServiziCRUD, IDriverWS,IMoni
 				throw new DriverRegistroServiziException("[getSoggettoAutenticato] Parametro user is null (required for basic auth)");
 			if (password == null || "".equalsIgnoreCase(password))
 				throw new DriverRegistroServiziException("[getSoggettoAutenticato] Parametro password is null (required for basic auth)");
+			break;
+		case APIKEY:
+			if (user == null || "".equalsIgnoreCase(user))
+				throw new DriverRegistroServiziException("[getSoggettoAutenticato] Parametro user is null (required for apikey auth)");
+			if (password == null || "".equalsIgnoreCase(password))
+				throw new DriverRegistroServiziException("[getSoggettoAutenticato] Parametro password is null (required for apikey auth)");
 			break;
 		case SSL:
 			if ( (aSubject == null || "".equalsIgnoreCase(aSubject)) && (aCertificate==null))
@@ -1568,6 +1599,11 @@ implements IDriverRegistroServiziGet,IDriverRegistroServiziCRUD, IDriverWS,IMoni
 				credenzialiSoggetto.setUser(user);
 				credenzialiSoggetto.setPassword(password);
 				break;
+			case APIKEY:
+				credenzialiSoggetto.setUser(user);
+				credenzialiSoggetto.setPassword(password);
+				credenzialiSoggetto.setAppId(appId);
+				break;
 			case SSL:
 				credenzialiSoggetto.setSubject(aSubject);
 				credenzialiSoggetto.setIssuer(aIssuer);
@@ -1584,7 +1620,7 @@ implements IDriverRegistroServiziGet,IDriverRegistroServiziCRUD, IDriverWS,IMoni
 				credenzialiSoggetto.setUser(principal);
 				break;
 			}
-			filtroRicerca.setCredenzialiSoggetto(credenzialiSoggetto);
+			filtroRicerca.setCredenzialiSoggetto(credenzialiSoggetto, config);
 			List<IDSoggetto> l = this.getAllIdSoggetti(filtroRicerca);
 			if(l.size()>1){
 				throw new DriverRegistroServiziException("Trovato più di un soggetto che possiede le credenziali '"+tipoCredenziale.toString()+"' fornite");
@@ -1620,6 +1656,38 @@ implements IDriverRegistroServiziGet,IDriverRegistroServiziCRUD, IDriverWS,IMoni
 			if(ssList==null)
 				throw new DriverRegistroServiziNotFound("Soggetti non esistenti nel repository WEB");
 
+			boolean testInChiaro = false;
+			ICrypt crypt = null;
+			if(filtroRicerca!=null && filtroRicerca.getCredenzialiSoggetto()!=null && filtroRicerca.getCredenzialiSoggetto().getPassword()!=null){
+				CredenzialeTipo cTipo = filtroRicerca.getCredenzialiSoggetto().getTipo();
+				if(CredenzialeTipo.BASIC.equals(cTipo)){
+					CryptConfig config = filtroRicerca.getCryptConfig();
+					if(config==null || config.isBackwardCompatibility()) {
+						testInChiaro = true;
+					}
+					if(config!=null) {
+						try {
+							crypt = CryptFactory.getCrypt(this.log, config);
+						}catch(Exception e) {
+							throw new DriverRegistroServiziException(e.getMessage(),e);
+						}
+					}
+				}
+				else if(CredenzialeTipo.APIKEY.equals(cTipo)){
+					CryptConfig config = filtroRicerca.getCryptConfig();
+					if(config!=null) {
+						try {
+							crypt = CryptFactory.getCrypt(this.log, config);
+						}catch(Exception e) {
+							throw new DriverRegistroServiziException(e.getMessage(),e);
+						}
+					}
+					else {
+						testInChiaro = true;
+					}
+				}
+			}
+			
 			// Esamina dei soggetti
 			List<IDSoggetto> idSoggetti = new ArrayList<IDSoggetto>();
 			for(int i=0; i<ssList.length; i++){
@@ -1705,6 +1773,18 @@ implements IDriverRegistroServiziGet,IDriverRegistroServiziCRUD, IDriverWS,IMoni
 								if(filtroRicerca.getCredenzialiSoggetto().getTipo().equals(credenziali.getTipo())==false){
 									continue;
 								}
+								if(CredenzialeTipo.APIKEY.equals(filtroRicerca.getCredenzialiSoggetto().getTipo())){
+									if(filtroRicerca.getCredenzialiSoggetto().isAppId()) {
+										if(!credenziali.isAppId()) {
+											continue;
+										}
+									}
+									else {
+										if(credenziali.isAppId()) {
+											continue;
+										}
+									}
+								}
 							}
 						}
 						if(filtroRicerca.getCredenzialiSoggetto().getUser()!=null){
@@ -1713,7 +1793,16 @@ implements IDriverRegistroServiziGet,IDriverRegistroServiziCRUD, IDriverWS,IMoni
 							}
 						}
 						if(filtroRicerca.getCredenzialiSoggetto().getPassword()!=null){
-							if(filtroRicerca.getCredenzialiSoggetto().getPassword().equals(credenziali.getPassword())==false){
+							String passwordSaved =  credenziali.getPassword();
+							boolean found = false;
+							if(testInChiaro) {
+								found = filtroRicerca.getCredenzialiSoggetto().getPassword().equals(passwordSaved);
+							}
+							if(!found && crypt!=null) {
+								found = crypt.check(filtroRicerca.getCredenzialiSoggetto().getPassword(), passwordSaved);
+							}
+							
+							if( !found ) {
 								continue;
 							}
 						}

@@ -639,13 +639,13 @@ public class ArchiviHelper extends ServiziApplicativiHelper {
 					List<ExtendedConnettore> listExtendedConnettore = 
 							ServletExtendedConnettoreUtils.getExtendedConnettore(is.getConnettore(), ConnettoreServletType.WIZARD_CONFIG, this, false, endpointtype);
 					
-					boolean isOk = saHelper.servizioApplicativoEndPointCheckData(null, listExtendedConnettore);
+					boolean isOk = saHelper.servizioApplicativoEndPointCheckData(null, listExtendedConnettore, null);
 					if (!isOk) {
 						return false;
 					}
 					
 					if(StatoFunzionalita.ABILITATO.equals(is.getGetMessage())){
-						isOk = this.credenzialiCheckData(TipoOperazione.ADD);
+						isOk = this.credenzialiCheckData(TipoOperazione.ADD, false, this.saCore.isApplicativiPasswordEncryptEnabled(), this.saCore.getApplicativiPasswordVerifier());
 						if (!isOk) {
 							return false;
 						}
@@ -688,7 +688,7 @@ public class ArchiviHelper extends ServiziApplicativiHelper {
 				Credenziali credenziali = this.readCredenzialiSA();
 				if(credenziali!=null){
 					ConnettoriHelper connettoriHelper = new ConnettoriHelper(this.request, this.pd, this.session);
-					boolean isOk = connettoriHelper.credenzialiCheckData(TipoOperazione.ADD);
+					boolean isOk = connettoriHelper.credenzialiCheckData(TipoOperazione.ADD, false, this.saCore.isApplicativiPasswordEncryptEnabled(), this.saCore.getApplicativiPasswordVerifier());
 					if (!isOk) {
 						return false;
 					}
@@ -2311,7 +2311,8 @@ public class ArchiviHelper extends ServiziApplicativiHelper {
 						getmsg,getmsgUsername,getmsgPassword,true,
 						null,null,protocollo,false,true, showSection, null,null, null, erogazioneServizioApplicativoServerEnabled,
 						null, false,
-						integrationManagerEnabled);
+						integrationManagerEnabled,
+						TipoOperazione.ADD, null, null);
 							
 				boolean forceEnabled = true; // non ha senso non fornire un connettore a meno che non vi sia la possibilita' di utilizzare l'integration manager
 				boolean showSectionTitle = false;
@@ -2509,6 +2510,12 @@ public class ArchiviHelper extends ServiziApplicativiHelper {
 		subject = this.getParameter(readedDatiConnettori,defaultProperties,ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_SUBJECT);
 		principal = this.getParameter(readedDatiConnettori,defaultProperties,ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_PRINCIPAL);
 		
+		String changepwd = this.getParameter(readedDatiConnettori,defaultProperties,ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_CHANGE_PASSWORD);
+		
+		String multipleApiKey = this.getParameter(readedDatiConnettori,defaultProperties,ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_MULTIPLE_API_KEYS);
+		String appId = this.getParameter(readedDatiConnettori,defaultProperties,ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_APP_ID);
+		String apiKey = this.getParameter(readedDatiConnettori,defaultProperties,ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_API_KEY);
+		
 		if(tipoauth==null || tipoauth.equals(ConnettoriCostanti.AUTENTICAZIONE_TIPO_NESSUNA)){
 			tipoauth = this.saCore.getAutenticazione_generazioneAutomaticaPorteDelegate();
 		} 
@@ -2548,13 +2555,15 @@ public class ArchiviHelper extends ServiziApplicativiHelper {
 		// controllo dei postback
 		
 		//}true,endpointtype,true,false, prefix, true
-		dati =	this.addCredenzialiToDati(dati, tipoauth, utente, password, subject, principal,
+		dati =	this.addCredenzialiToDati(dati, tipoauth, null, utente, password, subject, principal,
 				ServiziApplicativiCostanti.SERVLET_NAME_SERVIZI_APPLICATIVI_ADD, showSectionTitle, null, false, true, null, true, 
 				tipoCredenzialiSSLSorgente, tipoCredenzialiSSLTipoArchivio, tipoCredenzialiSSLFileCertificato, tipoCredenzialiSSLFileCertificatoPassword, listaAliasEstrattiCertificato, 
 				tipoCredenzialiSSLAliasCertificato, tipoCredenzialiSSLAliasCertificatoSubject, tipoCredenzialiSSLAliasCertificatoIssuer,
 				tipoCredenzialiSSLAliasCertificatoType, tipoCredenzialiSSLAliasCertificatoVersion, tipoCredenzialiSSLAliasCertificatoSerialNumber, 
 				tipoCredenzialiSSLAliasCertificatoSelfSigned, tipoCredenzialiSSLAliasCertificatoNotBefore, tipoCredenzialiSSLAliasCertificatoNotAfter, 
-				tipoCredenzialiSSLVerificaTuttiICampi, tipoCredenzialiSSLConfigurazioneManualeSelfSigned, issuer, tipoCredenzialiSSLStatoElaborazioneCertificato); 
+				tipoCredenzialiSSLVerificaTuttiICampi, tipoCredenzialiSSLConfigurazioneManualeSelfSigned, issuer, tipoCredenzialiSSLStatoElaborazioneCertificato,
+				changepwd, 
+				multipleApiKey, appId, apiKey); 
 	}
 	
 	private void addDatiConnettore(Vector<DataElement> dati, boolean readedDatiConnettori, Default defaultProperties,

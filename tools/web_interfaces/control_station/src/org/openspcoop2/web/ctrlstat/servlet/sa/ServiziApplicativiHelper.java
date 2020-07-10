@@ -34,6 +34,7 @@ import org.openspcoop2.core.commons.ISearch;
 import org.openspcoop2.core.commons.Liste;
 import org.openspcoop2.core.commons.SearchUtils;
 import org.openspcoop2.core.config.Connettore;
+import org.openspcoop2.core.config.Credenziali;
 import org.openspcoop2.core.config.InvocazioneServizio;
 import org.openspcoop2.core.config.PortaApplicativa;
 import org.openspcoop2.core.config.PortaApplicativaServizioApplicativo;
@@ -73,6 +74,8 @@ import org.openspcoop2.protocol.sdk.constants.ProfiloDiCollaborazione;
 import org.openspcoop2.utils.certificate.ArchiveLoader;
 import org.openspcoop2.utils.certificate.ArchiveType;
 import org.openspcoop2.utils.certificate.Certificate;
+import org.openspcoop2.utils.crypt.PasswordGenerator;
+import org.openspcoop2.utils.crypt.PasswordVerifier;
 import org.openspcoop2.web.ctrlstat.core.ControlStationCore;
 import org.openspcoop2.web.ctrlstat.core.Search;
 import org.openspcoop2.web.ctrlstat.costanti.CostantiControlStation;
@@ -114,7 +117,7 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 	}
 
 	// Controlla i dati dell'invocazione servizio del servizioApplicativo
-	public boolean servizioApplicativoEndPointCheckData(String protocollo, List<ExtendedConnettore> listExtendedConnettore)
+	public boolean servizioApplicativoEndPointCheckData(String protocollo, List<ExtendedConnettore> listExtendedConnettore, ServizioApplicativo saOld)
 			throws Exception {
 		try{
 			String sbustamento= this.getParameter(ServiziApplicativiCostanti.PARAMETRO_SERVIZI_APPLICATIVI_SBUSTAMENTO_SOAP);
@@ -182,16 +185,77 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 					return false;
 				}
 				if (getmsg!=null && getmsg.equals(CostantiConfigurazione.ABILITATO.toString()) ){
+					
+					boolean add = true;
+					if(saOld!=null && saOld.getInvocazionePorta()!=null && saOld.getInvocazionePorta().sizeCredenzialiList()>0) {
+						Credenziali c = saOld.getInvocazionePorta().getCredenziali(0);
+						if(CredenzialeTipo.BASIC.equals(c.getTipo())) {
+							add = false;
+						}
+					}
+					boolean encryptEnabled = this.saCore.isApplicativiPasswordEncryptEnabled();
+					
+					boolean validaPassword = false;
+					if(add || !encryptEnabled) {
+						validaPassword = true;
+					}
+					else {
+						String changePwd = this.getParameter(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_CHANGE_PASSWORD);
+						if(ServletUtils.isCheckBoxEnabled(changePwd)) {
+							validaPassword = true;
+						}
+					}
+					
+					boolean passwordEmpty = false;
+					if(validaPassword) {
+						if(getmsgPassword==null || getmsgPassword.equals("")) {
+							passwordEmpty = true;
+						}
+					}
+					
 					if(getmsgUsername==null || "".equals(getmsgUsername)) {
 						this.pd.setMessage("Dati incompleti. E' necessario indicare 'Username' per il servizio '"+ServiziApplicativiCostanti.LABEL_SERVIZIO_MESSAGE_BOX+"'");
 						return false;
 					}
-					if(getmsgPassword==null || "".equals(getmsgPassword)) {
+					if(passwordEmpty) {
 						this.pd.setMessage("Dati incompleti. E' necessario indicare 'Password' per il servizio '"+ServiziApplicativiCostanti.LABEL_SERVIZIO_MESSAGE_BOX+"'");
 						return false;
 					}
-					if (((getmsgUsername.indexOf(" ") != -1) || (getmsgPassword.indexOf(" ") != -1))) {
+					if (((getmsgUsername.indexOf(" ") != -1) || (validaPassword && getmsgPassword.indexOf(" ") != -1))) {
 						this.pd.setMessage("Non inserire spazi nei campi di testo");
+						return false;
+					}
+					
+					if(validaPassword) {
+						PasswordVerifier passwordVerifier = this.saCore.getApplicativiPasswordVerifier();
+						if(passwordVerifier!=null){
+							StringBuilder motivazioneErrore = new StringBuilder();
+							if(passwordVerifier.validate(getmsgUsername, getmsgPassword, motivazioneErrore)==false){
+								this.pd.setMessage(motivazioneErrore.toString());
+								return false;
+							}
+						}
+					}
+					
+					// recupera lista servizi applicativi con stesse credenziali
+					boolean checkPassword = this.saCore.isApplicativiCredenzialiBasicCheckUniqueUsePassword(); // la password non viene utilizzata per riconoscere se l'username e' già utilizzato.
+					List<ServizioApplicativo> saList = this.saCore.servizioApplicativoWithCredenzialiBasicList(getmsgUsername, getmsgPassword, checkPassword);
+
+					for (int i = 0; i < saList.size(); i++) {
+						ServizioApplicativo sa = saList.get(i);
+
+						if(saOld!=null && saOld.getId().longValue() == sa.getId().longValue()) {
+							continue;
+						}
+
+						// Messaggio di errore
+						String labelSoggetto = this.getLabelNomeSoggetto(new IDSoggetto(sa.getTipoSoggettoProprietario(), sa.getNomeSoggettoProprietario()));
+						if(sa.getTipo()!=null && StringUtils.isNotEmpty(sa.getTipo())) {
+							this.pd.setMessage("L'applicativo "+sa.getNome()+" (soggetto: "+labelSoggetto+") possiede già le credenziali basic indicate");
+						}
+						else {
+							this.pd.setMessage("L'erogazione "+sa.getNome()+" possiede già le credenziali basic indicate per il servizio '"+ServiziApplicativiCostanti.LABEL_SERVIZIO_MESSAGE_BOX+"'");
+						}
 						return false;
 					}
 				}
@@ -262,6 +326,8 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 			String tipoCredenzialiSSLAliasCertificatoType, String tipoCredenzialiSSLAliasCertificatoVersion, String tipoCredenzialiSSLAliasCertificatoSerialNumber, String tipoCredenzialiSSLAliasCertificatoSelfSigned,
 			String tipoCredenzialiSSLAliasCertificatoNotBefore, String tipoCredenzialiSSLAliasCertificatoNotAfter, String tipoCredenzialiSSLVerificaTuttiICampi, String tipoCredenzialiSSLConfigurazioneManualeSelfSigned,
 			String issuer,String tipoCredenzialiSSLStatoElaborazioneCertificato,
+			String changepwd,
+			String multipleApiKey, String appId, String apiKey,
 			boolean autenticazioneToken, String tokenPolicy, String tipoSA, boolean useAsClient,
 			boolean integrationManagerEnabled) throws Exception {
 
@@ -380,6 +446,7 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 		
 		
 		ServizioApplicativo sa = null;
+		String oldtipoauth = null;
 		String nomePdd = null;
 		// se operazione change visualizzo i link per invocazione servizio,
 		// risposta asincrona
@@ -401,6 +468,18 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 				nomeSoggetto = soggetto.getNome();
 			}
 
+			// oldtipoauth
+			if(sa.getInvocazionePorta()!=null && sa.getInvocazionePorta().sizeCredenzialiList()>0) {
+				// prendo il primo
+				CredenzialeTipo tipo = sa.getInvocazionePorta().getCredenziali(0).getTipo();
+				if(tipo!=null) {
+					oldtipoauth = tipo.getValue();
+				}
+				else {
+					oldtipoauth = ConnettoriCostanti.AUTENTICAZIONE_TIPO_NESSUNA;
+				}
+			}
+			
 			// soggetto proprietario
 			de = new DataElement();
 			if(multitenant && !this.isSoggettoMultitenantSelezionato()) {
@@ -730,12 +809,14 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 			}
 			
 			if(!dominioEsternoProfiloModIPA) {
-				dati = this.addCredenzialiToDati(dati, tipoauth, utente, password, subject, principal, servlet, showLabelCredenzialiAccesso, null, false, visualizzaTipoAutenticazione, null, true,
+				dati = this.addCredenzialiToDati(dati, tipoauth, oldtipoauth, utente, password, subject, principal, servlet, showLabelCredenzialiAccesso, null, false, visualizzaTipoAutenticazione, null, true,
 						tipoCredenzialiSSLSorgente, tipoCredenzialiSSLTipoArchivio, tipoCredenzialiSSLFileCertificato, tipoCredenzialiSSLFileCertificatoPassword,listaAliasEstrattiCertificato, 
 						tipoCredenzialiSSLAliasCertificato, tipoCredenzialiSSLAliasCertificatoSubject, tipoCredenzialiSSLAliasCertificatoIssuer,
 						tipoCredenzialiSSLAliasCertificatoType, tipoCredenzialiSSLAliasCertificatoVersion, tipoCredenzialiSSLAliasCertificatoSerialNumber, 
 						tipoCredenzialiSSLAliasCertificatoSelfSigned, tipoCredenzialiSSLAliasCertificatoNotBefore, tipoCredenzialiSSLAliasCertificatoNotAfter, 
 						tipoCredenzialiSSLVerificaTuttiICampi, tipoCredenzialiSSLConfigurazioneManualeSelfSigned, issuer, tipoCredenzialiSSLStatoElaborazioneCertificato,
+						changepwd,
+						multipleApiKey, appId, apiKey,
 						subtitleConfigSslCredenziali);
 			}
 			else {
@@ -792,12 +873,14 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 					dati.addElement(de);
 				}
 				
-				dati = this.addCredenzialiToDati(dati, tipoauth, utente, password, subject, principal, servlet, showLabelCredenzialiAccesso, null, false, visualizzaTipoAutenticazione, null, true,
+				dati = this.addCredenzialiToDati(dati, tipoauth, oldtipoauth, utente, password, subject, principal, servlet, showLabelCredenzialiAccesso, null, false, visualizzaTipoAutenticazione, null, true,
 						tipoCredenzialiSSLSorgente, tipoCredenzialiSSLTipoArchivio, tipoCredenzialiSSLFileCertificato, tipoCredenzialiSSLFileCertificatoPassword,listaAliasEstrattiCertificato, 
 						tipoCredenzialiSSLAliasCertificato, tipoCredenzialiSSLAliasCertificatoSubject, tipoCredenzialiSSLAliasCertificatoIssuer,
 						tipoCredenzialiSSLAliasCertificatoType, tipoCredenzialiSSLAliasCertificatoVersion, tipoCredenzialiSSLAliasCertificatoSerialNumber, 
 						tipoCredenzialiSSLAliasCertificatoSelfSigned, tipoCredenzialiSSLAliasCertificatoNotBefore, tipoCredenzialiSSLAliasCertificatoNotAfter, 
 						tipoCredenzialiSSLVerificaTuttiICampi, tipoCredenzialiSSLConfigurazioneManualeSelfSigned, issuer, tipoCredenzialiSSLStatoElaborazioneCertificato,
+						changepwd,
+						multipleApiKey, appId, apiKey,
 						subtitleConfigSslCredenziali);
 			}
 			
@@ -1039,7 +1122,8 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 					getmsg, utente, password, true, invrif,risprif,nomeProtocollo,false,true, true,
 					parentSA,null,null,servizioApplicativoServerEnabled,
 					tipoSA, useAsClient,
-					integrationManagerEnabled);
+					integrationManagerEnabled,
+					tipoOperazione, tipoCredenzialiSSLVerificaTuttiICampi, changepwd);
 			
 			if(!applicativiServerEnabled && TipologiaFruizione.DISABILITATO.equals(ruoloFruitore) &&
 					CostantiConfigurazione.ABILITATO.equals(getmsg)){
@@ -1061,12 +1145,15 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 				if (principal == null) {
 					principal = "";
 				}
-				dati = this.addCredenzialiToDati(dati, tipoauth, utente, password, subject, principal, servlet, true, null, false, true, null, true,
+				dati = this.addCredenzialiToDati(dati, tipoauth, oldtipoauth, utente, password, subject, principal, servlet, true, null, false, true, null, true,
 						tipoCredenzialiSSLSorgente, tipoCredenzialiSSLTipoArchivio, tipoCredenzialiSSLFileCertificato, tipoCredenzialiSSLFileCertificatoPassword, listaAliasEstrattiCertificato, 
 						tipoCredenzialiSSLAliasCertificato, tipoCredenzialiSSLAliasCertificatoSubject, tipoCredenzialiSSLAliasCertificatoIssuer,
 						tipoCredenzialiSSLAliasCertificatoType, tipoCredenzialiSSLAliasCertificatoVersion, tipoCredenzialiSSLAliasCertificatoSerialNumber, 
 						tipoCredenzialiSSLAliasCertificatoSelfSigned, tipoCredenzialiSSLAliasCertificatoNotBefore, tipoCredenzialiSSLAliasCertificatoNotAfter, 
-						tipoCredenzialiSSLVerificaTuttiICampi, tipoCredenzialiSSLConfigurazioneManualeSelfSigned, issuer, tipoCredenzialiSSLStatoElaborazioneCertificato);
+						tipoCredenzialiSSLVerificaTuttiICampi, tipoCredenzialiSSLConfigurazioneManualeSelfSigned, issuer, tipoCredenzialiSSLStatoElaborazioneCertificato,
+						changepwd,
+						multipleApiKey, appId, apiKey
+						);
 				
 			}
 			
@@ -1290,6 +1377,18 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 					return false;
 				}
 			}
+			else if(tipoOperazione.equals(TipoOperazione.CHANGE)) {
+				long idSa = 0;
+				boolean giaRegistrato = this.saCore.existsServizioApplicativo(idSA);
+				if (giaRegistrato) {
+					ServizioApplicativo sa = this.saCore.getServizioApplicativo(idSA);
+					idSa = sa.getId().longValue();
+					if ( saOld==null || (saOld.getId().longValue() != idSa)) {
+						this.pd.setMessage("Il Servizio Applicativo " + nome + " &egrave; gi&agrave; stato registrato per il soggetto scelto.");
+						return false;
+					}
+				}
+			}
 
 			if (tipoOperazione.equals(TipoOperazione.CHANGE)) {
 				
@@ -1391,7 +1490,12 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 			}
 
 			
-			if(this.credenzialiCheckData(tipoOperazione)==false){
+			boolean oldPasswordCifrata = false;
+			if(saOld!=null && saOld.getInvocazionePorta()!=null && saOld.getInvocazionePorta().sizeCredenzialiList()>0 && saOld.getInvocazionePorta().getCredenziali(0).isCertificateStrictVerification()) {
+				oldPasswordCifrata = true;
+			}
+			boolean encryptEnabled = this.saCore.isApplicativiPasswordEncryptEnabled();
+			if(this.credenzialiCheckData(tipoOperazione,oldPasswordCifrata, encryptEnabled, this.saCore.getApplicativiPasswordVerifier())==false){
 				return false;
 			}
 			
@@ -1408,7 +1512,7 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 				issuer = null;
 			}
 			String principal = this.getParameter(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_PRINCIPAL);
-			
+
 			// Se sono presenti credenziali, controllo che non siano gia'
 			// utilizzate da altri soggetti
 			if (tipoauth.equals(ConnettoriCostanti.AUTENTICAZIONE_TIPO_BASIC)) {
@@ -1458,10 +1562,76 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 
 					// Messaggio di errore
 					String labelSoggetto = this.getLabelNomeSoggetto(new IDSoggetto(sa.getTipoSoggettoProprietario(), sa.getNomeSoggettoProprietario()));
-					this.pd.setMessage("L'applicativo "+sa.getNome()+" (soggetto: "+labelSoggetto+") possiede già le credenziali basic indicate.");
+					if(sa.getTipo()!=null && StringUtils.isNotEmpty(sa.getTipo())) {
+						this.pd.setMessage("L'applicativo "+sa.getNome()+" (soggetto: "+labelSoggetto+") possiede già le credenziali basic indicate");
+					}
+					else {
+						this.pd.setMessage("L'erogazione "+sa.getNome()+" possiede già le credenziali basic indicate per il servizio '"+ServiziApplicativiCostanti.LABEL_SERVIZIO_MESSAGE_BOX+"'");
+					}
 					return false;
 				}
-			} else if (tipoauth.equals(ConnettoriCostanti.AUTENTICAZIONE_TIPO_SSL)) {
+			}
+			else if (tipoauth.equals(ConnettoriCostanti.AUTENTICAZIONE_TIPO_APIKEY)) {
+				// Univocita garantita dal meccanismo di generazione delle chiavi
+				/*
+				// Viene calcolato String appId = this.getParameter(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_APP_ID);
+				String multipleApiKeys = this.getParameter(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_MULTIPLE_API_KEYS);
+				
+				// recupera lista servizi applicativi con stesse credenziali
+				boolean multipleApiKeysEnabled = ServletUtils.isCheckBoxEnabled(multipleApiKeys);
+				String appId = this.saCore.toAppId(protocollo, idSA, multipleApiKeysEnabled);
+				List<ServizioApplicativo> saList = this.saCore.servizioApplicativoWithCredenzialiApiKeyList(appId,multipleApiKeysEnabled);
+
+				String portaDominio = null;
+				if(this.core.isRegistroServiziLocale()){
+					Soggetto soggettoToCheck = tipoOperazione.equals(TipoOperazione.CHANGE) ? 
+							this.soggettiCore.getSoggettoRegistro(idProvOld) : this.soggettiCore.getSoggettoRegistro(newProv);
+							portaDominio = soggettoToCheck.getPortaDominio();
+				}
+
+				for (int i = 0; i < saList.size(); i++) {
+					ServizioApplicativo sa = saList.get(i);
+
+					//String tipoNomeSoggetto = null;
+
+					if(this.core.isRegistroServiziLocale()){
+
+						// bugfix #66
+						// controllo se soggetto appartiene a nal diversi, in tal
+						// caso e' possibile
+						// avere stesse credenziali
+						// Raccolgo informazioni soggetto
+						Soggetto tmpSoggettoProprietarioSa = this.soggettiCore.getSoggettoRegistro(sa.getIdSoggetto());
+						//tipoNomeSoggetto = tmpSoggettoProprietarioSa.getTipo() + "/" + tmpSoggettoProprietarioSa.getNome();
+
+						// se appartengono a nal diversi allora va bene continuo
+						if (!portaDominio.equals(tmpSoggettoProprietarioSa.getPortaDominio()))
+							continue;
+					}
+					else{
+
+						//org.openspcoop2.core.config.Soggetto tmpSoggettoProprietarioSa = this.soggettiCore.getSoggetto(sa.getIdSoggetto());
+						//tipoNomeSoggetto = tmpSoggettoProprietarioSa.getTipo() + "/" + tmpSoggettoProprietarioSa.getNome();
+
+					}
+
+					if ((tipoOperazione.equals(TipoOperazione.CHANGE)) && (nome.equals(sa.getNome())) && (idProvOld == sa.getIdSoggetto())) {
+						continue;
+					}
+					if(saOld!=null && tipoOperazione.equals(TipoOperazione.CHANGE) && saOld.getId().longValue() == sa.getId().longValue()) {
+						continue;
+					}
+
+					// Messaggio di errore
+					String labelSoggetto = this.getLabelNomeSoggetto(new IDSoggetto(sa.getTipoSoggettoProprietario(), sa.getNomeSoggettoProprietario()));
+					String tipoCredenzialiApiKey = ServletUtils.isCheckBoxEnabled(multipleApiKeys) ? ConnettoriCostanti.LABEL_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_MULTIPLE_API_KEYS_DESCR : ConnettoriCostanti.LABEL_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_API_KEY;
+					this.pd.setMessage("L'applicativo "+sa.getNome()+" (soggetto: "+labelSoggetto+") possiede già una credenziale '"+tipoCredenzialiApiKey+"' con identico '"+ConnettoriCostanti.LABEL_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_APP_ID+"'");
+
+					return false;
+				}
+				*/
+			}
+			else if (tipoauth.equals(ConnettoriCostanti.AUTENTICAZIONE_TIPO_SSL)) {
 				String tipoCredenzialiSSLSorgente = this.getParameter(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_CONFIGURAZIONE_SSL);
 				if(tipoCredenzialiSSLSorgente == null) {
 					tipoCredenzialiSSLSorgente = ConnettoriCostanti.VALUE_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_CONFIGURAZIONE_SSL_CONFIGURAZIONE_MANUALE;
@@ -1624,7 +1794,7 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 			}
 			
 			if(validaEndPoint){
-				boolean isOk = this.servizioApplicativoEndPointCheckData(protocollo, listExtendedConnettore);
+				boolean isOk = this.servizioApplicativoEndPointCheckData(protocollo, listExtendedConnettore, saOld);
 				if (!isOk) {
 					return false;
 				}
@@ -1761,6 +1931,9 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 				String filterTipoSA = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_TIPO_SERVIZIO_APPLICATIVO);
 				this.addFilterTipoServizioApplicativo(filterTipoSA,false);
 			}
+			
+			String filterTipoCredenziali = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_TIPO_CREDENZIALI);
+			this.addFilterTipoCredenziali(filterTipoCredenziali,false);
 			
 			String filterRuolo = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_RUOLO);
 			addFilterRuolo(filterRuolo, false);
@@ -2179,33 +2352,14 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 	
 	public void addEndPointToDati(Vector<DataElement> dati,
 			String idsil,String nomeservizioApplicativo,String sbustamento,String sbustamentoInformazioniProtocolloRichiesta,
-			String getmsg,
-			String invrif,String risprif, String nomeProtocollo, boolean showName,
-			boolean isInvocazioneServizio, boolean showTitleTrattamentoMessaggio,
-			Integer parentSA, ServiceBinding serviceBinding,
-			String accessoDaAPSParametro, boolean servizioApplicativoServerEnabled,
-			String tipoSA, boolean useAsClient,
-			boolean integrationManagerEnabled) throws Exception{
-		this.addEndPointToDati(dati, 
-				idsil, nomeservizioApplicativo, sbustamento, sbustamentoInformazioniProtocolloRichiesta, 
-				getmsg, null, null, true, 
-				invrif, risprif, nomeProtocollo, showName, 
-				isInvocazioneServizio, showTitleTrattamentoMessaggio, 
-				parentSA, serviceBinding, 
-				accessoDaAPSParametro, servizioApplicativoServerEnabled,
-				tipoSA, useAsClient,
-				integrationManagerEnabled);
-	}
-	
-	public void addEndPointToDati(Vector<DataElement> dati,
-			String idsil,String nomeservizioApplicativo,String sbustamento,String sbustamentoInformazioniProtocolloRichiesta,
 			String getmsg,String usernameGetMsg, String passwordGetMsg,boolean gestioneCredenzialiGetMsg,
 			String invrif,String risprif, String nomeProtocollo, boolean showName,
 			boolean isInvocazioneServizio, boolean showTitleTrattamentoMessaggio,
 			Integer parentSA, ServiceBinding serviceBinding,
 			String accessoDaAPSParametro, boolean servizioApplicativoServerEnabled, 
 			String tipoSA, boolean useAsClient,
-			boolean integrationManagerEnabled) throws Exception{
+			boolean integrationManagerEnabled,
+			TipoOperazione tipoOperazione, String tipoCredenzialiSSLVerificaTuttiICampi, String changepwd) throws Exception{
 		
 		if(servizioApplicativoServerEnabled) {
 			this.addEndPointToDatiAsHidden(dati, idsil, nomeservizioApplicativo, sbustamento,
@@ -2411,23 +2565,81 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 				de.setRequired(true);
 				dati.addElement(de);
 	
-				de = new DataElement();
-				de.setLabel(ConnettoriCostanti.LABEL_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_PASSWORD);
-				de.setValue(StringEscapeUtils.escapeHtml(passwordGetMsg));
-				if(integrationManagerEnabled) {
-					//de.setType(DataElementType.TEXT_EDIT);
-					// Nuova visualizzazione Password con bottone genera password
-					de.setType(DataElementType.CRYPT);
-					de.getPassword().setVisualizzaPasswordChiaro(true);
-					de.getPassword().setVisualizzaBottoneGeneraPassword(true);
+				boolean change = TipoOperazione.CHANGE.equals(tipoOperazione);
+				
+				boolean passwordCifrata = ServletUtils.isCheckBoxEnabled(tipoCredenzialiSSLVerificaTuttiICampi); // tipoCredenzialiSSLVerificaTuttiICampi usata come informazione per sapere se una password e' cifrata o meno
+				
+				if(change && passwordCifrata ){
+					DataElement deModifica = new DataElement();
+					deModifica.setLabel(ConnettoriCostanti.LABEL_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_MODIFICA_PASSWORD);
+					deModifica.setType(DataElementType.CHECKBOX);
+					deModifica.setName(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_CHANGE_PASSWORD);
+					deModifica.setPostBack(true);
+					deModifica.setSelected(changepwd);
+					deModifica.setSize(this.getSize());
+					dati.addElement(deModifica);
+					
+					DataElement deCifratura = new DataElement();
+					deCifratura.setName(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_CONFIGURAZIONE_SSL_VERIFICA_TUTTI_CAMPI);
+					deCifratura.setType(DataElementType.HIDDEN);
+					deCifratura.setValue(tipoCredenzialiSSLVerificaTuttiICampi);
+					dati.add(deCifratura);
+					
+				}
+				
+				if( (!change) || (!passwordCifrata) || (ServletUtils.isCheckBoxEnabled(changepwd)) ){
+				
+					de = new DataElement();
+					if(ServletUtils.isCheckBoxEnabled(changepwd)) {
+						de.setLabel(ConnettoriCostanti.LABEL_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_NUOVA_PASSWORD);
+					}
+					else {
+						de.setLabel(ConnettoriCostanti.LABEL_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_PASSWORD);
+					}
+					if(change && passwordCifrata && ServletUtils.isCheckBoxEnabled(changepwd) ){
+						de.setValue(null); // non faccio vedere una password cifrata
+					}
+					else{
+						de.setValue(StringEscapeUtils.escapeHtml(passwordGetMsg));
+					}
+					if(integrationManagerEnabled) {
+						//de.setType(DataElementType.TEXT_EDIT);
+						// Nuova visualizzazione Password con bottone genera password
+						de.setType(DataElementType.CRYPT);
+						de.getPassword().setVisualizzaPasswordChiaro(true);
+						de.getPassword().setVisualizzaBottoneGeneraPassword(true);
+						
+						PasswordVerifier passwordVerifier = null;
+						boolean isBasicPasswordEnableConstraints = this.connettoriCore.isApplicativiBasicPasswordEnableConstraints();
+						int lunghezzaPasswordGenerate= this.connettoriCore.getApplicativiBasicLunghezzaPasswordGenerate();
+						if(isBasicPasswordEnableConstraints) {
+							passwordVerifier = this.connettoriCore.getApplicativiPasswordVerifier();
+						}
+						if(passwordVerifier != null) {
+							PasswordGenerator passwordGenerator = new PasswordGenerator(passwordVerifier);
+							de.getPassword().setPasswordGenerator(passwordGenerator);
+							de.setNote(passwordVerifier.help("<BR/>"));
+						}
+						de.getPassword().getPasswordGenerator().setDefaultLength(lunghezzaPasswordGenerate);						
+					}
+					else {
+						de.setType(DataElementType.HIDDEN);
+					}
+					de.setName(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_PASSWORD);
+					de.setSize(this.getSize());
+					de.setRequired(true);
+					dati.addElement(de);
+					
 				}
 				else {
+					
+					de = new DataElement();
 					de.setType(DataElementType.HIDDEN);
+					de.setName(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_PASSWORD);
+					de.setValue(StringEscapeUtils.escapeHtml(passwordGetMsg));
+					dati.addElement(de);
+					
 				}
-				de.setName(ConnettoriCostanti.PARAMETRO_CREDENZIALI_AUTENTICAZIONE_PASSWORD);
-				de.setSize(this.getSize());
-				de.setRequired(true);
-				dati.addElement(de);
 				
 				if(ServiziApplicativiCostanti.VALUE_SERVIZI_APPLICATIVI_TIPO_SERVER.equals(tipoSA)) {
 					de = new DataElement();
