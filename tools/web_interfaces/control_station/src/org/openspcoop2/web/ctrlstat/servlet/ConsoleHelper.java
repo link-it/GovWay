@@ -266,6 +266,8 @@ import org.openspcoop2.web.lib.mvc.Costanti;
 import org.openspcoop2.web.lib.mvc.DataElement;
 import org.openspcoop2.web.lib.mvc.DataElementInfo;
 import org.openspcoop2.web.lib.mvc.DataElementType;
+import org.openspcoop2.web.lib.mvc.Dialog;
+import org.openspcoop2.web.lib.mvc.Dialog.BodyElement;
 import org.openspcoop2.web.lib.mvc.MenuEntry;
 import org.openspcoop2.web.lib.mvc.PageData;
 import org.openspcoop2.web.lib.mvc.Parameter;
@@ -15544,8 +15546,6 @@ public class ConsoleHelper implements IConsoleHelper {
 	}
 	
 	public void setSecretPleaseCopy(String secret_password, String secret_user, boolean appId, String tipoAuth, boolean soggetti, String nome) {
-		String labelPassword = null;
-		String labelUtente = null;
 		String nomeP = nome!=null ? " "+nome : "";
 		String tipoOggetto = null;
 		if(soggetti) {
@@ -15559,31 +15559,70 @@ public class ConsoleHelper implements IConsoleHelper {
 				tipoOggetto = "all'erogazione";
 			}
 		}
+		
+		String header1= "";
+		BodyElement utente = Dialog.newBodyElement();
+		utente.setVisualizzaCopyAction(true);
+		BodyElement password = Dialog.newBodyElement();
+		password.setVisualizzaCopyAction(true);
+		
 		if (ConnettoriCostanti.AUTENTICAZIONE_TIPO_BASIC.equals(tipoAuth)) {
-			labelUtente= "- "+ConnettoriCostanti.LABEL_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_USERNAME+": "+secret_user;
-			labelPassword= "- "+ConnettoriCostanti.LABEL_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_PASSWORD+": "+secret_password;
+			utente.setLabel(ConnettoriCostanti.LABEL_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_USERNAME);
+			utente.setType(DataElementType.TEXT_EDIT);
+			utente.setValue(secret_user);
+			utente.setTooltipCopyAction(MessageFormat.format(Costanti.TOOLTIP_ICONA_COPIA, ConnettoriCostanti.LABEL_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_USERNAME));
+			
+			password.setLabel(ConnettoriCostanti.LABEL_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_PASSWORD);
+			password.setType(DataElementType.TEXT_EDIT);
+			password.setValue(secret_password);
+			password.setTooltipCopyAction(MessageFormat.format(Costanti.TOOLTIP_ICONA_COPIA, ConnettoriCostanti.LABEL_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_PASSWORD));
+			
+			header1 = "Per favore copiare la " + ConnettoriCostanti.LABEL_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_PASSWORD ;
 		}
 		else if (ConnettoriCostanti.AUTENTICAZIONE_TIPO_APIKEY.equals(tipoAuth)) {
 			if(appId) {
-				labelUtente= "- "+ConnettoriCostanti.LABEL_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_APP_ID+": "+secret_user;
+				utente.setLabel(ConnettoriCostanti.LABEL_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_APP_ID);
+				utente.setType(DataElementType.TEXT_EDIT);
+				utente.setValue(secret_user);
+				utente.setTooltipCopyAction(MessageFormat.format(Costanti.TOOLTIP_ICONA_COPIA, ConnettoriCostanti.LABEL_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_APP_ID));
+			} else {
+				utente = null;
 			}
-			labelPassword= "- "+ConnettoriCostanti.LABEL_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_API_KEY+": "+secret_password;
+			
+			password.setLabel(ConnettoriCostanti.LABEL_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_API_KEY);
+			password.setType(DataElementType.TEXT_AREA);
+			password.setValue(secret_password);
+			password.setTooltipCopyAction(MessageFormat.format(Costanti.TOOLTIP_ICONA_COPIA, ConnettoriCostanti.LABEL_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_API_KEY));
+			password.setCols(44);
+			
+			header1 = "Per favore copiare l'" + ConnettoriCostanti.LABEL_PARAMETRO_CREDENZIALI_AUTENTICAZIONE_API_KEY ;
 		}
 		
-		//String warn = "<b>!! Attenzione !!</b>";
-		String intestazione = StringEscapeUtils.escapeHtml("Le credenziali associate "+tipoOggetto+" sono le seguenti: ");
+		String intestazione = StringEscapeUtils.escapeHtml("Le credenziali associate "+tipoOggetto+" sono le seguenti, si prega di copiarle e custodirle attentamente, non saranno visibili nei prossimi accessi alla pagina.");
 		String attenzione = StringEscapeUtils.escapeHtml("Si prega di copiarle e custodirle attentamente.");
-		StringBuilder sb = new StringBuilder();
-		String newLine = "<br/>";
-		//sb.append(warn).append(newLine).append(newLine);
-		sb.append(intestazione).append(newLine);
-		if(labelUtente!=null) {
-			sb.append(labelUtente).append(newLine);
+		
+		Dialog dialog = new Dialog();
+		
+		dialog.setTitolo(Costanti.MESSAGE_TYPE_WARN_TITLE);
+		dialog.setHeaderRiga1(header1);
+		dialog.setHeaderRiga2(intestazione);
+		
+		if(utente!=null) {
+			dialog.addBodyElement(utente);
 		}
-		if(labelPassword!=null) {
-			sb.append(labelPassword).append(newLine);
+		if(password!=null) {
+			dialog.addBodyElement(password);
 		}
-		sb.append(newLine).append(attenzione);
-		this.pd.setMessage(sb.toString(), org.openspcoop2.web.lib.mvc.MessageType.WARN);
+
+		dialog.setNotaFinale(attenzione);
+		
+		
+		String[][] bottoni = { 
+				{ Costanti.LABEL_MONITOR_BUTTON_CHIUDI, "" }
+				};
+		
+		this.pd.setBottoni(bottoni);
+		
+		this.pd.setDialog(dialog);
 	}
 }
