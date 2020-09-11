@@ -29,7 +29,11 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import java.util.Map;
-
+import java.util.Properties;
+import java.util.HashMap;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.IOException;
 /**
  *
  */
@@ -38,14 +42,27 @@ import java.util.Map;
 public class MockProxyTest {
     
     private static FeatureServer server;
-    private static Map<String,Object> mockConfig = Map.of(
+    private static final String propFileName = "mock.properties";
+
+    /*private static Map<String,Object> mockConfig = Map.of(
         "url_invocazione_erogazione", "http://localhost:8080/govway/rest/in/DemoSoggettoErogatore/ApiDemoBlockingRest/v1"
-    );
+    );*/
     
     @BeforeClass
-    public static void beforeClass() {       
+    public static void beforeClass() throws FileNotFoundException, IOException {       
+
+        // TODO: Utilizzare FileUtils.isOsWindows per determinare se siamo su windows o su mac
+    	InputStream inputStream = MockProxyTest.class.getClassLoader().getResourceAsStream(propFileName);
+        Properties prop = new Properties();
+ 
+        if (inputStream != null) {
+            prop.load(inputStream);
+        } else {
+            throw new FileNotFoundException("property file '" + propFileName + "' not found in the classpath");
+        }
+
         File file = FileUtils.getFileRelativeTo(MockProxyTest.class, "modipa-mock.feature");
-        server = FeatureServer.start(file, 8090, false, mockConfig);
+        server = FeatureServer.start(file, Integer.valueOf(prop.getProperty("http_port")), false, new HashMap<String,Object>((Map) prop));
     }
         
     @AfterClass
