@@ -18,7 +18,7 @@
  *
  */
 
-package org.openspcoop2.core.protocolli.modipa.testsuite;
+package org.openspcoop2.core.protocolli.modipa.testsuite.https_echo;
 
 import com.intuit.karate.FileUtils;
 import com.intuit.karate.KarateOptions;
@@ -32,28 +32,8 @@ import java.util.Map;
 
 /**
  *
- * @author pthomas3
  */
 @RunWith(Karate.class)
-@KarateOptions(features = "classpath:test/modipa-test.feature")
-public class ModiPAMockTest {
-    
-    private static FeatureServer server;
-    private static Map<String,Object> mockConfig = Map.of(
-        "url_invocazione_erogazione", "http://localhost:8080/govway/rest/in/DemoSoggettoErogatore/ApiDemoBlockingRest/v1"
-    );
-    
-    @BeforeClass
-    public static void beforeClass() {       
-        File file = FileUtils.getFileRelativeTo(ModiPAMockTest.class, "modipa-mock.feature");
-        server = FeatureServer.start(file, 8090, false, mockConfig);
-        //String paymentServiceUrl = "http://localhost:" + server.getPort();
-        //System.setProperty("payment.service.url", paymentServiceUrl);
-    }
-        
-    @AfterClass
-    public static void afterClass() {
-        server.stop();        
-    }     
+public class EchoHttpsTest {
     
 }
