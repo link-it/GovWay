@@ -43,10 +43,6 @@ public class MockProxyTest {
     
     private static FeatureServer server;
     private static final String propFileName = "mock.properties";
-
-    /*private static Map<String,Object> mockConfig = Map.of(
-        "url_invocazione_erogazione", "http://localhost:8080/govway/rest/in/DemoSoggettoErogatore/ApiDemoBlockingRest/v1"
-    );*/
     
     @BeforeClass
     public static void beforeClass() throws FileNotFoundException, IOException {       
@@ -63,6 +59,7 @@ public class MockProxyTest {
 
         File file = FileUtils.getFileRelativeTo(MockProxyTest.class, "modipa-mock.feature");
         server = FeatureServer.start(file, Integer.valueOf(prop.getProperty("http_port")), false, new HashMap<String,Object>((Map) prop));
+        System.setProperty("govway_base_path", prop.getProperty("govway_base_path"));
     }
         
     @AfterClass

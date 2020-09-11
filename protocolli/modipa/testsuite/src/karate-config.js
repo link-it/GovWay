@@ -15,12 +15,11 @@ function fn() {
   karate.configure('readTimeout', 1000000);
   
   return { 
+    govway_base_path: "http://localhost:8080/govway",
     platform: "unix", // || windows
     config_loader_path: "/home/froggo/sorgenti/link_it/GOVWAY/GovWay/tools/command_line_interfaces/config_loader/distrib",
 
     modipa_demo_test_zip: "/home/froggo/sorgenti/link_it/GOVWAY/GovWay/protocolli/modipa/testsuite/src/configurazioni-govway/modipaDemoTest.zip",
-    modipa_demo_test_http_zip: "/home/froggo/sorgenti/link_it/GOVWAY/GovWay/protocolli/modipa/testsuite/src/configurazioni-govway/modipaDemoTestHttp.zip",
-    
-    url_invocazione_fruizione: "http://localhost:8080/govway/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/ApiDemoBlockingRest/v1"
+    modipa_demo_test_http_zip: "/home/froggo/sorgenti/link_it/GOVWAY/GovWay/protocolli/modipa/testsuite/src/configurazioni-govway/modipaDemoTestHttp.zip"
   }
 }

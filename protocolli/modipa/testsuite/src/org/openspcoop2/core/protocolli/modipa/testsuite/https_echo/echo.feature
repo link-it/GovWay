@@ -8,7 +8,7 @@ Background:
 * callonce createOrUpdateConfig modipa_demo_test_zip
 * configure afterFeature = function() { deleteConfig(modipa_demo_test_zip) }
 
-* url url_invocazione_fruizione
+* url govway_base_path + '/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/ApiDemoBlockingRest/v1'
 
 Scenario: Test Demo di Echo
 

@@ -8,6 +8,7 @@ Background:
 * callonce createOrUpdateConfig modipa_demo_test_http_zip
 * configure afterFeature = function() { deleteConfig(modipa_demo_test_http_zip) }
 
+* def url_invocazione_fruizione = govway_base_path + '/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/ApiDemoBlockingRest/v1'
 * url url_invocazione_fruizione
 
 Scenario: Test Demo con mock proxy
