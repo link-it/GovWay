@@ -43,13 +43,12 @@ public class MockProxyTest {
     
     private static FeatureServer server;
     private static final String propFileName = "mock.properties";
+    private Properties prop = new Properties();
     
     @BeforeClass
     public static void beforeClass() throws FileNotFoundException, IOException {       
 
-        // TODO: Utilizzare FileUtils.isOsWindows per determinare se siamo su windows o su mac
     	InputStream inputStream = MockProxyTest.class.getClassLoader().getResourceAsStream(propFileName);
-        Properties prop = new Properties();
  
         if (inputStream != null) {
             prop.load(inputStream);
@@ -57,14 +56,25 @@ public class MockProxyTest {
             throw new FileNotFoundException("property file '" + propFileName + "' not found in the classpath");
         }
 
+        String configLoaderPath = prop.getProperty("config_loader_path"); // "/home/froggo/sorgenti/link_it/GOVWAY/GovWay/tools/command_line_interfaces/config_loader/distrib";
+        String scriptPath = configLoaderPath + "/" + FileUtils.isOsWindows() ? "createOrUpdate.cmd" : "createOrUpdate.sh";
+        String modipa_bundle = new File("configurazioni-govway/modipaTestBundle.zip").getAbsolutePath();
+
+        
+        //org.openspcoop2.utils.resources.ScriptInvoker scriptInvoker = new org.openspcoop2.utils.resources.ScriptInvoker(scriptPath);
+        //scriptInvoker.run(parametroScriptFrontend);
+
         File file = FileUtils.getFileRelativeTo(MockProxyTest.class, "modipa-mock.feature");
         server = FeatureServer.start(file, Integer.valueOf(prop.getProperty("http_port")), false, new HashMap<String,Object>((Map) prop));
-        //System.setProperty("govway_base_path", prop.getProperty("govway_base_path"));
     }
         
     @AfterClass
     public static void afterClass() {
-        server.stop();        
+        server.stop();
+
+        String configLoaderPath = prop.getProperty("config_loader_path"); // "/home/froggo/sorgenti/link_it/GOVWAY/GovWay/tools/command_line_interfaces/config_loader/distrib";
+        String scriptPath = configLoaderPath + "/" + FileUtils.isOsWindows() ? "delete.cmd" : "delete.sh";
+        String modipa_bundle = new File("configurazioni-govway/modipaTestBundle.zip").getAbsolutePath();
     }     
     
 }
