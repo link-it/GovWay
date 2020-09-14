@@ -23,58 +23,13 @@ package org.openspcoop2.core.protocolli.modipa.testsuite.https_echo;
 import com.intuit.karate.FileUtils;
 import com.intuit.karate.KarateOptions;
 import com.intuit.karate.junit4.Karate;
-import com.intuit.karate.netty.FeatureServer;
-import java.io.File;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
-import java.util.Map;
-import java.util.Properties;
-import java.util.HashMap;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.io.IOException;
-import org.openspcoop2.utils.UtilsException;
+import org.openspcoop2.core.protocolli.modipa.testsuite.ConfigLoader;
 
 /**
  *
  */
 @RunWith(Karate.class)
-public class EchoHttpsTest {
+public class EchoHttpsTest extends ConfigLoader {
 
-    private static final String propFileName = "mock.properties";
-    private static Properties prop = new Properties();
-    
-    @BeforeClass
-    public static void beforeClass() throws FileNotFoundException, IOException, UtilsException {       
-
-    	InputStream inputStream = EchoHttpsTest.class.getClassLoader().getResourceAsStream(propFileName);
- 
-        if (inputStream != null) {
-            prop.load(inputStream);
-        } else {
-            throw new FileNotFoundException("property file '" + propFileName + "' not found in the classpath");
-        }
-
-        String configLoaderPath = prop.getProperty("config_loader_path");
-        String scriptPath = configLoaderPath + "/" + (FileUtils.isOsWindows() ? "createOrUpdate.cmd" : "createOrUpdate.sh");
-        System.out.println("Config loader path: " + scriptPath);
-
-        String modipaBundle = new File("src/configurazioni-govway/modipaTestBundle.zip").getAbsolutePath();
-        System.out.println("ModIPA bundle path: " + modipaBundle);
-        
-        org.openspcoop2.utils.resources.ScriptInvoker scriptInvoker = new org.openspcoop2.utils.resources.ScriptInvoker(scriptPath);
-        scriptInvoker.run(new File(configLoaderPath), modipaBundle);
-    }
-        
-    @AfterClass
-    public static void afterClass() throws UtilsException {
-
-        String configLoaderPath = prop.getProperty("config_loader_path");
-        String scriptPath = configLoaderPath + "/" + (FileUtils.isOsWindows() ? "delete.cmd" : "delete.sh");
-        String modipaBundle = new File("src/configurazioni-govway/modipaTestBundle.zip").getAbsolutePath();
-        org.openspcoop2.utils.resources.ScriptInvoker scriptInvoker = new org.openspcoop2.utils.resources.ScriptInvoker(scriptPath);
-        scriptInvoker.run(new File(configLoaderPath), modipaBundle);
-    }     
-    
 }

@@ -15,9 +15,6 @@ function fn() {
   karate.configure('readTimeout', 1000000);
   
   return { 
-    govway_base_path: "http://localhost:8080/govway",
-    platform: karate.os.type, // Toremove
-    config_loader_path: "/home/froggo/sorgenti/link_it/GOVWAY/GovWay/tools/command_line_interfaces/config_loader/distrib",  // Toremove
-    modipa_test_bundle: karate.toAbsolutePath("classpath:configurazioni-govway/modipaTestBundle.zip") // Toremove
+    govway_base_path: karate.properties["govway_base_path"]
   }
 }

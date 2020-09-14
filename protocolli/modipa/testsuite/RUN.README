@@ -1,18 +1,16 @@
 Prerequisiti:
 
 + Configurare l'ambiente di esecuzione dei test:
-	- Impostare la configurazione in src/karate-config.js
+
+	- Configurare il file di properties delle classi junit in <src/testsuite.properties>
 	
 		+ Indicare il base path per govway in <govway_base_path>
 
 		+ Indicare per la proprietà <config_loader_path> il percorso assoluto verso gli script di caricamento sul db degli archivi zip 
 			di configurazione.
 
-	- Configurare il file di properties per le classi di mock in src/mock.properties
-
 		+ NOTA: La porta deve restare 8090 altrimenti è necessario cambiare la configurazione di tutte le porte delegate
 			dentro modipaTestBundle.zip
-
 
 + Configurare l'application server in modo tale da supportare connessioni ssl sulla porta 8444 e 8445 utilizzando le configurazioni presenti nella directory config_https:
 	a) un connettore HTTPS che esegue autenticazione client (La configurazione di default della testsuite, assume questo connettore attivo sulla porta 8444)
@@ -28,3 +26,11 @@ Prerequisiti:
 	org.openspcoop2.pdd.check.readJMXResources.enabled=true
 	org.openspcoop2.pdd.check.readJMXResources.username=admin
 	org.openspcoop2.pdd.check.readJMXResources.password=admin
+
+	Controllare la corrispondenza delle properties <jmx_cache_username> e <jmx_cache_password> con i valori di sopra.
+
++ Compilare con
+	ant build
+
++ Eseguire con
+	ant run_tests
