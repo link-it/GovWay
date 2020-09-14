@@ -38,12 +38,12 @@ public class ConfigLoader {
 
         String configLoaderPath = prop.getProperty("config_loader_path");
         String scriptPath = configLoaderPath + "/" + (FileUtils.isOsWindows() ? "createOrUpdate.cmd" : "createOrUpdate.sh");
-        logger.debug("Config loader path: " + scriptPath);
-
         String modipaBundle = new File(modipaBundlePath).getAbsolutePath();
+
+        logger.debug("Config loader path: " + scriptPath);
         logger.debug("ModIPA bundle path: " + modipaBundle);
-        
         logger.debug("Carico la configurazione su govway...");
+        
         org.openspcoop2.utils.resources.ScriptInvoker scriptInvoker = new org.openspcoop2.utils.resources.ScriptInvoker(scriptPath);
         scriptInvoker.run(new File(configLoaderPath), modipaBundle);
 
