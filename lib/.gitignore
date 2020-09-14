@@ -32,5 +32,6 @@ swagger-codegen
 testsuite
 wadl
 wss4j
+proguard
 # Except this file
 !.gitignore

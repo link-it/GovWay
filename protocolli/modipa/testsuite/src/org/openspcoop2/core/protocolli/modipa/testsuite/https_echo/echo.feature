@@ -5,8 +5,8 @@ Background:
 * def createOrUpdateConfig = read('classpath:utils/config-loader/createOrUpdate.js') 
 * def deleteConfig = read('classpath:utils/config-loader/delete.js') 
 
-* callonce createOrUpdateConfig modipa_test_bundle
-* configure afterFeature = function() { deleteConfig(modipa_test_bundle) }
+# * callonce createOrUpdateConfig modipa_test_bundle
+# * configure afterFeature = function() { deleteConfig(modipa_test_bundle) }
 
 * url govway_base_path + '/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/ApiDemoBlockingRest/v1'
 

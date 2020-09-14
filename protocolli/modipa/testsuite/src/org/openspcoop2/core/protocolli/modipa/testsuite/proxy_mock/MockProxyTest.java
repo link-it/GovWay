@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.IOException;
+import org.openspcoop2.utils.UtilsException;
 /**
  *
  */
@@ -43,10 +44,10 @@ public class MockProxyTest {
     
     private static FeatureServer server;
     private static final String propFileName = "mock.properties";
-    private Properties prop = new Properties();
+    private static Properties prop = new Properties();
     
     @BeforeClass
-    public static void beforeClass() throws FileNotFoundException, IOException {       
+    public static void beforeClass() throws FileNotFoundException, IOException, UtilsException {       
 
     	InputStream inputStream = MockProxyTest.class.getClassLoader().getResourceAsStream(propFileName);
  
@@ -56,25 +57,29 @@ public class MockProxyTest {
             throw new FileNotFoundException("property file '" + propFileName + "' not found in the classpath");
         }
 
-        String configLoaderPath = prop.getProperty("config_loader_path"); // "/home/froggo/sorgenti/link_it/GOVWAY/GovWay/tools/command_line_interfaces/config_loader/distrib";
-        String scriptPath = configLoaderPath + "/" + FileUtils.isOsWindows() ? "createOrUpdate.cmd" : "createOrUpdate.sh";
-        String modipa_bundle = new File("configurazioni-govway/modipaTestBundle.zip").getAbsolutePath();
+        String configLoaderPath = prop.getProperty("config_loader_path");
+        String scriptPath = configLoaderPath + "/" + (FileUtils.isOsWindows() ? "createOrUpdate.cmd" : "createOrUpdate.sh");
+        System.out.println("Config loader path: " + scriptPath);
 
+        String modipaBundle = new File("src/configurazioni-govway/modipaTestBundle.zip").getAbsolutePath();
+        System.out.println("ModIPA bundle path: " + modipaBundle);
         
-        //org.openspcoop2.utils.resources.ScriptInvoker scriptInvoker = new org.openspcoop2.utils.resources.ScriptInvoker(scriptPath);
-        //scriptInvoker.run(parametroScriptFrontend);
+        org.openspcoop2.utils.resources.ScriptInvoker scriptInvoker = new org.openspcoop2.utils.resources.ScriptInvoker(scriptPath);
+        scriptInvoker.run(new File(configLoaderPath), modipaBundle);
 
         File file = FileUtils.getFileRelativeTo(MockProxyTest.class, "modipa-mock.feature");
         server = FeatureServer.start(file, Integer.valueOf(prop.getProperty("http_port")), false, new HashMap<String,Object>((Map) prop));
     }
         
     @AfterClass
-    public static void afterClass() {
+    public static void afterClass() throws UtilsException {
         server.stop();
 
-        String configLoaderPath = prop.getProperty("config_loader_path"); // "/home/froggo/sorgenti/link_it/GOVWAY/GovWay/tools/command_line_interfaces/config_loader/distrib";
-        String scriptPath = configLoaderPath + "/" + FileUtils.isOsWindows() ? "delete.cmd" : "delete.sh";
-        String modipa_bundle = new File("configurazioni-govway/modipaTestBundle.zip").getAbsolutePath();
+        String configLoaderPath = prop.getProperty("config_loader_path");
+        String scriptPath = configLoaderPath + "/" + (FileUtils.isOsWindows() ? "delete.cmd" : "delete.sh");
+        String modipaBundle = new File("src/configurazioni-govway/modipaTestBundle.zip").getAbsolutePath();
+        org.openspcoop2.utils.resources.ScriptInvoker scriptInvoker = new org.openspcoop2.utils.resources.ScriptInvoker(scriptPath);
+        scriptInvoker.run(new File(configLoaderPath), modipaBundle);
     }     
     
 }
