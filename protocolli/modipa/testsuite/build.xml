@@ -22,9 +22,9 @@
 			<include name="logback-*.jar"/>
 			<include name="spring-jdbc-*.jar"/>
 		</fileset>
-		<fileset dir="${dir_jdbc}" >
+		<!--	<fileset dir="${dir_jdbc}" >
 			<include name="*.jar"/>
-		</fileset>
+		</fileset> -->
 		<fileset dir="${required_lib}/commons" >
 			<include name="*.jar"/>
 		</fileset>

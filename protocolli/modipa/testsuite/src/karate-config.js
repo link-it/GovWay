@@ -16,8 +16,8 @@ function fn() {
   
   return { 
     govway_base_path: "http://localhost:8080/govway",
-    platform: "unix", // || windows
-    config_loader_path: "/home/froggo/sorgenti/link_it/GOVWAY/GovWay/tools/command_line_interfaces/config_loader/distrib",
-    modipa_test_bundle: "/home/froggo/sorgenti/link_it/GOVWAY/GovWay/protocolli/modipa/testsuite/src/configurazioni-govway/modipaTestBundle.zip",
+    platform: karate.os.type,
+    config_loader_path: "path_to_config_loader/distrib",
+    modipa_test_bundle: karate.toAbsolutePath("classpath:configurazioni-govway/modipaTestBundle.zip")
   }
 }

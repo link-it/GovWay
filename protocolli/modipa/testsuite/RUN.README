@@ -1,17 +1,19 @@
-Prerequisito:
-Configurare l'ambiente di esecuzione dei test:
+Prerequisiti:
+
++ Configurare l'ambiente di esecuzione dei test:
 	- Impostare la configurazione in src/karate-config.js
+	
+		+ Indicare il base path per govway in <govway_base_path>
 
 		+ Indicare per la proprietà <config_loader_path> il percorso assoluto verso gli script di caricamento sul db degli archivi zip 
 			di configurazione.
-		+ Indicare per la proprietà <modipa_test_bundle> il percorso assoluto verso l'archivio che contiene la configurazione di govway
-			da caricare per la testsuite.
 
 	- Configurare il file di properties per le classi di mock in src/mock.properties
 
 		+ NOTA: La porta deve restare 8090 altrimenti è necessario cambiare la configurazione di tutte le porte delegate
 			dentro modipaTestBundle.zip
 
-	- Copiare nella cartella "jdbc" il driver jdbc del database
 
-
++ Impostare la configurazione SSL di  Wildfly o Tomcat con il keystore presente in 
+	
+	<protocolli/trasparente/testsuite/deploy/https_examples/jks/erogatore.jks>
