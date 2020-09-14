@@ -14,6 +14,12 @@ Prerequisiti:
 			dentro modipaTestBundle.zip
 
 
-+ Impostare la configurazione SSL di  Wildfly o Tomcat con il keystore presente in 
-	
-	<protocolli/trasparente/testsuite/deploy/https_examples/jks/erogatore.jks>
++ Configurare l'application server in modo tale da supportare connessioni ssl sulla porta 8444 e 8445 utilizzando le configurazioni presenti nella directory config_https:
+          a) un connettore HTTPS che esegue autenticazione client (La configurazione di default della testsuite, assume questo connettore attivo sulla porta 8444)
+  	     Esempio in config_https/ConnettoreHTTPS_withClientAuth.xml
+             La configurazione del connettore assume che il keystore config_https/jks/erogatore.jks sia stato copiato in /etc/govway/keys
+          b) un connettore HTTPS senza autenticazione client (La configurazione di default della testsuite, assume questo connettore attivo sulla porta 8445)
+  	     Esempio in config_https/ConnettoreHTTPS_noClientAuth.xml
+             La configurazione del connettore assume che il keystore config_https/jks/erogatore.jks sia stato copiato in /etc/govway/keys
+	  c) Configurazione della JVM dell'A.S. in modo che utilizzi il truststore config_https/jks/erogatore.jks
+  	     Indicazioni descritte per JBoss in config_https/configurazioneTrustStoreJBOSS.txt

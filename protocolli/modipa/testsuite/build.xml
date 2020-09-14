@@ -46,6 +46,9 @@
                 <fileset dir="${required_lib}/cxf" >
                         <include name="asm-7.1.jar"/>
                 </fileset>
+                <fileset dir="${openspcoop2.dist}" >
+                        <include name="*.jar"/>
+                </fileset>
 	</path> 
 
 	<property name="src_testsuite" location="src" />
