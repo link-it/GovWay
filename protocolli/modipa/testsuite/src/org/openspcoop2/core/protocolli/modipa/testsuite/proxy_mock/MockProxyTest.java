@@ -18,33 +18,39 @@
  *
  */
 
+
 package org.openspcoop2.core.protocolli.modipa.testsuite.proxy_mock;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.runner.RunWith;
+import org.openspcoop2.core.protocolli.modipa.testsuite.ConfigLoader;
 
 import com.intuit.karate.FileUtils;
 import com.intuit.karate.KarateOptions;
 import com.intuit.karate.junit4.Karate;
 import com.intuit.karate.netty.FeatureServer;
-import java.io.File;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.runner.RunWith;
-import java.util.Map;
-import java.util.Properties;
-import java.util.HashMap;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.io.IOException;
-import org.openspcoop2.utils.UtilsException;
 
-import org.openspcoop2.core.protocolli.modipa.testsuite.ConfigLoader;
 
+/**
+* MockProxyTest
+*
+* @author Francesco Scarlato (scarlato@link.it)
+* @author $Author$
+* @version $Rev$, $Date$
+*/
 @RunWith(Karate.class)
 @KarateOptions(features = "classpath:test/proxy_mock/modipa-test.feature")
 public class MockProxyTest extends ConfigLoader {
     
     private static FeatureServer server;
     
-    @BeforeClass
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+	@BeforeClass
     public static void beforeClass() {       
         File file = FileUtils.getFileRelativeTo(MockProxyTest.class, "modipa-mock.feature");
         server = FeatureServer.start(file, Integer.valueOf(prop.getProperty("http_port")), false, new HashMap<String,Object>((Map) prop));

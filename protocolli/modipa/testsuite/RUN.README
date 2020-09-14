@@ -29,8 +29,10 @@ Prerequisiti:
 
 	Controllare la corrispondenza delle properties <jmx_cache_username> e <jmx_cache_password> con i valori di sopra.
 
-+ Compilare con
++ Compilare e deployare il servizio di echo sotto <example/pdd/server/testService>
+
++ Compilare i test con
 	ant build
 
-+ Eseguire con
++ Eseguire i test con
 	ant run_tests

@@ -20,15 +20,18 @@
 
 package org.openspcoop2.core.protocolli.modipa.testsuite.https_echo;
 
-import com.intuit.karate.FileUtils;
-import com.intuit.karate.KarateOptions;
-import com.intuit.karate.junit4.Karate;
 import org.junit.runner.RunWith;
 import org.openspcoop2.core.protocolli.modipa.testsuite.ConfigLoader;
 
+import com.intuit.karate.junit4.Karate;
+
 /**
- *
- */
+* EchoHttpsTest
+*
+* @author Francesco Scarlato (scarlato@link.it)
+* @author $Author$
+* @version $Rev$, $Date$
+*/
 @RunWith(Karate.class)
 public class EchoHttpsTest extends ConfigLoader {
 
