@@ -65,6 +65,7 @@ import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpServletTransportRequestContext;
 import org.openspcoop2.utils.transport.http.HttpUtilities;
 import org.slf4j.Logger;
+import org.springframework.web.util.UriUtils;
 
 
 /**
@@ -106,6 +107,7 @@ public class ServletTestService extends HttpServlet {
 		String value = request.getParameter(parameter);
 		if(value!=null) {
 			value = value.trim();
+			value = UriUtils.decode(value, org.openspcoop2.utils.resources.Charset.UTF_8.getValue());
 		}
 		if(whitePropertiesList!=null) {
 			if(whitePropertiesList.contains(parameter)==false) {

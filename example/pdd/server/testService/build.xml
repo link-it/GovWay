@@ -152,6 +152,9 @@
 			<lib dir="${libs}/saaj">
 				<include name="*.jar"/>
 			</lib>
+			<lib dir="${libs}/spring">
+				<include name="*.jar"/>
+			</lib>
 			<lib dir="${libs}/jax">
 				<include name="jaxws-*.jar"/>
 			</lib>
