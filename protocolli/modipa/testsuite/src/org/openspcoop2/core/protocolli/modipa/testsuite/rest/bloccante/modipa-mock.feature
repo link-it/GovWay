@@ -1,4 +1,4 @@
-Feature: payment service mock
+Feature: ModiPA Proxy test
 
 Background:
 * def pid = 0

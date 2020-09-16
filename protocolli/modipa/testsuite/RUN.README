@@ -31,6 +31,11 @@ Prerequisiti:
 
 + Compilare e deployare il servizio di echo sotto <example/pdd/server/testService>
 
+	- Copiare le risposte del server di echo:
+		cp -r ./src/test/risposte-default/* /etc/govway/test/protocolli/modipa
+	Queste saranno le risposte utilizzate dai connettori della configurazione di govway per indicare al
+	servizio di echo quali risposte restituire.
+
 + Compilare i test con
 	ant build
 
