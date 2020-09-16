@@ -85,6 +85,14 @@
 		<delete dir="${output}"/>
 		<mkdir dir="${output}"/>
 
+                <java classname="org.openspcoop2.core.protocolli.modipa.testsuite.ConfigLoader" fork="true">
+			<arg value="true" />
+                        <classpath>
+                                <path refid="karate_testsuite" />
+                                <pathelement path="${build_testsuite}"/>
+                        </classpath>
+                </java>
+
 		<if>
 			<equals arg1="${karate.options}" arg2="$${karate.options}"/>
 			<then>
@@ -138,6 +146,14 @@
 				 </junit>				
 			</else>
 		</if>
+
+                <java classname="org.openspcoop2.core.protocolli.modipa.testsuite.ConfigLoader" fork="true">
+			<arg value="false" />
+                        <classpath>
+                                <path refid="karate_testsuite" />
+                                <pathelement path="${build_testsuite}"/>
+                        </classpath>
+                </java>
 
 		<junitreport todir="${output}">
 			<fileset dir="${output}">
