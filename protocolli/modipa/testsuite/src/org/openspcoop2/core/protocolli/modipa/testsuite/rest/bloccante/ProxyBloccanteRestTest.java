@@ -46,7 +46,8 @@ import com.intuit.karate.netty.FeatureServer;
 @RunWith(Karate.class)
 @KarateOptions(features = {
     "classpath:test/rest/bloccante/modipa-proxy.feature",
-    "classpath:test/rest/bloccante/echo.feature"
+    "classpath:test/rest/bloccante/echo.feature",
+    "classpath:test/rest/bloccante/idac02.feature"
     })
 public class ProxyBloccanteRestTest extends ConfigLoader {
     
