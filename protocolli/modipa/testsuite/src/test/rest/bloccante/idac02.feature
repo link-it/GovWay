@@ -1,4 +1,4 @@
-Feature: Testing feature ican02
+Feature: Testing feature idac02 REST
 
 Scenario: IDAC02 Autenticazione Client
 
@@ -22,4 +22,4 @@ Given url govway_base_path + '/rest/out/DemoSoggettoFruitore/DemoSoggettoErogato
 And path 'resources', 1, 'M'
 And request body
 When method post
-Then status 200
+Then status 401

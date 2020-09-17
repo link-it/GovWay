@@ -36,8 +36,15 @@ Prerequisiti:
 	Queste saranno le risposte utilizzate dai connettori della configurazione di govway per indicare al
 	servizio di echo quali risposte restituire.
 
++ Copiare erogatore.jks(aggiungere path) e soggetto1.jks sotto /etc/govway/keys
+
++ Aggiungere in /etc/hosts la riga
+	127.0.0.1 Erogatore
+
 + Compilare i test con
 	ant build
 
 + Eseguire i test con
-	ant run_tests
+	ant run_test
+  Per eseguire una sola feature
+	ant run_test -Dkarate.options=test/rest/bloccante/idac02.feature

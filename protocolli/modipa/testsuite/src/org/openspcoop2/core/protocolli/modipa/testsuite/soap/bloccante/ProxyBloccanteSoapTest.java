@@ -47,7 +47,8 @@ import com.intuit.karate.netty.FeatureServer;
 @RunWith(Karate.class)
 @KarateOptions(features = {
     "classpath:test/soap/bloccante/echo.feature",
-    "classpath:test/soap/bloccante/proxy.feature"
+    "classpath:test/soap/bloccante/proxy.feature",
+    "classpath:test/soap/bloccante/idac02.feature"
     })
 public class ProxyBloccanteSoapTest extends ConfigLoader {
     
