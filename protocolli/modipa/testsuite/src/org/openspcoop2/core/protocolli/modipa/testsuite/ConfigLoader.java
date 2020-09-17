@@ -53,6 +53,11 @@ public class ConfigLoader {
 			 System.setProperty("govway_base_path", prop.getProperty("govway_base_path"));
 			 System.setProperty("connect_timeout", prop.getProperty("connect_timeout"));
 			 System.setProperty("read_timeout", prop.getProperty("read_timeout"));
+             System.setProperty("db_username", prop.getProperty("db_username"));
+             System.setProperty("db_password", prop.getProperty("db_password"));
+             System.setProperty("db_url", prop.getProperty("db_url"));
+             System.setProperty("db_driverClassName", prop.getProperty("db_driverClassName"));
+             
 			 
 		 }catch(Throwable t) {
 			 throw new RuntimeException(t.getMessage(),t);
@@ -99,6 +104,7 @@ public class ConfigLoader {
                 prop.getProperty("jmx_cache_password")
             );
         }        
+
     }
 
     public static void deleteConfig() throws Exception {

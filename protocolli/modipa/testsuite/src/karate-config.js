@@ -18,6 +18,12 @@ function fn() {
   karate.configure('readTimeout', read_timeout);
   
   return { 
-    govway_base_path: karate.properties["govway_base_path"]
+    govway_base_path: karate.properties["govway_base_path"],
+    govwayDbConfig: { 
+      username: karate.properties['db_username'],
+      password: karate.properties['db_password'],
+      url: karate.properties['db_url'],
+      driverClassName: karate.properties['db_driverClassName']
+    }
   }
 }

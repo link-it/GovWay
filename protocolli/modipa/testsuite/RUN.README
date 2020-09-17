@@ -41,6 +41,9 @@ Prerequisiti:
 + Aggiungere in /etc/hosts la riga
 	127.0.0.1 Erogatore
 
++ Configurare in testsuite.properties i dati per l'accesso al db di govway
+	- Copiare sotto la cartella jdbc il driver postgresql ( o quello del database utilizzato )
+
 + Compilare i test con
 	ant build
 
