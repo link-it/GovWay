@@ -24,6 +24,7 @@ function fn() {
       password: karate.properties['db_password'],
       url: karate.properties['db_url'],
       driverClassName: karate.properties['db_driverClassName']
-    }
+    },
+    db_sleep_before_read: karate.properties['db_sleep_before_read']
   }
 }

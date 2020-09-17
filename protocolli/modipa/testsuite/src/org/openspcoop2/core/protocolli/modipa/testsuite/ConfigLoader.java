@@ -57,6 +57,8 @@ public class ConfigLoader {
              System.setProperty("db_password", prop.getProperty("db_password"));
              System.setProperty("db_url", prop.getProperty("db_url"));
              System.setProperty("db_driverClassName", prop.getProperty("db_driverClassName"));
+             System.setProperty("db_sleep_before_read", prop.getProperty("db_sleep_before_read"));
+             
              
 			 
 		 }catch(Throwable t) {
