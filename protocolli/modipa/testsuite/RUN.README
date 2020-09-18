@@ -36,7 +36,7 @@ Prerequisiti:
 	Queste saranno le risposte utilizzate dai connettori della configurazione di govway per indicare al
 	servizio di echo quali risposte restituire.
 
-+ Copiare erogatore.jks(aggiungere path) e soggetto1.jks sotto /etc/govway/keys
++ Copiare erogatore.jks e soggetto1.jks sotto /etc/govway/keys
 
 + Aggiungere in /etc/hosts la riga
 	127.0.0.1 Erogatore

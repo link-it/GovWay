@@ -1,0 +1,21 @@
+Feature: Controllo traccia IDAC01 su fruizione ed erogazione
+
+Scenario: Controllo traccia IDAC01 su fruizione ed erogazione
+
+# E' necessario che nell'ambiente della feature siano presenti
+# fruizione_tid e erogazione_tid
+
+* def get_traccia = read('classpath:utils/get_traccia.js')
+* def traccia_to_match = 
+"""
+[
+    { name: 'ProfiloInterazione', value: 'bloccante' },
+    { name: 'ProfiloSicurezzaCanale', value: 'IDAC01' }
+]
+"""
+
+ * def result = get_traccia(fruizione_tid) 
+ * match result contains deep traccia_to_match
+
+ * def result = get_traccia(erogazione_tid) 
+ * match result contains deep traccia_to_match

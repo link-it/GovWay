@@ -2,14 +2,7 @@ Feature: Test di connettività base https
 
 Background:
 
-* def get_traccia = read('classpath:utils/get_traccia.js')
-* def traccia_to_match = 
-"""
-[
-    { name: 'ProfiloInterazione', value: 'bloccante' },
-    { name: 'ProfiloSicurezzaCanale', value: 'IDAC01' }
-]
-"""
+* def check_traccia = read('classpath:utils/check-traccia-idac01.feature')
 
 Scenario: Test di Echo SOAP
 
@@ -25,6 +18,5 @@ When method post
 Then status 200
 And match response == resp
 
-* def result = get_traccia(responseHeaders['GovWay-Transaction-ID'][0]) 
-* match result contains deep traccia_to_match
-    
+
+* call check_traccia ({ fruizione_tid: responseHeaders['GovWay-Transaction-ID'][0], erogazione_tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0] })    

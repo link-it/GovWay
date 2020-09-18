@@ -2,14 +2,8 @@ Feature: Testing feature idac02 SOAP
 
 Background:
 
-* def get_traccia = read('classpath:utils/get_traccia.js')
-* def traccia_to_match = 
-"""
-[
-    { name: 'ProfiloInterazione', value: 'bloccante' },
-    { name: 'ProfiloSicurezzaCanale', value: 'IDAC02' }
-]
-"""
+* def check_traccia = read('classpath:utils/check-traccia-idac02.feature')
+
 
 Scenario: IDAC02 Autenticazione Client
 
@@ -25,9 +19,7 @@ When method post
 Then status 200
 And match response == resp
 
-* def result = get_traccia(responseHeaders['GovWay-Transaction-ID'][0]) 
-* match result contains deep traccia_to_match
-
+* call check_traccia ({ fruizione_tid: responseHeaders['GovWay-Transaction-ID'][0], erogazione_tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0] })
 
 Scenario: IDAC02 Autenticazione Client Assente
 
@@ -66,6 +58,16 @@ Then status 500
 And match /Envelope/Body/Fault/Reason/Text == "Authentication required"
 And match /Envelope/Body/Fault/Code == code_error
 And match /Envelope/Body/Fault/Detail == detail_error
+
+
+* def get_traccia = read('classpath:utils/get_traccia.js')
+* def traccia_to_match = 
+"""
+[
+    { name: 'ProfiloInterazione', value: 'bloccante' },
+    { name: 'ProfiloSicurezzaCanale', value: 'IDAC02' }
+]
+"""
 
 * def result = get_traccia(responseHeaders['GovWay-Transaction-ID'][0]) 
 * match result contains deep traccia_to_match
