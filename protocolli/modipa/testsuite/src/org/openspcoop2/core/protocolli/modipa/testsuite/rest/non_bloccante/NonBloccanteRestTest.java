@@ -61,9 +61,19 @@
 
 package org.openspcoop2.core.protocolli.modipa.testsuite.rest.non_bloccante;
 
-import com.intuit.karate.junit4.Karate;
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.openspcoop2.core.protocolli.modipa.testsuite.ConfigLoader;
+
+import com.intuit.karate.FileUtils;
+import com.intuit.karate.KarateOptions;
+import com.intuit.karate.junit4.Karate;
+import com.intuit.karate.netty.FeatureServer;
 
 /**
  * ApplicativiTest
@@ -73,6 +83,21 @@ import org.openspcoop2.core.protocolli.modipa.testsuite.ConfigLoader;
  */
 
 @RunWith(Karate.class)
+@KarateOptions( features = "classpath:test/rest/non-bloccante/pull.feature")
 public class NonBloccanteRestTest extends ConfigLoader { 
+    
+    private static FeatureServer server;
+    
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+	@BeforeClass
+    public static void beforeClass() {       
+        File file = FileUtils.getFileRelativeTo(NonBloccanteRestTest.class, "mock-pull.feature");
+        server = FeatureServer.start(file, Integer.valueOf(prop.getProperty("http_port")), false, new HashMap<String,Object>((Map) prop));
+    }
+        
+    @AfterClass
+    public static void afterClass() {
+        server.stop();
+    }     
 
 }

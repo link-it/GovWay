@@ -58,9 +58,6 @@ public class ConfigLoader {
             } else {
                 throw new FileNotFoundException("property file '" + propFileName + "' not found in the classpath");
             }
-
-            org.slf4j.Logger logger = LoggerWrapperFactory.getLogger("com.intuit.karate");
-            logger.debug("Setto le proprietà!");
             
             System.setProperty("govway_base_path", prop.getProperty("govway_base_path"));
             System.setProperty("connect_timeout", prop.getProperty("connect_timeout"));

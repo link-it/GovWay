@@ -17,7 +17,6 @@ function fn() {
   karate.configure('connectTimeout',  connect_timeout);
   karate.configure('readTimeout', read_timeout);
   
-  karate.log("ASDASDASD: " + karate.properties["govway_base_path"] )
   return { 
     govway_base_path: karate.properties["govway_base_path"],
     govwayDbConfig: { 
