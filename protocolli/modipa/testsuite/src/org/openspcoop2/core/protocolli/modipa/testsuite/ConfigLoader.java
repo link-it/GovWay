@@ -24,6 +24,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Properties;
+import org.junit.BeforeClass;
+
 
 import org.openspcoop2.utils.LoggerWrapperFactory;
 
@@ -41,30 +43,38 @@ public class ConfigLoader {
     private static final String propFileName = "testsuite.properties";
     private static final String modipaBundlePath = "src/configurazioni-govway/modipaTestBundle.zip";
     protected static Properties prop = new Properties();
-	static {
-		 try(InputStream inputStream = ConfigLoader.class.getClassLoader().getResourceAsStream(propFileName);) {
-			 
-			 if (inputStream != null) {
-				 prop.load(inputStream);
-			 } else {
-				 throw new FileNotFoundException("property file '" + propFileName + "' not found in the classpath");
-			 }
-			 
-			 System.setProperty("govway_base_path", prop.getProperty("govway_base_path"));
-			 System.setProperty("connect_timeout", prop.getProperty("connect_timeout"));
-			 System.setProperty("read_timeout", prop.getProperty("read_timeout"));
-             System.setProperty("db_username", prop.getProperty("db_username"));
-             System.setProperty("db_password", prop.getProperty("db_password"));
-             System.setProperty("db_url", prop.getProperty("db_url"));
-             System.setProperty("db_driverClassName", prop.getProperty("db_driverClassName"));
-             System.setProperty("db_sleep_before_read", prop.getProperty("db_sleep_before_read"));
-             
-             
-			 
-		 }catch(Throwable t) {
-			 throw new RuntimeException(t.getMessage(),t);
-		 }
+	
+    static {
+        setupProperties();
 	}
+
+    @BeforeClass
+    public static void setupProperties() {
+    
+        try(InputStream inputStream = ConfigLoader.class.getClassLoader().getResourceAsStream(propFileName);) {
+            
+            if (inputStream != null) {
+                prop.load(inputStream);
+            } else {
+                throw new FileNotFoundException("property file '" + propFileName + "' not found in the classpath");
+            }
+
+            org.slf4j.Logger logger = LoggerWrapperFactory.getLogger("com.intuit.karate");
+            logger.debug("Setto le proprietà!");
+            
+            System.setProperty("govway_base_path", prop.getProperty("govway_base_path"));
+            System.setProperty("connect_timeout", prop.getProperty("connect_timeout"));
+            System.setProperty("read_timeout", prop.getProperty("read_timeout"));
+            System.setProperty("db_username", prop.getProperty("db_username"));
+            System.setProperty("db_password", prop.getProperty("db_password"));
+            System.setProperty("db_url", prop.getProperty("db_url"));
+            System.setProperty("db_driverClassName", prop.getProperty("db_driverClassName"));
+            System.setProperty("db_sleep_before_read", prop.getProperty("db_sleep_before_read"));
+
+        }catch(Throwable t) {
+            throw new RuntimeException(t.getMessage(),t);
+        }
+    }
     
     public static void main(String [] args) throws Exception {
     	boolean load = true;

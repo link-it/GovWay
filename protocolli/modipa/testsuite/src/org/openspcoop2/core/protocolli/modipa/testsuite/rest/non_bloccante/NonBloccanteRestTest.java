@@ -63,6 +63,7 @@ package org.openspcoop2.core.protocolli.modipa.testsuite.rest.non_bloccante;
 
 import com.intuit.karate.junit4.Karate;
 import org.junit.runner.RunWith;
+import org.openspcoop2.core.protocolli.modipa.testsuite.ConfigLoader;
 
 /**
  * ApplicativiTest
@@ -72,6 +73,6 @@ import org.junit.runner.RunWith;
  */
 
 @RunWith(Karate.class)
-public class NonBloccanteRestTest {
+public class NonBloccanteRestTest extends ConfigLoader { 
 
 }
