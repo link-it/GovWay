@@ -93,8 +93,34 @@
                         </classpath>
                 </java>
 
+		<var name="karateparams" value=""/>
 		<if>
-			<equals arg1="${karate.options}" arg2="$${karate.options}"/>
+			<not>
+				<equals arg1="${karate.options}" arg2="$${karate.options}"/>
+			</not>
+			<then>
+				<var name="karateparams" value="-Dkarate.options=${build_testsuite}/${karate.options}"/>
+			</then>
+		</if>
+		<if>
+			<not>
+				<equals arg1="${test}" arg2="$${test}"/>
+			</not>
+			<then>
+				<if>
+					<not>
+						<equals arg1="${karateparams}" arg2=""/>
+					</not>
+					<then>
+						<var name="karateparams" value="${karateparams} "/>
+					</then>
+				</if>
+				<var name="karateparams" value="${karateparams}-Dtest=${test}"/>
+			</then>
+		</if>
+
+		<if>
+			<equals arg1="${karateparams}" arg2=""/>
 			<then>
 				<junit printsummary="yes" haltonfailure="${haltOnFailure}" showoutput="${showOutput}">
 
@@ -122,7 +148,7 @@
 			<else>
 				<junit printsummary="yes" haltonfailure="${haltOnFailure}" showoutput="${showOutput}">
 
-					<jvmarg value="-Dkarate.options=${build_testsuite}/${karate.options}"/>
+					<jvmarg value="${karateparams}"/>
 
 					<!-- Per non far comparire il Warning: Nashorn engine is planned to be removed from a future JDK release -->
 					<jvmarg value="-Dnashorn.args=--no-deprecation-warning"/>
