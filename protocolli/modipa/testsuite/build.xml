@@ -85,13 +85,37 @@
 		<delete dir="${output}"/>
 		<mkdir dir="${output}"/>
 
-                <java classname="org.openspcoop2.core.protocolli.modipa.testsuite.ConfigLoader" fork="true">
-			<arg value="true" />
-                        <classpath>
-                                <path refid="karate_testsuite" />
-                                <pathelement path="${build_testsuite}"/>
-                        </classpath>
-                </java>
+		<var name="loadEnabled" value="true"/>
+		<if>
+			<not>
+				<equals arg1="${load}" arg2="$${load}"/>
+			</not>
+			<then>
+				<var name="loadEnabled" value="${load}"/>
+			</then>
+		</if>
+		<var name="deleteEnabled" value="true"/>
+		<if>
+			<not>
+				<equals arg1="${delete}" arg2="$${delete}"/>
+			</not>
+			<then>
+				<var name="deleteEnabled" value="${delete}"/>
+			</then>
+		</if>
+
+		<if>
+			<equals arg1="${loadEnabled}" arg2="true"/>
+			<then>
+				<java classname="org.openspcoop2.core.protocolli.modipa.testsuite.ConfigLoader" fork="true">
+					<arg value="true" />
+				        <classpath>
+				                <path refid="karate_testsuite" />
+				                <pathelement path="${build_testsuite}"/>
+				        </classpath>
+				</java>
+			</then>
+		</if>
 
 		<var name="karateparams" value=""/>
 		<if>
@@ -166,13 +190,18 @@
 			</else>
 		</if>
 
-                <java classname="org.openspcoop2.core.protocolli.modipa.testsuite.ConfigLoader" fork="true">
-			<arg value="false" />
-                        <classpath>
-                                <path refid="karate_testsuite" />
-                                <pathelement path="${build_testsuite}"/>
-                        </classpath>
-                </java>
+                <if>
+			<equals arg1="${deleteEnabled}" arg2="true"/>
+			<then>
+				<java classname="org.openspcoop2.core.protocolli.modipa.testsuite.ConfigLoader" fork="true">
+					<arg value="false" />
+				        <classpath>
+				                <path refid="karate_testsuite" />
+				                <pathelement path="${build_testsuite}"/>
+				        </classpath>
+				</java>
+			</then>
+		</if>
 
 		<junitreport todir="${output}">
 			<fileset dir="${output}">
