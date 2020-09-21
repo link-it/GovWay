@@ -11,3 +11,10 @@ And request body_req
 And params ({ returnCode: 202, returnHttpHeader:'Location: /tasks/queue/32bb4c13-e898-4c12-94db-4ddb18de7919'})
 When method post
 Then status 202
+
+# Given url url_invocazione
+# And path 'tasks', 'queue'
+# And request body_req
+# And params ({ returnCode: 202, returnHttpHeader:'Location: /tasks/queue/32bb4c13-e898-4c12-94db-4ddb18de7919'})
+# When method post
+# Then status 202
