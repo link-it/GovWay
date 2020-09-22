@@ -1,9 +1,15 @@
 -- Gli indici vengono eliminati automaticamente una volta eliminata la tabella
+-- DROP INDEX index_registro_plugins_1;
 -- DROP INDEX index_generic_properties_1;
 -- DROP INDEX index_pdd_sys_props_1;
 -- DROP INDEX index_servizi_pdd_1;
 -- DROP INDEX index_config_url_regole_1;
+-- DROP INDEX index_registro_plug_jar_1;
 -- DROP INDEX index_generic_property_1;
+DROP TABLE registro_plug_jar_init_seq;
+DROP TABLE registro_plug_jar;
+DROP TABLE registro_plugins_init_seq;
+DROP TABLE registro_plugins;
 DROP TABLE generic_property_init_seq;
 DROP TABLE generic_property;
 DROP TABLE generic_properties_init_seq;
@@ -50,6 +56,8 @@ DROP TABLE routing_init_seq;
 DROP TABLE routing;
 DROP TABLE registri_init_seq;
 DROP TABLE registri;
+DROP SEQUENCE seq_registro_plug_jar;
+DROP SEQUENCE seq_registro_plugins;
 DROP SEQUENCE seq_generic_property;
 DROP SEQUENCE seq_generic_properties;
 DROP SEQUENCE seq_pdd_sys_props;

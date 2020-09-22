@@ -1,3 +1,5 @@
+DELETE FROM registro_plug_jar;
+DELETE FROM registro_plugins;
 DELETE FROM generic_property;
 DELETE FROM generic_properties;
 DELETE FROM pdd_sys_props;

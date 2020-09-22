@@ -56,10 +56,10 @@ import org.openspcoop2.generic_project.utils.ServiceManagerProperties;
 import org.openspcoop2.message.OpenSPCoop2Message;
 import org.openspcoop2.message.utils.WWWAuthenticateErrorCode;
 import org.openspcoop2.message.utils.WWWAuthenticateGenerator;
-import org.openspcoop2.pdd.config.ClassNameProperties;
 import org.openspcoop2.pdd.config.DBTransazioniManager;
 import org.openspcoop2.pdd.config.OpenSPCoop2Properties;
 import org.openspcoop2.pdd.config.Resource;
+import org.openspcoop2.pdd.config.dynamic.PddPluginLoader;
 import org.openspcoop2.pdd.core.AbstractCore;
 import org.openspcoop2.pdd.core.PdDContext;
 import org.openspcoop2.pdd.core.autenticazione.pa.DatiInvocazionePortaApplicativa;
@@ -82,7 +82,6 @@ import org.openspcoop2.utils.UtilsException;
 import org.openspcoop2.utils.cache.Cache;
 import org.openspcoop2.utils.cache.CacheAlgorithm;
 import org.openspcoop2.utils.date.DateManager;
-import org.openspcoop2.utils.resources.Loader;
 import org.slf4j.Logger;
 
 /**
@@ -105,9 +104,6 @@ public class GestoreAutenticazione {
 	/** Logger log */
 	private static Logger logger = null;
 	private static Logger logConsole = OpenSPCoop2Logger.getLoggerOpenSPCoopConsole();
-
-	/** ClassName */
-	private static ClassNameProperties className = ClassNameProperties.getInstance();
 
 
 	/* --------------- Cache --------------------*/
@@ -585,30 +581,40 @@ public class GestoreAutenticazione {
     }
     
     private static IAutenticazionePortaDelegata newInstanceAuthPortaDelegata(String tipoAutenticazione,PdDContext pddContext, IProtocolFactory<?> protocolFactory) throws AutenticazioneException{
-    	String classType = null; 
-		IAutenticazionePortaDelegata auth = null;
+    	IAutenticazionePortaDelegata auth = null;
 		try{
-			classType = GestoreAutenticazione.className.getAutenticazionePortaDelegata(tipoAutenticazione);
-			auth = (IAutenticazionePortaDelegata) Loader.getInstance().newInstance(classType);
+			PddPluginLoader pluginLoader = PddPluginLoader.getInstance();
+			auth = (IAutenticazionePortaDelegata) pluginLoader.newAutenticazionePortaDelegata(tipoAutenticazione);
+		}catch(Exception e){
+			throw new AutenticazioneException(e.getMessage(),e); // descrizione errore già corretta
+		}
+		String classType = null; 
+		try{
+			classType = auth.getClass().getName();
 			AbstractCore.init(auth, pddContext, protocolFactory);
 			return auth;
 		}catch(Exception e){
-			throw new AutenticazioneException("Riscontrato errore durante il caricamento della classe ["+classType+
-					"] da utilizzare per l'autenticazione via PD: "+e.getMessage(),e);
+			throw new AutenticazioneException("Riscontrato errore durante l'inizializzazione della classe ["+classType+
+					"] che definisce l'autenticazione della fruizione: "+e.getMessage(),e);
 		}
     }
     
     private static IAutenticazionePortaApplicativa newInstanceAuthPortaApplicativa(String tipoAutenticazione,PdDContext pddContext, IProtocolFactory<?> protocolFactory) throws AutenticazioneException{
-    	String classType = null; 
     	IAutenticazionePortaApplicativa auth = null;
 		try{
-			classType = GestoreAutenticazione.className.getAutenticazionePortaApplicativa(tipoAutenticazione);
-			auth = (IAutenticazionePortaApplicativa) Loader.getInstance().newInstance(classType);
+			PddPluginLoader pluginLoader = PddPluginLoader.getInstance();
+			auth = (IAutenticazionePortaApplicativa) pluginLoader.newAutenticazionePortaApplicativa(tipoAutenticazione);
+		}catch(Exception e){
+			throw new AutenticazioneException(e.getMessage(),e); // descrizione errore già corretta
+		}
+		String classType = null; 
+    	try{
+			classType = auth.getClass().getName();
 			AbstractCore.init(auth, pddContext, protocolFactory);
 			return auth;
 		}catch(Exception e){
-			throw new AutenticazioneException("Riscontrato errore durante il caricamento della classe ["+classType+
-					"] da utilizzare per l'autenticazione delle buste via PA: "+e.getMessage(),e);
+			throw new AutenticazioneException("Riscontrato errore durante l'inizializzazione della classe ["+classType+
+					"] che definisce l'autenticazione della erogazione: "+e.getMessage(),e);
 		}
     }
     

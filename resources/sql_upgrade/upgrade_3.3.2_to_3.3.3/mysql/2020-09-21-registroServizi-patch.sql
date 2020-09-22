@@ -1,0 +1,1 @@
+../../../../core/deploy/sql/patch/mysql/registroServizi/2020-09-21-patch.sql

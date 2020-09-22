@@ -28,16 +28,17 @@ import javax.xml.bind.annotation.XmlType;
 import java.io.Serializable;
 
 
-/** <p>Java class for plugin-info complex type.
+/** <p>Java class for plugin-proprieta-compatibilita complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="plugin-info">
- * 		&lt;sequence>
- * 			&lt;element name="content" type="{http://www.w3.org/2001/XMLSchema}base64Binary" minOccurs="1" maxOccurs="1"/>
- * 		&lt;/sequence>
- * &lt;/complexType>
+ * &lt;complexType name="plugin-proprieta-compatibilita"&gt;
+ * 		&lt;sequence&gt;
+ * 			&lt;element name="nome" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="1" maxOccurs="1"/&gt;
+ * 			&lt;element name="valore" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="1" maxOccurs="1"/&gt;
+ * 		&lt;/sequence&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * @version $Rev$, $Date$
@@ -47,16 +48,17 @@ import java.io.Serializable;
  * */
 
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "plugin-info", 
+@XmlType(name = "plugin-proprieta-compatibilita", 
   propOrder = {
-  	"content"
+  	"nome",
+  	"valore"
   }
 )
 
-@XmlRootElement(name = "plugin-info")
+@XmlRootElement(name = "plugin-proprieta-compatibilita")
 
-public class PluginInfo extends org.openspcoop2.utils.beans.BaseBean implements Serializable , Cloneable {
-  public PluginInfo() {
+public class PluginProprietaCompatibilita extends org.openspcoop2.utils.beans.BaseBean implements Serializable , Cloneable {
+  public PluginProprietaCompatibilita() {
   }
 
   public Long getId() {
@@ -73,12 +75,20 @@ public class PluginInfo extends org.openspcoop2.utils.beans.BaseBean implements 
 		this.id=Long.valueOf(-1);
   }
 
-  public byte[] getContent() {
-    return this.content;
+  public java.lang.String getNome() {
+    return this.nome;
   }
 
-  public void setContent(byte[] content) {
-    this.content = content;
+  public void setNome(java.lang.String nome) {
+    this.nome = nome;
+  }
+
+  public java.lang.String getValore() {
+    return this.valore;
+  }
+
+  public void setValore(java.lang.String valore) {
+    this.valore = valore;
   }
 
   private static final long serialVersionUID = 1L;
@@ -86,22 +96,14 @@ public class PluginInfo extends org.openspcoop2.utils.beans.BaseBean implements 
   @XmlTransient
   private Long id;
 
-  private static org.openspcoop2.monitor.engine.config.base.model.PluginInfoModel modelStaticInstance = null;
-  private static synchronized void initModelStaticInstance(){
-	  if(org.openspcoop2.monitor.engine.config.base.PluginInfo.modelStaticInstance==null){
-  			org.openspcoop2.monitor.engine.config.base.PluginInfo.modelStaticInstance = new org.openspcoop2.monitor.engine.config.base.model.PluginInfoModel();
-	  }
-  }
-  public static org.openspcoop2.monitor.engine.config.base.model.PluginInfoModel model(){
-	  if(org.openspcoop2.monitor.engine.config.base.PluginInfo.modelStaticInstance==null){
-	  		initModelStaticInstance();
-	  }
-	  return org.openspcoop2.monitor.engine.config.base.PluginInfo.modelStaticInstance;
-  }
 
 
-  @javax.xml.bind.annotation.XmlSchemaType(name="base64Binary")
-  @XmlElement(name="content",required=true,nillable=false)
-  protected byte[] content;
+  @javax.xml.bind.annotation.XmlSchemaType(name="string")
+  @XmlElement(name="nome",required=true,nillable=false)
+  protected java.lang.String nome;
+
+  @javax.xml.bind.annotation.XmlSchemaType(name="string")
+  @XmlElement(name="valore",required=true,nillable=false)
+  protected java.lang.String valore;
 
 }

@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package org.openspcoop2.monitor.engine.dynamic;
+package org.openspcoop2.utils.resources;
 
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -58,4 +58,12 @@ public class DynamicClassLoader extends URLClassLoader {
 		
 		return c;
 	}
+	
+	
+    @Override
+    public void addURL(URL url) {
+        super.addURL(url);
+    }
+    
+    
 }

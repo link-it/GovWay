@@ -19,6 +19,7 @@
  */
 package org.openspcoop2.monitor.engine.config.base.dao.jdbc.fetch;
 
+import org.openspcoop2.core.constants.CostantiDB;
 import org.openspcoop2.generic_project.beans.IModel;
 import org.openspcoop2.generic_project.dao.jdbc.utils.AbstractJDBCFetch;
 import org.openspcoop2.generic_project.dao.jdbc.utils.JDBCParameterUtilities;
@@ -32,6 +33,7 @@ import org.openspcoop2.utils.jdbc.IKeyGeneratorObject;
 
 import org.openspcoop2.monitor.engine.config.base.PluginServizioCompatibilita;
 import org.openspcoop2.monitor.engine.config.base.PluginFiltroCompatibilita;
+import org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita;
 import org.openspcoop2.monitor.engine.config.base.PluginServizioAzioneCompatibilita;
 import org.openspcoop2.monitor.engine.config.base.Plugin;
 
@@ -56,14 +58,18 @@ public class PluginFetch extends AbstractJDBCFetch {
 				Plugin object = new Plugin();
 				setParameter(object, "setId", Long.class,
 					jdbcParameterUtilities.readParameter(rs, "id", Long.class));
-				setParameter(object, "set_value_tipo", String.class,
-					jdbcParameterUtilities.readParameter(rs, "tipo", Plugin.model().TIPO.getFieldType())+"");
+				setParameter(object, "setTipoPlugin", Plugin.model().TIPO_PLUGIN.getFieldType(),
+					jdbcParameterUtilities.readParameter(rs, "tipo_plugin", Plugin.model().TIPO_PLUGIN.getFieldType()));
 				setParameter(object, "setClassName", Plugin.model().CLASS_NAME.getFieldType(),
 					jdbcParameterUtilities.readParameter(rs, "class_name", Plugin.model().CLASS_NAME.getFieldType()));
+				setParameter(object, "setTipo", Plugin.model().TIPO.getFieldType(),
+					jdbcParameterUtilities.readParameter(rs, "tipo", Plugin.model().TIPO.getFieldType()));
 				setParameter(object, "setDescrizione", Plugin.model().DESCRIZIONE.getFieldType(),
 					jdbcParameterUtilities.readParameter(rs, "descrizione", Plugin.model().DESCRIZIONE.getFieldType()));
 				setParameter(object, "setLabel", Plugin.model().LABEL.getFieldType(),
 					jdbcParameterUtilities.readParameter(rs, "label", Plugin.model().LABEL.getFieldType()));
+				setParameter(object, "setStato", Plugin.model().STATO.getFieldType(),
+					jdbcParameterUtilities.readParameter(rs, "stato", Plugin.model().STATO.getFieldType()));
 				return object;
 			}
 			if(model.equals(Plugin.model().PLUGIN_SERVIZIO_COMPATIBILITA)){
@@ -110,6 +116,16 @@ public class PluginFetch extends AbstractJDBCFetch {
 					jdbcParameterUtilities.readParameter(rs, "azione", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.AZIONE.getFieldType()));
 				return object;
 			}
+			if(model.equals(Plugin.model().PLUGIN_PROPRIETA_COMPATIBILITA)){
+				PluginProprietaCompatibilita object = new PluginProprietaCompatibilita();
+				setParameter(object, "setId", Long.class,
+					jdbcParameterUtilities.readParameter(rs, "id", Long.class));
+				setParameter(object, "setNome", Plugin.model().PLUGIN_PROPRIETA_COMPATIBILITA.NOME.getFieldType(),
+					jdbcParameterUtilities.readParameter(rs, "nome", Plugin.model().PLUGIN_PROPRIETA_COMPATIBILITA.NOME.getFieldType()));
+				setParameter(object, "setValore", Plugin.model().PLUGIN_PROPRIETA_COMPATIBILITA.VALORE.getFieldType(),
+					jdbcParameterUtilities.readParameter(rs, "valore", Plugin.model().PLUGIN_PROPRIETA_COMPATIBILITA.VALORE.getFieldType()));
+				return object;
+			}
 			
 			else{
 				throw new ServiceException("Model ["+model.toString()+"] not supported by fetch: "+this.getClass().getName());
@@ -130,14 +146,18 @@ public class PluginFetch extends AbstractJDBCFetch {
 				Plugin object = new Plugin();
 				setParameter(object, "setId", Long.class,
 					this.getObjectFromMap(map,"id"));
-				setParameter(object, "set_value_tipo", String.class,
-					this.getObjectFromMap(map,"tipo"));
+				setParameter(object, "setTipoPlugin", Plugin.model().TIPO_PLUGIN.getFieldType(),
+					this.getObjectFromMap(map,"tipo-plugin"));
 				setParameter(object, "setClassName", Plugin.model().CLASS_NAME.getFieldType(),
 					this.getObjectFromMap(map,"class-name"));
+				setParameter(object, "setTipo", Plugin.model().TIPO.getFieldType(),
+					this.getObjectFromMap(map,"tipo"));
 				setParameter(object, "setDescrizione", Plugin.model().DESCRIZIONE.getFieldType(),
 					this.getObjectFromMap(map,"descrizione"));
 				setParameter(object, "setLabel", Plugin.model().LABEL.getFieldType(),
 					this.getObjectFromMap(map,"label"));
+				setParameter(object, "setStato", Plugin.model().STATO.getFieldType(),
+					this.getObjectFromMap(map,"stato"));
 				return object;
 			}
 			if(model.equals(Plugin.model().PLUGIN_SERVIZIO_COMPATIBILITA)){
@@ -184,6 +204,16 @@ public class PluginFetch extends AbstractJDBCFetch {
 					this.getObjectFromMap(map,"plugin-filtro-compatibilita.azione"));
 				return object;
 			}
+			if(model.equals(Plugin.model().PLUGIN_PROPRIETA_COMPATIBILITA)){
+				PluginProprietaCompatibilita object = new PluginProprietaCompatibilita();
+				setParameter(object, "setId", Long.class,
+					this.getObjectFromMap(map,"plugin-proprieta-compatibilita.id"));
+				setParameter(object, "setNome", Plugin.model().PLUGIN_PROPRIETA_COMPATIBILITA.NOME.getFieldType(),
+					this.getObjectFromMap(map,"plugin-proprieta-compatibilita.nome"));
+				setParameter(object, "setValore", Plugin.model().PLUGIN_PROPRIETA_COMPATIBILITA.VALORE.getFieldType(),
+					this.getObjectFromMap(map,"plugin-proprieta-compatibilita.valore"));
+				return object;
+			}
 			
 			else{
 				throw new ServiceException("Model ["+model.toString()+"] not supported by fetch: "+this.getClass().getName());
@@ -202,16 +232,19 @@ public class PluginFetch extends AbstractJDBCFetch {
 		try{
 
 			if(model.equals(Plugin.model())){
-				return new org.openspcoop2.utils.jdbc.CustomKeyGeneratorObject("plugins","id","seq_plugins","plugins_init_seq");
+				return new org.openspcoop2.utils.jdbc.CustomKeyGeneratorObject(CostantiDB.REGISTRO_CLASSI,"id","seq_plugins","plugins_init_seq");
 			}
 			if(model.equals(Plugin.model().PLUGIN_SERVIZIO_COMPATIBILITA)){
-				return new org.openspcoop2.utils.jdbc.CustomKeyGeneratorObject("plugins_servizi_comp","id","seq_plugins_servizi_comp","plugins_servizi_comp_init_seq");
+				return new org.openspcoop2.utils.jdbc.CustomKeyGeneratorObject(CostantiDB.REGISTRO_CLASSI_COMPATIBILITA_SERVIZIO,"id","seq_plugins_servizi_comp","plugins_servizi_comp_init_seq");
 			}
 			if(model.equals(Plugin.model().PLUGIN_SERVIZIO_COMPATIBILITA.PLUGIN_SERVIZIO_AZIONE_COMPATIBILITA)){
-				return new org.openspcoop2.utils.jdbc.CustomKeyGeneratorObject("plugins_azioni_comp","id","seq_plugins_azioni_comp","plugins_azioni_comp_init_seq");
+				return new org.openspcoop2.utils.jdbc.CustomKeyGeneratorObject(CostantiDB.REGISTRO_CLASSI_COMPATIBILITA_AZIONE,"id","seq_plugins_azioni_comp","plugins_azioni_comp_init_seq");
 			}
 			if(model.equals(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA)){
-				return new org.openspcoop2.utils.jdbc.CustomKeyGeneratorObject("plugins_filtro_comp","id","seq_plugins_filtro_comp","plugins_filtro_comp_init_seq");
+				return new org.openspcoop2.utils.jdbc.CustomKeyGeneratorObject(CostantiDB.REGISTRO_CLASSI_COMPATIBILITA_FILTRO,"id","seq_plugins_filtro_comp","plugins_filtro_comp_init_seq");
+			}
+			if(model.equals(Plugin.model().PLUGIN_PROPRIETA_COMPATIBILITA)){
+				return new org.openspcoop2.utils.jdbc.CustomKeyGeneratorObject(CostantiDB.REGISTRO_CLASSI_COMPATIBILITA_PROPRIETA,"id","seq_plugins_props_comp","plugins_props_comp_init_seq");
 			}
 			
 			else{

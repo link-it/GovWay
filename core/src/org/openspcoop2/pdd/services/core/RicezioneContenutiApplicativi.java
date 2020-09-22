@@ -79,6 +79,7 @@ import org.openspcoop2.pdd.config.ConfigurazionePdDManager;
 import org.openspcoop2.pdd.config.OpenSPCoop2Properties;
 import org.openspcoop2.pdd.config.RichiestaApplicativa;
 import org.openspcoop2.pdd.config.RichiestaDelegata;
+import org.openspcoop2.pdd.config.dynamic.PddPluginLoader;
 import org.openspcoop2.pdd.core.AbstractCore;
 import org.openspcoop2.pdd.core.CORSFilter;
 import org.openspcoop2.pdd.core.CORSWrappedHttpServletResponse;
@@ -237,6 +238,7 @@ public class RicezioneContenutiApplicativi {
 			return; // inizializzato da un altro thread
 
 		Loader loader = Loader.getInstance();
+		PddPluginLoader pluginLoader = PddPluginLoader.getInstance();
 		
 		// Inizializzazione NodeSender
 		String classTypeNodeSender = className.getNodeSender(propertiesReader.getNodeSender());
@@ -265,21 +267,17 @@ public class RicezioneContenutiApplicativi {
 		// Inizializzo IGestoreIntegrazionePD list
 		RicezioneContenutiApplicativi.defaultGestoriIntegrazionePD = propertiesReader.getTipoIntegrazionePD();
 		for (int i = 0; i < RicezioneContenutiApplicativi.defaultGestoriIntegrazionePD.length; i++) {
-			classType = className.getIntegrazionePortaDelegata(RicezioneContenutiApplicativi.defaultGestoriIntegrazionePD[i]);
 			try {
-				IGestoreIntegrazionePD gestore = (IGestoreIntegrazionePD) loader.newInstance(classType);
+				IGestoreIntegrazionePD gestore = (IGestoreIntegrazionePD) pluginLoader.newIntegrazionePortaDelegata(RicezioneContenutiApplicativi.defaultGestoriIntegrazionePD[i]);
 				gestore.toString();
-				logCore	.info("Inizializzazione gestore integrazione servizioApplicativo->PdD di tipo "
+				logCore.info("Inizializzazione gestore dati di integrazione per le fruizioni di tipo "
 								+ RicezioneContenutiApplicativi.defaultGestoriIntegrazionePD[i]	+ " effettuata.");
 			} catch (Exception e) {
-				throw new Exception(
-						"Riscontrato errore durante il caricamento della classe ["+ classType
-								+ "] da utilizzare per la gestione dell'integrazione di tipo ["
-								+ RicezioneContenutiApplicativi.defaultGestoriIntegrazionePD[i]+ "]: " + e.getMessage());
+				throw new Exception(e.getMessage(),e);
 			}
 		}
 		
-		// Inizializzo IGestoreIntegrazionePA per protocollo
+		// Inizializzo IGestoreIntegrazionePD per protocollo
 		RicezioneContenutiApplicativi.defaultPerProtocolloGestoreIntegrazionePD = new java.util.concurrent.ConcurrentHashMap<String, String[]>();
 		Enumeration<String> enumProtocols = ProtocolFactoryManager.getInstance().getProtocolNames();
 		while (enumProtocols.hasMoreElements()) {
@@ -288,18 +286,14 @@ public class RicezioneContenutiApplicativi {
 			if(tipiIntegrazionePD!=null && tipiIntegrazionePD.length>0){
 				List<String> tipiIntegrazionePerProtocollo = new ArrayList<String>();
 				for (int i = 0; i < tipiIntegrazionePD.length; i++) {
-					classType = className.getIntegrazionePortaDelegata(tipiIntegrazionePD[i]);
 					try {
-						IGestoreIntegrazionePD test = (IGestoreIntegrazionePD)loader.newInstance(classType);
-						test.toString();
+						IGestoreIntegrazionePD gestore = (IGestoreIntegrazionePD) pluginLoader.newIntegrazionePortaDelegata(tipiIntegrazionePD[i]);
+						gestore.toString();
 						tipiIntegrazionePerProtocollo.add(tipiIntegrazionePD[i]);
-						logCore	.info("Inizializzazione gestore per lettura integrazione PD di tipo "
+						logCore	.info("Inizializzazione gestore dati di integrazione (protocollo: "+protocol+") per le fruizioni di tipo "
 								+ tipiIntegrazionePD[i]	+ " effettuata.");
 					} catch (Exception e) {
-						throw new Exception(
-								"Riscontrato errore durante il caricamento della classe ["+ classType
-								+ "] da utilizzare per la gestione dell'integrazione di tipo ["
-								+ tipiIntegrazionePD[i]+ "]: " + e.getMessage());
+						throw new Exception(e.getMessage(),e);
 					}
 				}
 				if(tipiIntegrazionePerProtocollo.size()>0){
@@ -1002,6 +996,7 @@ public class RicezioneContenutiApplicativi {
 
 		// Loader classi dinamiche
 		Loader loader = Loader.getInstance();
+		PddPluginLoader pluginLoader = PddPluginLoader.getInstance();
 		
 		// ConnectorInMessage
 		@SuppressWarnings("unused")
@@ -1188,25 +1183,23 @@ public class RicezioneContenutiApplicativi {
 		inRequestPDMessage.setSoggettoPropeprietarioPortaDelegata(soggettoFruitore);
 		for (int i = 0; i < tipiIntegrazionePD.length; i++) {
 			try {
-//				if (RicezioneContenutiApplicativi.gestoriIntegrazionePD.containsKey(tipiIntegrazionePD[i]) == false)
-//					RicezioneContenutiApplicativi.aggiornaListaGestoreIntegrazione(
-//									tipiIntegrazionePD[i], className,
-//									propertiesReader, logCore);
-//				IGestoreIntegrazionePD gestore = RicezioneContenutiApplicativi.gestoriIntegrazionePD.get(tipiIntegrazionePD[i]);
 				
-				String classType = null;
 				IGestoreIntegrazionePD gestore = null;
 				try {
-					classType = className.getIntegrazionePortaDelegata(tipiIntegrazionePD[i]);
-					gestore = (IGestoreIntegrazionePD) loader.newInstance(classType);
-					AbstractCore.init(gestore, pddContext, protocolFactory);
-				} catch (Exception e) {
-					throw new Exception(
-							"Riscontrato errore durante il caricamento della classe ["+ classType
-									+ "] da utilizzare per la gestione dell'integrazione di tipo ["+ tipiIntegrazionePD[i] + "]: " + e.getMessage());
+					gestore = (IGestoreIntegrazionePD) pluginLoader.newIntegrazionePortaDelegata(tipiIntegrazionePD[i]);
+				}catch(Exception e){
+					throw e;
 				}
-				
-				if (gestore != null) {
+				if(gestore!=null){
+					String classType = null;
+					try {
+						classType = gestore.getClass().getName();
+						AbstractCore.init(gestore, pddContext, protocolFactory);
+					} catch (Exception e) {
+						throw new Exception(
+								"Riscontrato errore durante l'inizializzazione della classe ["+ classType
+										+ "] da utilizzare per la gestione dell'integrazione delle fruizioni di tipo ["+ tipiIntegrazionePD[i] + "]: " + e.getMessage());
+					}
 					gestore.readInRequestHeader(headerIntegrazioneRichiesta,inRequestPDMessage);
 				}  else {
 					msgDiag.logErroreGenerico("Lettura Gestore header di integrazione ["
@@ -2875,22 +2868,24 @@ public class RicezioneContenutiApplicativi {
 				|| this.msgContext.getIdModulo().startsWith(RicezioneContenutiApplicativi.ID_MODULO+ IntegrationManager.ID_MODULO)) {
 			try {
 				Map<String, String> propertiesIntegrazioneRisposta = new HashMap<String, String>();
-//				IGestoreIntegrazionePD gestore = 
-//					RicezioneContenutiApplicativi.gestoriIntegrazionePD.get(CostantiConfigurazione.HEADER_INTEGRAZIONE_TRASPORTO);
-				
-				String classType = null;
+
 				IGestoreIntegrazionePD gestore = null;
 				try {
-					classType = className.getIntegrazionePortaDelegata(CostantiConfigurazione.HEADER_INTEGRAZIONE_TRASPORTO);
-					gestore = (IGestoreIntegrazionePD) loader.newInstance(classType);
-					AbstractCore.init(gestore, pddContext, protocolFactory);
-				} catch (Exception e) {
-					throw new Exception(
-							"Riscontrato errore durante il caricamento della classe ["+ classType
-									+ "] da utilizzare per la gestione dell'integrazione di tipo ["+ CostantiConfigurazione.HEADER_INTEGRAZIONE_TRASPORTO + "]: " + e.getMessage());
+					gestore = (IGestoreIntegrazionePD) pluginLoader.newIntegrazionePortaDelegata(CostantiConfigurazione.HEADER_INTEGRAZIONE_TRASPORTO);
+				}catch(Exception e){
+					throw e;
 				}
-				
-				if (gestore != null) {
+				if(gestore!=null){
+					String classType = null;
+					try {
+						classType = gestore.getClass().getName();
+						AbstractCore.init(gestore, pddContext, protocolFactory);
+					} catch (Exception e) {
+						throw new Exception(
+								"Riscontrato errore durante l'inizializzazione della classe ["+ classType
+										+ "] da utilizzare per la gestione dell'integrazione delle fruizioni di tipo ["+ CostantiConfigurazione.HEADER_INTEGRAZIONE_TRASPORTO + "]: " + e.getMessage());
+					}
+
 					OutResponsePDMessage outResponsePDMessage = new OutResponsePDMessage();
 					outResponsePDMessage.setPortaDelegata(portaDelegata);
 					outResponsePDMessage.setProprietaTrasporto(propertiesIntegrazioneRisposta);
@@ -4082,35 +4077,38 @@ public class RicezioneContenutiApplicativi {
 		
 		for (int i = 0; i < tipiIntegrazionePD.length; i++) {
 			try {
-				//IGestoreIntegrazionePD gestore = RicezioneContenutiApplicativi.gestoriIntegrazionePD.get(tipiIntegrazionePD[i]);
-				
-				String classType = null;
 				IGestoreIntegrazionePD gestore = null;
 				try {
-					classType = className.getIntegrazionePortaDelegata(tipiIntegrazionePD[i]);
-					gestore = (IGestoreIntegrazionePD) loader.newInstance(classType);
-					AbstractCore.init(gestore, pddContext, protocolFactory);
-				} catch (Exception e) {
-					throw new Exception(
-							"Riscontrato errore durante il caricamento della classe ["+ classType
-									+ "] da utilizzare per la gestione dell'integrazione (Update/Delete) di tipo ["+ tipiIntegrazionePD[i] + "]: " + e.getMessage());
+					gestore = (IGestoreIntegrazionePD) pluginLoader.newIntegrazionePortaDelegata(tipiIntegrazionePD[i]);
+				}catch(Exception e){
+					throw e;
 				}
-				
-				if ((gestore != null) && (gestore instanceof IGestoreIntegrazionePDSoap)) {
-					if(propertiesReader.deleteHeaderIntegrazioneRequestPD()){
-						// delete
-						((IGestoreIntegrazionePDSoap)gestore).deleteInRequestHeader(inRequestPDMessage);
+				if(gestore!=null){
+					String classType = null;
+					try {
+						classType = gestore.getClass().getName();
+						AbstractCore.init(gestore, pddContext, protocolFactory);
+					} catch (Exception e) {
+						throw new Exception(
+								"Riscontrato errore durante l'inizializzazione della classe ["+ classType
+										+ "] da utilizzare per la gestione dell'integrazione delle fruizioni (Update/Delete) di tipo ["+ tipiIntegrazionePD[i] + "]: " + e.getMessage());
 					}
-					else{
-						// update
-						String servizioApplicativoDaInserireHeader = null;
-						if(CostantiPdD.SERVIZIO_APPLICATIVO_ANONIMO.equals(servizioApplicativo)==false){
-							servizioApplicativoDaInserireHeader = servizioApplicativo;
+					if (gestore instanceof IGestoreIntegrazionePDSoap) {
+						if(propertiesReader.deleteHeaderIntegrazioneRequestPD()){
+							// delete
+							((IGestoreIntegrazionePDSoap)gestore).deleteInRequestHeader(inRequestPDMessage);
 						}
-						((IGestoreIntegrazionePDSoap)gestore).updateInRequestHeader(inRequestPDMessage, idServizio, 
-								idMessageRequest, servizioApplicativoDaInserireHeader, idCorrelazioneApplicativa);
-					}
-				} 
+						else{
+							// update
+							String servizioApplicativoDaInserireHeader = null;
+							if(CostantiPdD.SERVIZIO_APPLICATIVO_ANONIMO.equals(servizioApplicativo)==false){
+								servizioApplicativoDaInserireHeader = servizioApplicativo;
+							}
+							((IGestoreIntegrazionePDSoap)gestore).updateInRequestHeader(inRequestPDMessage, idServizio, 
+									idMessageRequest, servizioApplicativoDaInserireHeader, idCorrelazioneApplicativa);
+						}
+					} 
+				}
 			} catch (Exception e) {
 				if(propertiesReader.deleteHeaderIntegrazioneRequestPD()){
 					msgDiag.logErroreGenerico(e,"deleteHeaderIntegrazione("+ tipiIntegrazionePD[i]+")");
@@ -5302,6 +5300,7 @@ public class RicezioneContenutiApplicativi {
 		Busta bustaRichiesta = parametriGestioneRisposta.getBustaRichiesta();
 		
 		Loader loader = Loader.getInstance();
+		PddPluginLoader pluginLoader = PddPluginLoader.getInstance();
 		
 		boolean errorOccurs_setResponse = false;
 
@@ -5533,25 +5532,26 @@ public class RicezioneContenutiApplicativi {
 		outResponsePDMessage.setProprietaTrasporto(propertiesIntegrazioneRisposta);
 		outResponsePDMessage.setServizio(parametriGestioneRisposta.getIdServizio());
 		outResponsePDMessage.setSoggettoMittente(parametriGestioneRisposta.getSoggettoMittente());
-	/*	if (RicezioneContenutiApplicativi.gestoriIntegrazionePD.containsKey(CostantiConfigurazione.HEADER_INTEGRAZIONE_TRASPORTO)
-				|| this.msgContext.getIdModulo().startsWith(RicezioneContenutiApplicativi.ID_MODULO+ IntegrationManagerInterface.ID_MODULO)) {*/
+
 		if (this.msgContext.getIdModulo().startsWith(RicezioneContenutiApplicativi.ID_MODULO+ IntegrationManager.ID_MODULO)) {
 			try {
-				//IGestoreIntegrazionePD gestore = RicezioneContenutiApplicativi.gestoriIntegrazionePD.get(CostantiConfigurazione.HEADER_INTEGRAZIONE_TRASPORTO);
-				
-				String classType = null;
 				IGestoreIntegrazionePD gestore = null;
 				try {
-					classType = ClassNameProperties.getInstance().getIntegrazionePortaDelegata(CostantiConfigurazione.HEADER_INTEGRAZIONE_TRASPORTO);
-					gestore = (IGestoreIntegrazionePD) loader.newInstance(classType);
-					AbstractCore.init(gestore, pddContext, protocolFactory);
-				} catch (Exception e) {
-					throw new Exception(
-							"Riscontrato errore durante il caricamento della classe ["+ classType
-									+ "] da utilizzare per la gestione dell'integrazione di tipo (Risposta IM) ["+ CostantiConfigurazione.HEADER_INTEGRAZIONE_TRASPORTO + "]: " + e.getMessage());
+					gestore = (IGestoreIntegrazionePD) pluginLoader.newIntegrazionePortaDelegata(CostantiConfigurazione.HEADER_INTEGRAZIONE_TRASPORTO);
+				}catch(Exception e){
+					throw e;
 				}
-				
-				if (gestore != null) {
+				if(gestore!=null){
+					String classType = null;
+					try {
+						classType = gestore.getClass().getName();
+						AbstractCore.init(gestore, pddContext, protocolFactory);
+					} catch (Exception e) {
+						throw new Exception(
+								"Riscontrato errore durante l'inizializzazione della classe ["+ classType
+										+ "] da utilizzare per la gestione dell'integrazione delle fruizioni (Risposta IM) di tipo ["+ CostantiConfigurazione.HEADER_INTEGRAZIONE_TRASPORTO + "]: " + e.getMessage());
+					}
+
 					gestore.setOutResponseHeader(headerIntegrazioneRisposta, outResponsePDMessage);
 				}
 			} catch (Exception e) {
@@ -5562,21 +5562,22 @@ public class RicezioneContenutiApplicativi {
 		// HeaderIntegrazione
 		for (int i = 0; i < tipiIntegrazionePD.length; i++) {
 			try {
-				//IGestoreIntegrazionePD gestore = RicezioneContenutiApplicativi.gestoriIntegrazionePD.get(tipiIntegrazionePD[i]);
-				
-				String classType = null;
 				IGestoreIntegrazionePD gestore = null;
 				try {
-					classType = ClassNameProperties.getInstance().getIntegrazionePortaDelegata(tipiIntegrazionePD[i]);
-					gestore = (IGestoreIntegrazionePD) loader.newInstance(classType);
-					AbstractCore.init(gestore, pddContext, protocolFactory);
-				} catch (Exception e) {
-					throw new Exception(
-							"Riscontrato errore durante il caricamento della classe ["+ classType
-									+ "] da utilizzare per la gestione dell'integrazione (Risposta) di tipo ["+ tipiIntegrazionePD[i] + "]: " + e.getMessage());
+					gestore = (IGestoreIntegrazionePD) pluginLoader.newIntegrazionePortaDelegata(tipiIntegrazionePD[i]);
+				}catch(Exception e){
+					throw e;
 				}
-				
-				if (gestore != null) {
+				if(gestore!=null){
+					String classType = null;
+					try {
+						classType = gestore.getClass().getName();
+						AbstractCore.init(gestore, pddContext, protocolFactory);
+					} catch (Exception e) {
+						throw new Exception(
+								"Riscontrato errore durante l'inizializzazione della classe ["+ classType
+										+ "] da utilizzare per la gestione dell'integrazione delle fruizioni (Risposta) di tipo ["+ tipiIntegrazionePD[i] + "]: " + e.getMessage());
+					}
 					if(gestore instanceof IGestoreIntegrazionePDSoap){
 						if(propertiesReader.processHeaderIntegrazionePDResponse(false)){
 							if(propertiesReader.deleteHeaderIntegrazioneResponsePD()){

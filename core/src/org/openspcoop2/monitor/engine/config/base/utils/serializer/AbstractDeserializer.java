@@ -26,11 +26,11 @@ import org.openspcoop2.monitor.engine.config.base.ElencoConfigurazioneServizio;
 import org.openspcoop2.monitor.engine.config.base.Plugin;
 import org.openspcoop2.monitor.engine.config.base.PluginServizioCompatibilita;
 import org.openspcoop2.monitor.engine.config.base.PluginFiltroCompatibilita;
+import org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita;
 import org.openspcoop2.monitor.engine.config.base.IdConfigurazioneFiltro;
 import org.openspcoop2.monitor.engine.config.base.ConfigurazioneFiltro;
 import org.openspcoop2.monitor.engine.config.base.IdPlugin;
 import org.openspcoop2.monitor.engine.config.base.ElencoIdPlugin;
-import org.openspcoop2.monitor.engine.config.base.PluginInfo;
 import org.openspcoop2.monitor.engine.config.base.ElencoIdConfigurazioneFiltro;
 import org.openspcoop2.monitor.engine.config.base.ElencoConfigurazioneFiltro;
 import org.openspcoop2.monitor.engine.config.base.ElencoPlugin;
@@ -372,6 +372,69 @@ public abstract class AbstractDeserializer extends org.openspcoop2.generic_proje
 	
 	/*
 	 =================================================================================
+	 Object: plugin-proprieta-compatibilita
+	 =================================================================================
+	*/
+	
+	/**
+	 * Transform the xml in <var>fileName</var> in the object type {@link org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita}
+	 * 
+	 * @param fileName Xml file to use for the reconstruction of the object type {@link org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita}
+	 * @return Object type {@link org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita}
+	 * @throws DeserializerException The exception that is thrown when an error occurs during deserialization
+	 */
+	public PluginProprietaCompatibilita readPluginProprietaCompatibilita(String fileName) throws DeserializerException {
+		return (PluginProprietaCompatibilita) this.xmlToObj(fileName, PluginProprietaCompatibilita.class);
+	}
+	
+	/**
+	 * Transform the xml in <var>file</var> in the object type {@link org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita}
+	 * 
+	 * @param file Xml file to use for the reconstruction of the object type {@link org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita}
+	 * @return Object type {@link org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita}
+	 * @throws DeserializerException The exception that is thrown when an error occurs during deserialization
+	 */
+	public PluginProprietaCompatibilita readPluginProprietaCompatibilita(File file) throws DeserializerException {
+		return (PluginProprietaCompatibilita) this.xmlToObj(file, PluginProprietaCompatibilita.class);
+	}
+	
+	/**
+	 * Transform the input stream <var>in</var> in the object type {@link org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita}
+	 * 
+	 * @param in InputStream to use for the reconstruction of the object type {@link org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita}
+	 * @return Object type {@link org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita}
+	 * @throws DeserializerException The exception that is thrown when an error occurs during deserialization
+	 */
+	public PluginProprietaCompatibilita readPluginProprietaCompatibilita(InputStream in) throws DeserializerException {
+		return (PluginProprietaCompatibilita) this.xmlToObj(in, PluginProprietaCompatibilita.class);
+	}	
+	
+	/**
+	 * Transform the byte array <var>in</var> in the object type {@link org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita}
+	 * 
+	 * @param in Byte array to use for the reconstruction of the object type {@link org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita}
+	 * @return Object type {@link org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita}
+	 * @throws DeserializerException The exception that is thrown when an error occurs during deserialization
+	 */
+	public PluginProprietaCompatibilita readPluginProprietaCompatibilita(byte[] in) throws DeserializerException {
+		return (PluginProprietaCompatibilita) this.xmlToObj(in, PluginProprietaCompatibilita.class);
+	}	
+	
+	/**
+	 * Transform the String <var>in</var> in the object type {@link org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita}
+	 * 
+	 * @param in String to use for the reconstruction of the object type {@link org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita}
+	 * @return Object type {@link org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita}
+	 * @throws DeserializerException The exception that is thrown when an error occurs during deserialization
+	 */
+	public PluginProprietaCompatibilita readPluginProprietaCompatibilitaFromString(String in) throws DeserializerException {
+		return (PluginProprietaCompatibilita) this.xmlToObj(in.getBytes(), PluginProprietaCompatibilita.class);
+	}	
+	
+	
+	
+	/*
+	 =================================================================================
 	 Object: id-configurazione-filtro
 	 =================================================================================
 	*/
@@ -618,69 +681,6 @@ public abstract class AbstractDeserializer extends org.openspcoop2.generic_proje
 	 */
 	public ElencoIdPlugin readElencoIdPluginFromString(String in) throws DeserializerException {
 		return (ElencoIdPlugin) this.xmlToObj(in.getBytes(), ElencoIdPlugin.class);
-	}	
-	
-	
-	
-	/*
-	 =================================================================================
-	 Object: plugin-info
-	 =================================================================================
-	*/
-	
-	/**
-	 * Transform the xml in <var>fileName</var> in the object type {@link org.openspcoop2.monitor.engine.config.base.PluginInfo}
-	 * 
-	 * @param fileName Xml file to use for the reconstruction of the object type {@link org.openspcoop2.monitor.engine.config.base.PluginInfo}
-	 * @return Object type {@link org.openspcoop2.monitor.engine.config.base.PluginInfo}
-	 * @throws DeserializerException The exception that is thrown when an error occurs during deserialization
-	 */
-	public PluginInfo readPluginInfo(String fileName) throws DeserializerException {
-		return (PluginInfo) this.xmlToObj(fileName, PluginInfo.class);
-	}
-	
-	/**
-	 * Transform the xml in <var>file</var> in the object type {@link org.openspcoop2.monitor.engine.config.base.PluginInfo}
-	 * 
-	 * @param file Xml file to use for the reconstruction of the object type {@link org.openspcoop2.monitor.engine.config.base.PluginInfo}
-	 * @return Object type {@link org.openspcoop2.monitor.engine.config.base.PluginInfo}
-	 * @throws DeserializerException The exception that is thrown when an error occurs during deserialization
-	 */
-	public PluginInfo readPluginInfo(File file) throws DeserializerException {
-		return (PluginInfo) this.xmlToObj(file, PluginInfo.class);
-	}
-	
-	/**
-	 * Transform the input stream <var>in</var> in the object type {@link org.openspcoop2.monitor.engine.config.base.PluginInfo}
-	 * 
-	 * @param in InputStream to use for the reconstruction of the object type {@link org.openspcoop2.monitor.engine.config.base.PluginInfo}
-	 * @return Object type {@link org.openspcoop2.monitor.engine.config.base.PluginInfo}
-	 * @throws DeserializerException The exception that is thrown when an error occurs during deserialization
-	 */
-	public PluginInfo readPluginInfo(InputStream in) throws DeserializerException {
-		return (PluginInfo) this.xmlToObj(in, PluginInfo.class);
-	}	
-	
-	/**
-	 * Transform the byte array <var>in</var> in the object type {@link org.openspcoop2.monitor.engine.config.base.PluginInfo}
-	 * 
-	 * @param in Byte array to use for the reconstruction of the object type {@link org.openspcoop2.monitor.engine.config.base.PluginInfo}
-	 * @return Object type {@link org.openspcoop2.monitor.engine.config.base.PluginInfo}
-	 * @throws DeserializerException The exception that is thrown when an error occurs during deserialization
-	 */
-	public PluginInfo readPluginInfo(byte[] in) throws DeserializerException {
-		return (PluginInfo) this.xmlToObj(in, PluginInfo.class);
-	}	
-	
-	/**
-	 * Transform the String <var>in</var> in the object type {@link org.openspcoop2.monitor.engine.config.base.PluginInfo}
-	 * 
-	 * @param in String to use for the reconstruction of the object type {@link org.openspcoop2.monitor.engine.config.base.PluginInfo}
-	 * @return Object type {@link org.openspcoop2.monitor.engine.config.base.PluginInfo}
-	 * @throws DeserializerException The exception that is thrown when an error occurs during deserialization
-	 */
-	public PluginInfo readPluginInfoFromString(String in) throws DeserializerException {
-		return (PluginInfo) this.xmlToObj(in.getBytes(), PluginInfo.class);
 	}	
 	
 	

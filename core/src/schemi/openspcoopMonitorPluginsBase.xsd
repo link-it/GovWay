@@ -6,36 +6,7 @@
 	
 	
 	
-	<!-- ********* INFORMAZIONI GENERALI ************* -->
-	<xsd:element name="plugin-info">
-		<xsd:annotation>
-			<xsd:appinfo>
-				<linkit:generator xmlns:linkit="http://www.link.it/project_generator">
-					<linkit:interface crud="true" single-instance="true"/>
-					<linkit:sql-table-mapping name="plugin_info" >
-						<linkit:sql-table-primary-key generate="false" generate-id="false"/>
-					</linkit:sql-table-mapping>
-				</linkit:generator>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:complexType>
-			<xsd:sequence>
-				<xsd:element name="content" type="xsd:base64Binary">
-					<xsd:annotation>
-						<xsd:appinfo>
-							<linkit:generator
-								xmlns:linkit="http://www.link.it/project_generator">
-								<linkit:sql-column-mapping medium-binary="true"/>
-							</linkit:generator>
-						</xsd:appinfo>
-					</xsd:annotation>
-				</xsd:element>
-			</xsd:sequence>
-		</xsd:complexType>    
-	</xsd:element>
-	
-	
-	
+
 	
 	<!-- ********* PLUGIN DEI SERVIZI PER PERSONALIZZAZIONI ************* -->
 	
@@ -45,6 +16,15 @@
 			<xsd:enumeration value="RICERCA"/>
 			<xsd:enumeration value="STATISTICA"/>
 			<xsd:enumeration value="ALLARME"/>
+			<xsd:enumeration value="CONNETTORE"/>
+			<xsd:enumeration value="AUTENTICAZIONE"/>
+			<xsd:enumeration value="AUTORIZZAZIONE"/>
+			<xsd:enumeration value="AUTORIZZAZIONE_CONTENUTI"/>
+			<xsd:enumeration value="INTEGRAZIONE"/>
+			<xsd:enumeration value="MESSAGE_HANDLER"/>
+			<xsd:enumeration value="SERVICE_HANDLER"/>
+			<xsd:enumeration value="BEHAVIOUR"/>
+			<xsd:enumeration value="RATE_LIMITING"/>
 		</xsd:restriction>
 	</xsd:simpleType>
 	
@@ -52,16 +32,21 @@
 		<xsd:complexType>
 			<xsd:sequence>
 				<!-- Dati -->
-				<xsd:element name="tipo" type="tipo-plugin" />
+				<xsd:element name="tipo-plugin" type="xsd:string"/>
 				<xsd:element name="class-name" type="xsd:string" />
+				<xsd:element name="tipo" type="xsd:string" />
 				<xsd:element name="descrizione" type="xsd:string" minOccurs="0" />
 				<xsd:element name="label" type="xsd:string" />
+				<xsd:element name="stato" type="xsd:boolean" default="true" minOccurs="0" />
 				<!-- Compatibilità (Per Transazione, Ricerca e Statistica) -->
 				<xsd:element name="plugin-servizio-compatibilita"
 					type="plugin-servizio-compatibilita" minOccurs="0" maxOccurs="unbounded" />
 				<!-- Compatibilità (Per Allarmi) -->
 				<xsd:element name="plugin-filtro-compatibilita"
 					type="plugin-filtro-compatibilita" minOccurs="0" maxOccurs="unbounded" />
+				<!-- Compatibilità (Per Handler) -->
+				<xsd:element name="plugin-proprieta-compatibilita"
+					type="plugin-proprieta-compatibilita" minOccurs="0" maxOccurs="unbounded"/>				
 			</xsd:sequence>
 		</xsd:complexType>
 	</xsd:element>
@@ -101,6 +86,13 @@
 		</xsd:sequence>
 	</xsd:complexType>
 	
+	<xsd:complexType name="plugin-proprieta-compatibilita">
+		<xsd:sequence>
+			<!-- Regole di match -->
+			<xsd:element name="nome" type="xsd:string"/>
+			<xsd:element name="valore" type="xsd:string"/>
+		</xsd:sequence>
+	</xsd:complexType>	
 	
 	
 	
@@ -184,8 +176,10 @@
 	
 	<xsd:complexType name="id-plugin">
 		<xsd:sequence>
-			<xsd:element name="tipo" type="tipo-plugin"/>
+			<xsd:element name="tipo-plugin" type="xsd:string" /> <!-- lascio stringa libera per future aggiunte type="tipo-plugin" -->
+			<xsd:element name="tipo" type="xsd:string" />
 			<xsd:element name="class-name" type="xsd:string" />
+			<xsd:element name="label" type="xsd:string" />
 		</xsd:sequence>
 	</xsd:complexType>
 	

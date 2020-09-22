@@ -17,19 +17,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package org.openspcoop2.monitor.engine.config.base.dao;
 
-import org.openspcoop2.monitor.engine.config.base.PluginInfo;
-import org.openspcoop2.generic_project.dao.IServiceSingleObject;
+package org.openspcoop2.pdd.config;
+
+import java.sql.Connection;
 
 /**     
- * Service can be used both for research that will make persistent objects on the backend of type org.openspcoop2.monitor.engine.config.base.PluginInfo 
+ * ConfigurazionePdDConnectionResource
  *
  * @author Poli Andrea (poli@link.it)
  * @author $Author$
  * @version $Rev$, $Date$
  */
+public class ConfigurazionePdDConnectionResource {
 
-public interface IPluginInfoService extends IServiceSingleObject<PluginInfo> {
-
+	protected Connection connectionDB = null;
+	protected boolean connectionPdD = false;
+	
+	public Connection getConnectionDB() {
+		return this.connectionDB;
+	}
+	public void setConnectionDB(Connection connectionDB) {
+		this.connectionDB = connectionDB;
+	}
+	public boolean isConnectionPdD() {
+		return this.connectionPdD;
+	}
+	public void setConnectionPdD(boolean connectionPdD) {
+		this.connectionPdD = connectionPdD;
+	}
 }

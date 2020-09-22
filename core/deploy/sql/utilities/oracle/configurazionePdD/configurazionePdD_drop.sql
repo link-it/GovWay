@@ -1,5 +1,8 @@
 -- Gli indici vengono eliminati automaticamente una volta eliminata la tabella
+-- DROP INDEX index_registro_plug_jar_1;
 -- DROP INDEX index_generic_property_1;
+DROP TRIGGER trg_registro_plug_jar;
+DROP TRIGGER trg_registro_plugins;
 DROP TRIGGER trg_generic_property;
 DROP TRIGGER trg_generic_properties;
 DROP TRIGGER trg_pdd_sys_props;
@@ -23,6 +26,8 @@ DROP TRIGGER trg_configurazione;
 DROP TRIGGER trg_config_cache_regole;
 DROP TRIGGER trg_routing;
 DROP TRIGGER trg_registri;
+DROP TABLE registro_plug_jar;
+DROP TABLE registro_plugins;
 DROP TABLE generic_property;
 DROP TABLE generic_properties;
 DROP TABLE pdd_sys_props;
@@ -46,6 +51,8 @@ DROP TABLE configurazione;
 DROP TABLE config_cache_regole;
 DROP TABLE routing;
 DROP TABLE registri;
+DROP SEQUENCE seq_registro_plug_jar;
+DROP SEQUENCE seq_registro_plugins;
 DROP SEQUENCE seq_generic_property;
 DROP SEQUENCE seq_generic_properties;
 DROP SEQUENCE seq_pdd_sys_props;

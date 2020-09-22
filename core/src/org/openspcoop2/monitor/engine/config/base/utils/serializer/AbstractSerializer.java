@@ -28,11 +28,11 @@ import org.openspcoop2.monitor.engine.config.base.ElencoConfigurazioneServizio;
 import org.openspcoop2.monitor.engine.config.base.Plugin;
 import org.openspcoop2.monitor.engine.config.base.PluginServizioCompatibilita;
 import org.openspcoop2.monitor.engine.config.base.PluginFiltroCompatibilita;
+import org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita;
 import org.openspcoop2.monitor.engine.config.base.IdConfigurazioneFiltro;
 import org.openspcoop2.monitor.engine.config.base.ConfigurazioneFiltro;
 import org.openspcoop2.monitor.engine.config.base.IdPlugin;
 import org.openspcoop2.monitor.engine.config.base.ElencoIdPlugin;
-import org.openspcoop2.monitor.engine.config.base.PluginInfo;
 import org.openspcoop2.monitor.engine.config.base.ElencoIdConfigurazioneFiltro;
 import org.openspcoop2.monitor.engine.config.base.ElencoConfigurazioneFiltro;
 import org.openspcoop2.monitor.engine.config.base.ElencoPlugin;
@@ -723,6 +723,124 @@ public abstract class AbstractSerializer {
 	
 	/*
 	 =================================================================================
+	 Object: plugin-proprieta-compatibilita
+	 =================================================================================
+	*/
+	
+	/**
+	 * Serialize to file system in <var>fileName</var> the object <var>pluginProprietaCompatibilita</var> of type {@link org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita}
+	 * 
+	 * @param fileName Xml file to serialize the object <var>pluginProprietaCompatibilita</var>
+	 * @param pluginProprietaCompatibilita Object to be serialized in xml file <var>fileName</var>
+	 * @throws SerializerException The exception that is thrown when an error occurs during serialization
+	 */
+	public void write(String fileName,PluginProprietaCompatibilita pluginProprietaCompatibilita) throws SerializerException {
+		this.objToXml(fileName, PluginProprietaCompatibilita.class, pluginProprietaCompatibilita, false);
+	}
+	/**
+	 * Serialize to file system in <var>fileName</var> the object <var>pluginProprietaCompatibilita</var> of type {@link org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita}
+	 * 
+	 * @param fileName Xml file to serialize the object <var>pluginProprietaCompatibilita</var>
+	 * @param pluginProprietaCompatibilita Object to be serialized in xml file <var>fileName</var>
+	 * @param prettyPrint if true output the XML with indenting
+	 * @throws SerializerException The exception that is thrown when an error occurs during serialization
+	 */
+	public void write(String fileName,PluginProprietaCompatibilita pluginProprietaCompatibilita,boolean prettyPrint) throws SerializerException {
+		this.objToXml(fileName, PluginProprietaCompatibilita.class, pluginProprietaCompatibilita, prettyPrint);
+	}
+	
+	/**
+	 * Serialize to file system in <var>file</var> the object <var>pluginProprietaCompatibilita</var> of type {@link org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita}
+	 * 
+	 * @param file Xml file to serialize the object <var>pluginProprietaCompatibilita</var>
+	 * @param pluginProprietaCompatibilita Object to be serialized in xml file <var>fileName</var>
+	 * @throws SerializerException The exception that is thrown when an error occurs during serialization
+	 */
+	public void write(File file,PluginProprietaCompatibilita pluginProprietaCompatibilita) throws SerializerException {
+		this.objToXml(file, PluginProprietaCompatibilita.class, pluginProprietaCompatibilita, false);
+	}
+	/**
+	 * Serialize to file system in <var>file</var> the object <var>pluginProprietaCompatibilita</var> of type {@link org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita}
+	 * 
+	 * @param file Xml file to serialize the object <var>pluginProprietaCompatibilita</var>
+	 * @param pluginProprietaCompatibilita Object to be serialized in xml file <var>fileName</var>
+	 * @param prettyPrint if true output the XML with indenting
+	 * @throws SerializerException The exception that is thrown when an error occurs during serialization
+	 */
+	public void write(File file,PluginProprietaCompatibilita pluginProprietaCompatibilita,boolean prettyPrint) throws SerializerException {
+		this.objToXml(file, PluginProprietaCompatibilita.class, pluginProprietaCompatibilita, prettyPrint);
+	}
+	
+	/**
+	 * Serialize to output stream <var>out</var> the object <var>pluginProprietaCompatibilita</var> of type {@link org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita}
+	 * 
+	 * @param out OutputStream to serialize the object <var>pluginProprietaCompatibilita</var>
+	 * @param pluginProprietaCompatibilita Object to be serialized in xml file <var>fileName</var>
+	 * @throws SerializerException The exception that is thrown when an error occurs during serialization
+	 */
+	public void write(OutputStream out,PluginProprietaCompatibilita pluginProprietaCompatibilita) throws SerializerException {
+		this.objToXml(out, PluginProprietaCompatibilita.class, pluginProprietaCompatibilita, false);
+	}
+	/**
+	 * Serialize to output stream <var>out</var> the object <var>pluginProprietaCompatibilita</var> of type {@link org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita}
+	 * 
+	 * @param out OutputStream to serialize the object <var>pluginProprietaCompatibilita</var>
+	 * @param pluginProprietaCompatibilita Object to be serialized in xml file <var>fileName</var>
+	 * @param prettyPrint if true output the XML with indenting
+	 * @throws SerializerException The exception that is thrown when an error occurs during serialization
+	 */
+	public void write(OutputStream out,PluginProprietaCompatibilita pluginProprietaCompatibilita,boolean prettyPrint) throws SerializerException {
+		this.objToXml(out, PluginProprietaCompatibilita.class, pluginProprietaCompatibilita, prettyPrint);
+	}
+			
+	/**
+	 * Serialize to byte array the object <var>pluginProprietaCompatibilita</var> of type {@link org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita}
+	 * 
+	 * @param pluginProprietaCompatibilita Object to be serialized
+	 * @return Object to be serialized in byte array
+	 * @throws SerializerException The exception that is thrown when an error occurs during serialization
+	 */
+	public byte[] toByteArray(PluginProprietaCompatibilita pluginProprietaCompatibilita) throws SerializerException {
+		return this.objToXml(PluginProprietaCompatibilita.class, pluginProprietaCompatibilita, false).toByteArray();
+	}
+	/**
+	 * Serialize to byte array the object <var>pluginProprietaCompatibilita</var> of type {@link org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita}
+	 * 
+	 * @param pluginProprietaCompatibilita Object to be serialized
+	 * @param prettyPrint if true output the XML with indenting
+	 * @return Object to be serialized in byte array
+	 * @throws SerializerException The exception that is thrown when an error occurs during serialization
+	 */
+	public byte[] toByteArray(PluginProprietaCompatibilita pluginProprietaCompatibilita,boolean prettyPrint) throws SerializerException {
+		return this.objToXml(PluginProprietaCompatibilita.class, pluginProprietaCompatibilita, prettyPrint).toByteArray();
+	}
+	
+	/**
+	 * Serialize to String the object <var>pluginProprietaCompatibilita</var> of type {@link org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita}
+	 * 
+	 * @param pluginProprietaCompatibilita Object to be serialized
+	 * @return Object to be serialized as String
+	 * @throws SerializerException The exception that is thrown when an error occurs during serialization
+	 */
+	public String toString(PluginProprietaCompatibilita pluginProprietaCompatibilita) throws SerializerException {
+		return this.objToXml(PluginProprietaCompatibilita.class, pluginProprietaCompatibilita, false).toString();
+	}
+	/**
+	 * Serialize to String the object <var>pluginProprietaCompatibilita</var> of type {@link org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita}
+	 * 
+	 * @param pluginProprietaCompatibilita Object to be serialized
+	 * @param prettyPrint if true output the XML with indenting
+	 * @return Object to be serialized as String
+	 * @throws SerializerException The exception that is thrown when an error occurs during serialization
+	 */
+	public String toString(PluginProprietaCompatibilita pluginProprietaCompatibilita,boolean prettyPrint) throws SerializerException {
+		return this.objToXml(PluginProprietaCompatibilita.class, pluginProprietaCompatibilita, prettyPrint).toString();
+	}
+	
+	
+	
+	/*
+	 =================================================================================
 	 Object: id-configurazione-filtro
 	 =================================================================================
 	*/
@@ -1189,124 +1307,6 @@ public abstract class AbstractSerializer {
 	 */
 	public String toString(ElencoIdPlugin elencoIdPlugin,boolean prettyPrint) throws SerializerException {
 		return this.objToXml(ElencoIdPlugin.class, elencoIdPlugin, prettyPrint).toString();
-	}
-	
-	
-	
-	/*
-	 =================================================================================
-	 Object: plugin-info
-	 =================================================================================
-	*/
-	
-	/**
-	 * Serialize to file system in <var>fileName</var> the object <var>pluginInfo</var> of type {@link org.openspcoop2.monitor.engine.config.base.PluginInfo}
-	 * 
-	 * @param fileName Xml file to serialize the object <var>pluginInfo</var>
-	 * @param pluginInfo Object to be serialized in xml file <var>fileName</var>
-	 * @throws SerializerException The exception that is thrown when an error occurs during serialization
-	 */
-	public void write(String fileName,PluginInfo pluginInfo) throws SerializerException {
-		this.objToXml(fileName, PluginInfo.class, pluginInfo, false);
-	}
-	/**
-	 * Serialize to file system in <var>fileName</var> the object <var>pluginInfo</var> of type {@link org.openspcoop2.monitor.engine.config.base.PluginInfo}
-	 * 
-	 * @param fileName Xml file to serialize the object <var>pluginInfo</var>
-	 * @param pluginInfo Object to be serialized in xml file <var>fileName</var>
-	 * @param prettyPrint if true output the XML with indenting
-	 * @throws SerializerException The exception that is thrown when an error occurs during serialization
-	 */
-	public void write(String fileName,PluginInfo pluginInfo,boolean prettyPrint) throws SerializerException {
-		this.objToXml(fileName, PluginInfo.class, pluginInfo, prettyPrint);
-	}
-	
-	/**
-	 * Serialize to file system in <var>file</var> the object <var>pluginInfo</var> of type {@link org.openspcoop2.monitor.engine.config.base.PluginInfo}
-	 * 
-	 * @param file Xml file to serialize the object <var>pluginInfo</var>
-	 * @param pluginInfo Object to be serialized in xml file <var>fileName</var>
-	 * @throws SerializerException The exception that is thrown when an error occurs during serialization
-	 */
-	public void write(File file,PluginInfo pluginInfo) throws SerializerException {
-		this.objToXml(file, PluginInfo.class, pluginInfo, false);
-	}
-	/**
-	 * Serialize to file system in <var>file</var> the object <var>pluginInfo</var> of type {@link org.openspcoop2.monitor.engine.config.base.PluginInfo}
-	 * 
-	 * @param file Xml file to serialize the object <var>pluginInfo</var>
-	 * @param pluginInfo Object to be serialized in xml file <var>fileName</var>
-	 * @param prettyPrint if true output the XML with indenting
-	 * @throws SerializerException The exception that is thrown when an error occurs during serialization
-	 */
-	public void write(File file,PluginInfo pluginInfo,boolean prettyPrint) throws SerializerException {
-		this.objToXml(file, PluginInfo.class, pluginInfo, prettyPrint);
-	}
-	
-	/**
-	 * Serialize to output stream <var>out</var> the object <var>pluginInfo</var> of type {@link org.openspcoop2.monitor.engine.config.base.PluginInfo}
-	 * 
-	 * @param out OutputStream to serialize the object <var>pluginInfo</var>
-	 * @param pluginInfo Object to be serialized in xml file <var>fileName</var>
-	 * @throws SerializerException The exception that is thrown when an error occurs during serialization
-	 */
-	public void write(OutputStream out,PluginInfo pluginInfo) throws SerializerException {
-		this.objToXml(out, PluginInfo.class, pluginInfo, false);
-	}
-	/**
-	 * Serialize to output stream <var>out</var> the object <var>pluginInfo</var> of type {@link org.openspcoop2.monitor.engine.config.base.PluginInfo}
-	 * 
-	 * @param out OutputStream to serialize the object <var>pluginInfo</var>
-	 * @param pluginInfo Object to be serialized in xml file <var>fileName</var>
-	 * @param prettyPrint if true output the XML with indenting
-	 * @throws SerializerException The exception that is thrown when an error occurs during serialization
-	 */
-	public void write(OutputStream out,PluginInfo pluginInfo,boolean prettyPrint) throws SerializerException {
-		this.objToXml(out, PluginInfo.class, pluginInfo, prettyPrint);
-	}
-			
-	/**
-	 * Serialize to byte array the object <var>pluginInfo</var> of type {@link org.openspcoop2.monitor.engine.config.base.PluginInfo}
-	 * 
-	 * @param pluginInfo Object to be serialized
-	 * @return Object to be serialized in byte array
-	 * @throws SerializerException The exception that is thrown when an error occurs during serialization
-	 */
-	public byte[] toByteArray(PluginInfo pluginInfo) throws SerializerException {
-		return this.objToXml(PluginInfo.class, pluginInfo, false).toByteArray();
-	}
-	/**
-	 * Serialize to byte array the object <var>pluginInfo</var> of type {@link org.openspcoop2.monitor.engine.config.base.PluginInfo}
-	 * 
-	 * @param pluginInfo Object to be serialized
-	 * @param prettyPrint if true output the XML with indenting
-	 * @return Object to be serialized in byte array
-	 * @throws SerializerException The exception that is thrown when an error occurs during serialization
-	 */
-	public byte[] toByteArray(PluginInfo pluginInfo,boolean prettyPrint) throws SerializerException {
-		return this.objToXml(PluginInfo.class, pluginInfo, prettyPrint).toByteArray();
-	}
-	
-	/**
-	 * Serialize to String the object <var>pluginInfo</var> of type {@link org.openspcoop2.monitor.engine.config.base.PluginInfo}
-	 * 
-	 * @param pluginInfo Object to be serialized
-	 * @return Object to be serialized as String
-	 * @throws SerializerException The exception that is thrown when an error occurs during serialization
-	 */
-	public String toString(PluginInfo pluginInfo) throws SerializerException {
-		return this.objToXml(PluginInfo.class, pluginInfo, false).toString();
-	}
-	/**
-	 * Serialize to String the object <var>pluginInfo</var> of type {@link org.openspcoop2.monitor.engine.config.base.PluginInfo}
-	 * 
-	 * @param pluginInfo Object to be serialized
-	 * @param prettyPrint if true output the XML with indenting
-	 * @return Object to be serialized as String
-	 * @throws SerializerException The exception that is thrown when an error occurs during serialization
-	 */
-	public String toString(PluginInfo pluginInfo,boolean prettyPrint) throws SerializerException {
-		return this.objToXml(PluginInfo.class, pluginInfo, prettyPrint).toString();
 	}
 	
 	

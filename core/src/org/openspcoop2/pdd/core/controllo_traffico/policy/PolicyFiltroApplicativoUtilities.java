@@ -27,11 +27,10 @@ import org.openspcoop2.core.controllo_traffico.beans.DatiTransazione;
 import org.openspcoop2.core.controllo_traffico.constants.TipoFiltroApplicativo;
 import org.openspcoop2.message.constants.MessageType;
 import org.openspcoop2.message.constants.ServiceBinding;
-import org.openspcoop2.pdd.config.ClassNameProperties;
+import org.openspcoop2.pdd.config.dynamic.PddPluginLoader;
 import org.openspcoop2.pdd.core.controllo_traffico.plugins.Dati;
 import org.openspcoop2.pdd.core.controllo_traffico.plugins.IRateLimiting;
 import org.openspcoop2.pdd.core.handlers.InRequestProtocolContext;
-import org.openspcoop2.utils.Utilities;
 import org.openspcoop2.utils.regexp.RegExpNotFoundException;
 import org.openspcoop2.utils.regexp.RegularExpressionEngine;
 import org.openspcoop2.utils.transport.TransportUtils;
@@ -131,31 +130,30 @@ public class PolicyFiltroApplicativoUtilities {
 			
 		case PLUGIN_BASED:
 			
-			String className = ClassNameProperties.getInstance().getRateLimiting(nome);
-			if(className==null){
-				throw new Exception("Instance plugin ["+nome+"] error: il tipo non è stato registrato nel registro delle classi ('org.openspcoop2.pdd.controlloTraffico.rateLimiting."+
-						nome+"' non esiste)");
-			}
+			IRateLimiting rateLimitingPlugin = null;
 			try{
-				Class<?> classPlugin = Class.forName(className);
-				Object o = Utilities.newInstance(classPlugin);
-				if(o instanceof IRateLimiting){
-					
-					Dati datiRichiesta = new Dati();
-					datiRichiesta.setConnettore(context.getConnettore());
-					datiRichiesta.setDatiTransazione(datiTransazione);
-					datiRichiesta.setMessaggio(context.getMessaggio());
-					datiRichiesta.setPddContext(context.getPddContext());
-					
-					if(forFilter){
-						return ((IRateLimiting)o).estraiValoreFiltro(log,datiRichiesta);
-					}
-					else{
-						return ((IRateLimiting)o).estraiValoreCollezionamentoDati(log,datiRichiesta);
-					}
-				}else{
-					throw new Exception("ClassType ["+o.getClass().getName()+"] unknown");
+				rateLimitingPlugin = PddPluginLoader.getInstance().newRateLimiting(nome);
+			}catch(Exception e){
+				throw e;
+			}
+			
+			String className = null;
+			try{
+				className = rateLimitingPlugin.getClass().getName();
+				
+				Dati datiRichiesta = new Dati();
+				datiRichiesta.setConnettore(context.getConnettore());
+				datiRichiesta.setDatiTransazione(datiTransazione);
+				datiRichiesta.setMessaggio(context.getMessaggio());
+				datiRichiesta.setPddContext(context.getPddContext());
+				
+				if(forFilter){
+					return rateLimitingPlugin.estraiValoreFiltro(log,datiRichiesta);
 				}
+				else{
+					return rateLimitingPlugin.estraiValoreCollezionamentoDati(log,datiRichiesta);
+				}
+
 			}catch(Exception e){
 				throw new Exception("Instance plugin ["+nome+"] [class:"+className+"] error: "+e.getMessage(),e);
 			}

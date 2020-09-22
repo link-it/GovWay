@@ -19,7 +19,7 @@
  */
 package org.openspcoop2.monitor.engine.config.base.model;
 
-import org.openspcoop2.monitor.engine.config.base.PluginInfo;
+import org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita;
 
 import org.openspcoop2.generic_project.beans.AbstractModel;
 import org.openspcoop2.generic_project.beans.IField;
@@ -28,38 +28,42 @@ import org.openspcoop2.generic_project.beans.ComplexField;
 
 
 /**     
- * Model PluginInfo 
+ * Model PluginProprietaCompatibilita 
  *
  * @author Poli Andrea (poli@link.it)
  * @author $Author$
  * @version $Rev$, $Date$
  */
-public class PluginInfoModel extends AbstractModel<PluginInfo> {
+public class PluginProprietaCompatibilitaModel extends AbstractModel<PluginProprietaCompatibilita> {
 
-	public PluginInfoModel(){
+	public PluginProprietaCompatibilitaModel(){
 	
 		super();
 	
-		this.CONTENT = new Field("content",byte[].class,"plugin-info",PluginInfo.class);
+		this.NOME = new Field("nome",java.lang.String.class,"plugin-proprieta-compatibilita",PluginProprietaCompatibilita.class);
+		this.VALORE = new Field("valore",java.lang.String.class,"plugin-proprieta-compatibilita",PluginProprietaCompatibilita.class);
 	
 	}
 	
-	public PluginInfoModel(IField father){
+	public PluginProprietaCompatibilitaModel(IField father){
 	
 		super(father);
 	
-		this.CONTENT = new ComplexField(father,"content",byte[].class,"plugin-info",PluginInfo.class);
+		this.NOME = new ComplexField(father,"nome",java.lang.String.class,"plugin-proprieta-compatibilita",PluginProprietaCompatibilita.class);
+		this.VALORE = new ComplexField(father,"valore",java.lang.String.class,"plugin-proprieta-compatibilita",PluginProprietaCompatibilita.class);
 	
 	}
 	
 	
 
-	public IField CONTENT = null;
+	public IField NOME = null;
+	 
+	public IField VALORE = null;
 	 
 
 	@Override
-	public Class<PluginInfo> getModeledClass(){
-		return PluginInfo.class;
+	public Class<PluginProprietaCompatibilita> getModeledClass(){
+		return PluginProprietaCompatibilita.class;
 	}
 	
 	@Override
