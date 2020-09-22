@@ -7595,7 +7595,12 @@ public class RicezioneBuste {
 				headerIntegrazioneRisposta.getBusta().setServizio(bustaRichiesta.getServizio());
 				headerIntegrazioneRisposta.getBusta().setVersioneServizio(bustaRichiesta.getVersioneServizio());
 				headerIntegrazioneRisposta.getBusta().setAzione(bustaRichiesta.getAzione());
-				headerIntegrazioneRisposta.getBusta().setIdCollaborazione(bustaRichiesta.getCollaborazione());
+				if(bustaRichiesta.getCollaborazione()!=null) {
+					headerIntegrazioneRisposta.getBusta().setIdCollaborazione(bustaRichiesta.getCollaborazione());
+				}
+				else if(bustaRisposta!=null && bustaRisposta.getCollaborazione()!=null) {
+					headerIntegrazioneRisposta.getBusta().setIdCollaborazione(bustaRisposta.getCollaborazione());
+				}
 				headerIntegrazioneRisposta.getBusta().setID(bustaRichiesta.getID());
 				headerIntegrazioneRisposta.getBusta().setProfiloDiCollaborazione(bustaRichiesta.getProfiloDiCollaborazione());
 				headerIntegrazioneRisposta.setIdApplicativo(correlazioneApplicativa);

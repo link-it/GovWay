@@ -3328,7 +3328,7 @@ public class InoltroBuste extends GenericLib{
 						}else{
 							msgDiag.logErroreGenerico(e,"validator.getHeader("+bustaRisposta.getID()+")");
 						}
-						
+												
 						EsitoElaborazioneMessaggioTracciato esitoTraccia = EsitoElaborazioneMessaggioTracciato.getEsitoElaborazioneConErrore("Errore durante lo sbustamento della risposta: "+e.getMessage());
 						tracciamento.registraRisposta(responseMessage,securityInfoResponse,headerProtocolloRisposta,bustaRisposta,esitoTraccia,
 								Tracciamento.createLocationString(true, location),
@@ -3871,6 +3871,11 @@ public class InoltroBuste extends GenericLib{
 				// Se non impostati, imposto i domini
 				org.openspcoop2.pdd.core.Utilities.refreshIdentificativiPorta(bustaRisposta, requestInfo.getIdentitaPdD(), registroServiziManager, protocolFactory);
 
+				// aggiunto dal protocollo
+				if(richiestaDelegata!=null && richiestaDelegata.getIdCollaborazione()==null && bustaRisposta.getCollaborazione()!=null) {
+					richiestaDelegata.setIdCollaborazione(bustaRisposta.getCollaborazione());
+				}
+				
 				isMessaggioErroreProtocollo = validatore.isErroreProtocollo();
 				bustaDiServizio = validatore.isBustaDiServizio();
 				erroriValidazione = validatore.getEccezioniValidazione();
