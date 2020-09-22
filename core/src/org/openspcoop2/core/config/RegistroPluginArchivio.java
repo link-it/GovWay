@@ -82,6 +82,19 @@ public class RegistroPluginArchivio extends org.openspcoop2.utils.beans.BaseBean
 		this.id=Long.valueOf(-1);
   }
 
+  public String getNomePlugin() {
+    if(this.nomePlugin!=null && ("".equals(this.nomePlugin)==false)){
+		return this.nomePlugin.trim();
+	}else{
+		return null;
+	}
+
+  }
+
+  public void setNomePlugin(String nomePlugin) {
+    this.nomePlugin=nomePlugin;
+  }
+
   public byte[] getContenuto() {
     return this.contenuto;
   }
@@ -148,6 +161,9 @@ public class RegistroPluginArchivio extends org.openspcoop2.utils.beans.BaseBean
   private Long id;
 
 
+
+  @javax.xml.bind.annotation.XmlTransient
+  protected String nomePlugin;
 
   @javax.xml.bind.annotation.XmlSchemaType(name="base64Binary")
   @XmlElement(name="contenuto",required=false,nillable=false)

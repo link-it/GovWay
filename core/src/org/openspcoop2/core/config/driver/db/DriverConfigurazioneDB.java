@@ -10793,9 +10793,16 @@ implements IDriverConfigurazioneGet, IDriverConfigurazioneCRUD, IDriverWS, IMoni
 	}
 	
 	
+	
 	@Override
 	public RegistroPlugin getRegistroPlugin(String nome) throws DriverConfigurazioneException, DriverConfigurazioneNotFound{
-		
+		return getRegistroPlugin(nome, false);
+	}
+	@Override
+	public RegistroPlugin getDatiRegistroPlugin(String nome) throws DriverConfigurazioneException, DriverConfigurazioneNotFound{
+		return getRegistroPlugin(nome, true);
+	}
+	private RegistroPlugin getRegistroPlugin(String nome, boolean soloDati) throws DriverConfigurazioneException, DriverConfigurazioneNotFound{
 		Connection con = null;
 		PreparedStatement stm = null;
 		ResultSet rs = null;
@@ -10858,7 +10865,7 @@ implements IDriverConfigurazioneGet, IDriverConfigurazioneCRUD, IDriverWS, IMoni
 			rs=null;
 			stm=null;
 			
-			if(plugin!=null) {
+			if(plugin!=null && !soloDati) {
 				
 				// archive jar
 				sqlQueryObject = SQLObjectFactory.createSQLQueryObject(this.tipoDB);
@@ -11223,6 +11230,7 @@ implements IDriverConfigurazioneGet, IDriverConfigurazioneCRUD, IDriverWS, IMoni
 		}
 
 		if(archivio!=null) {
+			archivio.setNomePlugin(nomePlugin);
 			return archivio;
 		}
 		throw new DriverConfigurazioneNotFound("Archivio '"+nome+"' non esistente nel plugin '"+nomePlugin+"'");

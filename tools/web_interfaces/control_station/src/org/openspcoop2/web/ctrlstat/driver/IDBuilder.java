@@ -33,6 +33,8 @@ import org.openspcoop2.core.config.GenericProperties;
 import org.openspcoop2.core.config.GestioneErrore;
 import org.openspcoop2.core.config.PortaApplicativa;
 import org.openspcoop2.core.config.PortaDelegata;
+import org.openspcoop2.core.config.RegistroPlugin;
+import org.openspcoop2.core.config.RegistroPluginArchivio;
 import org.openspcoop2.core.config.RoutingTable;
 import org.openspcoop2.core.config.ServizioApplicativo;
 import org.openspcoop2.core.config.SystemProperties;
@@ -57,6 +59,7 @@ import org.openspcoop2.core.registry.Soggetto;
 import org.openspcoop2.core.registry.driver.IDAccordoCooperazioneFactory;
 import org.openspcoop2.core.registry.driver.IDAccordoFactory;
 import org.openspcoop2.core.registry.driver.IDServizioFactory;
+import org.openspcoop2.monitor.engine.config.base.Plugin;
 import org.openspcoop2.pdd.monitor.driver.FilterSearch;
 import org.openspcoop2.utils.serialization.IOException;
 import org.openspcoop2.web.ctrlstat.dao.PdDControlStation;
@@ -316,6 +319,22 @@ public class IDBuilder implements org.openspcoop2.utils.serialization.IDBuilder 
 				return "ConfigurazioneAccessoDatiAutorizzazione";
 			}else if(o instanceof SystemProperties){
 				return "ProprietàDiSistema";
+			}else if(o instanceof RegistroPlugin){
+				RegistroPlugin plugin = (RegistroPlugin) o;
+				String id = plugin.getNome();
+				if(this.prefix){
+					return "[RegistroPlugin] "+ id;
+				}else{
+					return id;
+				}
+			}else if(o instanceof RegistroPluginArchivio){
+				RegistroPluginArchivio plugin = (RegistroPluginArchivio) o;
+				String id = plugin.getNome();
+				if(this.prefix){
+					return "[RegistroPluginArchivio] "+ plugin.getNomePlugin()+"-"+id;
+				}else{
+					return id;
+				}
 			}
 			
 			
@@ -401,6 +420,17 @@ public class IDBuilder implements org.openspcoop2.utils.serialization.IDBuilder 
 				String id = genericProperties.getNome();
 				if(this.prefix){
 					return "[GenericProperties] "+ id;
+				}else{
+					return id;
+				}
+			}
+			
+			// Plugins
+			else if(o instanceof Plugin) {
+				Plugin plugin = (Plugin) o;
+				String id = plugin.getTipoPlugin()+"-"+plugin.getTipo();
+				if(this.prefix){
+					return "[Plugin] "+ id;
 				}else{
 					return id;
 				}
@@ -677,6 +707,19 @@ public class IDBuilder implements org.openspcoop2.utils.serialization.IDBuilder 
 				return null; // oggetto non modificabile nei dati identificativi
 			}else if(o instanceof SystemProperties){
 				return null; // oggetto non modificabile nei dati identificativi
+			}else if(o instanceof RegistroPlugin){
+				RegistroPlugin plugin = (RegistroPlugin) o;
+				if(plugin.getOldNome()==null) {
+					return null; // non lancio un errore
+				}
+				String id = plugin.getOldNome();
+				if(this.prefix){
+					return "[RegistroPlugin] "+ id;
+				}else{
+					return id;
+				}
+			}else if(o instanceof RegistroPluginArchivio){
+				return null; // oggetto non modificabile nei dati identificativi
 			}
 			
 			
@@ -742,6 +785,11 @@ public class IDBuilder implements org.openspcoop2.utils.serialization.IDBuilder 
 			
 			// Generic Properties
 			else if(o instanceof GenericProperties) {
+				return null; // oggetto non modificabile nei dati identificativi
+			}
+			
+			// Plugins
+			else if(o instanceof Plugin) {
 				return null; // oggetto non modificabile nei dati identificativi
 			}
 			
@@ -826,11 +874,15 @@ public class IDBuilder implements org.openspcoop2.utils.serialization.IDBuilder 
 			
 			// Configurazione Controllo Traffico
 			oggetti.add("ConfigurazioneControlloTraffico");
-			oggetti.add(ConfigurazionePolicy.class.getName());
-			oggetti.add(AttivazionePolicy.class.getName());
+			oggetti.add(ConfigurazionePolicy.class.getSimpleName());
+			oggetti.add(AttivazionePolicy.class.getSimpleName());
 			
 			// Generic Properties
-			oggetti.add(GenericProperties.class.getName());
+			oggetti.add(GenericProperties.class.getSimpleName());
+			
+			// RegistroPlugins
+			oggetti.add(RegistroPlugin.class.getSimpleName());
+			oggetti.add(RegistroPluginArchivio.class.getSimpleName());
 			
 			// IExtendedBean
 			oggetti.add("ExtendedBean");
@@ -888,6 +940,10 @@ public class IDBuilder implements org.openspcoop2.utils.serialization.IDBuilder 
 			
 			// Generic Properties
 			oggetti.add(GenericProperties.class.getName());
+			
+			// RegistroPlugins
+			oggetti.add(RegistroPlugin.class.getName());
+			oggetti.add(RegistroPluginArchivio.class.getName());
 			
 			// IExtendedBean
 			oggetti.add(IExtendedBean.class.getName());

@@ -439,6 +439,14 @@ public interface IDriverConfigurazioneGet extends IBeanUtilities {
 	public RegistroPlugin getRegistroPlugin(String nome) throws DriverConfigurazioneException, DriverConfigurazioneNotFound;
 	
 	/**
+	 * Restituisce la configurazione del plugin, senza gli archivi interni
+	 *
+	 * @return RegistroPlugin
+	 * 
+	 */
+	public RegistroPlugin getDatiRegistroPlugin(String nome) throws DriverConfigurazioneException, DriverConfigurazioneNotFound;
+	
+	/**
 	 * Restituisce i dati dell'archivio di un plugin
 	 *
 	 * @return RegistroPlugin

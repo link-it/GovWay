@@ -84,6 +84,19 @@ public class RegistroPlugin extends org.openspcoop2.utils.beans.BaseBean impleme
 		this.id=Long.valueOf(-1);
   }
 
+  public String getOldNome() {
+    if(this.oldNome!=null && ("".equals(this.oldNome)==false)){
+		return this.oldNome.trim();
+	}else{
+		return null;
+	}
+
+  }
+
+  public void setOldNome(String oldNome) {
+    this.oldNome=oldNome;
+  }
+
   public void addArchivio(RegistroPluginArchivio archivio) {
     this.archivio.add(archivio);
   }
@@ -190,6 +203,9 @@ public class RegistroPlugin extends org.openspcoop2.utils.beans.BaseBean impleme
   private Long id;
 
 
+
+  @javax.xml.bind.annotation.XmlTransient
+  protected String oldNome;
 
   @XmlElement(name="archivio",required=true,nillable=false)
   protected List<RegistroPluginArchivio> archivio = new ArrayList<RegistroPluginArchivio>();
