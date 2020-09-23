@@ -63,6 +63,7 @@ Scenario: Richiesta stato operazione completata senza header location
     And match response contains invalid_implementation_response
 
 
+@request-status-not-200
 Scenario: Ottenimento risorsa processata con stato diverso da 200 OK    
 
     * def task_id = "Test-Erogazione-Response-Not-200"
