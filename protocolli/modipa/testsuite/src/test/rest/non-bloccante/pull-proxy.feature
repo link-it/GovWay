@@ -28,7 +28,7 @@ Background:
 
 Scenario: Test Fruizione con header location rimosso dal proxy
 
-    * def task_id = "Test-Location-Removed"
+    * def task_id = "Test-Location-Removed-From-Ack"
 
     Given path 'tasks', 'queue'
     And request body_req
@@ -71,12 +71,43 @@ Scenario: Header Location che non corrisponde ad una URI
 
 Scenario: Richiesta stato operazione con stato http diverso da 200 e 303
 
-    # Come funziona l'id di correlazione devo prima fare la richiesta di processamento altrimenti govway si arrabbia?
     * def task_id = "Test-Invalid-Status-Request"
 
-    Given url url_invocazione
-    And path 'tasks', 'queue', task_id
+    Given path 'tasks', 'queue', task_id
     And params ({ returnCode: 200, destFile: '/etc/govway/test/protocolli/modipa/rest/non-bloccante/pending.json', destFileContentType: 'application/json' })
     When method get
     Then status 502
     And match response contains invalid_implementation_response
+
+
+@no-location-from-status
+Scenario: Richiesta stato operazione completata senza header location
+
+    * def task_id = "Test-Location-Removed-From-Status"
+    * def completed_params = 
+    """
+    ({ 
+        returnCode: 303,
+        returnHttpHeader: 'Location: http://127.0.0.1:8080/TestService/echo/tasks/result/' + task_id,
+        destFile: '/etc/govway/test/protocolli/modipa/rest/non-bloccante/completed.json',
+        destFileContentType: 'application/json' 
+        })
+    """
+    Given path 'tasks', 'queue', task_id
+    And params completed_params
+    When method get
+    Then status 502
+    And match response contains invalid_implementation_response
+
+
+@task-response-not-200
+Scenario: Ottenimento risorsa processata con stato diverso da 200 OK    
+
+    * def task_id = "Test-Response-Not-200"
+
+    Given path 'tasks', 'result', task_id
+    And params ({ returnCode: 200 })
+    When method get
+    Then status 502
+    And match response contains invalid_implementation_response
+

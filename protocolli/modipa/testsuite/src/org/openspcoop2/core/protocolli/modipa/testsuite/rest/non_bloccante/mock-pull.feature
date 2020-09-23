@@ -10,7 +10,10 @@ function(task_id) {
 }
 """
 
-Scenario: methodIs('post') && pathMatches('/tasks/queue') && match_task('Test-Location-Removed')
+* configure followRedirects = false
+
+
+Scenario: methodIs('post') && pathMatches('/tasks/queue') && match_task('Test-Location-Removed-From-Ack')
     * karate.proceed(url_invocazione_erogazione)
     * remove responseHeaders.Location
 
@@ -24,12 +27,19 @@ Scenario: methodIs('get') && pathMatches('/tasks/queue/{tid}') && karate.get('pa
     * karate.proceed(url_invocazione_erogazione)
     * set responseHeaders.Location = '/Not/An/Uri'
 
-    # BUG? La fruizione non controlla che Location sia una URI, o quantomento non se ne lamenta
-    # Oppure devo fare la prima richiesta del giro? la post?
 
 Scenario: methodIs('get') && pathMatches('/tasks/queue/{tid}') && karate.get('pathParams.tid') == 'Test-Invalid-Status-Request'
     * karate.proceed(url_invocazione_erogazione)
     * def responseStatus = 201
+
+Scenario: methodIs('get') && pathMatches('/tasks/queue/{tid}') && karate.get('pathParams.tid') == 'Test-Location-Removed-From-Status'
+    * karate.proceed(url_invocazione_erogazione)
+    * remove responseHeaders.Location
+
+Scenario: methodIs('get') && pathMatches('/tasks/result/{tid}') && karate.get('pathParams.tid') == 'Test-Response-Not-200'
+    * karate.proceed(url_invocazione_erogazione)
+    * def responseStatus = 201
+
 
 Scenario:
     * karate.log('Scenario non matchato')
