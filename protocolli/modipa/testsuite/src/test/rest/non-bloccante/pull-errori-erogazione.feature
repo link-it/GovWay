@@ -17,6 +17,7 @@ Background:
 }
 """
 
+@request-task-not-202
 Scenario: Richiesta processamento con stato diverso da 202
 
     * def task_id = "Test-Erogazione-Status-Not-202"
@@ -28,6 +29,7 @@ Scenario: Richiesta processamento con stato diverso da 202
     Then status 502
     And match response contains invalid_implementation_response
 
+@request-task-no-location
 Scenario: Richiesta processamento con stato 202 e senza Header Location
 
     Given url url_invocazione
@@ -38,7 +40,7 @@ Scenario: Richiesta processamento con stato 202 e senza Header Location
     Then status 502
     And match response contains invalid_implementation_response
 
-
+@invalid-status-from-request
 Scenario: Richiesta stato operazione con stato http diverso da 200 e 303
 
     * def task_id = "Test-Erogazione-Invalid-Status-Request"
@@ -51,6 +53,7 @@ Scenario: Richiesta stato operazione con stato http diverso da 200 e 303
     And match response contains invalid_implementation_response
 
 
+@no-location-from-status
 Scenario: Richiesta stato operazione completata senza header location
 
     * def task_id = "Test-Erogazione-Location-Removed-From-Status"
@@ -63,7 +66,7 @@ Scenario: Richiesta stato operazione completata senza header location
     And match response contains invalid_implementation_response
 
 
-@request-status-not-200
+@task-response-not-200
 Scenario: Ottenimento risorsa processata con stato diverso da 200 OK    
 
     * def task_id = "Test-Erogazione-Response-Not-200"

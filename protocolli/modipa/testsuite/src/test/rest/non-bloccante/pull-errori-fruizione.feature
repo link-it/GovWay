@@ -19,7 +19,7 @@ Background:
     }
     """
 
-
+@request-task-no-location
 Scenario: Test Fruizione con header location rimosso dal proxy
 
     * def task_id = "Test-Location-Removed-From-Ack"
@@ -31,7 +31,7 @@ Scenario: Test Fruizione con header location rimosso dal proxy
     Then status 502
     And match response contains invalid_implementation_response
 
-
+@request-task-not-202
 Scenario: Richiesta processamento con stato diverso da 202
 
     * def task_id = "Test-Status-Not-202"
@@ -44,7 +44,7 @@ Scenario: Richiesta processamento con stato diverso da 202
     And match response contains invalid_implementation_response
     And match header GovWay-Conversation-ID == task_id
 
-
+@location-not-an-uri
 Scenario: Header Location che non corrisponde ad una URI
 
     * def task_id = "Test-Location-Not-An-URI"
@@ -64,7 +64,7 @@ Scenario: Header Location che non corrisponde ad una URI
     And match response contains invalid_implementation_response
     And match header GovWay-Conversation-ID == task_id
 
-
+@invalid-status-from-request
 Scenario: Richiesta stato operazione con stato http diverso da 200 e 303
 
     * def task_id = "Test-Invalid-Status-Request"

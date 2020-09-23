@@ -66,7 +66,7 @@ Scenario: Giro OK
     And match header GovWay-Conversation-ID == task_uid
 
 
-
+@location-not-an-uri
 Scenario: Header Location che non corrisponde ad una URI
 
     * def pending_response = read('classpath:test/risposte-default/rest/non-bloccante/pending.json')
@@ -96,6 +96,7 @@ Scenario: Header Location che non corrisponde ad una URI
     And match response contains invalid_implementation_response
 
 
+@request-task-not-202
 Scenario: Richiesta processamento con stato diverso da 202
 
     Given url url_invocazione
@@ -107,7 +108,7 @@ Scenario: Richiesta processamento con stato diverso da 202
     And match response contains invalid_implementation_response
 
 
-
+@request-task-no-location
 Scenario: Richiesta processamento con stato 202 e senza Header Location
 
     Given url url_invocazione
@@ -119,7 +120,7 @@ Scenario: Richiesta processamento con stato 202 e senza Header Location
     And match response contains invalid_implementation_response
 
 
-
+@invalid-status-from-request
 Scenario: Richiesta stato operazione con stato http diverso da 200 e 303
 
     Given url url_invocazione
@@ -137,7 +138,7 @@ Scenario: Richiesta stato operazione con stato http diverso da 200 e 303
     And match response contains invalid_implementation_response
 
 
-
+@no-location-from-status
 Scenario: Richiesta stato operazione completata senza header location
 
     Given url url_invocazione
@@ -148,7 +149,7 @@ Scenario: Richiesta stato operazione completata senza header location
     And match response contains invalid_implementation_response
 
 
-@request-status-not-200
+@task-response-not-200
 Scenario: Ottenimento risorsa processata con stato diverso da 200 OK    
 
     Given url url_invocazione
