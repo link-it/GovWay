@@ -2,12 +2,6 @@
 Feature: Test Della fruizione con mock proxy per il profilo di interazione non bloccante rest di tipo PULL
 
 
-# Qui partono i test che devono fallire lato mock, il quale prima fa il forward della richiesta
-# All'erogazione, che deve essere giusta, successivamente fa le modifiche e le restituisce alla fruizione
-# La fruizione si arrabbierà e otterremo quindi lato client gli stessi errori che avrebbe dovuto generare 
-# l'erogazione
-
-
 Background:
     * def body_req = read('classpath:bodies/nonblocking-rest-request.json')
     
@@ -48,6 +42,7 @@ Scenario: Richiesta processamento con stato diverso da 202
     When method post
     Then status 502
     And match response contains invalid_implementation_response
+    And match header GovWay-Conversation-ID == task_id
 
 
 Scenario: Header Location che non corrisponde ad una URI
@@ -67,6 +62,7 @@ Scenario: Header Location che non corrisponde ad una URI
     When method get
     Then status 502
     And match response contains invalid_implementation_response
+    And match header GovWay-Conversation-ID == task_id
 
 
 Scenario: Richiesta stato operazione con stato http diverso da 200 e 303
@@ -78,6 +74,7 @@ Scenario: Richiesta stato operazione con stato http diverso da 200 e 303
     When method get
     Then status 502
     And match response contains invalid_implementation_response
+    And match header GovWay-Conversation-ID == task_id
 
 
 @no-location-from-status
@@ -98,6 +95,7 @@ Scenario: Richiesta stato operazione completata senza header location
     When method get
     Then status 502
     And match response contains invalid_implementation_response
+    And match header GovWay-Conversation-ID == task_id
 
 
 @task-response-not-200
@@ -110,4 +108,5 @@ Scenario: Ottenimento risorsa processata con stato diverso da 200 OK
     When method get
     Then status 502
     And match response contains invalid_implementation_response
+    And match header GovWay-Conversation-ID == task_id
 

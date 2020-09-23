@@ -12,6 +12,15 @@ function(task_id) {
 
 * configure followRedirects = false
 
+* def invalid_implementation_response =
+"""
+{
+    title: "InvalidResponse",
+    status :502,
+    detail: "Invalid response received from the API Implementation"
+}
+"""
+
 
 Scenario: methodIs('post') && pathMatches('/tasks/queue') && match_task('Test-Location-Removed-From-Ack')
     * karate.proceed(url_invocazione_erogazione)
@@ -39,6 +48,34 @@ Scenario: methodIs('get') && pathMatches('/tasks/queue/{tid}') && karate.get('pa
 Scenario: methodIs('get') && pathMatches('/tasks/result/{tid}') && karate.get('pathParams.tid') == 'Test-Response-Not-200'
     * karate.proceed(url_invocazione_erogazione)
     * def responseStatus = 201
+
+
+# INIZIO TEST LATO EROGAZIONE
+
+Scenario: methodIs('post') && pathMatches('/tasks/queue') && match_task('Test-Erogazione-Status-Not-202')
+    * karate.proceed(url_invocazione_erogazione)
+    * match responseStatus == 502
+    * match response contains invalid_implementation_response
+
+Scenario: methodIs('post') && pathMatches('/tasks/queue') && karate.get('requestParams.returnHttpHeader') == null
+    * karate.proceed(url_invocazione_erogazione)
+    * match responseStatus == 502
+    * match response contains invalid_implementation_response
+
+Scenario: methodIs('get') && pathMatches('/tasks/queue/{tid}') && karate.get('pathParams.tid') == 'Test-Erogazione-Invalid-Status-Request'
+    * karate.proceed(url_invocazione_erogazione)
+    * match responseStatus == 502
+    * match response contains invalid_implementation_response
+
+Scenario: methodIs('get') && pathMatches('/tasks/queue/{tid}') && karate.get('pathParams.tid') == 'Test-Erogazione-Location-Removed-From-Status'
+    * karate.proceed(url_invocazione_erogazione)
+    * match responseStatus == 502
+    * match response contains invalid_implementation_response
+
+Scenario: methodIs('get') && pathMatches('/tasks/result/{tid}') && karate.get('pathParams.tid') == 'Test-Erogazione-Response-Not-200'
+    * karate.proceed(url_invocazione_erogazione)
+    * match responseStatus == 502
+    * match response contains invalid_implementation_response
 
 
 Scenario:

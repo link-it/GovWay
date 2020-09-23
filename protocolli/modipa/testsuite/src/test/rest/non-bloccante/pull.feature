@@ -18,7 +18,7 @@ Background:
     detail: "Invalid response received from the API Implementation"
 }
 """
-
+@test-ok
 Scenario: Giro OK
 
     * def result_response = read("classpath:test/risposte-default/rest/bloccante/response.json")
@@ -29,12 +29,15 @@ Scenario: Giro OK
     And params ({ returnCode: 202, returnHttpHeader:'Location: /tasks/queue/' + task_uid})
     When method post
     Then status 202
+    And match header GovWay-Conversation-ID == task_uid
 
     Given url url_invocazione
     And path 'tasks', 'queue', 'not_ready_uid'
     And params ({ returnCode: 200, destFile: '/etc/govway/test/protocolli/modipa/rest/non-bloccante/pending.json', destFileContentType: 'application/json' })
     When method get
     Then status 200
+    And match header GovWay-Conversation-ID == 'not_ready_uid'
+
 
     * def completed_params = 
     """
@@ -51,6 +54,8 @@ Scenario: Giro OK
     When method get
     Then status 303
     And match header Location == url_erogazione + "/tasks/result/" + task_uid
+    And match header GovWay-Conversation-ID == task_uid
+
     
     Given url url_invocazione
     And path 'tasks', 'result', task_uid
@@ -58,6 +63,8 @@ Scenario: Giro OK
     When method get
     Then status 200
     And match response == result_response
+    And match header GovWay-Conversation-ID == task_uid
+
 
 
 Scenario: Header Location che non corrisponde ad una URI
@@ -141,7 +148,7 @@ Scenario: Richiesta stato operazione completata senza header location
     And match response contains invalid_implementation_response
 
 
-
+@request-status-not-200
 Scenario: Ottenimento risorsa processata con stato diverso da 200 OK    
 
     Given url url_invocazione
