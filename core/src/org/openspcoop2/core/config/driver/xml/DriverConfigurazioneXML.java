@@ -2202,7 +2202,13 @@ implements IDriverConfigurazioneGet,IMonitoraggioRisorsa{
 	 */
 	@Override
 	public RegistroPlugin getRegistroPlugin(String nome) throws DriverConfigurazioneException, DriverConfigurazioneNotFound{
-
+		return getRegistroPlugin(nome, false);
+	}
+	@Override
+	public RegistroPlugin getDatiRegistroPlugin(String nome) throws DriverConfigurazioneException, DriverConfigurazioneNotFound{
+		return getRegistroPlugin(nome, true);
+	}
+	private RegistroPlugin getRegistroPlugin(String nome, boolean soloDati) throws DriverConfigurazioneException, DriverConfigurazioneNotFound{
 		if(nome==null) {
 			throw new DriverConfigurazioneException("Nome plugin non indicato");
 		}
@@ -2216,7 +2222,15 @@ implements IDriverConfigurazioneGet,IMonitoraggioRisorsa{
 		for (int i = 0; i < registro.sizePluginList(); i++) {
 			RegistroPlugin plug = registro.getPlugin(i);
 			if(plug.getNome().equals(nome)) {
-				return plug;
+				if(soloDati) {
+					RegistroPlugin plugCloned = (RegistroPlugin) plug.clone();
+					while(plugCloned.sizeArchivioList()>0) {
+						plugCloned.removeArchivio(0);
+					}
+				}
+				else {
+					return plug;
+				}
 			}
 		}
 		throw new DriverConfigurazioneNotFound("Plugin '"+nome+"' non esistente");
