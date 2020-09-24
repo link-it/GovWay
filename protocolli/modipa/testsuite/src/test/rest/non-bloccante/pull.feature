@@ -15,6 +15,9 @@ Background:
 * def task_uid = "32bb4c13-e898-4c12-94db-4ddb18de7919"
 * configure followRedirects = false
 
+* def result = callonce read('classpath:utils/jmx-enable-error-disclosure.feature')
+* configure afterFeature = function(){ karate.call('classpath:utils/jmx-disable-error-disclosure.feature'); }
+
 @test-ok
 Scenario: Giro OK
 

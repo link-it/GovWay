@@ -113,15 +113,6 @@ public class ConfigLoader {
             org.openspcoop2.utils.transport.http.HttpUtilities.check(url, jmx_user, jmx_pass);
         }
 
-        // Attivo i messaggi di errore interazione con modipa
-        String url = prop.getProperty("govway_base_path") + "/check?resourceName=ConfigurazionePdD&attributeName=transactionErrorForceSpecificTypeInternalResponseError&attributeBooleanValue=true";
-        org.openspcoop2.utils.transport.http.HttpUtilities.check(url, jmx_user, jmx_pass);
-
-        url = prop.getProperty("govway_base_path") + "/check?resourceName=ConfigurazionePdD&attributeName=transactionErrorForceSpecificTypeBadResponse&attributeBooleanValue=true";
-        org.openspcoop2.utils.transport.http.HttpUtilities.check(url, jmx_user, jmx_pass);
-
-        url = prop.getProperty("govway_base_path") + "/check?resourceName=ConfigurazionePdD&attributeName=transactionErrorForceSpecificDetails&attributeBooleanValue=true";
-        org.openspcoop2.utils.transport.http.HttpUtilities.check(url, jmx_user, jmx_pass);
     }
 
     public static void deleteConfig() throws Exception {
@@ -140,16 +131,6 @@ public class ConfigLoader {
         org.openspcoop2.utils.resources.ScriptInvoker scriptInvoker = new org.openspcoop2.utils.resources.ScriptInvoker(scriptPath);
         scriptInvoker.run(new File(configLoaderPath), modipaBundle);
 
-        String jmx_user = prop.getProperty("jmx_cache_username");
-        String jmx_pass = prop.getProperty("jmx_cache_password");
-        String url = prop.getProperty("govway_base_path") + "/check?resourceName=ConfigurazionePdD&attributeName=transactionErrorForceSpecificTypeInternalResponseError&attributeBooleanValue=false";
-        org.openspcoop2.utils.transport.http.HttpUtilities.check(url, jmx_user, jmx_pass);
-
-        url = prop.getProperty("govway_base_path") + "/check?resourceName=ConfigurazionePdD&attributeName=transactionErrorForceSpecificTypeBadResponse&attributeBooleanValue=false";
-        org.openspcoop2.utils.transport.http.HttpUtilities.check(url, jmx_user, jmx_pass);
-
-        url = prop.getProperty("govway_base_path") + "/check?resourceName=ConfigurazionePdD&attributeName=transactionErrorForceSpecificDetails&attributeBooleanValue=false";
-        org.openspcoop2.utils.transport.http.HttpUtilities.check(url, jmx_user, jmx_pass);
     }
 
 }

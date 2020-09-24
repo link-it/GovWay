@@ -9,6 +9,8 @@ Background:
 
 * def body_req = read('classpath:bodies/nonblocking-rest-request.json')
 
+* def result = callonce read('classpath:utils/jmx-enable-error-disclosure.feature')
+* configure afterFeature = function(){ karate.call('classpath:utils/jmx-disable-error-disclosure.feature'); }
 
 @request-task-no-location
 Scenario: Richiesta processamento con stato 202 e senza Header Location

@@ -10,6 +10,9 @@ Background:
     * def url_invocazione = govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/ApiDemoNonBlockingRestPullProxyNoValidazione/v1"
     * url url_invocazione
 
+    * def result = callonce read('classpath:utils/jmx-enable-error-disclosure.feature')
+    * configure afterFeature = function(){ karate.call('classpath:utils/jmx-disable-error-disclosure.feature'); }
+
 
 @location-not-an-uri
 Scenario: Header Location che non corrisponde ad una URI
