@@ -7,7 +7,7 @@ Background:
     
     * configure followRedirects = false
 
-    * def url_invocazione = govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/ApiDemoNonBlockingRestPullProxy/v1"
+    * def url_invocazione = govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/ApiDemoNonBlockingRestPullProxyNoValidazione/v1"
     * url url_invocazione
 
     * def invalid_implementation_response =
@@ -30,6 +30,7 @@ Scenario: Test Fruizione con header location rimosso dal proxy
     When method post
     Then status 502
     And match response contains invalid_implementation_response
+
 
 @request-task-not-202
 Scenario: Richiesta processamento con stato diverso da 202

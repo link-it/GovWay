@@ -2,8 +2,14 @@ Feature: Test per il profilo di interazione non bloccante rest di tipo PULL
 
 Background:
 
-* def url_invocazione = govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/ApiDemoNonBlockingRestPull/v1"
-* def url_erogazione = govway_base_path + "/rest/in/DemoSoggettoErogatore/ApiDemoNonBlockingRestPull/v1"
+# La url verso l'erogazione che effettua la validazione.
+* def url_invocazione_validazione = govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/ApiDemoNonBlockingRestPull/v1"
+
+# La url verso l'erogazione che non effettua la validazione, serve per controllare gli errori ModiPA
+* def url_invocazione = govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/ApiDemoNonBlockingRestPullNoValidazione/v1"
+
+* def url_erogazione_validazione = govway_base_path + "/rest/in/DemoSoggettoErogatore/ApiDemoNonBlockingRestPull/v1"
+* def url_erogazione_no_validazione = govway_base_path + "/rest/in/DemoSoggettoErogatore/ApiDemoNonBlockingRestPullNoValidazione/v1"
 
 * def body_req = read('classpath:bodies/nonblocking-rest-request.json')
 * def task_uid = "32bb4c13-e898-4c12-94db-4ddb18de7919"
@@ -23,7 +29,7 @@ Scenario: Giro OK
 
     * def result_response = read("classpath:test/risposte-default/rest/bloccante/response.json")
 
-    Given url url_invocazione
+    Given url url_invocazione_validazione
     And path 'tasks', 'queue'
     And request body_req
     And params ({ returnCode: 202, returnHttpHeader:'Location: /tasks/queue/' + task_uid})
@@ -31,7 +37,7 @@ Scenario: Giro OK
     Then status 202
     And match header GovWay-Conversation-ID == task_uid
 
-    Given url url_invocazione
+    Given url url_invocazione_validazione
     And path 'tasks', 'queue', 'not_ready_uid'
     And params ({ returnCode: 200, destFile: '/etc/govway/test/protocolli/modipa/rest/non-bloccante/pending.json', destFileContentType: 'application/json' })
     When method get
@@ -48,16 +54,16 @@ Scenario: Giro OK
         destFileContentType: 'application/json' 
         })
     """
-    Given url url_invocazione
+    Given url url_invocazione_validazione
     And path 'tasks', 'queue', task_uid
     And params completed_params
     When method get
     Then status 303
-    And match header Location == url_erogazione + "/tasks/result/" + task_uid
+    And match header Location == url_erogazione_validazione + "/tasks/result/" + task_uid
     And match header GovWay-Conversation-ID == task_uid
 
     
-    Given url url_invocazione
+    Given url url_invocazione_validazione
     And path 'tasks', 'result', task_uid
     And params ({ returnCode: 200 })
     When method get
@@ -66,38 +72,49 @@ Scenario: Giro OK
     And match header GovWay-Conversation-ID == task_uid
 
 
-@location-not-an-uri
-Scenario: Header Location che non corrisponde ad una URI
+# @location-not-an-uri
+# Scenario: Header Location che non corrisponde ad una URI
 
-    * def pending_response = read('classpath:test/risposte-default/rest/non-bloccante/pending.json')
+#     * def pending_response = read('classpath:test/risposte-default/rest/non-bloccante/pending.json')
 
-    Given url url_invocazione
-    And path 'tasks', 'queue'
-    And request body_req
-    And params ({ returnCode: 202, returnHttpHeader:'Location: /tasks/queue/' + task_uid})
-    When method post
-    Then status 202
+#     Given url url_invocazione_validazione
+#     And path 'tasks', 'queue'
+#     And request body_req
+#     And params ({ returnCode: 202, returnHttpHeader:'Location: /tasks/queue/' + task_uid})
+#     When method post
+#     Then status 202
 
-    * def completed_params = 
-    """
-    ({ 
-        returnCode: 303,
-        returnHttpHeader: 'Location: /non/an/URI',
-        destFile: '/etc/govway/test/protocolli/modipa/rest/non-bloccante/completed.json',
-        destFileContentType: 'application/json' 
-    })
-    """
+#     * def completed_params = 
+#     """
+#     ({ 
+#         returnCode: 303,
+#         returnHttpHeader: 'Location: /non/an/URI',
+#         destFile: '/etc/govway/test/protocolli/modipa/rest/non-bloccante/completed.json',
+#         destFileContentType: 'application/json' 
+#     })
+#     """
 
-    Given url url_invocazione
-    And path 'tasks', 'queue', task_uid
-    And params completed_params
-    When method get
-    Then status 502
-    And match response contains invalid_implementation_response
+#     Given url url_invocazione_validazione
+#     And path 'tasks', 'queue', task_uid
+#     And params completed_params
+#     When method get
+#     Then status 502
+#     And match response contains invalid_implementation_response
 
 
 @request-task-not-202
 Scenario: Richiesta processamento con stato diverso da 202
+
+    * def problem = 
+    """
+    {
+        type: "https://govway.org/handling-errors/502/InteroperabilityInvalidResponse.html",
+        title: "InteroperabilityInvalidResponse",
+        status: 502,
+        detail: "HTTP Status '201' riscontrato differente da quello atteso per il profilo non bloccante 'PULL' con ruolo 'Richiesta' (atteso: ,202)",
+        govway_id: "#string"
+    }
+    """
 
     Given url url_invocazione
     And path 'tasks', 'queue'
@@ -105,11 +122,23 @@ Scenario: Richiesta processamento con stato diverso da 202
     And params ({ returnCode: 201, returnHttpHeader:'Location: /tasks/queue/' + task_uid})
     When method post
     Then status 502
-    And match response contains invalid_implementation_response
+    And match response == problem
 
 
 @request-task-no-location
 Scenario: Richiesta processamento con stato 202 e senza Header Location
+
+    * def problem =
+    """
+    {
+        type: "https://govway.org/handling-errors/502/InteroperabilityResponseManagementFailed.html",
+        title: "InteroperabilityResponseManagementFailed",
+        status: 503,
+        detail: "Sistema non disponibile",
+        govway_id: "#string"
+    }
+    """
+
 
     Given url url_invocazione
     And path 'tasks', 'queue'
@@ -117,7 +146,7 @@ Scenario: Richiesta processamento con stato 202 e senza Header Location
     And params ({ returnCode: 202 })
     When method post
     Then status 502
-    And match response contains invalid_implementation_response
+    And match response == problem
 
 
 @invalid-status-from-request
@@ -173,7 +202,7 @@ Scenario: Ottenimento risorsa processata con stato diverso da 200 OK
     And params completed_params
     When method get
     Then status 303
-    And match header Location == url_erogazione + "/tasks/result/" + task_uid
+    And match header Location == url_erogazione_no_validazione + "/tasks/result/" + task_uid
 
     Given url url_invocazione
     And path 'tasks', 'result', task_uid

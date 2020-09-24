@@ -4,7 +4,7 @@ Background:
 
 * configure followRedirects = false
 
-* def url_invocazione = govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/ApiDemoNonBlockingRestPullProxy/v1"
+* def url_invocazione = govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/ApiDemoNonBlockingRestPullProxyNoValidazione/v1"
 * url url_invocazione
 
 * def body_req = read('classpath:bodies/nonblocking-rest-request.json')

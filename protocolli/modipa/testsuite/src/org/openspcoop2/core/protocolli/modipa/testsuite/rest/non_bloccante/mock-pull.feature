@@ -1,7 +1,7 @@
 Feature: ModiPA Proxy test
 
 Background:
-* def url_invocazione_erogazione = govway_base_path + '/rest/in/DemoSoggettoErogatore/ApiDemoNonBlockingRestPull/v1'
+* def url_invocazione_erogazione = govway_base_path + '/rest/in/DemoSoggettoErogatore/ApiDemoNonBlockingRestPullNoValidazione/v1'
 
 * def match_task =
 """
