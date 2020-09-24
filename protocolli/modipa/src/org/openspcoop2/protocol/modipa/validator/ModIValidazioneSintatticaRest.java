@@ -268,13 +268,13 @@ public class ModIValidazioneSintatticaRest extends AbstractModIValidazioneSintat
 			if(!found) {
 				StringBuilder sb = new StringBuilder();
 				for (Integer integer : returnCodeAttesi) {
-					if(sb.length()<=0) {
+					if(sb.length()>0) {
 						sb.append(",");
 					}
 					sb.append(integer.intValue());
 				}
 				erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(CodiceErroreCooperazione.PROFILO_TRASMISSIONE, 
-						"HTTP Status '"+returnCodeInt+"' riscontrato differente da quello atteso per il profilo non bloccante '"+asyncInteractionType+"' con ruolo '"+asyncInteractionRole+"' (atteso: "+sb.toString()+")"));
+						"HTTP Status '"+returnCodeInt+"' differente da quello atteso per il profilo non bloccante '"+asyncInteractionType+"' con ruolo '"+asyncInteractionRole+"' (atteso: "+sb.toString()+")"));
 				return;
 			}
 		}
