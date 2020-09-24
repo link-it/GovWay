@@ -72,34 +72,34 @@ Scenario: Giro OK
     And match header GovWay-Conversation-ID == task_uid
 
 
-# @location-not-an-uri
-# Scenario: Header Location che non corrisponde ad una URI
+@location-not-an-uri
+Scenario: Header Location che non corrisponde ad una URI
 
-#     * def pending_response = read('classpath:test/risposte-default/rest/non-bloccante/pending.json')
+    * def pending_response = read('classpath:test/risposte-default/rest/non-bloccante/pending.json')
 
-#     Given url url_invocazione_validazione
-#     And path 'tasks', 'queue'
-#     And request body_req
-#     And params ({ returnCode: 202, returnHttpHeader:'Location: /tasks/queue/' + task_uid})
-#     When method post
-#     Then status 202
+    Given url url_invocazione_validazione
+    And path 'tasks', 'queue'
+    And request body_req
+    And params ({ returnCode: 202, returnHttpHeader:'Location: /tasks/queue/' + task_uid})
+    When method post
+    Then status 202
 
-#     * def completed_params = 
-#     """
-#     ({ 
-#         returnCode: 303,
-#         returnHttpHeader: 'Location: /non/an/URI',
-#         destFile: '/etc/govway/test/protocolli/modipa/rest/non-bloccante/completed.json',
-#         destFileContentType: 'application/json' 
-#     })
-#     """
+    * def completed_params = 
+    """
+    ({ 
+        returnCode: 303,
+        returnHttpHeader: 'Location: /non/an/URI',
+        destFile: '/etc/govway/test/protocolli/modipa/rest/non-bloccante/completed.json',
+        destFileContentType: 'application/json' 
+    })
+    """
 
-#     Given url url_invocazione_validazione
-#     And path 'tasks', 'queue', task_uid
-#     And params completed_params
-#     When method get
-#     Then status 502
-#     And match response contains invalid_implementation_response
+    Given url url_invocazione_validazione
+    And path 'tasks', 'queue', task_uid
+    And params completed_params
+    When method get
+    Then status 502
+    And match response contains invalid_implementation_response
 
 
 @request-task-not-202
@@ -147,10 +147,22 @@ Scenario: Richiesta processamento con stato 202 e senza Header Location
     When method post
     Then status 502
     And match response == problem
+    * karate.fail("aspetto il fix")
 
 
 @invalid-status-from-request
 Scenario: Richiesta stato operazione con stato http diverso da 200 e 303
+
+    * def problem = 
+    """
+    {
+        type: "https://govway.org/handling-errors/502/InteroperabilityInvalidResponse.html",
+        title: "InteroperabilityInvalidResponse",
+        status: 502,
+        detail: "HTTP Status '201' riscontrato differente da quello atteso per il profilo non bloccante 'PULL' con ruolo 'RichiestaStato' (atteso: ,200)",
+        govway_id: "#string"
+    }
+    """
 
     Given url url_invocazione
     And path 'tasks', 'queue'
@@ -164,7 +176,7 @@ Scenario: Richiesta stato operazione con stato http diverso da 200 e 303
     And params ({ returnCode: 201, destFile: '/etc/govway/test/protocolli/modipa/rest/non-bloccante/pending.json', destFileContentType: 'application/json' })
     When method get
     Then status 502
-    And match response contains invalid_implementation_response
+    And match response == problem
 
 
 @no-location-from-status
@@ -176,10 +188,22 @@ Scenario: Richiesta stato operazione completata senza header location
     When method get
     Then status 502
     And match response contains invalid_implementation_response
+    * karate.fail("aspetto il fix")
 
 
 @task-response-not-200
 Scenario: Ottenimento risorsa processata con stato diverso da 200 OK    
+
+    * def problem =
+    """
+    {
+        type: "https://govway.org/handling-errors/502/InteroperabilityInvalidResponse.html",
+        title: "InteroperabilityInvalidResponse",
+        status: 502,
+        detail: "HTTP Status '202' riscontrato differente da quello atteso per il profilo non bloccante 'PULL' con ruolo 'Risposta' (atteso: ,200)",
+        govway_id: "#string"
+    }
+    """
 
     Given url url_invocazione
     And path 'tasks', 'queue'
@@ -188,7 +212,7 @@ Scenario: Ottenimento risorsa processata con stato diverso da 200 OK
     When method post
     Then status 202
 
-* def completed_params = 
+    * def completed_params = 
     """
     ({ 
         returnCode: 303,
@@ -209,5 +233,5 @@ Scenario: Ottenimento risorsa processata con stato diverso da 200 OK
     And params ({ returnCode: 202 })
     When method get
     Then status 502
-    And match response contains invalid_implementation_response
+    And match response == problem
 
