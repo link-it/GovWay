@@ -3,6 +3,9 @@ Feature: ModiPA Proxy test
 Background:
 * def url_invocazione_erogazione = govway_base_path + '/rest/in/DemoSoggettoErogatore/ApiDemoNonBlockingRestPullNoValidazione/v1'
 
+* def problem_no_disclosure = read('classpath:test/rest/non-bloccante/error-bodies/invalid-response-from-implementation.json')
+
+
 * def match_task =
 """
 function(task_id) {
@@ -43,7 +46,7 @@ Scenario: methodIs('get') && pathMatches('/tasks/result/{tid}') && karate.get('p
 
 # INIZIO TEST LATO EROGAZIONE
 
-Scenario: methodIs('post') && pathMatches('/tasks/queue') && karate.get('requestParams.returnHttpHeader') == null
+Scenario: methodIs('post') && pathMatches('/tasks/queue') && karate.get('requestParams.returnHttpHeader') == null && karate.get('requestParams.testType') == null
     # Qui viene testato lo stato 202 senza lo header location
     
     * def problem = read('classpath:test/rest/non-bloccante/error-bodies/request-task-no-location-erogazione.json')
@@ -84,6 +87,43 @@ Scenario: methodIs('get') && pathMatches('/tasks/result/{tid}') && karate.get('p
     * match response == problem
 
 
+# TEST LATO EROGAZIONE SENZA LA DISCLOSURE DEGLI ERRORI DI INTEROPERABILITÀ
+
+Scenario: methodIs('post') && pathMatches('/tasks/queue') && karate.get('requestParams.testType[0]') == "Test-Erogazione-Request-Task-No-Location"
+    # Qui viene testato lo stato 202 senza lo header location
+    
+    * def problem = read('classpath:test/rest/non-bloccante/error-bodies/request-task-no-location-erogazione.json')
+
+    * karate.proceed(url_invocazione_erogazione)
+    * match responseStatus == 502
+    * match response == problem_no_disclosure
+
+
+Scenario: methodIs('post') && pathMatches('/tasks/queue') && match_task('Test-Erogazione-Status-Not-202-No-Disclosure')
+        
+    * karate.proceed(url_invocazione_erogazione)
+    * match responseStatus == 502
+    * match response == problem_no_disclosure
+
+Scenario: methodIs('get') && pathMatches('/tasks/queue/{tid}') && karate.get('pathParams.tid') == 'Test-Erogazione-Invalid-Status-Request-No-Disclosure'
+    
+    * karate.proceed(url_invocazione_erogazione)
+    * match responseStatus == 502
+    * match response == problem_no_disclosure
+
+Scenario: methodIs('get') && pathMatches('/tasks/queue/{tid}') && karate.get('pathParams.tid') == 'Test-Erogazione-Location-Removed-From-Status-No-Disclosure'
+
+    * karate.proceed(url_invocazione_erogazione)
+    * match responseStatus == 502
+    * match response == problem_no_disclosure
+
+Scenario: methodIs('get') && pathMatches('/tasks/result/{tid}') && karate.get('pathParams.tid') == 'Test-Erogazione-Response-Not-200-No-Disclosure'
+
+    * karate.proceed(url_invocazione_erogazione)
+    * match responseStatus == 502
+    * match response == problem_no_disclosure
+
 Scenario:
     * karate.log('Scenario non matchato')
+    * karate.log(requestParams)
     * karate.fail('Non hai matchato!')

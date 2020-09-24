@@ -86,7 +86,11 @@ import com.intuit.karate.netty.FeatureServer;
 @KarateOptions( features = { 
     "classpath:test/rest/non-bloccante/pull.feature",
     "classpath:test/rest/non-bloccante/pull-errori-fruizione.feature",
-    "classpath:test/rest/non-bloccante/pull-errori-erogazione.feature"
+    "classpath:test/rest/non-bloccante/pull-errori-erogazione.feature",
+    "classpath:test/rest/non-bloccante/pull-no-disclosure.feature",
+    "classpath:test/rest/non-bloccante/pull-errori-fruizione-no-disclosure.feature",
+    "classpath:test/rest/non-bloccante/pull-errori-erogazione-no-disclosure.feature"
+
     })
 public class NonBloccanteRestTest extends ConfigLoader { 
     
