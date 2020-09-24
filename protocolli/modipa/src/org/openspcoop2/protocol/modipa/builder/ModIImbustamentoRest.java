@@ -280,7 +280,17 @@ public class ModIImbustamentoRest {
 							returnCodeAttesi = returnCodeResourceReady;
 						}
 						else {
-							returnCodeAttesi = this.modiProperties.getRestSecurityTokenPullRequestStateNotReadyHttpStatus();
+							Integer [] returnCodeAttesi_notReady = this.modiProperties.getRestSecurityTokenPullRequestStateNotReadyHttpStatus();
+							returnCodeAttesi = new Integer[returnCodeResourceReady.length+returnCodeAttesi_notReady.length];
+							int i = 0;
+							for (int j=0; j < returnCodeAttesi_notReady.length; j++) {
+								returnCodeAttesi[i] = returnCodeAttesi_notReady[j];
+								i++;
+							}
+							for (int j=0; j < returnCodeResourceReady.length; j++) {
+								returnCodeAttesi[i] = returnCodeResourceReady[j];
+								i++;
+							}
 						}
 					}
 					else {
