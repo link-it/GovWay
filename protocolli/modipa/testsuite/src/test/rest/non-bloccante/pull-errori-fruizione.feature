@@ -52,7 +52,7 @@ Scenario: Richiesta processamento con stato diverso da 202
         type: "https://govway.org/handling-errors/502/InteroperabilityInvalidResponse.html",
         title: "InteroperabilityInvalidResponse",
         status: 502,
-        detail: "HTTP Status '201' riscontrato differente da quello atteso per il profilo non bloccante 'PULL' con ruolo 'Richiesta' (atteso: ,202)",
+        detail: "HTTP Status '201' differente da quello atteso per il profilo non bloccante 'PULL' con ruolo 'Richiesta' (atteso: 202)",
         govway_id: "#string"
     }
     """
@@ -110,7 +110,7 @@ Scenario: Richiesta stato operazione con stato http diverso da 200 e 303
         type: "https://govway.org/handling-errors/502/InteroperabilityInvalidResponse.html",
         title: "InteroperabilityInvalidResponse",
         status: 502,
-        detail: "HTTP Status '201' riscontrato differente da quello atteso per il profilo non bloccante 'PULL' con ruolo 'RichiestaStato' (atteso: ,200)",
+        detail: "HTTP Status '201' differente da quello atteso per il profilo non bloccante 'PULL' con ruolo 'RichiestaStato' (atteso: 200,303)",
         govway_id: "#string"
     }
     """
@@ -136,11 +136,23 @@ Scenario: Richiesta stato operazione completata senza header location
         destFileContentType: 'application/json' 
         })
     """
+
+    * def problem =
+    """
+    {
+        type: "https://govway.org/handling-errors/502/InteroperabilityInvalidResponse.html",
+        title: "InteroperabilityInvalidResponse",
+        status: 502,
+        detail: "Header HTTP 'Location' non presente",
+        govway_id: "#string"
+    }
+    """
+
     Given path 'tasks', 'queue', task_id
     And params completed_params
     When method get
     Then status 502
-    And match response contains invalid_implementation_response
+    And match response == problem
     And match header GovWay-Conversation-ID == task_id
 
 
@@ -154,7 +166,7 @@ Scenario: Ottenimento risorsa processata con stato diverso da 200 OK
         type: "https://govway.org/handling-errors/502/InteroperabilityInvalidResponse.html",
         title: "InteroperabilityInvalidResponse",
         status: 502,
-        detail: "HTTP Status '201' riscontrato differente da quello atteso per il profilo non bloccante 'PULL' con ruolo 'Risposta' (atteso: ,200)",
+        detail: "HTTP Status '201' differente da quello atteso per il profilo non bloccante 'PULL' con ruolo 'Risposta' (atteso: 200)",
         govway_id: "#string"
     }
     """

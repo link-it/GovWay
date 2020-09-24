@@ -76,6 +76,19 @@ Scenario: Giro OK
 Scenario: Header Location che non corrisponde ad una URI
 
     * def pending_response = read('classpath:test/risposte-default/rest/non-bloccante/pending.json')
+    # Il problem è fatto in questa maniera perchè l'erogazione restituisce un errore di validazione con un 
+    # fault, mentre nell'openapi su questo endpoint non è specificato questo tipo di rispota.
+    # Sicchè la fruizione si arrabbia dicento che il content-type application/json non è valido
+    * def problem =
+    """
+    {
+        type: "https://govway.org/handling-errors/502/InvalidResponseContent.html",
+        title: "InvalidResponseContent",
+        status: 502,
+        detail: "Response content not conform to API specification: Validation error(s) :\nContent type 'application/problem+json' is not allowed for body content. (code: 203)\nFrom: \n",
+        govway_id: "#string"
+    }
+    """
 
     Given url url_invocazione_validazione
     And path 'tasks', 'queue'
@@ -99,7 +112,7 @@ Scenario: Header Location che non corrisponde ad una URI
     And params completed_params
     When method get
     Then status 502
-    And match response contains invalid_implementation_response
+    And match response == problem
 
 
 @request-task-not-202
@@ -108,13 +121,14 @@ Scenario: Richiesta processamento con stato diverso da 202
     * def problem = 
     """
     {
-        type: "https://govway.org/handling-errors/502/InteroperabilityInvalidResponse.html",
-        title: "InteroperabilityInvalidResponse",
+        type: "https://govway.org/handling-errors/502/InteroperabilityResponseManagementFailed.html",
+        title: "InteroperabilityResponseManagementFailed",
         status: 502,
-        detail: "HTTP Status '201' riscontrato differente da quello atteso per il profilo non bloccante 'PULL' con ruolo 'Richiesta' (atteso: ,202)",
+        detail: "HTTP Status '201' differente da quello atteso per il profilo non bloccante 'PULL' con ruolo 'Richiesta' (atteso: 202)",
         govway_id: "#string"
     }
     """
+    
 
     Given url url_invocazione
     And path 'tasks', 'queue'
@@ -133,8 +147,8 @@ Scenario: Richiesta processamento con stato 202 e senza Header Location
     {
         type: "https://govway.org/handling-errors/502/InteroperabilityResponseManagementFailed.html",
         title: "InteroperabilityResponseManagementFailed",
-        status: 503,
-        detail: "Sistema non disponibile",
+        status: 502,
+        detail: "Header http 'Location', richiesto dal profilo non bloccante PULL, non trovato",
         govway_id: "#string"
     }
     """
@@ -147,7 +161,6 @@ Scenario: Richiesta processamento con stato 202 e senza Header Location
     When method post
     Then status 502
     And match response == problem
-    * karate.fail("aspetto il fix")
 
 
 @invalid-status-from-request
@@ -156,10 +169,10 @@ Scenario: Richiesta stato operazione con stato http diverso da 200 e 303
     * def problem = 
     """
     {
-        type: "https://govway.org/handling-errors/502/InteroperabilityInvalidResponse.html",
-        title: "InteroperabilityInvalidResponse",
+        type: "https://govway.org/handling-errors/502/InteroperabilityResponseManagementFailed.html",
+        title: "InteroperabilityResponseManagementFailed",
         status: 502,
-        detail: "HTTP Status '201' riscontrato differente da quello atteso per il profilo non bloccante 'PULL' con ruolo 'RichiestaStato' (atteso: ,200)",
+        detail: "HTTP Status '201' differente da quello atteso per il profilo non bloccante 'PULL' con ruolo 'RichiestaStato' (atteso: 200,303)",
         govway_id: "#string"
     }
     """
@@ -182,13 +195,23 @@ Scenario: Richiesta stato operazione con stato http diverso da 200 e 303
 @no-location-from-status
 Scenario: Richiesta stato operazione completata senza header location
 
+    * def problem =
+    """
+    {
+        type: "https://govway.org/handling-errors/502/InteroperabilityResponseManagementFailed.html",
+        title: "InteroperabilityResponseManagementFailed",
+        status: 502,
+        detail: "Header http 'Location', richiesto dal profilo non bloccante PULL, non trovato",
+        govway_id: "#string"
+    }
+    """
+
     Given url url_invocazione
     And path 'tasks', 'queue', task_uid
     And params ({ returnCode: 303, destFile: '/etc/govway/test/protocolli/modipa/rest/non-bloccante/completed.json', destFileContentType: 'application/json' })
     When method get
     Then status 502
-    And match response contains invalid_implementation_response
-    * karate.fail("aspetto il fix")
+    And match response == problem
 
 
 @task-response-not-200
@@ -200,7 +223,7 @@ Scenario: Ottenimento risorsa processata con stato diverso da 200 OK
         type: "https://govway.org/handling-errors/502/InteroperabilityInvalidResponse.html",
         title: "InteroperabilityInvalidResponse",
         status: 502,
-        detail: "HTTP Status '202' riscontrato differente da quello atteso per il profilo non bloccante 'PULL' con ruolo 'Risposta' (atteso: ,200)",
+        detail: "HTTP Status '202' differente da quello atteso per il profilo non bloccante 'PULL' con ruolo 'Risposta' (atteso: 200)",
         govway_id: "#string"
     }
     """

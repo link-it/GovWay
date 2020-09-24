@@ -57,27 +57,79 @@ Scenario: methodIs('post') && pathMatches('/tasks/queue') && match_task('Test-Er
     * karate.proceed(url_invocazione_erogazione)
     # Qui c'è i problema che l'erogazione mi dice 201 created invece dovrebbe arrabbiarsi
     * match responseStatus == 502
-    * match response contains invalid_implementation_response
+    * def problem = 
+    """
+    {
+        type: "https://govway.org/handling-errors/502/InteroperabilityResponseManagementFailed.html",
+        title: "InteroperabilityResponseManagementFailed",
+        status: 502,
+        detail: "HTTP Status '201' differente da quello atteso per il profilo non bloccante 'PULL' con ruolo 'Richiesta' (atteso: 202)",
+        govway_id: "#string"
+    }
+    """
+    * match response == problem
 
 Scenario: methodIs('post') && pathMatches('/tasks/queue') && karate.get('requestParams.returnHttpHeader') == null
+    # Qui viene testato lo stato 202 senza lo header location
+    * def problem =
+    """
+    {
+        type: "https://govway.org/handling-errors/502/InteroperabilityResponseManagementFailed.html",
+        title: "InteroperabilityResponseManagementFailed",
+        status: 502,
+        detail: "Header http 'Location', richiesto dal profilo non bloccante PULL, non trovato",
+        govway_id: "#string"
+    }
+    """
+
     * karate.proceed(url_invocazione_erogazione)
     * match responseStatus == 502
-    * match response contains invalid_implementation_response
+    * match response == problem
 
 Scenario: methodIs('get') && pathMatches('/tasks/queue/{tid}') && karate.get('pathParams.tid') == 'Test-Erogazione-Invalid-Status-Request'
+    * def problem = 
+    """
+    {
+        type: "https://govway.org/handling-errors/502/InteroperabilityResponseManagementFailed.html",
+        title: "InteroperabilityResponseManagementFailed",
+        status: 502,
+        detail: "HTTP Status '201' differente da quello atteso per il profilo non bloccante 'PULL' con ruolo 'RichiestaStato' (atteso: 200,303)",
+        govway_id: "#string"
+    }
+    """
     * karate.proceed(url_invocazione_erogazione)
     * match responseStatus == 502
-    * match response contains invalid_implementation_response
+    * match response == problem
 
 Scenario: methodIs('get') && pathMatches('/tasks/queue/{tid}') && karate.get('pathParams.tid') == 'Test-Erogazione-Location-Removed-From-Status'
+    * def problem =
+    """
+    {
+        type: "https://govway.org/handling-errors/502/InteroperabilityResponseManagementFailed.html",
+        title: "InteroperabilityResponseManagementFailed",
+        status: 502,
+        detail: "Header http 'Location', richiesto dal profilo non bloccante PULL, non trovato",
+        govway_id: "#string"
+    }
+    """
     * karate.proceed(url_invocazione_erogazione)
     * match responseStatus == 502
-    * match response contains invalid_implementation_response
+    * match response == problem
 
 Scenario: methodIs('get') && pathMatches('/tasks/result/{tid}') && karate.get('pathParams.tid') == 'Test-Erogazione-Response-Not-200'
+    * def problem =
+    """
+    {
+        type: "https://govway.org/handling-errors/502/InteroperabilityInvalidResponse.html",
+        title: "InteroperabilityInvalidResponse",
+        status: 502,
+        detail: "HTTP Status '202' differente da quello atteso per il profilo non bloccante 'PULL' con ruolo 'Risposta' (atteso: 200)",
+        govway_id: "#string"
+    }
+    """
     * karate.proceed(url_invocazione_erogazione)
     * match responseStatus == 502
-    * match response contains invalid_implementation_response
+    * match response == problem
 
 
 Scenario:
