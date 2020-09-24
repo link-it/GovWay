@@ -15,15 +15,6 @@ Background:
 * def task_uid = "32bb4c13-e898-4c12-94db-4ddb18de7919"
 * configure followRedirects = false
 
-
-* def invalid_implementation_response =
-"""
-{
-    title: "InvalidResponse",
-    status :502,
-    detail: "Invalid response received from the API Implementation"
-}
-"""
 @test-ok
 Scenario: Giro OK
 
@@ -115,44 +106,10 @@ Scenario: Header Location che non corrisponde ad una URI
     And match response == problem
 
 
-@request-task-not-202
-Scenario: Richiesta processamento con stato diverso da 202
-
-    * def problem = 
-    """
-    {
-        type: "https://govway.org/handling-errors/502/InteroperabilityResponseManagementFailed.html",
-        title: "InteroperabilityResponseManagementFailed",
-        status: 502,
-        detail: "HTTP Status '201' differente da quello atteso per il profilo non bloccante 'PULL' con ruolo 'Richiesta' (atteso: 202)",
-        govway_id: "#string"
-    }
-    """
-    
-
-    Given url url_invocazione
-    And path 'tasks', 'queue'
-    And request body_req
-    And params ({ returnCode: 201, returnHttpHeader:'Location: /tasks/queue/' + task_uid})
-    When method post
-    Then status 502
-    And match response == problem
-
-
 @request-task-no-location
 Scenario: Richiesta processamento con stato 202 e senza Header Location
 
-    * def problem =
-    """
-    {
-        type: "https://govway.org/handling-errors/502/InteroperabilityResponseManagementFailed.html",
-        title: "InteroperabilityResponseManagementFailed",
-        status: 502,
-        detail: "Header http 'Location', richiesto dal profilo non bloccante PULL, non trovato",
-        govway_id: "#string"
-    }
-    """
-
+    * def problem = read('classpath:test/rest/non-bloccante/error-bodies/request-task-no-location-erogazione.json')    
 
     Given url url_invocazione
     And path 'tasks', 'queue'
@@ -163,19 +120,24 @@ Scenario: Richiesta processamento con stato 202 e senza Header Location
     And match response == problem
 
 
+@request-task-not-202
+Scenario: Richiesta processamento con stato diverso da 202
+
+    * def problem = read('classpath:test/rest/non-bloccante/error-bodies/request-task-not-202-erogazione.json')    
+    
+    Given url url_invocazione
+    And path 'tasks', 'queue'
+    And request body_req
+    And params ({ returnCode: 201, returnHttpHeader:'Location: /tasks/queue/' + task_uid})
+    When method post
+    Then status 502
+    And match response == problem
+
+
 @invalid-status-from-request
 Scenario: Richiesta stato operazione con stato http diverso da 200 e 303
 
-    * def problem = 
-    """
-    {
-        type: "https://govway.org/handling-errors/502/InteroperabilityResponseManagementFailed.html",
-        title: "InteroperabilityResponseManagementFailed",
-        status: 502,
-        detail: "HTTP Status '201' differente da quello atteso per il profilo non bloccante 'PULL' con ruolo 'RichiestaStato' (atteso: 200,303)",
-        govway_id: "#string"
-    }
-    """
+    * def problem = read('classpath:test/rest/non-bloccante/error-bodies/invalid-status-from-request-erogazione.json')
 
     Given url url_invocazione
     And path 'tasks', 'queue'
@@ -195,16 +157,7 @@ Scenario: Richiesta stato operazione con stato http diverso da 200 e 303
 @no-location-from-status
 Scenario: Richiesta stato operazione completata senza header location
 
-    * def problem =
-    """
-    {
-        type: "https://govway.org/handling-errors/502/InteroperabilityResponseManagementFailed.html",
-        title: "InteroperabilityResponseManagementFailed",
-        status: 502,
-        detail: "Header http 'Location', richiesto dal profilo non bloccante PULL, non trovato",
-        govway_id: "#string"
-    }
-    """
+    * def problem = read('classpath:test/rest/non-bloccante/error-bodies/no-location-from-status-erogazione.json')
 
     Given url url_invocazione
     And path 'tasks', 'queue', task_uid
@@ -217,16 +170,7 @@ Scenario: Richiesta stato operazione completata senza header location
 @task-response-not-200
 Scenario: Ottenimento risorsa processata con stato diverso da 200 OK    
 
-    * def problem =
-    """
-    {
-        type: "https://govway.org/handling-errors/502/InteroperabilityInvalidResponse.html",
-        title: "InteroperabilityInvalidResponse",
-        status: 502,
-        detail: "HTTP Status '202' differente da quello atteso per il profilo non bloccante 'PULL' con ruolo 'Risposta' (atteso: 200)",
-        govway_id: "#string"
-    }
-    """
+    * def problem = read('classpath:test/rest/non-bloccante/error-bodies/task-response-not-200-erogazione.json')
 
     Given url url_invocazione
     And path 'tasks', 'queue'
