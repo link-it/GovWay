@@ -23,31 +23,53 @@ Background:
 Scenario: Test Fruizione con header location rimosso dal proxy
 
     * def task_id = "Test-Location-Removed-From-Ack"
+    * def problem =
+    """
+    {
+        type: "https://govway.org/handling-errors/502/InteroperabilityInvalidResponse.html",
+        title: "InteroperabilityInvalidResponse",
+        status: 502,
+        detail: "Header HTTP 'Location' non presente",
+        govway_id: "#string"
+    }
+    """
 
     Given path 'tasks', 'queue'
     And request body_req
     And params ({ returnCode: 202, returnHttpHeader:'Location: /tasks/queue/' + task_id})
     When method post
     Then status 502
-    And match response contains invalid_implementation_response
+    And match response == problem
 
 
 @request-task-not-202
 Scenario: Richiesta processamento con stato diverso da 202
 
     * def task_id = "Test-Status-Not-202"
+    * def problem = 
+    """
+    {
+        type: "https://govway.org/handling-errors/502/InteroperabilityInvalidResponse.html",
+        title: "InteroperabilityInvalidResponse",
+        status: 502,
+        detail: "HTTP Status '201' riscontrato differente da quello atteso per il profilo non bloccante 'PULL' con ruolo 'Richiesta' (atteso: ,202)",
+        govway_id: "#string"
+    }
+    """
+
     
     Given path 'tasks', 'queue'
     And request body_req
     And params ({ returnCode: 202, returnHttpHeader:'Location: /tasks/queue/' + task_id })
     When method post
     Then status 502
-    And match response contains invalid_implementation_response
+    And match response == problem
     And match header GovWay-Conversation-ID == task_id
 
 @location-not-an-uri
 Scenario: Header Location che non corrisponde ad una URI
 
+    * def url_invocazione = govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/ApiDemoNonBlockingRestPullProxy/v1"
     * def task_id = "Test-Location-Not-An-URI"
     * def completed_params = 
     """
@@ -58,23 +80,46 @@ Scenario: Header Location che non corrisponde ad una URI
         destFileContentType: 'application/json' 
         })
     """
-    Given path 'tasks', 'queue', task_id
+    * def problem = 
+    """
+    {
+        type: "https://govway.org/handling-errors/502/InvalidResponseContent.html",
+        title: "InvalidResponseContent",
+        status: 502,
+        detail: "Response content not conform to API specification: Validation error(s) :\nLocation: Value '/govway/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/ApiDemoNonBlockingRestPullProxy/v1/Not/An/Uri' does not match format 'uri'. (code: 1007)\nFrom: Location.<format>\n",
+        govway_id: "#string"
+    }
+    """
+
+    Given url url_invocazione
+    And path 'tasks', 'queue', task_id
     And params completed_params
     When method get
     Then status 502
-    And match response contains invalid_implementation_response
+    And match response == problem
     And match header GovWay-Conversation-ID == task_id
+
 
 @invalid-status-from-request
 Scenario: Richiesta stato operazione con stato http diverso da 200 e 303
 
     * def task_id = "Test-Invalid-Status-Request"
+    * def problem = 
+    """
+    {
+        type: "https://govway.org/handling-errors/502/InteroperabilityInvalidResponse.html",
+        title: "InteroperabilityInvalidResponse",
+        status: 502,
+        detail: "HTTP Status '201' riscontrato differente da quello atteso per il profilo non bloccante 'PULL' con ruolo 'RichiestaStato' (atteso: ,200)",
+        govway_id: "#string"
+    }
+    """
 
     Given path 'tasks', 'queue', task_id
     And params ({ returnCode: 200, destFile: '/etc/govway/test/protocolli/modipa/rest/non-bloccante/pending.json', destFileContentType: 'application/json' })
     When method get
     Then status 502
-    And match response contains invalid_implementation_response
+    And match response == problem
     And match header GovWay-Conversation-ID == task_id
 
 
@@ -103,11 +148,21 @@ Scenario: Richiesta stato operazione completata senza header location
 Scenario: Ottenimento risorsa processata con stato diverso da 200 OK    
 
     * def task_id = "Test-Response-Not-200"
+    * def problem =
+    """
+    {
+        type: "https://govway.org/handling-errors/502/InteroperabilityInvalidResponse.html",
+        title: "InteroperabilityInvalidResponse",
+        status: 502,
+        detail: "HTTP Status '201' riscontrato differente da quello atteso per il profilo non bloccante 'PULL' con ruolo 'Risposta' (atteso: ,200)",
+        govway_id: "#string"
+    }
+    """
 
     Given path 'tasks', 'result', task_id
     And params ({ returnCode: 200 })
     When method get
     Then status 502
-    And match response contains invalid_implementation_response
+    And match response == problem
     And match header GovWay-Conversation-ID == task_id
 

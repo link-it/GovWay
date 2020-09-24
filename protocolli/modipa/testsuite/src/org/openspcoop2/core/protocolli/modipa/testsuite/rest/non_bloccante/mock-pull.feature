@@ -33,7 +33,8 @@ Scenario: methodIs('post') && pathMatches('/tasks/queue') && match_task('Test-St
 
 
 Scenario: methodIs('get') && pathMatches('/tasks/queue/{tid}') && karate.get('pathParams.tid') == 'Test-Location-Not-An-URI'
-    * karate.proceed(url_invocazione_erogazione)
+    * def url_invocazione_erogazione_validazione = govway_base_path + '/rest/in/DemoSoggettoErogatore/ApiDemoNonBlockingRestPull/v1'
+    * karate.proceed(url_invocazione_erogazione_validazione)
     * set responseHeaders.Location = '/Not/An/Uri'
 
 
@@ -54,6 +55,7 @@ Scenario: methodIs('get') && pathMatches('/tasks/result/{tid}') && karate.get('p
 
 Scenario: methodIs('post') && pathMatches('/tasks/queue') && match_task('Test-Erogazione-Status-Not-202')
     * karate.proceed(url_invocazione_erogazione)
+    # Qui c'è i problema che l'erogazione mi dice 201 created invece dovrebbe arrabbiarsi
     * match responseStatus == 502
     * match response contains invalid_implementation_response
 
