@@ -106,7 +106,9 @@ public class ModIImbustamentoRest {
 							busta.addProperty(ModICostanti.MODIPA_BUSTA_EXT_PROFILO_INTERAZIONE_ASINCRONA_REPLY_TO, replyToFound);
 						}
 						else {
-							throw new Exception("Header http '"+headerReplyName+"', richiesto dal profilo non bloccante PUSH, non trovato");
+							ProtocolException pe = new ProtocolException("Header http '"+headerReplyName+"', richiesto dal profilo non bloccante PUSH, non trovato");
+							pe.setInteroperabilityError(true);
+							throw pe;
 						}
 					}
 					
@@ -133,7 +135,9 @@ public class ModIImbustamentoRest {
 						msg.forceTransportHeader(headerCorrelationId, busta.getRiferimentoMessaggio());
 					}
 					else {
-						throw new Exception("Header http '"+headerCorrelationId+"', richiesto dal profilo non bloccante PUSH, non trovato");
+						ProtocolException pe = new ProtocolException("Header http '"+headerCorrelationId+"', richiesto dal profilo non bloccante PUSH, non trovato");
+						pe.setInteroperabilityError(true);
+						throw pe;
 					}
 
 				}
@@ -184,6 +188,8 @@ public class ModIImbustamentoRest {
 				}
 			}
 			
+			Integer [] returnCodeAttesi = null;
+			
 			if(ModICostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_VALUE_PUSH.equals(asyncInteractionType)) {
 				
 				if(ModICostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RICHIESTA.equals(asyncInteractionRole)) {
@@ -203,9 +209,17 @@ public class ModIImbustamentoRest {
 							busta.setCollaborazione(idTransazione);
 						}
 						else {
-							throw new Exception("Header http '"+headerCorrelationId+"', richiesto dal profilo non bloccante PUSH, non trovato");
+							ProtocolException pe = new ProtocolException("Header http '"+headerCorrelationId+"', richiesto dal profilo non bloccante PUSH, non trovato");
+							pe.setInteroperabilityError(true);
+							throw pe;
 						}
 					}
+					
+					returnCodeAttesi = this.modiProperties.getRestSecurityTokenPushRequestHttpStatus();
+				}
+				else {
+					
+					returnCodeAttesi = this.modiProperties.getRestSecurityTokenPushResponseHttpStatus();
 					
 				}
 				
@@ -227,7 +241,9 @@ public class ModIImbustamentoRest {
 					
 					if(ModICostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RICHIESTA.equals(asyncInteractionRole)) {
 						if(location==null || "".equals(location)) {
-							throw new Exception("Header http '"+locationHeader+"', richiesto dal profilo non bloccante PULL, non trovato");
+							ProtocolException pe = new ProtocolException("Header http '"+locationHeader+"', richiesto dal profilo non bloccante PULL, non trovato");
+							pe.setInteroperabilityError(true);
+							throw pe;
 						}
 						busta.addProperty(ModICostanti.MODIPA_BUSTA_EXT_PROFILO_INTERAZIONE_ASINCRONA_LOCATION, location);
 						
@@ -235,9 +251,10 @@ public class ModIImbustamentoRest {
 						if(correlationIdExtracted!=null && correlationIdExtracted.length()<=255) {
 							busta.setCollaborazione(correlationIdExtracted);
 						}
+						
+						returnCodeAttesi = this.modiProperties.getRestSecurityTokenPullRequestHttpStatus();
 					}
-					
-					if(ModICostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RICHIESTA_STATO.equals(asyncInteractionRole)) {
+					else if(ModICostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RICHIESTA_STATO.equals(asyncInteractionRole)) {
 						Integer [] returnCodeResourceReady = this.modiProperties.getRestSecurityTokenPullRequestStateOkHttpStatus();
 						boolean isReady = false;
 						for (Integer integer : returnCodeResourceReady) {
@@ -249,7 +266,9 @@ public class ModIImbustamentoRest {
 						
 						if(isReady) {
 							if(location==null || "".equals(location)) {
-								throw new Exception("Header http '"+locationHeader+"', richiesto dal profilo non bloccante PULL, non trovato");
+								ProtocolException pe = new ProtocolException("Header http '"+locationHeader+"', richiesto dal profilo non bloccante PULL, non trovato");
+								pe.setInteroperabilityError(true);
+								throw pe;
 							}
 							busta.addProperty(ModICostanti.MODIPA_BUSTA_EXT_PROFILO_INTERAZIONE_ASINCRONA_LOCATION, location);
 							
@@ -257,10 +276,50 @@ public class ModIImbustamentoRest {
 							if(correlationIdExtracted!=null && correlationIdExtracted.length()<=255) {
 								busta.setCollaborazione(correlationIdExtracted);
 							}
+							
+							returnCodeAttesi = returnCodeResourceReady;
 						}
+						else {
+							Integer [] returnCodeAttesi_notReady = this.modiProperties.getRestSecurityTokenPullRequestStateNotReadyHttpStatus();
+							returnCodeAttesi = new Integer[returnCodeResourceReady.length+returnCodeAttesi_notReady.length];
+							int i = 0;
+							for (int j=0; j < returnCodeAttesi_notReady.length; j++) {
+								returnCodeAttesi[i] = returnCodeAttesi_notReady[j];
+								i++;
+							}
+							for (int j=0; j < returnCodeResourceReady.length; j++) {
+								returnCodeAttesi[i] = returnCodeResourceReady[j];
+								i++;
+							}
+						}
+					}
+					else {
+						returnCodeAttesi = this.modiProperties.getRestSecurityTokenPullResponseHttpStatus();
 					}
 				}
 				
+			}
+			
+			if(returnCodeAttesi!=null) {
+				boolean found = false;
+				for (Integer integer : returnCodeAttesi) {
+					if(integer.intValue() == returnCodeInt) {
+						found = true;
+						break;
+					}
+				}
+				if(!found) {
+					StringBuilder sb = new StringBuilder();
+					for (Integer integer : returnCodeAttesi) {
+						if(sb.length()>0) {
+							sb.append(",");
+						}
+						sb.append(integer.intValue());
+					}
+					ProtocolException pe = new ProtocolException("HTTP Status '"+returnCodeInt+"' differente da quello atteso per il profilo non bloccante '"+asyncInteractionType+"' con ruolo '"+asyncInteractionRole+"' (atteso: "+sb.toString()+")");
+					pe.setInteroperabilityError(true);
+					throw pe;
+				}
 			}
 		}
 		

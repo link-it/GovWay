@@ -246,7 +246,17 @@ public class ModIValidazioneSintatticaRest extends AbstractModIValidazioneSintat
 							returnCodeAttesi = returnCodeResourceReady;
 						}
 						else {
-							returnCodeAttesi = this.modiProperties.getRestSecurityTokenPullRequestStateNotReadyHttpStatus();
+							Integer [] returnCodeAttesi_notReady = this.modiProperties.getRestSecurityTokenPullRequestStateNotReadyHttpStatus();
+							returnCodeAttesi = new Integer[returnCodeResourceReady.length+returnCodeAttesi_notReady.length];
+							int i = 0;
+							for (int j=0; j < returnCodeAttesi_notReady.length; j++) {
+								returnCodeAttesi[i] = returnCodeAttesi_notReady[j];
+								i++;
+							}
+							for (int j=0; j < returnCodeResourceReady.length; j++) {
+								returnCodeAttesi[i] = returnCodeResourceReady[j];
+								i++;
+							}
 						}
 						
 					}
@@ -268,13 +278,13 @@ public class ModIValidazioneSintatticaRest extends AbstractModIValidazioneSintat
 			if(!found) {
 				StringBuilder sb = new StringBuilder();
 				for (Integer integer : returnCodeAttesi) {
-					if(sb.length()<=0) {
+					if(sb.length()>0) {
 						sb.append(",");
 					}
 					sb.append(integer.intValue());
 				}
 				erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(CodiceErroreCooperazione.PROFILO_TRASMISSIONE, 
-						"HTTP Status '"+returnCodeInt+"' riscontrato differente da quello atteso per il profilo non bloccante '"+asyncInteractionType+"' con ruolo '"+asyncInteractionRole+"' (atteso: "+sb.toString()+")"));
+						"HTTP Status '"+returnCodeInt+"' differente da quello atteso per il profilo non bloccante '"+asyncInteractionType+"' con ruolo '"+asyncInteractionRole+"' (atteso: "+sb.toString()+")"));
 				return;
 			}
 		}

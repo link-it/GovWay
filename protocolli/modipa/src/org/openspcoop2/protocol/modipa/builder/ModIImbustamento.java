@@ -23,6 +23,7 @@ package org.openspcoop2.protocol.modipa.builder;
 import javax.xml.soap.SOAPEnvelope;
 
 import org.openspcoop2.core.config.ServizioApplicativo;
+import org.openspcoop2.core.constants.Costanti;
 import org.openspcoop2.core.id.IDAccordo;
 import org.openspcoop2.core.id.IDServizio;
 import org.openspcoop2.core.id.IDServizioApplicativo;
@@ -266,7 +267,9 @@ public class ModIImbustamento {
 					if(MessageRole.REQUEST.equals(messageRole)) {
 					
 						if(sa==null) {
-							throw new ProtocolException("Il profilo di sicurezza richiesto '"+securityMessageProfile+"' richiede l'identificazione di un applicativo");
+							ProtocolException pe = new ProtocolException("Il profilo di sicurezza richiesto '"+securityMessageProfile+"' richiede l'identificazione di un applicativo");
+							pe.setInteroperabilityError(true);
+							throw pe;
 						}
 						keystoreConfig = new ModIKeystoreConfig(sa, securityMessageProfile);
 						
@@ -293,7 +296,16 @@ public class ModIImbustamento {
 			protocolMessage.setMessage(msg);
 			return protocolMessage;
 		
-		}catch(Exception e){
+		}
+		catch(ProtocolException pe) {
+			if(pe.isInteroperabilityError()) {
+				if(context!=null) {
+					context.addObject(Costanti.ERRORE_VALIDAZIONE_PROTOCOLLO, Costanti.ERRORE_TRUE);
+				}
+			}
+			throw pe;
+		}
+		catch(Exception e){
 			throw new ProtocolException(e.getMessage(),e);
 		}
 		
