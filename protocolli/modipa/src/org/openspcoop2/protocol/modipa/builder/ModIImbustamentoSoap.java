@@ -114,14 +114,16 @@ public class ModIImbustamentoSoap {
 							busta.addProperty(ModICostanti.MODIPA_BUSTA_EXT_PROFILO_INTERAZIONE_ASINCRONA_REPLY_TO, replyToFound);
 						}
 						else {
-							throw new Exception("Header SOAP '"+this.modiProperties.getSoapReplyToName()+"', richiesto dal profilo non bloccante PUSH, non trovato");
+							ProtocolException pe = new ProtocolException("Header SOAP '"+this.modiProperties.getSoapReplyToName()+"', richiesto dal profilo non bloccante PUSH, non trovato");
+							pe.setInteroperabilityError(true);
+							throw pe;
 						}
 					}
 					
 				}
 				else if(ModICostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RISPOSTA.equals(asyncInteractionRole)) {
 					
-					processCorrelationId(soapMessage, busta, true);
+					processCorrelationId(soapMessage, busta, true, asyncInteractionType);
 
 				}
 				
@@ -132,7 +134,7 @@ public class ModIImbustamentoSoap {
 				if(ModICostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RICHIESTA_STATO.equals(asyncInteractionRole) ||
 						ModICostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RISPOSTA.equals(asyncInteractionRole)) {
 					
-					processCorrelationId(soapMessage, busta, true);
+					processCorrelationId(soapMessage, busta, true, asyncInteractionType);
 					
 				}
 				
@@ -146,7 +148,7 @@ public class ModIImbustamentoSoap {
 				
 				if(ModICostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RICHIESTA.equals(asyncInteractionRole)) {
 				
-					boolean foundCorrelationId = processCorrelationId(soapMessage, busta, false);
+					boolean foundCorrelationId = processCorrelationId(soapMessage, busta, false, asyncInteractionType);
 					
 					if(!foundCorrelationId) {
 					
@@ -157,7 +159,9 @@ public class ModIImbustamentoSoap {
 							busta.setCollaborazione(idTransazione);
 						}
 						else {
-							throw new Exception("Header SOAP '"+this.modiProperties.getSoapCorrelationIdName()+"', richiesto dal profilo non bloccante PUSH, non trovato");
+							ProtocolException pe = new ProtocolException("Header SOAP '"+this.modiProperties.getSoapCorrelationIdName()+"', richiesto dal profilo non bloccante PUSH, non trovato");
+							pe.setInteroperabilityError(true);
+							throw pe;
 						}
 					}
 					
@@ -170,7 +174,7 @@ public class ModIImbustamentoSoap {
 				
 				if(ModICostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RICHIESTA.equals(asyncInteractionRole) ) {
 					
-					boolean foundCorrelationId = processCorrelationId(soapMessage, busta, false);
+					boolean foundCorrelationId = processCorrelationId(soapMessage, busta, false, asyncInteractionType);
 					
 					if(!foundCorrelationId) {
 					
@@ -181,7 +185,9 @@ public class ModIImbustamentoSoap {
 							busta.setCollaborazione(idTransazione);
 						}
 						else {
-							throw new Exception("Header SOAP '"+this.modiProperties.getSoapCorrelationIdName()+"', richiesto dal profilo non bloccante PUSH, non trovato");
+							ProtocolException pe = new ProtocolException("Header SOAP '"+this.modiProperties.getSoapCorrelationIdName()+"', richiesto dal profilo non bloccante PULL, non trovato");
+							pe.setInteroperabilityError(true);
+							throw pe;
 						}
 					}
 					
@@ -192,7 +198,7 @@ public class ModIImbustamentoSoap {
 		
 	}
 	
-	private boolean processCorrelationId(OpenSPCoop2SoapMessage soapMessage, Busta busta, boolean notFoundException) throws Exception {
+	private boolean processCorrelationId(OpenSPCoop2SoapMessage soapMessage, Busta busta, boolean notFoundException, String profilo) throws Exception {
 		String correlationIdFound = ModIUtilities.getSOAPHeaderCorrelationIdValue(soapMessage); 
 		
 		String headerCorrelationIdHttp = this.modiProperties.getRestCorrelationIdHeader();
@@ -232,7 +238,9 @@ public class ModIImbustamentoSoap {
 		}
 		else {
 			if(notFoundException) {
-				throw new Exception("Header SOAP '"+this.modiProperties.getSoapCorrelationIdName()+"', richiesto dal profilo non bloccante PUSH, non trovato");
+				ProtocolException pe = new ProtocolException("Header SOAP '"+this.modiProperties.getSoapCorrelationIdName()+"', richiesto dal profilo non bloccante "+profilo+", non trovato");
+				pe.setInteroperabilityError(true);
+				throw pe;
 			}
 			else {
 				return false;

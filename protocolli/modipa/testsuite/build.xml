@@ -126,7 +126,7 @@
 				<var name="karateparams" value="-Dkarate.options=${build_testsuite}/${karate.options}"/>
 			</then>
 		</if>
-		<var name="karatetest" value="*Test*"/>
+		<var name="karatetest" value="ProxyBloccanteRestTest,ProxyBloccanteSoapTest,NonBloccanteRestTest"/>
 		<if>
 			<not>
 				<equals arg1="${test}" arg2="$${test}"/>
@@ -136,59 +136,64 @@
 			</then>
 		</if>
 
-		<if>
-			<equals arg1="${karateparams}" arg2=""/>
-			<then>
-				<junit printsummary="yes" haltonfailure="${haltOnFailure}" showoutput="${showOutput}">
+		<for list="${karatetest}" param="karateTipoTest">
+			<sequential>
+				<mkdir dir="${output}/@{karateTipoTest}"/>
+				<if>
+					<equals arg1="${karateparams}" arg2=""/>
+					<then>
+						<junit printsummary="yes" haltonfailure="${haltOnFailure}" showoutput="${showOutput}">
 
-					<!-- Per non far comparire il Warning: Nashorn engine is planned to be removed from a future JDK release -->
-					<jvmarg value="-Dnashorn.args=--no-deprecation-warning"/>
+							<!-- Per non far comparire il Warning: Nashorn engine is planned to be removed from a future JDK release -->
+							<jvmarg value="-Dnashorn.args=--no-deprecation-warning"/>
 
-					<!-- Per non far comparire il WARNING: Illegal reflective access by net.minidev.asm.DynamicClassLoader 
-					     (file:.../lib/json/accessors-smart-1.2.jar) to method java.lang.ClassLoader.defineClass(java.lang.String,byte[],int,int) -->
-					<jvmarg value="-Djdk.module.illegalAccess=deny"/>
+							<!-- Per non far comparire il WARNING: Illegal reflective access by net.minidev.asm.DynamicClassLoader 
+							     (file:.../lib/json/accessors-smart-1.2.jar) to method java.lang.ClassLoader.defineClass(java.lang.String,byte[],int,int) -->
+							<jvmarg value="-Djdk.module.illegalAccess=deny"/>
 
-					<classpath refid="karate_testsuite" />
-					<classpath location="${build_testsuite}" />
+							<classpath refid="karate_testsuite" />
+							<classpath location="${build_testsuite}" />
 
-					<formatter type="plain"/>			
-					<formatter type="xml" />
+							<formatter type="plain"/>			
+							<formatter type="xml" />
 
-					<batchtest fork="yes" todir="${output}">
-						<fileset dir="${src_testsuite}">
-							<include name="**/${karatetest}.java" />
-						</fileset>
-					</batchtest>
-		
-				 </junit>
-			</then>
-			<else>
-				<junit printsummary="yes" haltonfailure="${haltOnFailure}" showoutput="${showOutput}">
+							<batchtest fork="yes" todir="${output}/@{karateTipoTest}">
+								<fileset dir="${src_testsuite}">
+									<include name="**/@{karateTipoTest}.java" />
+								</fileset>
+							</batchtest>
+				
+						 </junit>
+					</then>
+					<else>
+						<junit printsummary="yes" haltonfailure="${haltOnFailure}" showoutput="${showOutput}">
 
-					<jvmarg value="${karateparams}"/>
+							<jvmarg value="${karateparams}"/>
 
-					<!-- Per non far comparire il Warning: Nashorn engine is planned to be removed from a future JDK release -->
-					<jvmarg value="-Dnashorn.args=--no-deprecation-warning"/>
+							<!-- Per non far comparire il Warning: Nashorn engine is planned to be removed from a future JDK release -->
+							<jvmarg value="-Dnashorn.args=--no-deprecation-warning"/>
 
-					<!-- Per non far comparire il WARNING: Illegal reflective access by net.minidev.asm.DynamicClassLoader 
-					     (file:.../lib/json/accessors-smart-1.2.jar) to method java.lang.ClassLoader.defineClass(java.lang.String,byte[],int,int) -->
-					<jvmarg value="-Djdk.module.illegalAccess=deny"/>
+							<!-- Per non far comparire il WARNING: Illegal reflective access by net.minidev.asm.DynamicClassLoader 
+							     (file:.../lib/json/accessors-smart-1.2.jar) to method java.lang.ClassLoader.defineClass(java.lang.String,byte[],int,int) -->
+							<jvmarg value="-Djdk.module.illegalAccess=deny"/>
 
-					<classpath refid="karate_testsuite" />
-					<classpath location="${build_testsuite}" />
+							<classpath refid="karate_testsuite" />
+							<classpath location="${build_testsuite}" />
 
-					<formatter type="plain"/>			
-					<formatter type="xml" />
+							<formatter type="plain"/>			
+							<formatter type="xml" />
 
-					<batchtest fork="yes" todir="${output}">
-						<fileset dir="${src_testsuite}">
-							<include name="**/${karatetest}.java" />
-						</fileset>
-					</batchtest>
-		
-				 </junit>				
-			</else>
-		</if>
+							<batchtest fork="yes" todir="${output}/@{karateTipoTest}">
+								<fileset dir="${src_testsuite}">
+									<include name="**/@{karateTipoTest}.java" />
+								</fileset>
+							</batchtest>
+				
+						 </junit>				
+					</else>
+				</if>
+			</sequential>
+		</for>
 
                 <if>
 			<equals arg1="${deleteEnabled}" arg2="true"/>
@@ -205,7 +210,7 @@
 
 		<junitreport todir="${output}">
 			<fileset dir="${output}">
-				<include name="TEST-*.xml" />
+				<include name="**/TEST-*.xml" />
 			</fileset>
 			<report format="frames" todir="${output}\html\" />
 		</junitreport>
