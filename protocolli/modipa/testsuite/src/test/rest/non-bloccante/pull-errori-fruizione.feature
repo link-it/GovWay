@@ -90,7 +90,7 @@ Scenario: Richiesta processamento con stato diverso da 202
 
     * call check_traccia_richiesta ({tid: responseHeaders['GovWay-Transaction-ID'][0]})
     
-    * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: null })
+    * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: 'Test-Status-Not-202' })
 
 
 @invalid-status-from-request
