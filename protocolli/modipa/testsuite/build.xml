@@ -126,7 +126,18 @@
 				<var name="karateparams" value="-Dkarate.options=${build_testsuite}/${karate.options}"/>
 			</then>
 		</if>
-		<var name="karatetest" value="ProxyBloccanteRestTest,ProxyBloccanteSoapTest,NonBloccanteRestTest"/>
+
+                <fileset dir="${src_testsuite}" id="absoluteTestClassNames">
+                        <include name="**/*Test.java"/>
+                </fileset>
+		<pathconvert property="testClassNames" refid="absoluteTestClassNames" pathsep=",">
+			<chainedmapper>
+				<flattenmapper/>
+				<globmapper from="*.java" to="*" casesensitive="no"/>
+			</chainedmapper>
+		</pathconvert>
+
+		<var name="karatetest" value="${testClassNames}"/>
 		<if>
 			<not>
 				<equals arg1="${test}" arg2="$${test}"/>
@@ -135,6 +146,7 @@
 				<var name="karatetest" value="${test}"/>
 			</then>
 		</if>
+		<echo message="Esecuzione delle seguenti classi di test: ${karatetest}"/>
 
 		<for list="${karatetest}" param="karateTipoTest">
 			<sequential>
