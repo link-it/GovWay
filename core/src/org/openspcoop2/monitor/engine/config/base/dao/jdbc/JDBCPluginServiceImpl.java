@@ -42,7 +42,6 @@ import org.openspcoop2.generic_project.dao.jdbc.JDBCPaginatedExpression;
 
 import org.openspcoop2.generic_project.dao.jdbc.JDBCServiceManagerProperties;
 
-import org.openspcoop2.monitor.engine.config.base.PluginFiltroCompatibilita;
 import org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita;
 import org.openspcoop2.monitor.engine.config.base.Plugin;
 import org.openspcoop2.monitor.engine.config.base.PluginServizioAzioneCompatibilita;
@@ -88,43 +87,6 @@ public class JDBCPluginServiceImpl extends JDBCPluginServiceSearchImpl
 			new org.openspcoop2.generic_project.dao.jdbc.utils.JDBCObject(plugin.getStato(),Plugin.model().STATO.getFieldType())
 		);
 		plugin.setId(id);
-
-		// for plugin
-		for (int i = 0; i < plugin.getPluginFiltroCompatibilitaList().size(); i++) {
-
-
-			// Object plugin.getPluginFiltroCompatibilitaList().get(i)
-			ISQLQueryObject sqlQueryObjectInsert_pluginFiltroCompatibilita = sqlQueryObjectInsert.newSQLQueryObject();
-			sqlQueryObjectInsert_pluginFiltroCompatibilita.addInsertTable(this.getPluginFieldConverter().toTable(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA));
-			sqlQueryObjectInsert_pluginFiltroCompatibilita.addInsertField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_MITTENTE,false),"?");
-			sqlQueryObjectInsert_pluginFiltroCompatibilita.addInsertField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_MITTENTE,false),"?");
-			sqlQueryObjectInsert_pluginFiltroCompatibilita.addInsertField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.IDPORTA_MITTENTE,false),"?");
-			sqlQueryObjectInsert_pluginFiltroCompatibilita.addInsertField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_DESTINATARIO,false),"?");
-			sqlQueryObjectInsert_pluginFiltroCompatibilita.addInsertField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_DESTINATARIO,false),"?");
-			sqlQueryObjectInsert_pluginFiltroCompatibilita.addInsertField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.IDPORTA_DESTINATARIO,false),"?");
-			sqlQueryObjectInsert_pluginFiltroCompatibilita.addInsertField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_SERVIZIO,false),"?");
-			sqlQueryObjectInsert_pluginFiltroCompatibilita.addInsertField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_SERVIZIO,false),"?");
-			sqlQueryObjectInsert_pluginFiltroCompatibilita.addInsertField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.VERSIONE_SERVIZIO,false),"?");
-			sqlQueryObjectInsert_pluginFiltroCompatibilita.addInsertField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.AZIONE,false),"?");
-			sqlQueryObjectInsert_pluginFiltroCompatibilita.addInsertField("id_plugin","?");
-
-			// Insert plugin.getPluginFiltroCompatibilitaList().get(i)
-			org.openspcoop2.utils.jdbc.IKeyGeneratorObject keyGenerator_pluginFiltroCompatibilita = this.getPluginFetch().getKeyGeneratorObject(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA);
-			long id_pluginFiltroCompatibilita = jdbcUtilities.insertAndReturnGeneratedKey(sqlQueryObjectInsert_pluginFiltroCompatibilita, keyGenerator_pluginFiltroCompatibilita, jdbcProperties.isShowSql(),
-				new org.openspcoop2.generic_project.dao.jdbc.utils.JDBCObject(plugin.getPluginFiltroCompatibilitaList().get(i).getTipoMittente(),Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_MITTENTE.getFieldType()),
-				new org.openspcoop2.generic_project.dao.jdbc.utils.JDBCObject(plugin.getPluginFiltroCompatibilitaList().get(i).getNomeMittente(),Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_MITTENTE.getFieldType()),
-				new org.openspcoop2.generic_project.dao.jdbc.utils.JDBCObject(plugin.getPluginFiltroCompatibilitaList().get(i).getIdportaMittente(),Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.IDPORTA_MITTENTE.getFieldType()),
-				new org.openspcoop2.generic_project.dao.jdbc.utils.JDBCObject(plugin.getPluginFiltroCompatibilitaList().get(i).getTipoDestinatario(),Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_DESTINATARIO.getFieldType()),
-				new org.openspcoop2.generic_project.dao.jdbc.utils.JDBCObject(plugin.getPluginFiltroCompatibilitaList().get(i).getNomeDestinatario(),Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_DESTINATARIO.getFieldType()),
-				new org.openspcoop2.generic_project.dao.jdbc.utils.JDBCObject(plugin.getPluginFiltroCompatibilitaList().get(i).getIdportaDestinatario(),Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.IDPORTA_DESTINATARIO.getFieldType()),
-				new org.openspcoop2.generic_project.dao.jdbc.utils.JDBCObject(plugin.getPluginFiltroCompatibilitaList().get(i).getTipoServizio(),Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_SERVIZIO.getFieldType()),
-				new org.openspcoop2.generic_project.dao.jdbc.utils.JDBCObject(plugin.getPluginFiltroCompatibilitaList().get(i).getNomeServizio(),Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_SERVIZIO.getFieldType()),
-				new org.openspcoop2.generic_project.dao.jdbc.utils.JDBCObject(plugin.getPluginFiltroCompatibilitaList().get(i).getVersioneServizio(),Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.VERSIONE_SERVIZIO.getFieldType()),
-				new org.openspcoop2.generic_project.dao.jdbc.utils.JDBCObject(plugin.getPluginFiltroCompatibilitaList().get(i).getAzione(),Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.AZIONE.getFieldType()),
-				new org.openspcoop2.generic_project.dao.jdbc.utils.JDBCObject(Long.valueOf(id),Long.class)
-			);
-			plugin.getPluginFiltroCompatibilitaList().get(i).setId(id_pluginFiltroCompatibilita);
-		} // fine for 
 
 		// for plugin
 		for (int i = 0; i < plugin.getPluginProprietaCompatibilitaList().size(); i++) {
@@ -414,114 +376,6 @@ public class JDBCPluginServiceImpl extends JDBCPluginServiceSearchImpl
 
 		jdbcUtilities.execute(sqlQueryObjectUpdate_pluginServizioCompatibilita_deleteList.createSQLDelete(), jdbcProperties.isShowSql(), jdbcObjects_plugin_pluginServizioCompatibilita_delete.toArray(new JDBCObject[]{}));
 
-		// for plugin_pluginFiltroCompatibilita
-
-		java.util.List<Long> ids_plugin_pluginFiltroCompatibilita_da_non_eliminare = new java.util.ArrayList<Long>();
-		for (Object plugin_pluginFiltroCompatibilita_object : plugin.getPluginFiltroCompatibilitaList()) {
-			PluginFiltroCompatibilita plugin_pluginFiltroCompatibilita = (PluginFiltroCompatibilita) plugin_pluginFiltroCompatibilita_object;
-			if(plugin_pluginFiltroCompatibilita.getId() == null || plugin_pluginFiltroCompatibilita.getId().longValue() <= 0) {
-
-				long id = plugin.getId();			
-
-				// Object plugin_pluginFiltroCompatibilita
-				ISQLQueryObject sqlQueryObjectInsert_plugin_pluginFiltroCompatibilita = sqlQueryObjectInsert.newSQLQueryObject();
-				sqlQueryObjectInsert_plugin_pluginFiltroCompatibilita.addInsertTable(this.getPluginFieldConverter().toTable(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA));
-				sqlQueryObjectInsert_plugin_pluginFiltroCompatibilita.addInsertField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_MITTENTE,false),"?");
-				sqlQueryObjectInsert_plugin_pluginFiltroCompatibilita.addInsertField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_MITTENTE,false),"?");
-				sqlQueryObjectInsert_plugin_pluginFiltroCompatibilita.addInsertField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.IDPORTA_MITTENTE,false),"?");
-				sqlQueryObjectInsert_plugin_pluginFiltroCompatibilita.addInsertField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_DESTINATARIO,false),"?");
-				sqlQueryObjectInsert_plugin_pluginFiltroCompatibilita.addInsertField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_DESTINATARIO,false),"?");
-				sqlQueryObjectInsert_plugin_pluginFiltroCompatibilita.addInsertField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.IDPORTA_DESTINATARIO,false),"?");
-				sqlQueryObjectInsert_plugin_pluginFiltroCompatibilita.addInsertField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_SERVIZIO,false),"?");
-				sqlQueryObjectInsert_plugin_pluginFiltroCompatibilita.addInsertField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_SERVIZIO,false),"?");
-				sqlQueryObjectInsert_plugin_pluginFiltroCompatibilita.addInsertField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.VERSIONE_SERVIZIO,false),"?");
-				sqlQueryObjectInsert_plugin_pluginFiltroCompatibilita.addInsertField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.AZIONE,false),"?");
-				sqlQueryObjectInsert_plugin_pluginFiltroCompatibilita.addInsertField("id_plugin","?");
-
-				// Insert plugin_pluginFiltroCompatibilita
-				org.openspcoop2.utils.jdbc.IKeyGeneratorObject keyGenerator_plugin_pluginFiltroCompatibilita = this.getPluginFetch().getKeyGeneratorObject(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA);
-				long id_plugin_pluginFiltroCompatibilita = jdbcUtilities.insertAndReturnGeneratedKey(sqlQueryObjectInsert_plugin_pluginFiltroCompatibilita, keyGenerator_plugin_pluginFiltroCompatibilita, jdbcProperties.isShowSql(),
-					new org.openspcoop2.generic_project.dao.jdbc.utils.JDBCObject(plugin_pluginFiltroCompatibilita.getTipoMittente(),Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_MITTENTE.getFieldType()),
-					new org.openspcoop2.generic_project.dao.jdbc.utils.JDBCObject(plugin_pluginFiltroCompatibilita.getNomeMittente(),Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_MITTENTE.getFieldType()),
-					new org.openspcoop2.generic_project.dao.jdbc.utils.JDBCObject(plugin_pluginFiltroCompatibilita.getIdportaMittente(),Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.IDPORTA_MITTENTE.getFieldType()),
-					new org.openspcoop2.generic_project.dao.jdbc.utils.JDBCObject(plugin_pluginFiltroCompatibilita.getTipoDestinatario(),Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_DESTINATARIO.getFieldType()),
-					new org.openspcoop2.generic_project.dao.jdbc.utils.JDBCObject(plugin_pluginFiltroCompatibilita.getNomeDestinatario(),Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_DESTINATARIO.getFieldType()),
-					new org.openspcoop2.generic_project.dao.jdbc.utils.JDBCObject(plugin_pluginFiltroCompatibilita.getIdportaDestinatario(),Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.IDPORTA_DESTINATARIO.getFieldType()),
-					new org.openspcoop2.generic_project.dao.jdbc.utils.JDBCObject(plugin_pluginFiltroCompatibilita.getTipoServizio(),Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_SERVIZIO.getFieldType()),
-					new org.openspcoop2.generic_project.dao.jdbc.utils.JDBCObject(plugin_pluginFiltroCompatibilita.getNomeServizio(),Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_SERVIZIO.getFieldType()),
-					new org.openspcoop2.generic_project.dao.jdbc.utils.JDBCObject(plugin_pluginFiltroCompatibilita.getVersioneServizio(),Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.VERSIONE_SERVIZIO.getFieldType()),
-					new org.openspcoop2.generic_project.dao.jdbc.utils.JDBCObject(plugin_pluginFiltroCompatibilita.getAzione(),Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.AZIONE.getFieldType()),
-					new org.openspcoop2.generic_project.dao.jdbc.utils.JDBCObject(Long.valueOf(id),Long.class)
-				);
-				plugin_pluginFiltroCompatibilita.setId(id_plugin_pluginFiltroCompatibilita);
-
-				ids_plugin_pluginFiltroCompatibilita_da_non_eliminare.add(plugin_pluginFiltroCompatibilita.getId());
-			} else {
-
-
-				// Object plugin_pluginFiltroCompatibilita
-				ISQLQueryObject sqlQueryObjectUpdate_plugin_pluginFiltroCompatibilita = sqlQueryObjectUpdate.newSQLQueryObject();
-				sqlQueryObjectUpdate_plugin_pluginFiltroCompatibilita.setANDLogicOperator(true);
-				sqlQueryObjectUpdate_plugin_pluginFiltroCompatibilita.addUpdateTable(this.getPluginFieldConverter().toTable(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA));
-				boolean isUpdate_plugin_pluginFiltroCompatibilita = true;
-				java.util.List<JDBCObject> lstObjects_plugin_pluginFiltroCompatibilita = new java.util.ArrayList<JDBCObject>();
-				sqlQueryObjectUpdate_plugin_pluginFiltroCompatibilita.addUpdateField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_MITTENTE,false), "?");
-				lstObjects_plugin_pluginFiltroCompatibilita.add(new JDBCObject(plugin_pluginFiltroCompatibilita.getTipoMittente(), Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_MITTENTE.getFieldType()));
-				sqlQueryObjectUpdate_plugin_pluginFiltroCompatibilita.addUpdateField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_MITTENTE,false), "?");
-				lstObjects_plugin_pluginFiltroCompatibilita.add(new JDBCObject(plugin_pluginFiltroCompatibilita.getNomeMittente(), Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_MITTENTE.getFieldType()));
-				sqlQueryObjectUpdate_plugin_pluginFiltroCompatibilita.addUpdateField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.IDPORTA_MITTENTE,false), "?");
-				lstObjects_plugin_pluginFiltroCompatibilita.add(new JDBCObject(plugin_pluginFiltroCompatibilita.getIdportaMittente(), Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.IDPORTA_MITTENTE.getFieldType()));
-				sqlQueryObjectUpdate_plugin_pluginFiltroCompatibilita.addUpdateField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_DESTINATARIO,false), "?");
-				lstObjects_plugin_pluginFiltroCompatibilita.add(new JDBCObject(plugin_pluginFiltroCompatibilita.getTipoDestinatario(), Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_DESTINATARIO.getFieldType()));
-				sqlQueryObjectUpdate_plugin_pluginFiltroCompatibilita.addUpdateField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_DESTINATARIO,false), "?");
-				lstObjects_plugin_pluginFiltroCompatibilita.add(new JDBCObject(plugin_pluginFiltroCompatibilita.getNomeDestinatario(), Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_DESTINATARIO.getFieldType()));
-				sqlQueryObjectUpdate_plugin_pluginFiltroCompatibilita.addUpdateField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.IDPORTA_DESTINATARIO,false), "?");
-				lstObjects_plugin_pluginFiltroCompatibilita.add(new JDBCObject(plugin_pluginFiltroCompatibilita.getIdportaDestinatario(), Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.IDPORTA_DESTINATARIO.getFieldType()));
-				sqlQueryObjectUpdate_plugin_pluginFiltroCompatibilita.addUpdateField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_SERVIZIO,false), "?");
-				lstObjects_plugin_pluginFiltroCompatibilita.add(new JDBCObject(plugin_pluginFiltroCompatibilita.getTipoServizio(), Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_SERVIZIO.getFieldType()));
-				sqlQueryObjectUpdate_plugin_pluginFiltroCompatibilita.addUpdateField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_SERVIZIO,false), "?");
-				lstObjects_plugin_pluginFiltroCompatibilita.add(new JDBCObject(plugin_pluginFiltroCompatibilita.getNomeServizio(), Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_SERVIZIO.getFieldType()));
-				sqlQueryObjectUpdate_plugin_pluginFiltroCompatibilita.addUpdateField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.VERSIONE_SERVIZIO,false), "?");
-				lstObjects_plugin_pluginFiltroCompatibilita.add(new JDBCObject(plugin_pluginFiltroCompatibilita.getVersioneServizio(), Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.VERSIONE_SERVIZIO.getFieldType()));
-				sqlQueryObjectUpdate_plugin_pluginFiltroCompatibilita.addUpdateField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.AZIONE,false), "?");
-				lstObjects_plugin_pluginFiltroCompatibilita.add(new JDBCObject(plugin_pluginFiltroCompatibilita.getAzione(), Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.AZIONE.getFieldType()));
-				sqlQueryObjectUpdate_plugin_pluginFiltroCompatibilita.addWhereCondition("id=?");
-				ids_plugin_pluginFiltroCompatibilita_da_non_eliminare.add(plugin_pluginFiltroCompatibilita.getId());
-				lstObjects_plugin_pluginFiltroCompatibilita.add(new JDBCObject(Long.valueOf(plugin_pluginFiltroCompatibilita.getId()),Long.class));
-
-				if(isUpdate_plugin_pluginFiltroCompatibilita) {
-					// Update plugin_pluginFiltroCompatibilita
-					jdbcUtilities.executeUpdate(sqlQueryObjectUpdate_plugin_pluginFiltroCompatibilita.createSQLUpdate(), jdbcProperties.isShowSql(), 
-						lstObjects_plugin_pluginFiltroCompatibilita.toArray(new JDBCObject[]{}));
-				}
-			}
-		} // fine for plugin_pluginFiltroCompatibilita
-
-		// elimino tutte le occorrenze di plugin_pluginFiltroCompatibilita non presenti nell'update
-
-		ISQLQueryObject sqlQueryObjectUpdate_pluginFiltroCompatibilita_deleteList = sqlQueryObjectUpdate.newSQLQueryObject();
-		sqlQueryObjectUpdate_pluginFiltroCompatibilita_deleteList.setANDLogicOperator(true);
-		sqlQueryObjectUpdate_pluginFiltroCompatibilita_deleteList.addDeleteTable(this.getPluginFieldConverter().toTable(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA));
-		java.util.List<JDBCObject> jdbcObjects_plugin_pluginFiltroCompatibilita_delete = new java.util.ArrayList<JDBCObject>();
-
-		sqlQueryObjectUpdate_pluginFiltroCompatibilita_deleteList.addWhereCondition("id_plugin=?");
-		jdbcObjects_plugin_pluginFiltroCompatibilita_delete.add(new JDBCObject(plugin.getId(), Long.class));
-
-		StringBuilder marks_plugin_pluginFiltroCompatibilita = new StringBuilder();
-		if(ids_plugin_pluginFiltroCompatibilita_da_non_eliminare.size() > 0) {
-			for(Long ids : ids_plugin_pluginFiltroCompatibilita_da_non_eliminare) {
-				if(marks_plugin_pluginFiltroCompatibilita.length() > 0) {
-					marks_plugin_pluginFiltroCompatibilita.append(",");
-				}
-				marks_plugin_pluginFiltroCompatibilita.append("?");
-				jdbcObjects_plugin_pluginFiltroCompatibilita_delete.add(new JDBCObject(ids, Long.class));
-
-			}
-			sqlQueryObjectUpdate_pluginFiltroCompatibilita_deleteList.addWhereCondition("id NOT IN ("+marks_plugin_pluginFiltroCompatibilita.toString()+")");
-		}
-
-		jdbcUtilities.execute(sqlQueryObjectUpdate_pluginFiltroCompatibilita_deleteList.createSQLDelete(), jdbcProperties.isShowSql(), jdbcObjects_plugin_pluginFiltroCompatibilita_delete.toArray(new JDBCObject[]{}));
-
 		// for plugin_pluginProprietaCompatibilita
 
 		java.util.List<Long> ids_plugin_pluginProprietaCompatibilita_da_non_eliminare = new java.util.ArrayList<Long>();
@@ -766,31 +620,6 @@ public class JDBCPluginServiceImpl extends JDBCPluginServiceSearchImpl
 				new org.openspcoop2.generic_project.dao.jdbc.utils.JDBCObject(Long.valueOf(plugin_pluginServizioCompatibilita.getId()),Long.class));
 			}
 		} // fine for plugin_pluginServizioCompatibilita
-
-		//Recupero oggetto _plugin_pluginFiltroCompatibilita
-		ISQLQueryObject sqlQueryObjectDelete_plugin_pluginFiltroCompatibilita_getToDelete = sqlQueryObjectDelete.newSQLQueryObject();
-		sqlQueryObjectDelete_plugin_pluginFiltroCompatibilita_getToDelete.setANDLogicOperator(true);
-		sqlQueryObjectDelete_plugin_pluginFiltroCompatibilita_getToDelete.addFromTable(this.getPluginFieldConverter().toTable(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA));
-		sqlQueryObjectDelete_plugin_pluginFiltroCompatibilita_getToDelete.addWhereCondition("id_plugin=?");
-		java.util.List<Object> plugin_pluginFiltroCompatibilita_toDelete_list = jdbcUtilities.executeQuery(sqlQueryObjectDelete_plugin_pluginFiltroCompatibilita_getToDelete.createSQLQuery(), jdbcProperties.isShowSql(), Plugin.model().PLUGIN_FILTRO_COMPATIBILITA, this.getPluginFetch(),
-			new org.openspcoop2.generic_project.dao.jdbc.utils.JDBCObject(Long.valueOf(id),Long.class));
-
-		// for plugin_pluginFiltroCompatibilita
-		for (Object plugin_pluginFiltroCompatibilita_object : plugin_pluginFiltroCompatibilita_toDelete_list) {
-			PluginFiltroCompatibilita plugin_pluginFiltroCompatibilita = (PluginFiltroCompatibilita) plugin_pluginFiltroCompatibilita_object;
-
-			// Object plugin_pluginFiltroCompatibilita
-			ISQLQueryObject sqlQueryObjectDelete_plugin_pluginFiltroCompatibilita = sqlQueryObjectDelete.newSQLQueryObject();
-			sqlQueryObjectDelete_plugin_pluginFiltroCompatibilita.setANDLogicOperator(true);
-			sqlQueryObjectDelete_plugin_pluginFiltroCompatibilita.addDeleteTable(this.getPluginFieldConverter().toTable(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA));
-			sqlQueryObjectDelete_plugin_pluginFiltroCompatibilita.addWhereCondition("id=?");
-
-			// Delete plugin_pluginFiltroCompatibilita
-			if(plugin_pluginFiltroCompatibilita != null){
-				jdbcUtilities.execute(sqlQueryObjectDelete_plugin_pluginFiltroCompatibilita.createSQLDelete(), jdbcProperties.isShowSql(), 
-				new org.openspcoop2.generic_project.dao.jdbc.utils.JDBCObject(Long.valueOf(plugin_pluginFiltroCompatibilita.getId()),Long.class));
-			}
-		} // fine for plugin_pluginFiltroCompatibilita
 
 		//Recupero oggetto _plugin_pluginProprietaCompatibilita
 		ISQLQueryObject sqlQueryObjectDelete_plugin_pluginProprietaCompatibilita_getToDelete = sqlQueryObjectDelete.newSQLQueryObject();

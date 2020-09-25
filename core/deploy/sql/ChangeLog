@@ -7,6 +7,7 @@
 
 	Eliminata tabella inutilizzata:
 	- plugin_info
+	- plugins_filtro_comp
 
 	Modicato supporto per la registrazione delle classi di plugins:
 	ALTER TABLE plugins ADD COLUMN tipo_plugin VARCHAR(255) NOT NULL;
@@ -18,6 +19,14 @@
 	ALTER TABLE plugins ADD CONSTRAINT unique_plugins_3 UNIQUE (tipo_plugin,label);
 	Aggiunta tabella 'plugins_props_comp'
 	Aggiunto indice 'idx_plug_prop_com_1'
+
+	Aggiunto filtro per 'tag' sul controllo del traffico
+	ALTER TABLE ct_active_policy ADD COLUMN filtro_tag VARCHAR(255);
+
+	Aggiunte tabelle per gestione allarmistica:
+	- allarmi
+	- allarmi_parametri
+	- allarmi_history
 
 2020-09-14  Andrea Poli <apoli@link.it>
 

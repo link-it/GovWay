@@ -62,31 +62,6 @@ CREATE UNIQUE INDEX index_plugins_azioni_comp_1 ON plugins_azioni_comp (id_plugi
 
 
 
-CREATE TABLE plugins_filtro_comp
-(
-	tipo_mittente VARCHAR(255),
-	nome_mittente VARCHAR(255),
-	idporta_mittente VARCHAR(255),
-	tipo_destinatario VARCHAR(255),
-	nome_destinatario VARCHAR(255),
-	idporta_destinatario VARCHAR(255),
-	tipo_servizio VARCHAR(255),
-	nome_servizio VARCHAR(255),
-	versione_servizio INT DEFAULT 1,
-	azione VARCHAR(255),
-	-- fk/pk columns
-	id BIGINT IDENTITY,
-	id_plugin BIGINT NOT NULL,
-	-- fk/pk keys constraints
-	CONSTRAINT fk_plugins_filtro_comp_1 FOREIGN KEY (id_plugin) REFERENCES plugins(id) ON DELETE CASCADE,
-	CONSTRAINT pk_plugins_filtro_comp PRIMARY KEY (id)
-);
-
--- index
-CREATE INDEX idx_plug_filtro_com_1 ON plugins_filtro_comp (id_plugin);
-
-
-
 CREATE TABLE plugins_props_comp
 (
 	nome VARCHAR(255) NOT NULL,

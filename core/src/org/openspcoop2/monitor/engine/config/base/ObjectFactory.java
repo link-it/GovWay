@@ -129,13 +129,6 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link PluginFiltroCompatibilita }
-     */
-    public PluginFiltroCompatibilita createPluginFiltroCompatibilita() {
-        return new PluginFiltroCompatibilita();
-    }
-
-    /**
      * Create an instance of {@link PluginProprietaCompatibilita }
      */
     public PluginProprietaCompatibilita createPluginProprietaCompatibilita() {

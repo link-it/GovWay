@@ -130,76 +130,6 @@ public class PluginFieldConverter extends AbstractSQLFieldConverter {
 				return "azione";
 			}
 		}
-		if(field.equals(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_MITTENTE)){
-			if(appendTablePrefix){
-				return this.toAliasTable(field)+".tipo_mittente";
-			}else{
-				return "tipo_mittente";
-			}
-		}
-		if(field.equals(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_MITTENTE)){
-			if(appendTablePrefix){
-				return this.toAliasTable(field)+".nome_mittente";
-			}else{
-				return "nome_mittente";
-			}
-		}
-		if(field.equals(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.IDPORTA_MITTENTE)){
-			if(appendTablePrefix){
-				return this.toAliasTable(field)+".idporta_mittente";
-			}else{
-				return "idporta_mittente";
-			}
-		}
-		if(field.equals(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_DESTINATARIO)){
-			if(appendTablePrefix){
-				return this.toAliasTable(field)+".tipo_destinatario";
-			}else{
-				return "tipo_destinatario";
-			}
-		}
-		if(field.equals(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_DESTINATARIO)){
-			if(appendTablePrefix){
-				return this.toAliasTable(field)+".nome_destinatario";
-			}else{
-				return "nome_destinatario";
-			}
-		}
-		if(field.equals(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.IDPORTA_DESTINATARIO)){
-			if(appendTablePrefix){
-				return this.toAliasTable(field)+".idporta_destinatario";
-			}else{
-				return "idporta_destinatario";
-			}
-		}
-		if(field.equals(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_SERVIZIO)){
-			if(appendTablePrefix){
-				return this.toAliasTable(field)+".tipo_servizio";
-			}else{
-				return "tipo_servizio";
-			}
-		}
-		if(field.equals(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_SERVIZIO)){
-			if(appendTablePrefix){
-				return this.toAliasTable(field)+".nome_servizio";
-			}else{
-				return "nome_servizio";
-			}
-		}
-		if(field.equals(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.VERSIONE_SERVIZIO)){
-			if(appendTablePrefix){
-				return this.toAliasTable(field)+".versione_servizio";
-			}else{
-				return "versione_servizio";
-			}
-		}
-		if(field.equals(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.AZIONE)){
-			if(appendTablePrefix){
-				return this.toAliasTable(field)+".azione";
-			}else{
-				return "azione";
-			}
-		}
 		if(field.equals(Plugin.model().PLUGIN_PROPRIETA_COMPATIBILITA.NOME)){
 			if(appendTablePrefix){
 				return this.toAliasTable(field)+".nome";
@@ -254,36 +184,6 @@ public class PluginFieldConverter extends AbstractSQLFieldConverter {
 		if(field.equals(Plugin.model().PLUGIN_SERVIZIO_COMPATIBILITA.PLUGIN_SERVIZIO_AZIONE_COMPATIBILITA.AZIONE)){
 			return this.toTable(Plugin.model().PLUGIN_SERVIZIO_COMPATIBILITA.PLUGIN_SERVIZIO_AZIONE_COMPATIBILITA, returnAlias);
 		}
-		if(field.equals(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_MITTENTE)){
-			return this.toTable(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA, returnAlias);
-		}
-		if(field.equals(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_MITTENTE)){
-			return this.toTable(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA, returnAlias);
-		}
-		if(field.equals(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.IDPORTA_MITTENTE)){
-			return this.toTable(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA, returnAlias);
-		}
-		if(field.equals(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_DESTINATARIO)){
-			return this.toTable(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA, returnAlias);
-		}
-		if(field.equals(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_DESTINATARIO)){
-			return this.toTable(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA, returnAlias);
-		}
-		if(field.equals(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.IDPORTA_DESTINATARIO)){
-			return this.toTable(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA, returnAlias);
-		}
-		if(field.equals(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_SERVIZIO)){
-			return this.toTable(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA, returnAlias);
-		}
-		if(field.equals(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_SERVIZIO)){
-			return this.toTable(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA, returnAlias);
-		}
-		if(field.equals(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.VERSIONE_SERVIZIO)){
-			return this.toTable(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA, returnAlias);
-		}
-		if(field.equals(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.AZIONE)){
-			return this.toTable(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA, returnAlias);
-		}
 		if(field.equals(Plugin.model().PLUGIN_PROPRIETA_COMPATIBILITA.NOME)){
 			return this.toTable(Plugin.model().PLUGIN_PROPRIETA_COMPATIBILITA, returnAlias);
 		}
@@ -311,9 +211,6 @@ public class PluginFieldConverter extends AbstractSQLFieldConverter {
 		}
 		if(model.equals(Plugin.model().PLUGIN_SERVIZIO_COMPATIBILITA.PLUGIN_SERVIZIO_AZIONE_COMPATIBILITA)){
 			return CostantiDB.REGISTRO_CLASSI_COMPATIBILITA_AZIONE;
-		}
-		if(model.equals(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA)){
-			return CostantiDB.REGISTRO_CLASSI_COMPATIBILITA_FILTRO;
 		}
 		if(model.equals(Plugin.model().PLUGIN_PROPRIETA_COMPATIBILITA)){
 			return CostantiDB.REGISTRO_CLASSI_COMPATIBILITA_PROPRIETA;

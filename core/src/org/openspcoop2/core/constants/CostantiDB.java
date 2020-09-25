@@ -179,8 +179,11 @@ public final class CostantiDB {
     public static final String REGISTRO_CLASSI = "plugins";
     public static final String REGISTRO_CLASSI_COMPATIBILITA_SERVIZIO = "plugins_servizi_comp";
     public static final String REGISTRO_CLASSI_COMPATIBILITA_AZIONE = "plugins_azioni_comp";
-    public static final String REGISTRO_CLASSI_COMPATIBILITA_FILTRO = "plugins_filtro_comp";
     public static final String REGISTRO_CLASSI_COMPATIBILITA_PROPRIETA = "plugins_props_comp";
+    
+    public static final String ALLARMI = "allarmi";
+    public static final String ALLARMI_PARAMETRI = "allarmi_parametri";
+    public static final String ALLARMI_HISTORY = "allarmi_history";
     
     public static final String MSG_DIAGN_APPENDER = "msgdiag_appender";
     public static final String MSG_DIAGN_APPENDER_COLUMN_ID = "id";

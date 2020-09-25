@@ -42,3 +42,6 @@ CREATE TABLE registro_plug_jar
 -- index
 CREATE INDEX index_registro_plug_jar_1 ON registro_plug_jar (id_plugin);
 
+-- Aggiunto filtro per tag sul controllo del traffico
+ALTER TABLE ct_active_policy ADD filtro_tag VARCHAR(255);
+

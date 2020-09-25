@@ -62,33 +62,6 @@ CREATE TABLE plugins_azioni_comp
 
 
 
-CREATE SEQUENCE seq_plugins_filtro_comp start 1 increment 1 maxvalue 9223372036854775807 minvalue 1 cache 1 NO CYCLE;
-
-CREATE TABLE plugins_filtro_comp
-(
-	tipo_mittente VARCHAR(255),
-	nome_mittente VARCHAR(255),
-	idporta_mittente VARCHAR(255),
-	tipo_destinatario VARCHAR(255),
-	nome_destinatario VARCHAR(255),
-	idporta_destinatario VARCHAR(255),
-	tipo_servizio VARCHAR(255),
-	nome_servizio VARCHAR(255),
-	versione_servizio INT DEFAULT 1,
-	azione VARCHAR(255),
-	-- fk/pk columns
-	id BIGINT DEFAULT nextval('seq_plugins_filtro_comp') NOT NULL,
-	id_plugin BIGINT NOT NULL,
-	-- fk/pk keys constraints
-	CONSTRAINT fk_plugins_filtro_comp_1 FOREIGN KEY (id_plugin) REFERENCES plugins(id) ON DELETE CASCADE,
-	CONSTRAINT pk_plugins_filtro_comp PRIMARY KEY (id)
-);
-
--- index
-CREATE INDEX idx_plug_filtro_com_1 ON plugins_filtro_comp (id_plugin);
-
-
-
 CREATE SEQUENCE seq_plugins_props_comp start 1 increment 1 maxvalue 9223372036854775807 minvalue 1 cache 1 NO CYCLE;
 
 CREATE TABLE plugins_props_comp

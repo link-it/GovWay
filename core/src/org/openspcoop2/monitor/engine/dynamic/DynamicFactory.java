@@ -19,6 +19,7 @@
  */
 package org.openspcoop2.monitor.engine.dynamic;
 
+import org.openspcoop2.monitor.engine.config.base.constants.TipoPlugin;
 import org.openspcoop2.monitor.sdk.exceptions.SearchException;
 import org.slf4j.Logger;
 
@@ -50,6 +51,9 @@ public class DynamicFactory {
 		this.pluginLoader = PluginLoader.getInstance();
 	}
 	
+	public IDynamicLoader newDynamicLoader(TipoPlugin tipoPlugin, String tipo, String className,Logger log) throws SearchException{
+		return newDynamicLoader(tipoPlugin.getValue(), tipo, className, log);
+	}
 	public IDynamicLoader newDynamicLoader(String tipoPlugin, String tipo, String className,Logger log) throws SearchException{
 		
 		try {
@@ -60,11 +64,16 @@ public class DynamicFactory {
 		
 	}
 	
-	
+	public IDynamicFilter newDynamicFilter(TipoPlugin tipoPlugin, String tipo, String className,Logger log) throws SearchException{
+		return newDynamicFilter(tipoPlugin.getValue(), tipo, className, log);
+	}
 	public IDynamicFilter newDynamicFilter(String tipoPlugin, String tipo, String className,Logger log) throws SearchException{
 		return new BasicFilter(tipoPlugin, tipo, className);
 	}
 	
+	public IDynamicValidator newDynamicValidator(TipoPlugin tipoPlugin, String tipo, String className,Logger log) throws SearchException{
+		return newDynamicValidator(tipoPlugin.getValue(), tipo, className, log);
+	}
 	public IDynamicValidator newDynamicValidator(String tipoPlugin, String tipo, String className,Logger log) throws SearchException{
 		return new BasicValidator(tipoPlugin, tipo, className);
 	}

@@ -41,10 +41,7 @@
 				<!-- Compatibilità (Per Transazione, Ricerca e Statistica) -->
 				<xsd:element name="plugin-servizio-compatibilita"
 					type="plugin-servizio-compatibilita" minOccurs="0" maxOccurs="unbounded" />
-				<!-- Compatibilità (Per Allarmi) -->
-				<xsd:element name="plugin-filtro-compatibilita"
-					type="plugin-filtro-compatibilita" minOccurs="0" maxOccurs="unbounded" />
-				<!-- Compatibilità (Per Handler) -->
+				<!-- Compatibilità -->
 				<xsd:element name="plugin-proprieta-compatibilita"
 					type="plugin-proprieta-compatibilita" minOccurs="0" maxOccurs="unbounded"/>				
 			</xsd:sequence>
@@ -67,22 +64,6 @@
 	<xsd:complexType name="plugin-servizio-azione-compatibilita">
 		<xsd:sequence>
 			<xsd:element name="azione" type="xsd:string"/>
-		</xsd:sequence>
-	</xsd:complexType>
-	
-	<xsd:complexType name="plugin-filtro-compatibilita">
-		<xsd:sequence>
-			<!-- Regole di match -->
-			<xsd:element name="tipo-mittente" type="xsd:string" minOccurs="0" />
-			<xsd:element name="nome-mittente" type="xsd:string" minOccurs="0" />
-			<xsd:element name="idporta-mittente" type="xsd:string" minOccurs="0" />
-			<xsd:element name="tipo-destinatario" type="xsd:string" minOccurs="0" />
-			<xsd:element name="nome-destinatario" type="xsd:string" minOccurs="0" />
-			<xsd:element name="idporta-destinatario" type="xsd:string" minOccurs="0" />
-			<xsd:element name="tipo-servizio" type="xsd:string" minOccurs="0" />
-			<xsd:element name="nome-servizio" type="xsd:string" minOccurs="0" />
-			<xsd:element name="versione-servizio" type="xsd:unsignedInt" default="1" minOccurs="0" />
-			<xsd:element name="azione" type="xsd:string" minOccurs="0" />
 		</xsd:sequence>
 	</xsd:complexType>
 	

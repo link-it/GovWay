@@ -1,5 +1,8 @@
 -- Eliminata tabella inutilizzata
 DROP TABLE plugin_info;
+DROP TRIGGER trg_plugins_filtro_comp;
+DROP TABLE plugins_filtro_comp;
+DROP SEQUENCE seq_plugins_filtro_comp;
 
 -- Supporto per la registrazione delle classi di plugins
 ALTER TABLE plugins ADD tipo_plugin VARCHAR2(255) NOT NULL;
