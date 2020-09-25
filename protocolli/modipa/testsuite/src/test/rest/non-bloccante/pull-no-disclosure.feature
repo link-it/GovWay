@@ -20,6 +20,11 @@ Background:
 
 * def problem = read('classpath:test/rest/non-bloccante/error-bodies/invalid-response-from-implementation.json')
 
+* def check_traccia_richiesta = read('./check-tracce/richiesta.feature')
+* def check_traccia_richiesta_stato = read('./check-tracce/richiesta-stato.feature')
+* def check_traccia_risposta = read('./check-tracce/risposta.feature')
+* def check_id_collaborazione = read('./check-tracce/id-collaborazione.feature')
+
 @request-task-no-location
 Scenario: Richiesta processamento con stato 202 e senza Header Location    
 
@@ -30,6 +35,12 @@ Scenario: Richiesta processamento con stato 202 e senza Header Location
     When method post
     Then status 502
     And match response == problem
+
+    * call check_traccia_richiesta ({tid: responseHeaders['GovWay-Transaction-ID'][0]})
+    * call check_traccia_richiesta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]})
+
+    * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: null })
+    * call check_id_collaborazione ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], id_collaborazione: null })
 
 @request-task-not-202
 Scenario: Richiesta processamento con stato diverso da 202
@@ -42,6 +53,11 @@ Scenario: Richiesta processamento con stato diverso da 202
     Then status 502
     And match response == problem
 
+    * call check_traccia_richiesta ({tid: responseHeaders['GovWay-Transaction-ID'][0]})
+    * call check_traccia_richiesta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]})
+
+    * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: null })
+    * call check_id_collaborazione ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], id_collaborazione: null })
 
 @invalid-status-from-request
 Scenario: Richiesta stato operazione con stato http diverso da 200 e 303
@@ -53,6 +69,12 @@ Scenario: Richiesta stato operazione con stato http diverso da 200 e 303
     When method post
     Then status 202
 
+    * call check_traccia_richiesta ({tid: responseHeaders['GovWay-Transaction-ID'][0]})
+    * call check_traccia_richiesta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]})
+
+    * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_uid })
+    * call check_id_collaborazione ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], id_collaborazione: task_uid })
+
     Given url url_invocazione
     And path 'tasks', 'queue', 'not_ready_uid'
     And params ({ returnCode: 201, destFile: '/etc/govway/test/protocolli/modipa/rest/non-bloccante/pending.json', destFileContentType: 'application/json' })
@@ -60,6 +82,11 @@ Scenario: Richiesta stato operazione con stato http diverso da 200 e 303
     Then status 502
     And match response == problem
 
+    * call check_traccia_richiesta_stato ({tid: responseHeaders['GovWay-Transaction-ID'][0]})
+    * call check_traccia_richiesta_stato ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]})
+
+    * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: 'not_ready_uid' })
+    * call check_id_collaborazione ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], id_collaborazione: 'not_ready_uid' })
 
 @no-location-from-status
 Scenario: Richiesta stato operazione completata senza header location
@@ -71,6 +98,12 @@ Scenario: Richiesta stato operazione completata senza header location
     Then status 502
     And match response == problem
 
+    * call check_traccia_richiesta_stato ({tid: responseHeaders['GovWay-Transaction-ID'][0]})
+    * call check_traccia_richiesta_stato ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]})
+
+    * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_uid })
+    * call check_id_collaborazione ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], id_collaborazione: task_uid })
+
 
 @task-response-not-200
 Scenario: Ottenimento risorsa processata con stato diverso da 200 OK    
@@ -81,6 +114,12 @@ Scenario: Ottenimento risorsa processata con stato diverso da 200 OK
     And params ({ returnCode: 202, returnHttpHeader:'Location: /tasks/queue/' + task_uid})
     When method post
     Then status 202
+
+    * call check_traccia_richiesta ({tid: responseHeaders['GovWay-Transaction-ID'][0]})
+    * call check_traccia_richiesta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]})
+
+    * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_uid })
+    * call check_id_collaborazione ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], id_collaborazione: task_uid })
 
     * def completed_params = 
     """
@@ -98,9 +137,21 @@ Scenario: Ottenimento risorsa processata con stato diverso da 200 OK
     Then status 303
     And match header Location == url_erogazione_no_validazione + "/tasks/result/" + task_uid
 
+    * call check_traccia_richiesta_stato ({tid: responseHeaders['GovWay-Transaction-ID'][0]})
+    * call check_traccia_richiesta_stato ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]})
+
+    * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_uid })
+    * call check_id_collaborazione ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], id_collaborazione: task_uid })
+
     Given url url_invocazione
     And path 'tasks', 'result', task_uid
     And params ({ returnCode: 202 })
     When method get
     Then status 502
     And match response == problem
+
+    * call check_traccia_risposta ({tid: responseHeaders['GovWay-Transaction-ID'][0]})
+    * call check_traccia_risposta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]})
+
+    * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_uid })
+    * call check_id_collaborazione ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], id_collaborazione: task_uid })

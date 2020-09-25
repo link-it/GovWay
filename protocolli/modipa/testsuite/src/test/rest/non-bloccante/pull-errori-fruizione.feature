@@ -13,6 +13,11 @@ Background:
     * def result = callonce read('classpath:utils/jmx-enable-error-disclosure.feature')
     * configure afterFeature = function(){ karate.call('classpath:utils/jmx-disable-error-disclosure.feature'); }
 
+    * def check_traccia_richiesta = read('./check-tracce/richiesta.feature')
+    * def check_traccia_richiesta_stato = read('./check-tracce/richiesta-stato.feature')
+    * def check_traccia_risposta = read('./check-tracce/risposta.feature')
+    * def check_id_collaborazione = read('./check-tracce/id-collaborazione.feature')
+
 
 @location-not-an-uri
 Scenario: Header Location che non corrisponde ad una URI
@@ -47,6 +52,9 @@ Scenario: Header Location che non corrisponde ad una URI
     And match response == problem
     And match header GovWay-Conversation-ID == task_id
 
+    # * call check_traccia_richiesta ({tid: responseHeaders['GovWay-Transaction-ID'][0]}) CONTROLLA QUESTO
+    * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_id })
+
 
 @request-task-no-location
 Scenario: Test Fruizione con header location rimosso dal proxy
@@ -62,6 +70,9 @@ Scenario: Test Fruizione con header location rimosso dal proxy
     Then status 502
     And match response == problem
 
+    * call check_traccia_richiesta ({tid: responseHeaders['GovWay-Transaction-ID'][0]})
+
+    * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: null })
 
 @request-task-not-202
 Scenario: Richiesta processamento con stato diverso da 202
@@ -77,6 +88,10 @@ Scenario: Richiesta processamento con stato diverso da 202
     And match response == problem
     And match header GovWay-Conversation-ID == task_id
 
+    * call check_traccia_richiesta ({tid: responseHeaders['GovWay-Transaction-ID'][0]})
+    
+    * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: null })
+
 
 @invalid-status-from-request
 Scenario: Richiesta stato operazione con stato http diverso da 200 e 303
@@ -91,6 +106,10 @@ Scenario: Richiesta stato operazione con stato http diverso da 200 e 303
     Then status 502
     And match response == problem
     And match header GovWay-Conversation-ID == task_id
+
+    * call check_traccia_richiesta_stato ({tid: responseHeaders['GovWay-Transaction-ID'][0]})
+
+    * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_id })
 
 
 @no-location-from-status
@@ -116,6 +135,10 @@ Scenario: Richiesta stato operazione completata senza header location
     And match response == problem
     And match header GovWay-Conversation-ID == task_id
 
+    * call check_traccia_richiesta_stato ({tid: responseHeaders['GovWay-Transaction-ID'][0]})
+    
+    * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_id })
+
 
 @task-response-not-200
 Scenario: Ottenimento risorsa processata con stato diverso da 200 OK    
@@ -131,3 +154,6 @@ Scenario: Ottenimento risorsa processata con stato diverso da 200 OK
     And match response == problem
     And match header GovWay-Conversation-ID == task_id
 
+    * call check_traccia_risposta ({tid: responseHeaders['GovWay-Transaction-ID'][0]})
+
+    * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_id })

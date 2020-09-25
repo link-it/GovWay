@@ -15,6 +15,8 @@ function(task_id) {
 
 * configure followRedirects = false
 
+# INIZIO TEST LATO FRUIZIONE
+
 Scenario: methodIs('post') && pathMatches('/tasks/queue') && match_task('Test-Location-Removed-From-Ack')
     * karate.proceed(url_invocazione_erogazione)
     * remove responseHeaders.Location
