@@ -12,6 +12,10 @@ Background:
 * def result = callonce read('classpath:utils/jmx-enable-error-disclosure.feature')
 * configure afterFeature = function(){ karate.call('classpath:utils/jmx-disable-error-disclosure.feature'); }
 
+* def check_traccia_richiesta = read('./check-tracce/richiesta.feature')
+* def check_traccia_richiesta_stato = read('./check-tracce/richiesta-stato.feature')
+* def check_traccia_risposta = read('./check-tracce/risposta.feature')
+
 @request-task-no-location
 Scenario: Richiesta processamento con stato 202 e senza Header Location
     
@@ -25,19 +29,22 @@ Scenario: Richiesta processamento con stato 202 e senza Header Location
     Then status 502
     And match response == problem
 
+    * call check_traccia_richiesta
+
 @request-task-not-202
 Scenario: Richiesta processamento con stato diverso da 202
 
     * def task_id = "Test-Erogazione-Status-Not-202"
     * def problem = read('classpath:test/rest/non-bloccante/error-bodies/request-task-not-202-erogazione.json')    
     
-
     Given path 'tasks', 'queue'
     And request body_req
     And params ({ returnCode: 201, returnHttpHeader:'Location: /tasks/queue/' + task_id})
     When method post
     Then status 502
     And match response == problem
+
+    * call check_traccia_richiesta
 
 
 @invalid-status-from-request
@@ -53,6 +60,8 @@ Scenario: Richiesta stato operazione con stato http diverso da 200 e 303
     Then status 502
     And match response == problem
 
+    * call check_traccia_richiesta_stato
+
 
 @no-location-from-status
 Scenario: Richiesta stato operazione completata senza header location
@@ -66,6 +75,8 @@ Scenario: Richiesta stato operazione completata senza header location
     When method get
     Then status 502
     And match response == problem
+
+    * call check_traccia_richiesta_stato
 
 
 @task-response-not-200
@@ -81,4 +92,6 @@ Scenario: Ottenimento risorsa processata con stato diverso da 200 OK
     When method get
     Then status 502
     And match response == problem
+
+    * call check_traccia_risposta
 

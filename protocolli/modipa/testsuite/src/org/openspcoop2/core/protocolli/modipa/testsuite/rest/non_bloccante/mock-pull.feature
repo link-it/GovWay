@@ -44,7 +44,7 @@ Scenario: methodIs('get') && pathMatches('/tasks/result/{tid}') && karate.get('p
     * def responseStatus = 201
 
 
-# INIZIO TEST LATO EROGAZIONE
+# INIZIO TEST LATO EROGAZIONE CON DISCLOSURE ERRORI INTEROPERABILITÀ
 
 Scenario: methodIs('post') && pathMatches('/tasks/queue') && karate.get('requestParams.returnHttpHeader') == null && karate.get('requestParams.testType') == null
     # Qui viene testato lo stato 202 senza lo header location

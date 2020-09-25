@@ -153,6 +153,8 @@ Scenario: Richiesta processamento con stato diverso da 202
     Then status 502
     And match response == problem
 
+    * call check_traccia_richiesta
+
 
 @invalid-status-from-request
 Scenario: Richiesta stato operazione con stato http diverso da 200 e 303
@@ -166,12 +168,16 @@ Scenario: Richiesta stato operazione con stato http diverso da 200 e 303
     When method post
     Then status 202
 
+    * call check_traccia_richiesta
+
     Given url url_invocazione
     And path 'tasks', 'queue', 'not_ready_uid'
     And params ({ returnCode: 201, destFile: '/etc/govway/test/protocolli/modipa/rest/non-bloccante/pending.json', destFileContentType: 'application/json' })
     When method get
     Then status 502
     And match response == problem
+
+    * call check_traccia_richiesta_stato
 
 
 @no-location-from-status
@@ -186,6 +192,9 @@ Scenario: Richiesta stato operazione completata senza header location
     Then status 502
     And match response == problem
 
+    * call check_traccia_richiesta_stato
+
+
 
 @task-response-not-200
 Scenario: Ottenimento risorsa processata con stato diverso da 200 OK    
@@ -198,6 +207,9 @@ Scenario: Ottenimento risorsa processata con stato diverso da 200 OK
     And params ({ returnCode: 202, returnHttpHeader:'Location: /tasks/queue/' + task_uid})
     When method post
     Then status 202
+
+    * call check_traccia_richiesta
+
 
     * def completed_params = 
     """
@@ -215,10 +227,16 @@ Scenario: Ottenimento risorsa processata con stato diverso da 200 OK
     Then status 303
     And match header Location == url_erogazione_no_validazione + "/tasks/result/" + task_uid
 
+    * call check_traccia_richiesta_stato
+
+
     Given url url_invocazione
     And path 'tasks', 'result', task_uid
     And params ({ returnCode: 202 })
     When method get
     Then status 502
     And match response == problem
+
+    * call check_traccia_risposta
+
 
