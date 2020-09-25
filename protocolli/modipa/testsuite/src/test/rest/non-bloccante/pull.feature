@@ -18,6 +18,10 @@ Background:
 * def result = callonce read('classpath:utils/jmx-enable-error-disclosure.feature')
 * configure afterFeature = function(){ karate.call('classpath:utils/jmx-disable-error-disclosure.feature'); }
 
+* def check_traccia_richiesta = read('./check-tracce/richiesta.feature')
+* def check_traccia_richiesta_stato = read('./check-tracce/richiesta-stato.feature')
+* def check_traccia_risposta = read('./check-tracce/risposta.feature')
+
 @test-ok
 Scenario: Giro OK
 
@@ -31,12 +35,16 @@ Scenario: Giro OK
     Then status 202
     And match header GovWay-Conversation-ID == task_uid
 
+    * call check_traccia_richiesta
+
     Given url url_invocazione_validazione
     And path 'tasks', 'queue', 'not_ready_uid'
     And params ({ returnCode: 200, destFile: '/etc/govway/test/protocolli/modipa/rest/non-bloccante/pending.json', destFileContentType: 'application/json' })
     When method get
     Then status 200
     And match header GovWay-Conversation-ID == 'not_ready_uid'
+
+    * call check_traccia_richiesta_stato
 
 
     * def completed_params = 
@@ -56,6 +64,8 @@ Scenario: Giro OK
     And match header Location == url_erogazione_validazione + "/tasks/result/" + task_uid
     And match header GovWay-Conversation-ID == task_uid
 
+    * call check_traccia_richiesta_stato
+
     
     Given url url_invocazione_validazione
     And path 'tasks', 'result', task_uid
@@ -65,6 +75,7 @@ Scenario: Giro OK
     And match response == result_response
     And match header GovWay-Conversation-ID == task_uid
 
+    * call check_traccia_risposta
 
 @location-not-an-uri
 Scenario: Header Location che non corrisponde ad una URI
@@ -91,6 +102,8 @@ Scenario: Header Location che non corrisponde ad una URI
     When method post
     Then status 202
 
+    * call check_traccia_richiesta
+
     * def completed_params = 
     """
     ({ 
@@ -108,6 +121,8 @@ Scenario: Header Location che non corrisponde ad una URI
     Then status 502
     And match response == problem
 
+    * call check_traccia_richiesta_stato
+
 
 @request-task-no-location
 Scenario: Richiesta processamento con stato 202 e senza Header Location
@@ -121,6 +136,8 @@ Scenario: Richiesta processamento con stato 202 e senza Header Location
     When method post
     Then status 502
     And match response == problem
+
+    * call check_traccia_richiesta
 
 
 @request-task-not-202
