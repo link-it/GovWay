@@ -41,6 +41,9 @@ public interface IAlarmProcessing extends ISearchArguments {
 	public String getAutomaticPrefixName(Context context);
 	public String getAutomaticSuffixName(Context context);
 	
+	// Per comprendere se l'allarme è configurabile con criteri di filtro o raggruppamento
+	public boolean isUsableFilter();
+	public boolean isUsableGroupBy();
 	
 	/* Solo per allarmi di tipo Attivo */
 	public void check(IAlarm allarme) throws AlarmException;

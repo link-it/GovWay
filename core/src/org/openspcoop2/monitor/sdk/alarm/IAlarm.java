@@ -45,7 +45,7 @@ public interface IAlarm {
 	public Parameter<?> getParameter(String paramID);
 	
 	public Map<String, Parameter<?>> getParameters();
-	
+		
 	public Logger getLogger();
 	
 	public DAOFactory getDAOFactory();
