@@ -13040,7 +13040,7 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 				}
 				else {
 					List<IDServizio> listServizi = this.confCore.getServizi(protocolloSelezionatoValue, protocolliValue,
-							policy.getFiltro().getTipoErogatore(), policy.getFiltro().getNomeErogatore());
+							policy.getFiltro().getTipoErogatore(), policy.getFiltro().getNomeErogatore(), policy.getFiltro().getTag());
 					serviziLabel = new ArrayList<>();
 					serviziValue = new ArrayList<>();
 					for (IDServizio idServizio : listServizi) {
@@ -13732,7 +13732,7 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 			}
 			else {
 				de.setValue(datiIdentificativiTagSelezionatoValue);
-				if(this.core.isControlloTrafficoPolicyGlobaleFiltroApi()) {
+				if(this.core.isControlloTrafficoPolicyGlobaleFiltroApi() && datiIdentificativiServizioSelezionatoValue==null ) {
 					de.setLabels(tagLabel);
 					de.setValues(tagValue);
 					de.setSelected(datiIdentificativiTagSelezionatoValue);

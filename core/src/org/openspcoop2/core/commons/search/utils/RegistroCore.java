@@ -33,6 +33,7 @@ import java.util.Map.Entry;
 import org.apache.commons.lang.StringUtils;
 import org.openspcoop2.core.commons.ProtocolFactoryReflectionUtils;
 import org.openspcoop2.core.commons.search.AccordoServizioParteComuneAzione;
+import org.openspcoop2.core.commons.search.AccordoServizioParteComuneGruppo;
 import org.openspcoop2.core.commons.search.AccordoServizioParteSpecifica;
 import org.openspcoop2.core.commons.search.Fruitore;
 import org.openspcoop2.core.commons.search.IdAccordoServizioParteComune;
@@ -45,6 +46,7 @@ import org.openspcoop2.core.commons.search.Resource;
 import org.openspcoop2.core.commons.search.ServizioApplicativo;
 import org.openspcoop2.core.commons.search.Soggetto;
 import org.openspcoop2.core.commons.search.dao.IAccordoServizioParteComuneAzioneServiceSearch;
+import org.openspcoop2.core.commons.search.dao.IAccordoServizioParteComuneGruppoServiceSearch;
 import org.openspcoop2.core.commons.search.dao.IAccordoServizioParteSpecificaServiceSearch;
 import org.openspcoop2.core.commons.search.dao.IFruitoreServiceSearch;
 import org.openspcoop2.core.commons.search.dao.IOperationServiceSearch;
@@ -55,10 +57,12 @@ import org.openspcoop2.core.commons.search.dao.IServizioApplicativoServiceSearch
 import org.openspcoop2.core.commons.search.dao.ISoggettoServiceSearch;
 import org.openspcoop2.core.commons.search.dao.jdbc.JDBCServiceManager;
 import org.openspcoop2.core.config.constants.TipologiaFruizione;
+import org.openspcoop2.core.constants.CostantiDB;
 import org.openspcoop2.core.id.IDServizio;
 import org.openspcoop2.core.id.IDServizioApplicativo;
 import org.openspcoop2.core.id.IDSoggetto;
 import org.openspcoop2.core.registry.driver.IDServizioFactory;
+import org.openspcoop2.generic_project.beans.CustomField;
 import org.openspcoop2.generic_project.exception.NotFoundException;
 import org.openspcoop2.generic_project.expression.IExpression;
 import org.openspcoop2.generic_project.expression.IPaginatedExpression;
@@ -231,15 +235,15 @@ public class RegistroCore {
 		return list;
 	}
 	
-	public static List<IDServizio> getServizi(JDBCServiceManager manager, String protocollo, String tipoSoggettoErogatore, String nomeSoggettoErogatore) throws Exception{
+	public static List<IDServizio> getServizi(JDBCServiceManager manager, String protocollo, String tipoSoggettoErogatore, String nomeSoggettoErogatore, String tag) throws Exception{
 		List<String> protocolli = null;
 		if(protocollo!=null) {
 			protocolli = new ArrayList<>();
 			protocolli.add(protocollo);
 		}
-		return getServizi(manager, protocolli, tipoSoggettoErogatore, nomeSoggettoErogatore);
+		return getServizi(manager, protocolli, tipoSoggettoErogatore, nomeSoggettoErogatore, tag);
 	}
-	public static List<IDServizio> getServizi(JDBCServiceManager manager,  List<String> protocolli, String tipoSoggettoErogatore, String nomeSoggettoErogatore) throws Exception{
+	public static List<IDServizio> getServizi(JDBCServiceManager manager,  List<String> protocolli, String tipoSoggettoErogatore, String nomeSoggettoErogatore, String tag) throws Exception{
 		List<IDServizio> list = new ArrayList<IDServizio>();
 		
 		IAccordoServizioParteSpecificaServiceSearch aspsServiceSearch = manager.getAccordoServizioParteSpecificaServiceSearch();
@@ -257,6 +261,26 @@ public class RegistroCore {
 		if(tipoSoggettoErogatore!=null && nomeSoggettoErogatore!=null){
 			pag.equals(AccordoServizioParteSpecifica.model().ID_EROGATORE.TIPO, tipoSoggettoErogatore);
 			pag.equals(AccordoServizioParteSpecifica.model().ID_EROGATORE.NOME, nomeSoggettoErogatore);
+		}
+		
+		if(tag!=null) {
+			IAccordoServizioParteComuneGruppoServiceSearch gruppiServiceSearch = manager.getAccordoServizioParteComuneGruppoServiceSearch();
+			IPaginatedExpression pagGruppi = gruppiServiceSearch.newPaginatedExpression();
+			pagGruppi.and();
+			pagGruppi.equals(AccordoServizioParteComuneGruppo.model().ID_GRUPPO.NOME, tag);
+			List<AccordoServizioParteComuneGruppo> listGruppi = gruppiServiceSearch.findAll(pagGruppi);
+			List<Long> idAccordo = new ArrayList<Long>();
+			if(listGruppi!=null && !listGruppi.isEmpty()) {
+				for (AccordoServizioParteComuneGruppo aspcGruppo : listGruppi) {
+					idAccordo.add(aspcGruppo.getIdAccordoServizioParteComune().getId());
+				}
+			}
+			else {
+				idAccordo.add(-4l); // volutamente per non trovare alcun servizio
+			}
+			
+			CustomField cf = new CustomField("idAccordo", Long.class, "id_accordo", CostantiDB.SERVIZI);
+			pag.in(cf, idAccordo);
 		}
 		
 		pag.addOrder(AccordoServizioParteSpecifica.model().NOME,SortOrder.ASC);
