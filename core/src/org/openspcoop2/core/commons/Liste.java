@@ -160,6 +160,8 @@ public final class Liste
     public final static int CONFIGURAZIONE_RESPONSE_CACHING_CONFIGURAZIONE_REGOLA;
     public final static int CONFIGURAZIONE_PROXY_PASS_REGOLA;
     
+    public final static int CONFIGURAZIONE_PLUGINS_ARCHIVI;
+    public final static int CONFIGURAZIONE_PLUGINS_ARCHIVI_JAR;
 	
 
     private static int numeroListe = 0;
@@ -274,6 +276,8 @@ public final class Liste
     	CONFIGURAZIONE_GESTIONE_POLICY_TOKEN = numeroListe ++;
     	CONFIGURAZIONE_RESPONSE_CACHING_CONFIGURAZIONE_REGOLA = numeroListe ++;
     	CONFIGURAZIONE_PROXY_PASS_REGOLA = numeroListe ++;
+    	CONFIGURAZIONE_PLUGINS_ARCHIVI = numeroListe ++;
+    	CONFIGURAZIONE_PLUGINS_ARCHIVI_JAR = numeroListe ++;
     }
     
 	

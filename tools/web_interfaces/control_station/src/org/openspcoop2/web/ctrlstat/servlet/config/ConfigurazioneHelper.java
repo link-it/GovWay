@@ -19,9 +19,16 @@
  */
 package org.openspcoop2.web.ctrlstat.servlet.config;
 
+import java.net.URL;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Paths;
 import java.text.MessageFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -33,6 +40,7 @@ import java.util.Vector;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.openspcoop2.core.commons.Filtri;
@@ -52,6 +60,8 @@ import org.openspcoop2.core.config.OpenspcoopSorgenteDati;
 import org.openspcoop2.core.config.PortaApplicativa;
 import org.openspcoop2.core.config.PortaDelegata;
 import org.openspcoop2.core.config.Property;
+import org.openspcoop2.core.config.RegistroPlugin;
+import org.openspcoop2.core.config.RegistroPluginArchivio;
 import org.openspcoop2.core.config.ResponseCachingConfigurazioneRegola;
 import org.openspcoop2.core.config.Route;
 import org.openspcoop2.core.config.RoutingTable;
@@ -59,10 +69,12 @@ import org.openspcoop2.core.config.RoutingTableDestinazione;
 import org.openspcoop2.core.config.SystemProperties;
 import org.openspcoop2.core.config.Tracciamento;
 import org.openspcoop2.core.config.constants.CostantiConfigurazione;
+import org.openspcoop2.core.config.constants.PluginSorgenteArchivio;
 import org.openspcoop2.core.config.constants.StatoFunzionalita;
 import org.openspcoop2.core.config.constants.StatoFunzionalitaCacheDigestQueryParameter;
 import org.openspcoop2.core.config.constants.TipoGestioneCORS;
 import org.openspcoop2.core.config.driver.DriverConfigurazioneNotFound;
+import org.openspcoop2.core.config.driver.db.DriverConfigurazioneDB_LIB;
 import org.openspcoop2.core.config.driver.db.IDServizioApplicativoDB;
 import org.openspcoop2.core.constants.TipoPdD;
 import org.openspcoop2.core.controllo_traffico.AttivazionePolicy;
@@ -116,6 +128,7 @@ import org.openspcoop2.core.transazioni.utils.TipoCredenzialeMittente;
 import org.openspcoop2.generic_project.exception.NotFoundException;
 import org.openspcoop2.generic_project.exception.NotImplementedException;
 import org.openspcoop2.message.constants.ServiceBinding;
+import org.openspcoop2.monitor.engine.config.base.constants.TipoPlugin;
 import org.openspcoop2.pdd.config.ConfigurazionePdD;
 import org.openspcoop2.pdd.core.CostantiPdD;
 import org.openspcoop2.pdd.core.jmx.JMXUtils;
@@ -141,6 +154,7 @@ import org.openspcoop2.web.ctrlstat.servlet.pa.PorteApplicativeHelper;
 import org.openspcoop2.web.ctrlstat.servlet.pd.PorteDelegateCostanti;
 import org.openspcoop2.web.ctrlstat.servlet.pd.PorteDelegateHelper;
 import org.openspcoop2.web.ctrlstat.servlet.soggetti.SoggettiCostanti;
+import org.openspcoop2.web.lib.mvc.BinaryParameter;
 import org.openspcoop2.web.lib.mvc.CheckboxStatusType;
 import org.openspcoop2.web.lib.mvc.Costanti;
 import org.openspcoop2.web.lib.mvc.DataElement;
@@ -3296,7 +3310,8 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 			boolean responseCachingEnabled,	int responseCachingSeconds, boolean responseCachingMaxResponseSize,	long responseCachingMaxResponseSizeBytes, 
 			boolean responseCachingDigestUrlInvocazione, boolean responseCachingDigestHeaders, boolean responseCachingDigestPayload, String responseCachingDigestHeadersNomiHeaders, StatoFunzionalitaCacheDigestQueryParameter responseCachingDigestQueryParameter, String responseCachingDigestNomiParametriQuery, 
 			boolean responseCachingCacheControlNoCache, boolean responseCachingCacheControlMaxAge, boolean responseCachingCacheControlNoStore, boolean visualizzaLinkConfigurazioneRegola, 
-			String servletResponseCachingConfigurazioneRegolaList, List<Parameter> paramsResponseCachingConfigurazioneRegolaList, int numeroResponseCachingConfigurazioneRegola, int numeroRegoleProxyPass
+			String servletResponseCachingConfigurazioneRegolaList, List<Parameter> paramsResponseCachingConfigurazioneRegolaList, int numeroResponseCachingConfigurazioneRegola, int numeroRegoleProxyPass,
+			int numeroArchiviPlugins, int numeroClassiPlugins
 			) throws Exception {
 		DataElement de = new DataElement();
 
@@ -3801,6 +3816,39 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 				responseCachingCacheControlNoCache, responseCachingCacheControlMaxAge, responseCachingCacheControlNoStore,
 				visualizzaLinkConfigurazioneRegola, servletResponseCachingConfigurazioneRegolaList, paramsResponseCachingConfigurazioneRegolaList, numeroResponseCachingConfigurazioneRegola,
 				allHidden);
+		
+		boolean pluginsAbilitati = this.core.isConfigurazionePluginsEnabled();
+		
+		// Configurazione Plugins
+		if(!allHidden && pluginsAbilitati) {
+			
+			boolean contaListeFromSession = ServletUtils.getContaListeFromSession(this.session) != null ? ServletUtils.getContaListeFromSession(this.session) : false;
+			
+			de = new DataElement();
+			de.setLabel(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_PLUGINS);
+			de.setType(DataElementType.TITLE);
+			dati.addElement(de);
+			
+			// link Registro Archivi
+			de = new DataElement();
+			de.setType(DataElementType.LINK);
+			de.setUrl(ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_PLUGINS_ARCHIVI_LIST);
+			if (contaListeFromSession)
+				de.setValue(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_PLUGINS_REGISTRO_ARCHIVI +" (" + numeroArchiviPlugins + ")");
+			else
+				de.setValue(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_PLUGINS_REGISTRO_ARCHIVI);
+			dati.addElement(de);
+			
+			// Registro Classi
+			de = new DataElement();
+			de.setType(DataElementType.LINK);
+			de.setUrl(ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_PLUGINS_CLASSI_LIST);
+			if (contaListeFromSession)
+				de.setValue(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_REGISTRO_CLASSI+" (" + numeroClassiPlugins + ")");
+			else
+				de.setValue(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_REGISTRO_CLASSI);
+			dati.addElement(de);
+		}
 		
 		
 		if(!allHidden && !multitenantEnabled) {
@@ -15540,5 +15588,582 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 			throw new Exception(e);
 		}
 	}
+	
+	// Prepara la lista dei plugin configurati
+	public void preparePluginsArchiviList(ISearch ricerca, List<RegistroPlugin> lista) throws Exception {
+		try {
+			ServletUtils.addListElementIntoSession(this.session, ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_PLUGINS_ARCHIVI);
 
+			int idLista = Liste.CONFIGURAZIONE_PLUGINS_ARCHIVI;
+			int limit = ricerca.getPageSize(idLista);
+			int offset = ricerca.getIndexIniziale(idLista);
+			String search = ServletUtils.getSearchFromSession(ricerca, idLista);
+
+			this.pd.setIndex(offset);
+			this.pd.setPageSize(limit);
+			this.pd.setNumEntries(ricerca.getNumEntries(idLista));
+			
+			// setto la barra del titolo
+			List<Parameter> lstParam = new ArrayList<Parameter>();
+
+			lstParam.add(new Parameter(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_GENERALE, ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_GENERALE));
+			
+			
+			this.pd.setSearchLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_NOME);
+			if(search.equals("")){
+				this.pd.setSearchDescription("");
+				lstParam.add(new Parameter(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_PLUGINS_REGISTRO_ARCHIVI, null));
+			}else{
+				lstParam.add(new Parameter(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_PLUGINS_REGISTRO_ARCHIVI, ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_PLUGINS_ARCHIVI_LIST));
+				lstParam.add(new Parameter(Costanti.PAGE_DATA_TITLE_LABEL_RISULTATI_RICERCA, null));
+			}
+
+			ServletUtils.setPageDataTitle(this.pd, lstParam);
+			
+			// controllo eventuali risultati ricerca
+			if (!search.equals("")) {
+				ServletUtils.enabledPageDataSearch(this.pd, ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_NOME, search);
+			}
+
+			// setto le label delle colonne	
+			List<String> lstLabels = new ArrayList<>();
+			if(lista != null && lista.size() > 1)
+				lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_POSIZIONE);
+			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_STATO);
+			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_NOME);
+			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_ULTIMO_AGGIORNAMENTO);
+			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_APPLICABILITA);
+			this.pd.setLabels(lstLabels.toArray(new String [lstLabels.size()]));
+
+			// preparo i dati
+			Vector<Vector<DataElement>> dati = new Vector<Vector<DataElement>>();
+
+			if (lista != null) {
+				Iterator<RegistroPlugin> it = lista.iterator();
+				int numeroElementi = lista.size();
+				int i = 0;
+				while (it.hasNext()) {
+					RegistroPlugin registro = it.next();
+
+					Vector<DataElement> e = new Vector<DataElement>();
+//					Parameter pIdRegola = new Parameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_ID_ARCHIVIO, regola.getId() + "");
+					Parameter pNomeRegola = new Parameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_NOME, registro.getNome() + "");
+					Parameter pOldNomePlugin = new Parameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_OLD_NOME, registro.getNome() + "");
+					
+					// Posizione
+					if(lista.size() > 1) {
+						DataElement de = new DataElement();
+						de.setWidthPx(48);
+						de.setType(DataElementType.IMAGE);
+						DataElementImage imageUp = new DataElementImage();
+						Parameter pDirezioneSu = new Parameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_POSIZIONE, 
+								CostantiControlStation.VALUE_PARAMETRO_CONFIGURAZIONE_POSIZIONE_SU);
+						Parameter pDirezioneGiu = new Parameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_POSIZIONE, 
+								CostantiControlStation.VALUE_PARAMETRO_CONFIGURAZIONE_POSIZIONE_GIU);
+								
+						if(i > 0) {
+							imageUp.setImage(CostantiControlStation.ICONA_FRECCIA_SU);
+							imageUp.setToolTip(CostantiControlStation.LABEL_PARAMETRO_CONFIGURAZIONE_POSIZIONE_SPOSTA_SU);
+							imageUp.setUrl(ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_PLUGINS_ARCHIVI_LIST, pNomeRegola, pDirezioneSu); 
+						}
+						else {
+							imageUp.setImage(CostantiControlStation.ICONA_PLACEHOLDER);
+						}
+						de.addImage(imageUp);
+						
+						if(i < numeroElementi -1) {
+							DataElementImage imageDown = new DataElementImage();
+							imageDown.setImage(CostantiControlStation.ICONA_FRECCIA_GIU);
+							imageDown.setToolTip(CostantiControlStation.LABEL_PARAMETRO_CONFIGURAZIONE_POSIZIONE_SPOSTA_GIU);
+							imageDown.setUrl(ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_PLUGINS_ARCHIVI_LIST, pNomeRegola, pDirezioneGiu);
+							de.addImage(imageDown);
+						}
+						de.setValue(registro.getPosizione()+"");
+						e.addElement(de);
+					}
+					
+					// Stato
+					DataElement de = new DataElement();
+					de.setWidthPx(10);
+					de.setType(DataElementType.CHECKBOX);
+					if(registro.getStato()==null // backward compatibility 
+							||
+							StatoFunzionalita.ABILITATO.equals(registro.getStato())){
+						de.setToolTip(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_STATO_ABILITATO);
+						de.setValue(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_STATO_ABILITATO);
+						de.setSelected(CheckboxStatusType.CONFIG_ENABLE);
+					}
+					else{
+						de.setToolTip(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_STATO_DISABILITATO);
+						de.setValue(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_STATO_DISABILITATO);
+						de.setSelected(CheckboxStatusType.CONFIG_DISABLE);
+					}
+//					de.setUrl(ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_PLUGINS_ARCHIVI_CHANGE, pNomeRegola);
+					e.addElement(de);
+					
+					
+					// Nome
+					de = new DataElement();
+					de.setIdToRemove(registro.getNome());
+					de.setValue(registro.getNome());
+					de.setToolTip(registro.getNome());
+					de.setUrl(ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_PLUGINS_ARCHIVI_CHANGE, pOldNomePlugin);
+					e.addElement(de);
+					
+					// ultimo aggiornamento
+					de = new DataElement();
+					Date dataUltimoAggiornamento = registro.getData();
+					String dataValue = "--";
+					
+					if(dataUltimoAggiornamento != null) {
+						LocalDateTime date = dataUltimoAggiornamento.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+						DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+						dataValue = date.format(formatter);
+						de.setToolTip(dataValue);
+					}
+					
+					de.setValue(dataValue);
+					e.addElement(de);
+					
+					// applicabilita
+					de = new DataElement();
+					if(registro.getCompatibilitaList().size() > 0) {
+						String compatibilita = StringUtils.join(registro.getCompatibilitaList(), ",");
+					
+						if(compatibilita.length() > 100) {
+							de.setValue(compatibilita.substring(0, 97)+"...");
+							de.setToolTip(compatibilita);
+						} else {
+							de.setValue(compatibilita);
+						}
+					}else {
+						de.setValue("--");
+					}
+					
+					e.addElement(de);
+					
+					dati.addElement(e);
+					i++;
+				}
+			}
+
+			this.pd.setDati(dati);
+			this.pd.setAddButton(true);
+		} catch (Exception e) {
+			this.log.error("Exception: " + e.getMessage(), e);
+			throw new Exception(e);
+		}
+	}
+	
+	public Vector<DataElement> addRegistroPluginToDati(TipoOperazione tipoOp, Vector<DataElement> dati, String oldNome, String idArchivioS,
+			String nome, String descrizione, String stato, String sorgente, BinaryParameter jarArchivio,
+			String dirArchivio, String urlArchivio, String classiPlugin, String[] tipoPlugin, int numeroArchivi) {
+		
+		DataElement dataElement = new DataElement();
+		dataElement.setLabel(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_PLUGINS_ARCHIVIO);
+		dataElement.setType(DataElementType.TITLE);
+		dati.add(dataElement);
+		
+		DataElement de = new DataElement();
+		de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_NOME);
+		de.setValue(nome);
+		de.setType(DataElementType.TEXT_EDIT);
+		de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_NOME);
+		de.setSize( getSize());
+		de.setRequired(true);
+		dati.addElement(de);
+		
+		if(tipoOp.equals(TipoOperazione.ADD)) {
+			
+		} else {
+			de = new DataElement();
+			de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_ID_ARCHIVIO);
+			de.setValue(idArchivioS);
+			de.setType(DataElementType.HIDDEN);
+			de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_ID_ARCHIVIO);
+			de.setSize( getSize());
+			dati.addElement(de);
+			
+			de = new DataElement();
+			de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_NOME);
+			de.setValue(oldNome);
+			de.setType(DataElementType.HIDDEN);
+			de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_OLD_NOME);
+			de.setSize( getSize());
+			dati.addElement(de);
+		}
+		
+		// stato
+		de = new DataElement();
+		de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_STATO);
+		String [] labelsStato = {StatoFunzionalita.ABILITATO.toString(), StatoFunzionalita.DISABILITATO.toString()};
+		String [] valuesStato = {StatoFunzionalita.ABILITATO.toString(), StatoFunzionalita.DISABILITATO.toString()};
+		de.setLabels(labelsStato);
+		de.setValues(valuesStato);
+		de.setType(DataElementType.SELECT);
+		de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_STATO);
+		de.setSelected(stato);
+		dati.addElement(de);
+		
+		// descrizione
+		de = new DataElement();
+		de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_DESCRIZIONE);
+		de.setValue(descrizione);
+		de.setType(DataElementType.TEXT_AREA);
+		de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_DESCRIZIONE);
+		de.setSize(this.getSize());
+		dati.addElement(de);
+		
+		if(tipoOp.equals(TipoOperazione.ADD)) {
+			dati = addRegistroPluginJarToDati(TipoOperazione.ADD, dati, false, nome, sorgente, jarArchivio, dirArchivio, urlArchivio);
+		} else {
+			// link alla lista degli archivi
+			
+			de = new DataElement();
+			de.setType(DataElementType.LINK);
+			de.setUrl(ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_PLUGINS_ARCHIVI_JAR_LIST ,
+					new Parameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_OLD_NOME, oldNome));
+			Boolean contaListe = ServletUtils.getContaListeFromSession(this.session);
+			if (contaListe)
+				de.setValue(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_REGISTRO_ARCHIVI_ARCHIVI_JAR +" (" + numeroArchivi + ")");
+			else
+				de.setValue(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_REGISTRO_ARCHIVI_ARCHIVI_JAR);
+			dati.addElement(de);
+			
+		}
+		
+		// applicabilita
+		dataElement = new DataElement();
+		dataElement.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_APPLICABILITA);
+		dataElement.setType(DataElementType.SUBTITLE);
+		dati.add(dataElement);
+		
+		// classi plugin
+		de = new DataElement();
+		de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_CLASSI_PLUGIN);
+		de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_CLASSI_PLUGIN);
+		de.setType(DataElementType.SELECT);
+		de.setLabels(ConfigurazioneCostanti.LABELS_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_CLASSI_PLUGIN);
+		de.setValues(ConfigurazioneCostanti.VALUES_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_CLASSI_PLUGIN);
+		de.setSelected(classiPlugin);
+		de.setPostBack(true);
+		dati.addElement(de);
+		
+		// tipo plugin
+		if(classiPlugin.equals(ConfigurazioneCostanti.DEFAULT_VALUE_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_CLASSI_PLUGIN_SELEZIONATE)) {
+			de = new DataElement();
+			de.setLabel("");
+			de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_TIPO_PLUGIN);
+			de.setType(DataElementType.MULTI_SELECT);
+			de.setLabels(ConfigurazionePluginsTipoPluginUtils.getLabelsTipoPlugin());
+			de.setValues(ConfigurazionePluginsTipoPluginUtils.getValuesTipoPlugin());
+			de.setSelected(classiPlugin);
+			de.setPostBack(true);
+			dati.addElement(de);
+		}
+		
+		return dati;
+	}
+	
+	public Vector<DataElement> addRegistroPluginJarToDati(TipoOperazione tipoOp, Vector<DataElement> dati, boolean addTitle, String nomePlugin, String sorgente, BinaryParameter jarArchivio, String dirArchivio,
+			String urlArchivio) {
+		DataElement de;
+		
+		if(addTitle) {
+			de = new DataElement();
+			de.setLabel(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_PLUGINS_ARCHIVIO);
+			de.setType(DataElementType.TITLE);
+			dati.add(de);
+			
+			de = new DataElement();
+			de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_NOME);
+			de.setValue(nomePlugin);
+			de.setType(DataElementType.HIDDEN);
+			de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_NOME);
+			de.setSize( getSize());
+			dati.addElement(de);
+		}
+		
+		// sorgente
+		de = new DataElement();
+		de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_SORGENTE);
+		de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_SORGENTE);
+		de.setType(DataElementType.SELECT);
+		de.setLabels(ConfigurazioneCostanti.LABELS_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_SORGENTE);
+		de.setValues(ConfigurazioneCostanti.VALUES_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_SORGENTE);
+		de.setSelected(sorgente);
+		de.setPostBack(true);
+		dati.addElement(de);
+		
+		if(sorgente.equals(ConfigurazioneCostanti.DEFAULT_VALUE_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_SORGENTE_JAR)) {
+			// jar
+			DataElement deJarArchivio = jarArchivio.getFileDataElement(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_JAR_ARCHIVIO, "", getSize());
+			deJarArchivio.setRequired(true);
+			dati.add(deJarArchivio);
+			dati.addAll(jarArchivio.getFileNameDataElement());
+			dati.add(jarArchivio.getFileIdDataElement());
+		} else if(sorgente.equals(ConfigurazioneCostanti.DEFAULT_VALUE_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_SORGENTE_DIR)) {
+			// dir
+			de = new DataElement();
+			de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_DIR_ARCHIVIO);
+			de.setValue(dirArchivio);
+			de.setType(DataElementType.TEXT_AREA);
+			de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_DIR_ARCHIVIO);
+			de.setSize(this.getSize());
+			de.setRequired(true);
+			dati.addElement(de);
+		} else {
+			// url
+			de = new DataElement();
+			de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_URL_ARCHIVIO);
+			de.setValue(urlArchivio);
+			de.setType(DataElementType.TEXT_AREA);
+			de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_URL_ARCHIVIO);
+			de.setSize(this.getSize());
+			de.setRequired(true);
+			dati.addElement(de);
+		}
+		
+		return dati;
+	}
+	
+	public boolean registroPluginCheckData(TipoOperazione tipoOp, String oldNome, String idArchivioS,
+			String nome, String descrizione, String stato, String sorgente, BinaryParameter jarArchivio,
+			String dirArchivio, String urlArchivio, String classiPlugin, String[] tipoPlugin) throws Exception {
+		
+		try {
+			if(nome==null || "".equals(nome)) {
+				this.pd.setMessage("Indicare un valore nel campo '"+ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_NOME+"'");
+				return false;
+			}
+			if(!this.checkLength255(nome, ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_NOME)) {
+				return false;
+			}
+			
+			// Se tipoOp = add, controllo che l'archivio non sia gia' stato registrato
+			boolean existsArchivio = this.confCore.existsRegistroPlugin(nome);
+			
+			if (tipoOp.equals(TipoOperazione.ADD)) {
+				if (existsArchivio) {
+					this.pd.setMessage(ConfigurazioneCostanti.MESSAGGIO_ERRORE_PLUGINS_ARCHIVIO_DUPLICATO);
+					return false;
+				}
+			} else {
+				// controllo che le modifiche ai parametri non coincidano con altre regole gia' presenti
+//				TrasformazioneRegola trasformazione = this.porteApplicativeCore.getTrasformazione(idPorta, azioniDBCheck, patternDBCheck, contentTypeDBCheck);
+				if(!nome.equals(oldNome) && existsArchivio) {
+					this.pd.setMessage(ConfigurazioneCostanti.MESSAGGIO_ERRORE_PLUGINS_ARCHIVIO_NUOVO_NOME_DUPLICATO); 
+					return false;
+				}
+			}
+				
+			if(!this.checkLength255(descrizione, ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_DESCRIZIONE)) {
+				return false;
+			}
+			
+			boolean valArchivio = this.registroPluginArchivioCheckData(tipoOp, sorgente, jarArchivio, dirArchivio, urlArchivio);
+			
+			if(!valArchivio)
+				return valArchivio;
+			
+			if(classiPlugin.equals(ConfigurazioneCostanti.DEFAULT_VALUE_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_CLASSI_PLUGIN_SELEZIONATE)) {
+				// compatibilita'
+				if(tipoPlugin == null || tipoPlugin.length == 0){
+					this.pd.setMessage("Indicare almeno un valore nel campo '"+ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_CLASSI_PLUGIN+"'");
+					return false;
+				}
+			}
+			
+			return true;
+		} catch (Exception e) {
+			this.log.error("Exception: " + e.getMessage(), e);
+			throw new Exception(e);
+		}
+	}
+	
+	public boolean registroPluginArchivioCheckData(TipoOperazione tipoOp, String sorgente, BinaryParameter jarArchivio,
+			String dirArchivio, String urlArchivio) throws Exception {
+		
+		try {
+			if (tipoOp.equals(TipoOperazione.ADD)) {
+				if(sorgente==null || "".equals(sorgente)) {
+					this.pd.setMessage("Indicare un valore nel campo '"+ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_SORGENTE+"'");
+					return false;
+				}
+				
+				PluginSorgenteArchivio pluginSorgenteArchivio = DriverConfigurazioneDB_LIB.getEnumPluginSorgenteArchivio(sorgente);
+				
+				if(pluginSorgenteArchivio == null) {
+					this.pd.setMessage("Il valore indicato nel campo '"+ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_SORGENTE+"' non &egrave; valido.");
+					return false;
+				}
+				
+				switch (pluginSorgenteArchivio) {
+				case JAR:
+					// jar
+					if(jarArchivio.getValue() == null || jarArchivio.getValue().length == 0){
+						this.pd.setMessage("Indicare un valore nel campo '"+ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_JAR_ARCHIVIO+"'");
+						return false;
+					}
+					break;
+				case URL:
+					// url
+					if(urlArchivio==null || "".equals(urlArchivio)) {
+						this.pd.setMessage("Indicare un valore nel campo '"+ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_URL_ARCHIVIO+"'");
+						return false;
+					}
+					if(!this.checkLength4000(urlArchivio, ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_URL_ARCHIVIO)) {
+						return false;
+					}
+					
+					try {
+						new URL(urlArchivio);
+					}catch(Exception e) {
+						this.pd.setMessage("Il valore indicato nel campo '"+ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_URL_ARCHIVIO+"' non rappresenta una URL valida.");
+						return false;
+					}
+					
+					break;
+				case DIR:
+					// dir
+					if(dirArchivio==null || "".equals(dirArchivio)) {
+						this.pd.setMessage("Indicare un valore nel campo '"+ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_DIR_ARCHIVIO+"'");
+						return false;
+					}
+					if(!this.checkLength4000(dirArchivio, ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_DIR_ARCHIVIO)) {
+						return false;
+					}
+					try {
+						Paths.get(dirArchivio);
+				    } catch (InvalidPathException | NullPointerException ex) {
+				    	this.pd.setMessage("Il valore indicato nel campo '"+ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_DIR_ARCHIVIO+"' non rappresenta un path valido.");
+						return false;
+				    }
+					
+					break;
+				}
+			}
+			
+			return true;
+		} catch (Exception e) {
+			this.log.error("Exception: " + e.getMessage(), e);
+			throw new Exception(e);
+		}
+	}
+
+	// Prepara la lista degli archivi di un plugin
+	public void preparePluginsArchiviJarList(String nome, ISearch ricerca, List<RegistroPluginArchivio> lista) throws Exception {
+		try {
+			
+			Parameter pNomeRegistro = new Parameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_NOME, nome);
+			ServletUtils.addListElementIntoSession(this.session, ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_PLUGINS_ARCHIVI_JAR, pNomeRegistro);
+
+			int idLista = Liste.CONFIGURAZIONE_PLUGINS_ARCHIVI_JAR;
+			int limit = ricerca.getPageSize(idLista);
+			int offset = ricerca.getIndexIniziale(idLista);
+			String search = ServletUtils.getSearchFromSession(ricerca, idLista);
+			
+			Hashtable<String, String> campiHidden = new Hashtable<String, String>();
+			campiHidden.put(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_NOME, nome);
+			this.pd.setHidden(campiHidden);
+
+			this.pd.setIndex(offset);
+			this.pd.setPageSize(limit);
+			this.pd.setNumEntries(ricerca.getNumEntries(idLista));
+			
+			// setto la barra del titolo
+			List<Parameter> lstParam = new ArrayList<Parameter>();
+
+			lstParam.add(new Parameter(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_GENERALE, ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_GENERALE));
+			lstParam.add(new Parameter(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_PLUGINS_REGISTRO_ARCHIVI, ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_PLUGINS_ARCHIVI_LIST));
+			
+			this.pd.setSearchLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_JAR_NOME);
+			String labelJarDi = ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_REGISTRO_ARCHIVI_ARCHIVI_JAR_DI + nome;
+			if(search.equals("")){
+				this.pd.setSearchDescription("");
+				lstParam.add(new Parameter(labelJarDi, null));
+			}else{
+				lstParam.add(new Parameter(labelJarDi, ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_PLUGINS_ARCHIVI_JAR_LIST, pNomeRegistro));
+				lstParam.add(new Parameter(Costanti.PAGE_DATA_TITLE_LABEL_RISULTATI_RICERCA, null));
+			}
+
+			ServletUtils.setPageDataTitle(this.pd, lstParam);
+			
+			// controllo eventuali risultati ricerca
+			if (!search.equals("")) {
+				ServletUtils.enabledPageDataSearch(this.pd, ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_JAR_NOME, search);
+			}
+
+			// setto le label delle colonne	
+			List<String> lstLabels = new ArrayList<>();
+			if(lista != null && lista.size() > 1)
+				lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_POSIZIONE);
+			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_STATO);
+			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_NOME);
+			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_ULTIMO_AGGIORNAMENTO);
+			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_APPLICABILITA);
+			this.pd.setLabels(lstLabels.toArray(new String [lstLabels.size()]));
+
+			// preparo i dati
+			Vector<Vector<DataElement>> dati = new Vector<Vector<DataElement>>();
+
+			boolean visualizzaElimina = false;
+			if (lista != null) {
+				Iterator<RegistroPluginArchivio> it = lista.iterator();
+				visualizzaElimina = lista.size() > 1;
+				while (it.hasNext()) {
+					RegistroPluginArchivio registro = it.next();
+
+					Vector<DataElement> e = new Vector<DataElement>();
+					
+					// Nome
+					DataElement	de = new DataElement();
+					de.setIdToRemove(registro.getNome());
+					de.setValue(registro.getNome());
+					de.setToolTip(registro.getNome());
+					e.addElement(de);
+					
+					// tipo
+					de = new DataElement();
+					PluginSorgenteArchivio sorgente = registro.getSorgente();
+					switch (sorgente) {
+					case DIR:
+						de.setValue(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_DIR_ARCHIVIO);
+						break;
+					case JAR:
+						de.setValue(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_JAR_ARCHIVIO);
+						break;
+					case URL:
+						de.setValue(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_URL_ARCHIVIO);
+						break;
+					}
+					e.addElement(de);
+					
+					// ultimo aggiornamento
+					de = new DataElement();
+					Date dataUltimoAggiornamento = registro.getData();
+					String dataValue = "--";
+					
+					if(dataUltimoAggiornamento != null) {
+						LocalDateTime date = dataUltimoAggiornamento.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+						DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+						dataValue = date.format(formatter);
+						de.setToolTip(dataValue);
+					}
+					
+					de.setValue(dataValue);
+					e.addElement(de);
+					
+					dati.addElement(e);
+				}
+			}
+
+			this.pd.setDati(dati);
+			this.pd.setAddButton(true);
+			this.pd.setRemoveButton(visualizzaElimina);
+		} catch (Exception e) {
+			this.log.error("Exception: " + e.getMessage(), e);
+			throw new Exception(e);
+		}
+	}
 }

@@ -1127,6 +1127,10 @@ public class ConsoleProperties {
 		return this.readIntegerProperty(true, "console.selectListSoggettiOperativi.lunghezzaMassimaLabel");
 	}
 	
+	public Boolean isConfigurazionePluginsEnabled() throws UtilsException{
+		return this.readBooleanProperty(true, "plugins.enabled");
+	}
+	
 	/* ---------------- Gestione govwayConsole centralizzata ----------------------- */
 
 	public Boolean isGestioneCentralizzata_SincronizzazionePdd() throws UtilsException{

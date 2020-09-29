@@ -1271,6 +1271,9 @@ public class CostantiControlStation {
 	/** COSTANTI VISUALIZZAZIONE MESSAGGI MODIFICA POSIZIONE REGOLA PROXY PASS */
 	public static final boolean VISUALIZZA_MESSAGGIO_CONFERMA_SPOSTAMENTO_REGOLA_PROXY_PASS = false;
 	
+	/** COSTANTI VISUALIZZAZIONE MESSAGGI MODIFICA POSIZIONE PLUGINS ARCHIVI */
+	public static final boolean VISUALIZZA_MESSAGGIO_CONFERMA_SPOSTAMENTO_PLUGINS_ARCHIVI = false;
+	
 	/** COSTANTE DIMENSIONE TEXT_AREAD */
 	public final static int LABEL_PARAMETRO_TEXT_AREA_SIZE = 3;
 	
@@ -1814,6 +1817,7 @@ public class CostantiControlStation {
 	public static final String MESSAGGIO_CONFERMA_REGOLA_TRASFORMAZIONE_SPOSTATA_CORRETTAMENTE = "Posizione della regola modificata correttamente.";
 	public static final String MESSAGGIO_CONFERMA_REGOLA_TRASFORMAZIONE_RISPOSTA_SPOSTATA_CORRETTAMENTE ="Posizione della regola di risposta modificata correttamente.";
 	public static final String MESSAGGIO_CONFERMA_REGOLA_PROXY_PASS_SPOSTATA_CORRETTAMENTE = "Posizione della regola modificata correttamente.";
+	public static final String MESSAGGIO_CONFERMA_PLUGINS_ARCHIVIO_SPOSTATO_CORRETTAMENTE = "Posizione dell'archivio modificata correttamente.";
 	
 	public static final String MESSAGGIO_CONFERMA_ABILITAZIONE_GRUPPO ="Procedere con l''abilitazione del gruppo ''{0}''?"; 
 	public static final String MESSAGGIO_CONFERMA_ABILITAZIONE_FROM_API ="Procedere con l'abilitazione dell'API ?"; 

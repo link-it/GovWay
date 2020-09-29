@@ -61,6 +61,7 @@ import org.openspcoop2.core.config.PortaApplicativaSoggettoVirtuale;
 import org.openspcoop2.core.config.PortaDelegata;
 import org.openspcoop2.core.config.Property;
 import org.openspcoop2.core.config.Proprieta;
+import org.openspcoop2.core.config.RegistroPlugin;
 import org.openspcoop2.core.config.RoutingTable;
 import org.openspcoop2.core.config.ServizioApplicativo;
 import org.openspcoop2.core.config.Soggetto;
@@ -909,6 +910,7 @@ public class ControlStationCore {
 	private boolean showServiziVisualizzaModalitaElenco = false;
 	private Integer selectListSoggettiOperativi_numeroMassimoSoggetti = null;
 	private Integer selectListSoggettiOperativi_dimensioneMassimaLabel = null;
+	private boolean configurazionePluginsEnabled = false;
 	
 	public boolean isShowCorrelazioneAsincronaInAccordi() {
 		return this.showCorrelazioneAsincronaInAccordi;
@@ -1011,6 +1013,9 @@ public class ControlStationCore {
 	}
 	public boolean showCodaMessage() {
 		return this.isShowJ2eeOptions() || this.isIntegrationManagerEnabled();
+	}
+	public boolean isConfigurazionePluginsEnabled() {
+		return this.configurazionePluginsEnabled;
 	}
 
 	/** Motori di Sincronizzazione */
@@ -2337,6 +2342,7 @@ public class ControlStationCore {
 		this.showServiziVisualizzaModalitaElenco = core.showServiziVisualizzaModalitaElenco;
 		this.selectListSoggettiOperativi_numeroMassimoSoggetti = core.selectListSoggettiOperativi_numeroMassimoSoggetti;
 		this.selectListSoggettiOperativi_dimensioneMassimaLabel = core.selectListSoggettiOperativi_dimensioneMassimaLabel;
+		this.configurazionePluginsEnabled = core.configurazionePluginsEnabled;
 
 		/** Motori di Sincronizzazione */
 		this.sincronizzazionePddEngineEnabled = core.sincronizzazionePddEngineEnabled;
@@ -2706,6 +2712,7 @@ public class ControlStationCore {
 			this.showServiziVisualizzaModalitaElenco = consoleProperties.isEnableServiziVisualizzaModalitaElenco();
 			this.selectListSoggettiOperativi_numeroMassimoSoggetti = consoleProperties.getNumeroMassimoSoggettiOperativiMenuUtente();
 			this.selectListSoggettiOperativi_dimensioneMassimaLabel = consoleProperties.getLunghezzaMassimaLabelSoggettiOperativiMenuUtente();
+			this.configurazionePluginsEnabled = consoleProperties.isConfigurazionePluginsEnabled();
 			
 			// Gestione govwayConsole centralizzata
 			if(this.singlePdD == false){
@@ -3688,6 +3695,16 @@ public class ControlStationCore {
 					}
 					
 					/***********************************************************
+					 * Operazioni su Registro Plugin *
+					 **********************************************************/
+					// Registro Plugin
+					if(oggetto instanceof RegistroPlugin) {
+						RegistroPlugin registroPlugin = (RegistroPlugin) oggetto;
+						driver.getDriverConfigurazioneDB().createRegistroPlugin(registroPlugin);
+						doSetDati = false;
+					}
+					
+					/***********************************************************
 					 * Extended *
 					 **********************************************************/
 					if(extendedBean!=null && extendedServlet!=null){
@@ -4242,6 +4259,16 @@ public class ControlStationCore {
 					}
 					
 					/***********************************************************
+					 * Operazioni su Registro Plugin *
+					 **********************************************************/
+					// Registro Plugin
+					if(oggetto instanceof RegistroPlugin) {
+						RegistroPlugin registroPlugin = (RegistroPlugin) oggetto;
+						driver.getDriverConfigurazioneDB().updateDatiRegistroPlugin(registroPlugin.getNome(),registroPlugin);
+						doSetDati = false;
+					}
+					
+					/***********************************************************
 					 * Extended *
 					 **********************************************************/
 					if(extendedBean!=null && extendedServlet!=null){
@@ -4718,6 +4745,16 @@ public class ControlStationCore {
 					if(oggetto instanceof GenericProperties) {
 						GenericProperties genericProperties = (GenericProperties) oggetto;
 						driver.getDriverConfigurazioneDB().deleteGenericProperties(genericProperties);
+						doSetDati = false;
+					}
+					
+					/***********************************************************
+					 * Operazioni su Registro Plugin *
+					 **********************************************************/
+					// Registro Plugin
+					if(oggetto instanceof RegistroPlugin) {
+						RegistroPlugin registroPlugin = (RegistroPlugin) oggetto;
+						driver.getDriverConfigurazioneDB().deleteRegistroPlugin(registroPlugin);
 						doSetDati = false;
 					}
 					
@@ -5815,13 +5852,26 @@ public class ControlStationCore {
 			bf.append("IDActivePolicy[").append(policy.getIdActivePolicy()).append("] IDPolicy[").append(policy.getIdPolicy()).append("]");
 			msg+=":<"+bf.toString()+">";
 		}
-		// Generic Propertie
+		// Generic Properties
 		else if(oggetto instanceof GenericProperties) {
 			GenericProperties genericProperties = (GenericProperties) oggetto;
 			msg+=":"+oggetto.getClass().getSimpleName();
 			StringBuilder bf = new StringBuilder();
 			bf.append("Nome[").append(genericProperties.getNome()).append("] Tipologia[").append(genericProperties.getTipologia()).append("]");
 			msg+=":<"+bf.toString()+">";
+		}
+		// Plugin Archivi
+		else if(oggetto instanceof RegistroPlugin) {
+			RegistroPlugin registroPlugins = (RegistroPlugin) oggetto;
+			msg+=":"+oggetto.getClass().getSimpleName();
+			StringBuilder bf = new StringBuilder();
+			bf.append("Nome[").append(registroPlugins.getNome()).append("]");
+			msg+=":<"+bf.toString()+">";
+			if(Tipologia.CHANGE.equals(tipoOperazione)){
+				String oldNome = registroPlugins.getOldNome();
+				if(  (oldNome.equals(registroPlugins.getNome())==false) )
+					msg+=":OLD<"+oldNome+">";
+			}
 		}
 		// IExtendedBean
 		else if(oggetto instanceof IExtendedBean){
