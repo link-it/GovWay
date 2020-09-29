@@ -412,16 +412,15 @@ public class ModIUtilities {
 			SOAPHeader header = msg.getSOAPHeader();
 			if(header==null){
 				header = msg.getSOAPPart().getEnvelope().addHeader();
-				hdrElement = msg.newSOAPHeaderElement(header, new QName(namespace,localName,prefix));
-
-				if(actor!=null && !"".equals(actor)) {
-					hdrElement.setActor(actor);
-				}
-				hdrElement.setMustUnderstand(mustUnderstand);
-				
-				msg.addHeaderElement(header, hdrElement);
 			}
+			hdrElement = msg.newSOAPHeaderElement(header, new QName(namespace,localName,prefix));
+
+			if(actor!=null && !"".equals(actor)) {
+				hdrElement.setActor(actor);
+			}
+			hdrElement.setMustUnderstand(mustUnderstand);
 				
+			msg.addHeaderElement(header, hdrElement);
 		}
 		if(value instanceof String) {
 			hdrElement.setValue( (String) value);
