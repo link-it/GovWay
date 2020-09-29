@@ -42,39 +42,37 @@ Scenario: Giro OK
     And match response == read("recupero-risposta-response.xml")
 
 
-# Qui facciamo arrabbiare una volta l'erogazione e una volta la fruizione
-# Questo è l'unico caso della testsuite in cui generiamo un'errore di validazione
-# incrociato con un errore modIPA, per testare che l'integrazione fra i due funzioni.
+# In questo caso l'erogazione aggiunge automaticamente lo header
+# quindi ha senso testare solo la fruizione.
+
 @no-correlation-in-request-validazione
 Scenario: Richiesta applicativa senza X-Correlation-ID nella risposta con validazione sintattica body
 
-    Given url url_validazione
-    And request read("richiesta-applicativa.xml")
-    And header GovWay-TestSuite-Test-Id = 'no-correlation-in-request-erogazione-validazione'
-    When method post
-    Then status 500
-    And match response == invalid_response
-
+    * def problem = read('error-bodies/no-correlation-id.xml')
 
     Given url url_validazione
     And request read("richiesta-applicativa.xml")
     And header GovWay-TestSuite-Test-Id = 'no-correlation-in-request-fruizione-validazione'
     When method post
     Then status 500
-    And match response == invalid_response
+    And match response == problem
 
+
+@generazione-header-correlazione
+Scenario: Generazione dello header quando questo manca nella risposta della richiesta applicativa
+
+    Given url url_validazione
+    And request read("richiesta-applicativa.xml")
+    And header GovWay-TestSuite-Test-Id = 'generazione-header-correlazione'
+    When method post
+    Then status 200
+    And match /Envelope/Header/X-Correlation-ID == responseHeaders['GovWay-Transaction-ID'][0]
+    
 
 @no-correlation-in-request
 Scenario: Richiesta applicativa senza X-Correlation-ID nella risposta
 
     #* def invalid_response == read('./error-messages/no-correlation-in-request.xml')
-
-    Given url url_no_validazione
-    And request read("richiesta-applicativa.xml")
-    And header GovWay-TestSuite-Test-Id = 'no-correlation-in-request-erogazione'
-    When method post
-    Then status 500
-    And match response == invalid_response
 
     Given url url_no_validazione
     And request read("richiesta-applicativa.xml")

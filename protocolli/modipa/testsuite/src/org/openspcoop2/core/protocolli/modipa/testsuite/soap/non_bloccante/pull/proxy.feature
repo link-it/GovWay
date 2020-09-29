@@ -6,6 +6,7 @@ Background:
 * def url_helper_headers = govway_base_path + "/soap/in/DemoSoggettoErogatore/NonBlockingSoapPullHelperHeadersNoValidazione/v1"
 
 * def invalid_response = read("classpath:src/test/soap/non-bloccante/pull/invalid-response.xml")
+* configure responseHeaders = { 'Content-type': "application/soap+xml" }
 
 # NO-CORRELATION-IN-REQUEST
 
@@ -28,6 +29,10 @@ Scenario: methodIs('post') && headerContains('GovWay-TestSuite-Test-Id', 'no-cor
 * def response = read('classpath:src/test/soap/non-bloccante/pull/richiesta-applicativa-no-correlation-response.xml')
 * def responseStatus = 200
 
+# Controllo che l'erogazione abbia impostato il transaction ID come id di correlazione nello header soap
+Scenario: headerContains('GovWay-TestSuite-Test-Id', 'generazione-header-correlazione')
+
+* karate.proceed(url_validazione)
 
 # Scenario: methodIs('post') && headerContains('GovWay-TestSuite-Test-Id', 'no-correlation-in-request-fruizione-disclosure')
 
@@ -42,21 +47,6 @@ Scenario: methodIs('post') && headerContains('GovWay-TestSuite-Test-Id', 'no-cor
 * match responseStatus == 500
 * match response == invalid_response
 
-
-# INVALID-STATUS-RESPONSE
-
-Scenario: headerContains('GovWay-TestSuite-Test-Id', 'invalid-status-response-erogazione')
-
-* karate.proceed(url_no_validazione)
-
-* match responseStatus == 500
-* match response == invalid_response
-
-
-Scenario: headerContains('GovWay-TestSuite-Test-Id', 'invalid-status-response-fruizione')
-
-* def response = read('classpath:src/test/soap/non-bloccante/pull/richiesta-stato-invalid-response.xml')
-* def responseStatus 200
 
 
 
