@@ -67,6 +67,8 @@ Scenario: Richiesta applicativa senza X-Correlation-ID nella risposta con valida
 @no-correlation-in-request
 Scenario: Richiesta applicativa senza X-Correlation-ID nella risposta
 
+    #* def invalid_response == read('./error-messages/no-correlation-in-request.xml')
+
     Given url url_no_validazione
     And request read("richiesta-applicativa.xml")
     And header GovWay-TestSuite-Test-Id = 'no-correlation-in-request-erogazione'
@@ -80,30 +82,6 @@ Scenario: Richiesta applicativa senza X-Correlation-ID nella risposta
     When method post
     Then status 500
     And match response == invalid_response
-
-
-# @no-correlation-in-request-disclosure
-# Scenario: Richiesta applicativa senza X-Correlation-ID nella risposta con disclosure di informazioni
-    
-#     # Given url url_no_validazione
-#     # And request read("richiesta-applicativa.xml")
-#     # And header GovWay-TestSuite-Test-Id = 'no-correlation-in-request-erogazione-disclosure'
-#     # When method post
-#     # Then status 500
-#     # And match response == invalid_response
-
-#     Given url url_no_validazione
-#     And request read("richiesta-applicativa.xml")
-#     And header GovWay-TestSuite-Test-Id = 'no-correlation-in-request-fruizione-disclosure'
-#     When method post
-#     Then status 500
-#     And match response == invalid_response
-
-
-# Siccome la richiesta stato va valutata applicativamente, devo controllare
-# che il body sia valido
-@invalid-status-response
-Scenario: Risposta stato risorsa non valida applicativamente
 
 
 # Testo che lo X-Correlation-Id venga generato dall'erogazione

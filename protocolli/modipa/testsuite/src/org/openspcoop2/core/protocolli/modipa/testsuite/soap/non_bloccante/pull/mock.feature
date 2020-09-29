@@ -35,6 +35,13 @@ Scenario: methodIs('post') && headerContains('GovWay-TestSuite-Test-Id', 'no-cor
 * def response = read('classpath:src/test/soap/non-bloccante/pull/richiesta-applicativa-no-correlation-response.xml')
 * def responseStatus = 200
 
+
+Scenario: headerContains('GovWay-TestSuite-Test-Id', 'invalid-status-response-erogazione')
+
+* def response = read('classpath:src/test/soap/non-bloccante/pull/richiesta-stato-invalid-response.xml')
+* def responseStatus = 200
+
+# Catch all
 Scenario: 
 
 * def response = read('classpath:src/test/soap/non-bloccante/pull/richiesta-applicativa-response.xml')
