@@ -73,3 +73,6 @@ end;
 /
 
 
+-- Aggiunto filtro per tag sul controllo del traffico
+ALTER TABLE ct_active_policy ADD filtro_tag VARCHAR(255);
+

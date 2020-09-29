@@ -121,6 +121,7 @@ import org.openspcoop2.core.registry.constants.CredenzialeTipo;
 import org.openspcoop2.core.registry.constants.PddTipologia;
 import org.openspcoop2.core.registry.constants.RuoloTipologia;
 import org.openspcoop2.core.registry.driver.DriverRegistroServiziException;
+import org.openspcoop2.core.registry.driver.FiltroRicercaGruppi;
 import org.openspcoop2.core.registry.driver.FiltroRicercaRuoli;
 import org.openspcoop2.core.registry.driver.IDServizioFactory;
 import org.openspcoop2.core.registry.driver.db.IDSoggettoDB;
@@ -8372,6 +8373,16 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 			}
 
 			if(configurazione) {
+				if( !(filtro.getTag()==null || "".equals(filtro.getTag())) ){
+					if(bf.length()>0){
+						bf.append(", ");
+					}
+					bf.append(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_CONTROLLO_TRAFFICO_POLICY_ACTIVE_FILTRO_TAG).append(": ");
+					bf.append(filtro.getTag());
+				}
+			}
+			
+			if(configurazione) {
 				if( !( (filtro.getTipoServizio()==null || "".equals(filtro.getTipoServizio())) 
 						||
 						(filtro.getNomeServizio()==null || "".equals(filtro.getNomeServizio()))
@@ -11247,6 +11258,17 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 				}
 			}
 			
+			// tag
+			String tag = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_CONTROLLO_TRAFFICO_POLICY_ACTIVE_FILTRO_TAG);
+			if(tag!=null && !"".equals(tag) && !ConfigurazioneCostanti.VALUE_CONFIGURAZIONE_RATE_LIMITING_QUALSIASI.equals(tag)){
+				policy.getFiltro().setTag(tag);
+			}
+			else{
+				if(!first){
+					policy.getFiltro().setTag(null);
+				}
+			}
+			
 			// servizio
 			String servizio = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_CONTROLLO_TRAFFICO_POLICY_ACTIVE_FILTRO_SERVIZIO);
 			if(servizio!=null && !"".equals(servizio) && !ConfigurazioneCostanti.VALUE_CONFIGURAZIONE_RATE_LIMITING_QUALSIASI.equals(servizio) && servizio.contains("/") ){
@@ -12855,6 +12877,12 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 		String datiIdentificativiErogatoreSelezionatoLabel = null;
 		String datiIdentificativiErogatoreSelezionatoValue = null;
 		
+		List<String> tagLabel = null;
+		List<String> tagValue = null;
+		@SuppressWarnings("unused")
+		String datiIdentificativiTagSelezionatoLabel = null;
+		String datiIdentificativiTagSelezionatoValue = null;
+		
 		List<String> serviziLabel = null;
 		List<String> serviziValue = null;
 		String datiIdentificativiServizioSelezionatoLabel = null;
@@ -13017,6 +13045,16 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 				}
 			}
 					
+			// tag
+			if(configurazione) {
+				FiltroRicercaGruppi filtroRicerca = new FiltroRicercaGruppi();
+				List<String> elencoGruppi = this.gruppiCore.getAllGruppi(filtroRicerca);
+				tagLabel = enrichListConLabelQualsiasi(elencoGruppi);
+				tagValue = enrichListConValueQualsiasi(elencoGruppi);
+				datiIdentificativiTagSelezionatoValue=policy.getFiltro().getTag();
+				datiIdentificativiTagSelezionatoLabel=policy.getFiltro().getTag();
+			}
+			
 			// servizio
 			if(configurazione) {
 				if(protocolloAssociatoFiltroNonSelezionatoUtente) {
@@ -13050,7 +13088,7 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 				}
 				else {
 					List<IDServizio> listServizi = this.confCore.getServizi(protocolloSelezionatoValue, protocolliValue,
-							policy.getFiltro().getTipoErogatore(), policy.getFiltro().getNomeErogatore());
+							policy.getFiltro().getTipoErogatore(), policy.getFiltro().getNomeErogatore(), policy.getFiltro().getTag());
 					serviziLabel = new ArrayList<>();
 					serviziValue = new ArrayList<>();
 					for (IDServizio idServizio : listServizi) {
@@ -13730,7 +13768,31 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 				}
 			}
 			dati.addElement(de);
-						
+			
+			// Tag
+			de = new DataElement();
+			de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_CONTROLLO_TRAFFICO_POLICY_ACTIVE_FILTRO_TAG);
+			de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_CONTROLLO_TRAFFICO_POLICY_ACTIVE_FILTRO_TAG);
+			de.setValue(datiIdentificativiTagSelezionatoValue);
+			if(!configurazione) {
+				de.setType(DataElementType.HIDDEN);
+				dati.addElement(de);
+			}
+			else {
+				de.setValue(datiIdentificativiTagSelezionatoValue);
+				if(this.core.isControlloTrafficoPolicyGlobaleFiltroApi() && datiIdentificativiServizioSelezionatoValue==null ) {
+					de.setLabels(tagLabel);
+					de.setValues(tagValue);
+					de.setSelected(datiIdentificativiTagSelezionatoValue);
+					de.setType(DataElementType.SELECT);
+					de.setPostBack_viaPOST(true);
+				}
+				else {
+					de.setType(DataElementType.HIDDEN);
+				}
+			}
+			dati.addElement(de);
+			
 			// Servizio
 			de = new DataElement();
 			de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_CONTROLLO_TRAFFICO_POLICY_ACTIVE_FILTRO_SERVIZIO);
@@ -14753,6 +14815,7 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 					policy.getFiltro().getTipoErogatore()==null &&
 					policy.getFiltro().getNomeErogatore()==null &&
 					policy.getFiltro().getServizioApplicativoErogatore()==null &&
+					policy.getFiltro().getTag()==null &&
 					policy.getFiltro().getTipoServizio()==null &&
 					policy.getFiltro().getNomeServizio()==null &&
 					policy.getFiltro().getAzione()==null &&
@@ -14931,6 +14994,16 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 				}
 				else{
 					bf.append(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_CONTROLLO_TRAFFICO_POLICY_ACTIVE_FILTRO_EROGATORE+": "+filtro.getTipoErogatore()+"/"+filtro.getNomeErogatore());
+				}
+			}
+			
+			if(configurazione) {
+				bf.append("<br/>");
+				if( filtro.getTag()==null || "".equals(filtro.getTag()) ){
+					bf.append(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_CONTROLLO_TRAFFICO_POLICY_ACTIVE_FILTRO_TAG+": Qualsiasi");
+				}
+				else{
+					bf.append(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_CONTROLLO_TRAFFICO_POLICY_ACTIVE_FILTRO_TAG+": "+filtro.getTag());
 				}
 			}
 			

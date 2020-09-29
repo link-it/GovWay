@@ -46,7 +46,6 @@ import org.openspcoop2.generic_project.expression.impl.sql.ISQLFieldConverter;
 import org.openspcoop2.generic_project.utils.UtilsTemplate;
 import org.openspcoop2.monitor.engine.config.base.IdPlugin;
 import org.openspcoop2.monitor.engine.config.base.Plugin;
-import org.openspcoop2.monitor.engine.config.base.PluginFiltroCompatibilita;
 import org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita;
 import org.openspcoop2.monitor.engine.config.base.PluginServizioAzioneCompatibilita;
 import org.openspcoop2.monitor.engine.config.base.PluginServizioCompatibilita;
@@ -487,35 +486,6 @@ public class JDBCPluginServiceSearchImpl implements IJDBCServiceSearchWithId<Plu
 				}
 			}
 		}
-		if(obj.getPluginFiltroCompatibilitaList()!=null){
-			List<org.openspcoop2.monitor.engine.config.base.PluginFiltroCompatibilita> listObj_ = obj.getPluginFiltroCompatibilitaList();
-			for(org.openspcoop2.monitor.engine.config.base.PluginFiltroCompatibilita itemObj_ : listObj_){
-				org.openspcoop2.monitor.engine.config.base.PluginFiltroCompatibilita itemAlreadySaved_ = null;
-				if(imgSaved.getPluginFiltroCompatibilitaList()!=null){
-					List<org.openspcoop2.monitor.engine.config.base.PluginFiltroCompatibilita> listImgSaved_ = imgSaved.getPluginFiltroCompatibilitaList();
-					for(org.openspcoop2.monitor.engine.config.base.PluginFiltroCompatibilita itemImgSaved_ : listImgSaved_){
-						boolean objEqualsToImgSaved_ = false;
-						objEqualsToImgSaved_ = org.openspcoop2.generic_project.utils.Utilities.equals(itemObj_.getIdportaMittente(),itemImgSaved_.getIdportaMittente()) &&
-												org.openspcoop2.generic_project.utils.Utilities.equals(itemObj_.getTipoMittente(),itemImgSaved_.getTipoMittente()) &&
-												org.openspcoop2.generic_project.utils.Utilities.equals(itemObj_.getNomeMittente(),itemImgSaved_.getNomeMittente()) &&
-												org.openspcoop2.generic_project.utils.Utilities.equals(itemObj_.getIdportaDestinatario(),itemImgSaved_.getIdportaDestinatario()) &&
-												org.openspcoop2.generic_project.utils.Utilities.equals(itemObj_.getTipoDestinatario(),itemImgSaved_.getTipoDestinatario()) &&
-												org.openspcoop2.generic_project.utils.Utilities.equals(itemObj_.getNomeDestinatario(),itemImgSaved_.getNomeDestinatario()) &&
-												org.openspcoop2.generic_project.utils.Utilities.equals(itemObj_.getTipoServizio(),itemImgSaved_.getTipoServizio()) &&
-												org.openspcoop2.generic_project.utils.Utilities.equals(itemObj_.getNomeServizio(),itemImgSaved_.getNomeServizio()) &&
-												org.openspcoop2.generic_project.utils.Utilities.equals(itemObj_.getVersioneServizio(),itemImgSaved_.getVersioneServizio()) &&
-												org.openspcoop2.generic_project.utils.Utilities.equals(itemObj_.getAzione(),itemImgSaved_.getAzione());
-						if(objEqualsToImgSaved_){
-							itemAlreadySaved_=itemImgSaved_;
-							break;
-						}
-					}
-				}
-				if(itemAlreadySaved_!=null){
-					itemObj_.setId(itemAlreadySaved_.getId());
-				}
-			}
-		}
 		if(obj.getPluginProprietaCompatibilitaList()!=null){
 			List<org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita> listObj_ = obj.getPluginProprietaCompatibilitaList();
 			for(org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita itemObj_ : listObj_){
@@ -524,10 +494,7 @@ public class JDBCPluginServiceSearchImpl implements IJDBCServiceSearchWithId<Plu
 					List<org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita> listImgSaved_ = imgSaved.getPluginProprietaCompatibilitaList();
 					for(org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita itemImgSaved_ : listImgSaved_){
 						boolean objEqualsToImgSaved_ = false;
-						// TODO verify equals
-						// objEqualsToImgSaved_ = org.openspcoop2.generic_project.utils.Utilities.equals(itemObj_.getXXX(),itemImgSaved_.getXXX()) &&
-						// 						 			...
-						//						 			org.openspcoop2.generic_project.utils.Utilities.equals(itemObj_.getYYY(),itemImgSaved_.getYYY());
+						objEqualsToImgSaved_ = org.openspcoop2.generic_project.utils.Utilities.equals(itemObj_.getNome(),itemImgSaved_.getNome());
 						if(objEqualsToImgSaved_){
 							itemAlreadySaved_=itemImgSaved_;
 							break;
@@ -618,36 +585,6 @@ public class JDBCPluginServiceSearchImpl implements IJDBCServiceSearchWithId<Plu
 			}
 		}
 
-		// Object plugin_pluginFiltroCompatibilita
-		ISQLQueryObject sqlQueryObjectGet_plugin_pluginFiltroCompatibilita = sqlQueryObjectGet.newSQLQueryObject();
-		sqlQueryObjectGet_plugin_pluginFiltroCompatibilita.setANDLogicOperator(true);
-		sqlQueryObjectGet_plugin_pluginFiltroCompatibilita.addFromTable(this.getPluginFieldConverter().toTable(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA));
-		sqlQueryObjectGet_plugin_pluginFiltroCompatibilita.addSelectField("id");
-		sqlQueryObjectGet_plugin_pluginFiltroCompatibilita.addSelectField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_MITTENTE,true));
-		sqlQueryObjectGet_plugin_pluginFiltroCompatibilita.addSelectField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_MITTENTE,true));
-		sqlQueryObjectGet_plugin_pluginFiltroCompatibilita.addSelectField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.IDPORTA_MITTENTE,true));
-		sqlQueryObjectGet_plugin_pluginFiltroCompatibilita.addSelectField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_DESTINATARIO,true));
-		sqlQueryObjectGet_plugin_pluginFiltroCompatibilita.addSelectField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_DESTINATARIO,true));
-		sqlQueryObjectGet_plugin_pluginFiltroCompatibilita.addSelectField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.IDPORTA_DESTINATARIO,true));
-		sqlQueryObjectGet_plugin_pluginFiltroCompatibilita.addSelectField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_SERVIZIO,true));
-		sqlQueryObjectGet_plugin_pluginFiltroCompatibilita.addSelectField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_SERVIZIO,true));
-		sqlQueryObjectGet_plugin_pluginFiltroCompatibilita.addSelectField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.VERSIONE_SERVIZIO,true));
-		sqlQueryObjectGet_plugin_pluginFiltroCompatibilita.addSelectField(this.getPluginFieldConverter().toColumn(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.AZIONE,true));
-		sqlQueryObjectGet_plugin_pluginFiltroCompatibilita.addWhereCondition("id_plugin=?");
-
-		// Get plugin_pluginFiltroCompatibilita
-		java.util.List<Object> plugin_pluginFiltroCompatibilita_list = jdbcUtilities.executeQuery(sqlQueryObjectGet_plugin_pluginFiltroCompatibilita.createSQLQuery(), jdbcProperties.isShowSql(), Plugin.model().PLUGIN_FILTRO_COMPATIBILITA, this.getPluginFetch(),
-			new JDBCObject(plugin.getId(),Long.class));
-
-		if(plugin_pluginFiltroCompatibilita_list != null) {
-			for (Object plugin_pluginFiltroCompatibilita_object: plugin_pluginFiltroCompatibilita_list) {
-				PluginFiltroCompatibilita plugin_pluginFiltroCompatibilita = (PluginFiltroCompatibilita) plugin_pluginFiltroCompatibilita_object;
-
-
-				plugin.addPluginFiltroCompatibilita(plugin_pluginFiltroCompatibilita);
-			}
-		}
-
 		// Object plugin_pluginProprietaCompatibilita
 		ISQLQueryObject sqlQueryObjectGet_plugin_pluginProprietaCompatibilita = sqlQueryObjectGet.newSQLQueryObject();
 		sqlQueryObjectGet_plugin_pluginProprietaCompatibilita.setANDLogicOperator(true);
@@ -716,11 +653,6 @@ public class JDBCPluginServiceSearchImpl implements IJDBCServiceSearchWithId<Plu
 			String tableName2 = this.getPluginFieldConverter().toAliasTable(Plugin.model().PLUGIN_SERVIZIO_COMPATIBILITA.PLUGIN_SERVIZIO_AZIONE_COMPATIBILITA);
 			sqlQueryObject.addWhereCondition(tableName1+".id="+tableName2+".id_plugin_servizio_comp");
 		}
-		if(expression.inUseModel(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA,false)){
-			String tableName1 = this.getPluginFieldConverter().toAliasTable(Plugin.model());
-			String tableName2 = this.getPluginFieldConverter().toAliasTable(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA);
-			sqlQueryObject.addWhereCondition(tableName1+".id="+tableName2+".id_plugin");
-		}
 		
         if(expression.inUseModel(Plugin.model().PLUGIN_SERVIZIO_COMPATIBILITA.PLUGIN_SERVIZIO_AZIONE_COMPATIBILITA,false)){
 			if(expression.inUseModel(Plugin.model().PLUGIN_SERVIZIO_COMPATIBILITA,false)==false){
@@ -761,12 +693,6 @@ public class JDBCPluginServiceSearchImpl implements IJDBCServiceSearchWithId<Plu
 		mapTableToPKColumn.put(converter.toTable(Plugin.model().PLUGIN_SERVIZIO_COMPATIBILITA.PLUGIN_SERVIZIO_AZIONE_COMPATIBILITA),
 			utilities.newList(
 				new CustomField("id", Long.class, "id", converter.toTable(Plugin.model().PLUGIN_SERVIZIO_COMPATIBILITA.PLUGIN_SERVIZIO_AZIONE_COMPATIBILITA))
-			));
-
-		// Plugin.model().PLUGIN_FILTRO_COMPATIBILITA
-		mapTableToPKColumn.put(converter.toTable(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA),
-			utilities.newList(
-				new CustomField("id", Long.class, "id", converter.toTable(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA))
 			));
 
 		// Plugin.model().PLUGIN_PROPRIETA_COMPATIBILITA

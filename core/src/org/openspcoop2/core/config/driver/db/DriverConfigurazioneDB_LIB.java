@@ -8945,7 +8945,8 @@ public class DriverConfigurazioneDB_LIB {
 				config.getSystemProperties()==null && 
 				(config.getGenericPropertiesList()==null || config.getGenericPropertiesList().size()<=0) &&
 				config.getGestioneCors()==null && 
-				config.getResponseCaching()==null ) {
+				config.getResponseCaching()==null && 
+				config.getRegistroPlugins()==null ) {
 						
 			// caso speciale extended info
 			ExtendedInfoManager extInfoManager = ExtendedInfoManager.getInstance();

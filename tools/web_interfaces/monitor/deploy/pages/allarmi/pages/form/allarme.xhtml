@@ -1,0 +1,481 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:a4j="http://richfaces.org/a4j"
+	xmlns:rich="http://richfaces.org/rich"
+	xmlns:link="http://www.link.it"
+	template="/templates/defaultTemplate.xhtml">
+		<ui:param value="#{not empty allarmiBean.allarme.id ? 'Stato Allarme' : 'Nuovo Allarme'}" name="title" />
+		<ui:define name="navbar">
+			<ul>
+				<li>
+					<h:commandLink action="allarmi" value="Monitoraggio Allarmi"/>
+				</li>
+				<li><h:graphicImage value="/images/tema_link/next_white.png" width="16" height="16"/></li>
+				<li>
+					<h:outputText id="inserisciAllarme" value="Inserisci Allarme" rendered="#{allarmiBean.allarme.id == -1}" styleClass="ultimo-path"/>
+					<h:outputText id="modificaAllarme" value="Stato Allarme (#{allarmiBean.allarme.nome})" styleClass="ultimo-path"
+						 rendered="#{allarmiBean.allarme.id != -1 and ((allarmiBean.allarme.mailAckMode==1 and allarmiBean.allarme.inviaEmailAlert==1) or (allarmiBean.allarme.scriptAckMode==1 and allarmiBean.allarme.invocaScriptAlert==1))}"/>
+					<h:outputText id="visualizzaAllarme" value="Stato Allarme (#{allarmiBean.allarme.nome})" styleClass="ultimo-path"
+						 rendered="#{allarmiBean.allarme.id != -1 and not ((allarmiBean.allarme.mailAckMode==1 and allarmiBean.allarme.inviaEmailAlert==1) or (allarmiBean.allarme.scriptAckMode==1 and allarmiBean.allarme.invocaScriptAlert==1))}"/>
+				</li>
+			</ul>
+		</ui:define>
+		<ui:define name="body">
+			<rich:panel styleClass="noborder" id="paginaAllarme"> 
+				<style>
+					#legendPanel_body  { padding: 0px !important; }
+				</style>
+				<rich:panel id="legendPanel" rendered="#{(allarmiBean.allarme.id != -1 and ((allarmiBean.allarme.mailAckMode==1 and allarmiBean.allarme.inviaEmailAlert==1) or (allarmiBean.allarme.scriptAckMode==1 and allarmiBean.allarme.invocaScriptAlert==1)))}">
+					<p class="legend">
+						<strong>Note:</strong> (<em>*</em>) Campi obbligatori 
+					</p>
+				</rich:panel>	
+				<div class="form-container noborder nopadding">
+					<a4j:keepAlive beanName="allarmiBean"/>
+					<a4j:form>
+					
+						<a4j:outputPanel id="filtroPnl" ajaxRendered="false" layout="block" rendered="#{allarmiBean.showFilter}">
+							<link:fieldset 	legend="Filtro" collapsible="false" closed="false">
+								<link:prop label="Fruitore (ID PdD)" rendered="#{allarmiBean.visualizzaIdPdD}">
+									<a4j:outputPanel layout="block" styleClass="divNoEdit">
+										<h:outputText id="idporta_fruitore" value="#{allarmiBean.idportaMittente}" style=" width : 412px;"  rendered="#{not empty allarmiBean.idportaMittente}"/>
+										<h:outputText id="idporta_fruitore_noVal" value="[Qualsiasi]" style=" width : 412px;" rendered="#{empty allarmiBean.idportaMittente}"/>
+									</a4j:outputPanel>
+								</link:prop>
+							
+								<link:prop label="#{allarmiBean.visualizzaIdPdD ? 'Fruitore (Soggetto)' : 'Fruitore'}"  >
+									<a4j:outputPanel layout="block" styleClass="divNoEdit">
+										<h:outputText id="fruitore" value="#{allarmiBean.tipoNomeMittente}" style=" width : 412px;"  rendered="#{not empty allarmiBean.tipoNomeMittente}"/>
+										<h:outputText id="fruitore_noVal" value="[Qualsiasi]" style=" width : 412px;" rendered="#{empty allarmiBean.tipoNomeMittente}"/>  
+									</a4j:outputPanel>
+								</link:prop>
+			
+								<link:prop label="Erogatore (ID PdD)" rendered="#{allarmiBean.visualizzaIdPdD}">
+									<a4j:outputPanel layout="block" styleClass="divNoEdit">
+										<h:outputText id="idporta_erogatore" value="#{allarmiBean.idportaDestinatario}" style=" width : 412px;"   rendered="#{not empty allarmiBean.idportaDestinatario}"/>
+										<h:outputText id="idporta_erogatore_noVal" value="[Qualsiasi]" style=" width : 412px;" rendered="#{empty allarmiBean.idportaDestinatario}"/>
+									</a4j:outputPanel>
+								</link:prop>
+								
+								<link:prop label="#{allarmiBean.visualizzaIdPdD ? 'Erogatore (Soggetto)' : 'Erogatore'}">
+									<a4j:outputPanel layout="block" styleClass="divNoEdit">		
+										<h:outputText id="erogatore" value="#{allarmiBean.tipoNomeDestinatario}" style=" width : 412px;"   rendered="#{not empty allarmiBean.tipoNomeDestinatario}"/>
+										<h:outputText id="erogatore_noVal" value="[Qualsiasi]" style=" width : 412px;" rendered="#{empty allarmiBean.tipoNomeDestinatario}"/>
+									</a4j:outputPanel>
+								</link:prop>
+								
+								<link:prop label="Servizio">
+									<a4j:outputPanel layout="block" styleClass="divNoEdit">
+										<h:outputText id="servizio" value="#{allarmiBean.tipoNomeServizio}" style=" width : 412px;"   rendered="#{not empty allarmiBean.tipoNomeServizio}"/>
+										<h:outputText id="servizio_noVal" value="[Qualsiasi]" style=" width : 412px;" rendered="#{empty allarmiBean.tipoNomeServizio}"/>
+									</a4j:outputPanel>	
+								</link:prop>
+								
+								<link:prop label="Azione">
+									<a4j:outputPanel layout="block" styleClass="divNoEdit">
+										<h:outputText id="azione" value="#{allarmiBean.azione}" style=" width : 412px;"   rendered="#{not allarmiBean.azione}"/>
+										<h:outputText id="azione_noVal" value="[Qualsiasi]" style=" width : 412px;" rendered="#{empty allarmiBean.azione}"/>
+									</a4j:outputPanel>
+								</link:prop>
+							</link:fieldset>
+						</a4j:outputPanel>
+					
+						<link:fieldset legend="Informazioni Generali" rendered="#{true}" collapsible="false" closed="false">
+						
+							<link:prop label="Nome">
+								<a4j:outputPanel layout="block" styleClass="divNoEdit">
+									<h:outputText value="#{allarmiBean.allarme.nome}" readonly="true" style="width: 412px" />
+								</a4j:outputPanel>
+							</link:prop>
+							
+							<link:prop label="Descrizione">
+								<a4j:outputPanel layout="block" styleClass="divNoEdit">
+									<h:outputText id="descrizione" value="#{allarmiBean.descrizione}" style="width: 412px" label="Descrizione"/>
+								</a4j:outputPanel>
+							</link:prop>
+							
+							<!-- 
+							<link:prop label="Tipo">
+								<h:outputText value="#{allarmiBean.allarme._value_tipoAllarme}" readonly="true" style="width: 412px"/>
+							</link:prop>
+							-->
+							<link:prop label="Modalità" rendered="#{not empty allarmiBean.allarme._value_tipoAllarme and allarmiBean.allarme._value_tipoAllarme == 'ATTIVO'}">
+								<a4j:outputPanel layout="block" styleClass="divNoEdit">
+									<h:outputText value="Attiva" readonly="true" style="width: 432px"/>
+								</a4j:outputPanel>
+							</link:prop>
+							<link:prop label="Modalità" rendered="#{not empty allarmiBean.allarme._value_tipoAllarme and allarmiBean.allarme._value_tipoAllarme == 'PASSIVO'}">
+								<a4j:outputPanel layout="block" styleClass="divNoEdit">
+									<h:outputText value="Passiva" readonly="true" style="width: 432px"/>
+								</a4j:outputPanel>
+							</link:prop>
+												
+							<a4j:outputPanel id="tipoPeriodo" layout="block">
+								<a4j:outputPanel id="tipoPeriodoRendered" layout="block" rendered="#{not empty allarmiBean.allarme._value_tipoAllarme and (allarmiBean.allarme._value_tipoAllarme=='ATTIVO' or allarmiBean.allarme._value_tipoAllarme=='ATTIVO_PASSIVO')}">
+									<link:prop label="Frequenza" >
+										<h:panelGrid columns="3" styleClass="divNoEdit">
+												<h:outputText id="periodo" value="#{allarmiBean.allarme.periodo}" label="Periodo" style="margin-left: 0px;"/>
+												<rich:spacer width="1"/>
+												<h:outputText id="tipoPeriodoCombo" value="#{allarmiBean.tipoPeriodo}" label="Tipo Periodo" style="width: 152px; margin-left: 0px;"/>
+										</h:panelGrid>
+									</link:prop>
+								
+								
+									<!-- <link:inlineProp labelEsterna="Frequenza" required="true"> -->
+<!-- 									<link:inlineProp labelEsterna="Frequenza"> -->
+<!-- 										<ui:define name="prop1"> -->
+<!-- 											<link:prop styleClass="insideLeftProp" required="false"> -->
+<!-- 												<h:inputText id="periodo" value="#{allarmiBean.allarme.periodo}" required="true" label="Periodo" style="margin-left: 0px;"/> -->
+<!-- 												<h:outputText id="periodo" value="#{allarmiBean.allarme.periodo}" label="Periodo" style="margin-left: 0px;"/> -->
+<!-- 											</link:prop> -->
+<!-- 										</ui:define> -->
+<!-- 										<ui:define name="prop2"> -->
+<!-- 											<link:prop  styleClass="insideRightProp" required="false"> -->
+												<!--  
+												<rich:comboBox id="tipoPeriodoCombo" value="#{allarmiBean.tipoPeriodo}" required="true" label="Tipo Periodo" style="width: 152px; margin-left: 0px;">
+													<f:selectItem itemValue="Giorni" />
+													<f:selectItem itemValue="Ore" />
+													<f:selectItem itemValue="Minuti"/>
+												</rich:comboBox>
+												-->
+<!-- 												<h:outputText id="tipoPeriodoCombo" value="#{allarmiBean.tipoPeriodo}" label="Tipo Periodo" style="width: 152px; margin-left: 0px;"/> -->
+<!-- 											</link:prop> -->
+<!-- 										</ui:define> -->
+<!-- 									</link:inlineProp> -->
+								</a4j:outputPanel>
+							</a4j:outputPanel>
+							
+							<link:prop label="Abilitato">
+								<!--  
+								<h:selectOneRadio styleClass="controlset" value="#{allarmiBean.allarme.enabled}" >
+									<f:selectItem itemValue="1" itemLabel="Si"/>
+									<f:selectItem itemValue="0" itemLabel="No"/>
+								</h:selectOneRadio>
+								-->
+								<a4j:outputPanel layout="block" styleClass="divNoEdit">
+									<h:outputText id="abilitatoIdParam" value="#{allarmiBean.allarme.enabled==1 ? 'Si' : 'No'}" label="Periodo" />
+								</a4j:outputPanel>
+							</link:prop>
+							
+						</link:fieldset>
+						
+						<link:fieldset 
+								legend="Dettagli" 
+								collapsible="false" closed="false">
+								
+							<link:prop label="Stato Attuale">
+								<a4j:outputPanel layout="block" styleClass="divNoEdit" rendered="#{ (allarmiBean.allarme.enabled == 1) and (allarmiBean.allarmiConsultazioneModificaStatoAbilitata==false) }">
+									<h:outputText value="#{allarmiBean.labelStato}" readonly="true" style="width: 412px" 
+												rendered="#{ (allarmiBean.allarme.enabled == 1) and (allarmiBean.allarmiConsultazioneModificaStatoAbilitata==false) }"/>
+								</a4j:outputPanel>
+								<rich:comboBox id="idStatoAttuale" value="#{allarmiBean.modificaStato}" 
+												rendered="#{ (allarmiBean.allarme.enabled == 1) and (allarmiBean.allarmiConsultazioneModificaStatoAbilitata) }"
+												converter="selectItemConverter" width="412" enableManualInput="false">
+									<f:selectItem itemValue="0" itemLabel="Ok"/>
+									<f:selectItem itemValue="1" itemLabel="Warning"/>
+									<f:selectItem itemValue="2" itemLabel="Error"/>
+									<a4j:support event="onselect" reRender="idAcknowledge" ajaxSingle="true"/>
+								</rich:comboBox>
+								<a4j:outputPanel layout="block" styleClass="divNoEdit" rendered="#{allarmiBean.allarme.enabled == 0}">
+									<h:outputText value="Disabilitato" readonly="true" style="width: 412px" rendered="#{allarmiBean.allarme.enabled == 0}"/>
+								</a4j:outputPanel>
+							</link:prop>
+														
+							<link:prop label="Dettaglio">
+								<h:inputTextarea value="#{allarmiBean.modificaDettaglioStato}" readonly="#{allarmiConsultazioneModificaStatoAbilitata==false}" styleClass="inputLinkLong" 
+									rows="7"/>
+							</link:prop>
+														
+							<link:prop label="Data Creazione">
+								<a4j:outputPanel layout="block" styleClass="divNoEdit">
+									<h:outputText id="lasttimestampCreate" value="#{allarmiBean.allarme.lasttimestampCreate}" >
+										<f:convertDateTime pattern="yyyy-MM-dd HH:mm:ss.SSS" timeZone="Europe/Rome"/>
+									</h:outputText>
+								</a4j:outputPanel>
+							</link:prop>
+							
+							<a4j:outputPanel id="dettaglioModifica" layout="block" rendered="#{not empty allarmiBean.allarme.lasttimestampUpdate}">
+								<link:prop label="Ultima Modifica">
+									<a4j:outputPanel layout="block" styleClass="divNoEdit">
+										<h:outputText id="lasttimestampUpdate" value="#{allarmiBean.allarme.lasttimestampUpdate}" >
+											<f:convertDateTime pattern="yyyy-MM-dd HH:mm:ss.SSS" timeZone="Europe/Rome"/>
+										</h:outputText>
+									</a4j:outputPanel>
+								</link:prop>
+							</a4j:outputPanel>
+							
+							<a4j:outputPanel id="idAcknowledge" layout="block" 
+								rendered="#{
+										(allarmiBean.allarmiAssociazioneAcknowledgedStatoAllarme)
+										or
+										(allarmiBean.allarme.inviaEmailAlert==1 and allarmiBean.allarme.mailAckMode==1) 
+										or 
+										(allarmiBean.allarme.invocaScriptAlert==1 and allarmiBean.allarme.scriptAckMode==1)
+									}">
+								<link:prop label="Acknowledge">
+									<h:selectOneRadio id="idAcknowledgeAbilitato" styleClass="controlset" value="#{allarmiBean.modificaAcknowledged}" 
+										disabled="#{(allarmiBean.allarme.enabled == 0) or (allarmiBean.allarme._value_stato == 0)}">
+										<f:selectItem itemValue="1" itemLabel="Si"/>
+										<f:selectItem itemValue="0" itemLabel="No"/>
+									</h:selectOneRadio>
+								</link:prop>
+							</a4j:outputPanel>
+
+							<link:prop label="Stato Precedente">
+								<a4j:outputPanel layout="block" styleClass="divNoEdit">
+									<h:outputText value="#{allarmiBean.labelPrecedenteStato}" readonly="true" style="width: 412px"/>
+								</a4j:outputPanel>
+							</link:prop>
+							
+							<link:prop label="Archivio Stati">
+								<a4j:outputPanel layout="block" styleClass="divNoEdit">
+									<a4j:htmlCommandLink id="history-iconLink" styleClass="icon-details" action="visualizzaHistoryAllarme" value="Visualizza">
+										<f:setPropertyActionListener value="#{allarmiBean.allarme}" target="#{allarmiBean.allarme}"/>
+										<f:setPropertyActionListener value="stato" target="#{allarmiBean.sorgente}"/>
+									</a4j:htmlCommandLink>
+								</a4j:outputPanel>
+		                    </link:prop>
+							
+						</link:fieldset>
+												
+						<link:fieldset 
+								legend="Parametri" 
+								rendered="#{(!empty allarmiBean.parameters) and (allarmiBean.allarmiConsultazioneSezioneParametriReadOnly)}" collapsible="false" closed="false">
+								<a4j:region renderRegionOnly="true">
+									<ui:include src="/includes/dynamicOutputComponent.xhtml">
+										<ui:param value="#{allarmiBean.parameters}" name="formParameters" />
+									</ui:include>
+								</a4j:region>		
+						</link:fieldset>
+						<link:fieldset legend="Parametri" rendered="#{(!empty allarmiBean.parameters) and (allarmiBean.allarmiConsultazioneSezioneParametriReadOnly==false)}" collapsible="false" closed="false">
+								<a4j:region renderRegionOnly="true">
+									<ui:include src="/includes/dynamicComponent.xhtml">
+										<ui:param value="#{allarmiBean.parameters}" name="formParameters" />
+									</ui:include>
+								</a4j:region>		
+							</link:fieldset>	
+						
+						<link:fieldset legend="Notifica via Email" rendered="#{allarmiBean.allarmiConsultazioneSezioneNotificaMailReadOnly==false}" collapsible="false" closed="false">
+							
+							<link:prop label="Abilitato">
+								<h:selectOneRadio id="notificaMailAbilitata" styleClass="controlset" value="#{allarmiBean.allarme.inviaEmailAlert}">
+									<f:selectItem itemValue="1" itemLabel="Si"/>
+									<f:selectItem itemValue="0" itemLabel="No"/>
+									<a4j:support event="onclick" reRender="dettaglioMail" ajaxSingle="true"/>
+								</h:selectOneRadio>
+							</link:prop>
+							
+							<a4j:outputPanel id="dettaglioMail" layout="block" >
+							
+								<a4j:outputPanel id="dettaglioMailRendered" layout="block" rendered="#{allarmiBean.allarme.inviaEmailAlert==1}">
+								
+									<link:prop label="Destinatari Email" required="#{allarmiBean.allarme.inviaEmailAlert == 1}"
+										note="Indicare più mail separandole con la virgola ','">
+										<h:inputText id="email" required="#{allarmiBean.allarme.inviaEmailAlert == 1}" 
+											value="#{allarmiBean.allarme.destinatariEmail}" style="width: 432px;">
+											<!-- <f:validator validatorId="multiEmailValidator"/> -->
+		           						</h:inputText>
+									</link:prop>
+									
+									<link:prop label="Notifica Warning">
+										<h:selectOneRadio id="notificaMailWarningAbilitata" styleClass="controlset" value="#{allarmiBean.allarme.inviaEmailWarning}">
+											<f:selectItem itemValue="1" itemLabel="Si"/>
+											<f:selectItem itemValue="0" itemLabel="No"/>
+										</h:selectOneRadio>
+									</link:prop>
+									
+									<a4j:outputPanel id="ConfigMailAvanzata" layout="block" rendered="#{allarmiBean.allarmiNotificaMailVisualizzazioneCompleta}">
+									
+										<link:prop label="Acknowledge"
+											note="Notifica una mail, ad ogni intervallo di frequenza, fino a che non viene effettuato un ack manuale dell'allarme">
+											<h:selectOneRadio id="ackModeMailAbilitata" styleClass="controlset" value="#{allarmiBean.allarme.mailAckMode}">
+												<f:selectItem itemValue="1" itemLabel="Si"/>
+												<f:selectItem itemValue="0" itemLabel="No"/>
+											</h:selectOneRadio>
+										</link:prop>
+										
+										<link:prop label="Subject">
+											<h:inputText id="subjectMail" value="#{allarmiBean.allarme.subjectMail}" style="width: 432px;" styleClass="inputLink"/>
+										</link:prop>
+										
+										<link:prop label="Body">
+											<h:inputTextarea id="bodyMail" value="#{allarmiBean.allarme.bodyMail}" style="width: 432px;" styleClass="inputLink"/>
+										</link:prop>	
+										
+									</a4j:outputPanel>	
+									
+								</a4j:outputPanel>
+		
+							</a4j:outputPanel>
+							
+						</link:fieldset>
+						
+						<link:fieldset legend="Notifica via Email" rendered="#{allarmiBean.allarmiConsultazioneSezioneNotificaMailReadOnly}" collapsible="false" closed="false">
+							
+							<link:prop label="Abilitato">
+								<a4j:outputPanel layout="block" styleClass="divNoEdit">
+									<h:outputText value="Si" readonly="true" style="width: 412px" rendered="#{allarmiBean.allarme.inviaEmailAlert==1}"/>
+									<h:outputText value="No" readonly="true" style="width: 412px" rendered="#{allarmiBean.allarme.inviaEmailAlert==0}"/>
+								</a4j:outputPanel>
+							</link:prop>
+							
+							<a4j:outputPanel id="dettaglioMailRenderedReadOnly" layout="block" rendered="#{allarmiBean.allarme.inviaEmailAlert==1}">
+							
+								<link:prop label="Destinatari Email">
+									<a4j:outputPanel layout="block" styleClass="divNoEdit">
+										<h:outputText value="#{allarmiBean.allarme.destinatariEmail}" readonly="true" style="width: 412px"/>
+									</a4j:outputPanel>
+								</link:prop>
+							
+								<link:prop label="Notifica Warning">
+									<a4j:outputPanel layout="block" styleClass="divNoEdit">
+										<h:outputText value="Si" readonly="true" style="width: 412px" rendered="#{allarmiBean.allarme.inviaEmailWarning==1}"/>
+										<h:outputText value="No" readonly="true" style="width: 412px" rendered="#{allarmiBean.allarme.inviaEmailWarning==0}"/>
+									</a4j:outputPanel>
+								</link:prop>
+								
+								<a4j:outputPanel id="ConfigMailAvanzataReadOnly" layout="block" rendered="#{allarmiBean.allarmiNotificaMailVisualizzazioneCompleta}">
+								
+									<link:prop label="Acknowledge"
+										note="Notifica una mail, ad ogni intervallo di frequenza, fino a che non viene effettuato un ack manuale dell'allarme">
+										<a4j:outputPanel layout="block" styleClass="divNoEdit">
+											<h:outputText value="Si" readonly="true" style="width: 412px" rendered="#{allarmiBean.allarme.mailAckMode==1}"/>
+											<h:outputText value="No" readonly="true" style="width: 412px" rendered="#{allarmiBean.allarme.mailAckMode==0}"/>
+										</a4j:outputPanel>
+									</link:prop>
+									
+									<link:prop label="Subject">
+										<a4j:outputPanel layout="block" styleClass="divNoEdit">
+											<h:outputText id="subjectMailReadOnly" value="#{allarmiBean.allarme.subjectMail}" style="width: 432px;"/>
+										</a4j:outputPanel>
+									</link:prop>
+									
+									<link:prop label="Body">
+										<h:inputTextarea id="bodyMailReadOnly" value="#{allarmiBean.allarme.bodyMail}" readonly="true" style="width: 432px;" styleClass="inputLink"/>
+									</link:prop>	
+									
+								</a4j:outputPanel>	
+							
+							</a4j:outputPanel>
+							
+						</link:fieldset>
+						
+						
+						<link:fieldset legend="Notifica Monitoraggio Esterno" rendered="#{allarmiBean.allarmiConsultazioneSezioneMonitoraggioEsternoReadOnly==false}" collapsible="false" closed="false">
+						
+							<link:prop label="Abilitato">
+								<h:selectOneRadio id="notificaScriptAbilitata" styleClass="controlset" value="#{allarmiBean.allarme.invocaScriptAlert}">
+									<f:selectItem itemValue="1" itemLabel="Si"/>
+									<f:selectItem itemValue="0" itemLabel="No"/>
+									<a4j:support event="onclick" reRender="dettaglioScript" ajaxSingle="true"/>
+								</h:selectOneRadio>
+							</link:prop>
+							
+							<a4j:outputPanel id="dettaglioScript" layout="block" >
+							
+								<a4j:outputPanel id="dettaglioScriptRendered" layout="block" rendered="#{allarmiBean.allarme.invocaScriptAlert==1}">
+																
+									<link:prop label="Notifica Warning">
+										<h:selectOneRadio id="notificaScriptWarningAbilitata" styleClass="controlset" value="#{allarmiBean.allarme.invocaScriptWarning}">
+											<f:selectItem itemValue="1" itemLabel="Si"/>
+											<f:selectItem itemValue="0" itemLabel="No"/>
+										</h:selectOneRadio>
+									</link:prop>
+									
+									<a4j:outputPanel id="ConfigScriptAvanzata" layout="block" rendered="#{allarmiBean.allarmiMonitoraggioEsternoVisualizzazioneCompleta}">
+									
+										<link:prop label="Acknowledge"
+											note="Viene invocato lo script, ad ogni intervallo di frequenza, fino a che non viene effettuato un ack manuale dell'allarme">
+											<h:selectOneRadio id="ackModeScriptAbilitata" styleClass="controlset" value="#{allarmiBean.allarme.scriptAckMode}">
+												<f:selectItem itemValue="1" itemLabel="Si"/>
+												<f:selectItem itemValue="0" itemLabel="No"/>
+											</h:selectOneRadio>
+										</link:prop>
+										
+										<link:prop label="Script Path">
+											<h:inputText id="scriptPath" value="#{allarmiBean.allarme.script}" style="width: 432px;" styleClass="inputLink"/>
+										</link:prop>
+										
+										<link:prop label="Script Arguments">
+											<h:inputText id="scriptArgs" value="#{allarmiBean.allarme.scriptArgs}" style="width: 432px;" styleClass="inputLink"/>
+										</link:prop>
+										
+									</a4j:outputPanel>		
+									
+								</a4j:outputPanel>
+		
+							</a4j:outputPanel>
+							
+						</link:fieldset>
+						
+						<link:fieldset legend="Notifica Monitoraggio Esterno" rendered="#{allarmiBean.allarmiConsultazioneSezioneMonitoraggioEsternoReadOnly}" collapsible="false" closed="false">
+						
+							<link:prop label="Abilitato">
+								<a4j:outputPanel layout="block" styleClass="divNoEdit">
+									<h:outputText value="Si" readonly="true" style="width: 412px" rendered="#{allarmiBean.allarme.invocaScriptAlert==1}"/>
+									<h:outputText value="No" readonly="true" style="width: 412px" rendered="#{allarmiBean.allarme.invocaScriptAlert==0}"/>
+								</a4j:outputPanel>
+							</link:prop>
+						
+							<a4j:outputPanel id="dettaglioScriptRenderedReadOnly" layout="block" rendered="#{allarmiBean.allarme.invocaScriptAlert==1}">
+																
+									<link:prop label="Notifica Warning">
+										<a4j:outputPanel layout="block" styleClass="divNoEdit">
+											<h:outputText value="Si" readonly="true" style="width: 412px" rendered="#{allarmiBean.allarme.invocaScriptWarning==1}"/>
+											<h:outputText value="No" readonly="true" style="width: 412px" rendered="#{allarmiBean.allarme.invocaScriptWarning==0}"/>
+										</a4j:outputPanel>
+									</link:prop>
+									
+									<a4j:outputPanel id="ConfigScriptAvanzataReadOnly" layout="block" rendered="#{allarmiBean.allarmiMonitoraggioEsternoVisualizzazioneCompleta}">
+									
+										<link:prop label="Acknowledge"
+											note="Viene invocato lo script, ad ogni intervallo di frequenza, fino a che non viene effettuato un ack manuale dell'allarme">
+											<a4j:outputPanel layout="block" styleClass="divNoEdit">
+												<h:outputText value="Si" readonly="true" style="width: 412px" rendered="#{allarmiBean.allarme.scriptAckMode==1}"/>
+												<h:outputText value="No" readonly="true" style="width: 412px" rendered="#{allarmiBean.allarme.scriptAckMode==0}"/>
+											</a4j:outputPanel>
+										</link:prop>
+										
+										<link:prop label="Script Path">
+											<a4j:outputPanel layout="block" styleClass="divNoEdit">
+												<h:outputText id="scriptPathReadOnly" value="#{allarmiBean.allarme.script}" style="width: 432px;"/>
+											</a4j:outputPanel>
+										</link:prop>
+										
+										<link:prop label="Script Arguments">
+											<a4j:outputPanel layout="block" styleClass="divNoEdit">
+												<h:outputText id="scriptArgsReadOnly" value="#{allarmiBean.allarme.scriptArgs}" style="width: 432px;"/>
+											</a4j:outputPanel>
+										</link:prop>
+										
+									</a4j:outputPanel>
+									
+							</a4j:outputPanel>
+							
+						</link:fieldset>
+						
+						
+						<div class="buttonrow">
+							<h:commandButton styleClass="icon-save positive" value="Salva" action="#{allarmiBean.salva}" 
+								rendered="#{
+									(allarmiBean.allarme.mailAckMode==1 and allarmiBean.allarme.inviaEmailAlert==1) 
+									or 
+									(allarmiBean.allarmiConsultazioneSezioneNotificaMailReadOnly==false)
+									or
+									(allarmiBean.allarme.scriptAckMode==1 and allarmiBean.allarme.invocaScriptAlert==1)
+									or
+									(allarmiBean.allarmiConsultazioneSezioneMonitoraggioEsternoReadOnly==false)
+									or
+									(allarmiBean.allarmiConsultazioneSezioneParametriReadOnly==false)
+									or
+									(allarmiBean.allarmiConsultazioneModificaStatoAbilitata)
+									}"/>
+						</div>
+					</a4j:form>		
+				</div>
+			</rich:panel>
+		</ui:define>
+	
+</ui:composition>

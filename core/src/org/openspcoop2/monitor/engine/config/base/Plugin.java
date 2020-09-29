@@ -44,7 +44,6 @@ import java.util.List;
  * 			&lt;element name="label" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="1" maxOccurs="1"/&gt;
  * 			&lt;element name="stato" type="{http://www.w3.org/2001/XMLSchema}boolean" minOccurs="0" maxOccurs="1" default="true"/&gt;
  * 			&lt;element name="plugin-servizio-compatibilita" type="{http://www.openspcoop2.org/monitor/engine/config/base}plugin-servizio-compatibilita" minOccurs="0" maxOccurs="unbounded"/&gt;
- * 			&lt;element name="plugin-filtro-compatibilita" type="{http://www.openspcoop2.org/monitor/engine/config/base}plugin-filtro-compatibilita" minOccurs="0" maxOccurs="unbounded"/&gt;
  * 			&lt;element name="plugin-proprieta-compatibilita" type="{http://www.openspcoop2.org/monitor/engine/config/base}plugin-proprieta-compatibilita" minOccurs="0" maxOccurs="unbounded"/&gt;
  * 		&lt;/sequence&gt;
  * &lt;/complexType&gt;
@@ -66,7 +65,6 @@ import java.util.List;
   	"label",
   	"stato",
   	"pluginServizioCompatibilita",
-  	"pluginFiltroCompatibilita",
   	"pluginProprietaCompatibilita"
   }
 )
@@ -89,6 +87,14 @@ public class Plugin extends org.openspcoop2.utils.beans.BaseBean implements Seri
 		this.id=id;
 	else
 		this.id=Long.valueOf(-1);
+  }
+
+  public IdPlugin getOldIdPlugin() {
+    return this.oldIdPlugin;
+  }
+
+  public void setOldIdPlugin(IdPlugin oldIdPlugin) {
+    this.oldIdPlugin=oldIdPlugin;
   }
 
   public java.lang.String getTipoPlugin() {
@@ -167,30 +173,6 @@ public class Plugin extends org.openspcoop2.utils.beans.BaseBean implements Seri
     return this.pluginServizioCompatibilita.size();
   }
 
-  public void addPluginFiltroCompatibilita(PluginFiltroCompatibilita pluginFiltroCompatibilita) {
-    this.pluginFiltroCompatibilita.add(pluginFiltroCompatibilita);
-  }
-
-  public PluginFiltroCompatibilita getPluginFiltroCompatibilita(int index) {
-    return this.pluginFiltroCompatibilita.get( index );
-  }
-
-  public PluginFiltroCompatibilita removePluginFiltroCompatibilita(int index) {
-    return this.pluginFiltroCompatibilita.remove( index );
-  }
-
-  public List<PluginFiltroCompatibilita> getPluginFiltroCompatibilitaList() {
-    return this.pluginFiltroCompatibilita;
-  }
-
-  public void setPluginFiltroCompatibilitaList(List<PluginFiltroCompatibilita> pluginFiltroCompatibilita) {
-    this.pluginFiltroCompatibilita=pluginFiltroCompatibilita;
-  }
-
-  public int sizePluginFiltroCompatibilitaList() {
-    return this.pluginFiltroCompatibilita.size();
-  }
-
   public void addPluginProprietaCompatibilita(PluginProprietaCompatibilita pluginProprietaCompatibilita) {
     this.pluginProprietaCompatibilita.add(pluginProprietaCompatibilita);
   }
@@ -233,6 +215,9 @@ public class Plugin extends org.openspcoop2.utils.beans.BaseBean implements Seri
 	  return org.openspcoop2.monitor.engine.config.base.Plugin.modelStaticInstance;
   }
 
+
+  @javax.xml.bind.annotation.XmlTransient
+  protected IdPlugin oldIdPlugin;
 
   @javax.xml.bind.annotation.XmlSchemaType(name="string")
   @XmlElement(name="tipo-plugin",required=true,nillable=false)
@@ -286,36 +271,6 @@ public class Plugin extends org.openspcoop2.utils.beans.BaseBean implements Seri
   @Deprecated
   public int sizePluginServizioCompatibilita() {
   	return this.pluginServizioCompatibilita.size();
-  }
-
-  @XmlElement(name="plugin-filtro-compatibilita",required=true,nillable=false)
-  protected List<PluginFiltroCompatibilita> pluginFiltroCompatibilita = new ArrayList<PluginFiltroCompatibilita>();
-
-  /**
-   * @deprecated Use method getPluginFiltroCompatibilitaList
-   * @return List&lt;PluginFiltroCompatibilita&gt;
-  */
-  @Deprecated
-  public List<PluginFiltroCompatibilita> getPluginFiltroCompatibilita() {
-  	return this.pluginFiltroCompatibilita;
-  }
-
-  /**
-   * @deprecated Use method setPluginFiltroCompatibilitaList
-   * @param pluginFiltroCompatibilita List&lt;PluginFiltroCompatibilita&gt;
-  */
-  @Deprecated
-  public void setPluginFiltroCompatibilita(List<PluginFiltroCompatibilita> pluginFiltroCompatibilita) {
-  	this.pluginFiltroCompatibilita=pluginFiltroCompatibilita;
-  }
-
-  /**
-   * @deprecated Use method sizePluginFiltroCompatibilitaList
-   * @return lunghezza della lista
-  */
-  @Deprecated
-  public int sizePluginFiltroCompatibilita() {
-  	return this.pluginFiltroCompatibilita.size();
   }
 
   @XmlElement(name="plugin-proprieta-compatibilita",required=true,nillable=false)

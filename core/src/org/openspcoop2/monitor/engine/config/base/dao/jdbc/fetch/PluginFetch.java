@@ -32,7 +32,6 @@ import org.openspcoop2.utils.TipiDatabase;
 import org.openspcoop2.utils.jdbc.IKeyGeneratorObject;
 
 import org.openspcoop2.monitor.engine.config.base.PluginServizioCompatibilita;
-import org.openspcoop2.monitor.engine.config.base.PluginFiltroCompatibilita;
 import org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita;
 import org.openspcoop2.monitor.engine.config.base.PluginServizioAzioneCompatibilita;
 import org.openspcoop2.monitor.engine.config.base.Plugin;
@@ -88,32 +87,6 @@ public class PluginFetch extends AbstractJDBCFetch {
 					jdbcParameterUtilities.readParameter(rs, "id", Long.class));
 				setParameter(object, "setAzione", Plugin.model().PLUGIN_SERVIZIO_COMPATIBILITA.PLUGIN_SERVIZIO_AZIONE_COMPATIBILITA.AZIONE.getFieldType(),
 					jdbcParameterUtilities.readParameter(rs, "azione", Plugin.model().PLUGIN_SERVIZIO_COMPATIBILITA.PLUGIN_SERVIZIO_AZIONE_COMPATIBILITA.AZIONE.getFieldType()));
-				return object;
-			}
-			if(model.equals(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA)){
-				PluginFiltroCompatibilita object = new PluginFiltroCompatibilita();
-				setParameter(object, "setId", Long.class,
-					jdbcParameterUtilities.readParameter(rs, "id", Long.class));
-				setParameter(object, "setTipoMittente", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_MITTENTE.getFieldType(),
-					jdbcParameterUtilities.readParameter(rs, "tipo_mittente", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_MITTENTE.getFieldType()));
-				setParameter(object, "setNomeMittente", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_MITTENTE.getFieldType(),
-					jdbcParameterUtilities.readParameter(rs, "nome_mittente", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_MITTENTE.getFieldType()));
-				setParameter(object, "setIdportaMittente", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.IDPORTA_MITTENTE.getFieldType(),
-					jdbcParameterUtilities.readParameter(rs, "idporta_mittente", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.IDPORTA_MITTENTE.getFieldType()));
-				setParameter(object, "setTipoDestinatario", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_DESTINATARIO.getFieldType(),
-					jdbcParameterUtilities.readParameter(rs, "tipo_destinatario", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_DESTINATARIO.getFieldType()));
-				setParameter(object, "setNomeDestinatario", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_DESTINATARIO.getFieldType(),
-					jdbcParameterUtilities.readParameter(rs, "nome_destinatario", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_DESTINATARIO.getFieldType()));
-				setParameter(object, "setIdportaDestinatario", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.IDPORTA_DESTINATARIO.getFieldType(),
-					jdbcParameterUtilities.readParameter(rs, "idporta_destinatario", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.IDPORTA_DESTINATARIO.getFieldType()));
-				setParameter(object, "setTipoServizio", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_SERVIZIO.getFieldType(),
-					jdbcParameterUtilities.readParameter(rs, "tipo_servizio", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_SERVIZIO.getFieldType()));
-				setParameter(object, "setNomeServizio", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_SERVIZIO.getFieldType(),
-					jdbcParameterUtilities.readParameter(rs, "nome_servizio", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_SERVIZIO.getFieldType()));
-				setParameter(object, "setVersioneServizio", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.VERSIONE_SERVIZIO.getFieldType(),
-					jdbcParameterUtilities.readParameter(rs, "versione_servizio", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.VERSIONE_SERVIZIO.getFieldType()));
-				setParameter(object, "setAzione", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.AZIONE.getFieldType(),
-					jdbcParameterUtilities.readParameter(rs, "azione", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.AZIONE.getFieldType()));
 				return object;
 			}
 			if(model.equals(Plugin.model().PLUGIN_PROPRIETA_COMPATIBILITA)){
@@ -178,32 +151,6 @@ public class PluginFetch extends AbstractJDBCFetch {
 					this.getObjectFromMap(map,"plugin-servizio-compatibilita.plugin-servizio-azione-compatibilita.azione"));
 				return object;
 			}
-			if(model.equals(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA)){
-				PluginFiltroCompatibilita object = new PluginFiltroCompatibilita();
-				setParameter(object, "setId", Long.class,
-					this.getObjectFromMap(map,"plugin-filtro-compatibilita.id"));
-				setParameter(object, "setTipoMittente", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_MITTENTE.getFieldType(),
-					this.getObjectFromMap(map,"plugin-filtro-compatibilita.tipo-mittente"));
-				setParameter(object, "setNomeMittente", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_MITTENTE.getFieldType(),
-					this.getObjectFromMap(map,"plugin-filtro-compatibilita.nome-mittente"));
-				setParameter(object, "setIdportaMittente", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.IDPORTA_MITTENTE.getFieldType(),
-					this.getObjectFromMap(map,"plugin-filtro-compatibilita.idporta-mittente"));
-				setParameter(object, "setTipoDestinatario", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_DESTINATARIO.getFieldType(),
-					this.getObjectFromMap(map,"plugin-filtro-compatibilita.tipo-destinatario"));
-				setParameter(object, "setNomeDestinatario", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_DESTINATARIO.getFieldType(),
-					this.getObjectFromMap(map,"plugin-filtro-compatibilita.nome-destinatario"));
-				setParameter(object, "setIdportaDestinatario", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.IDPORTA_DESTINATARIO.getFieldType(),
-					this.getObjectFromMap(map,"plugin-filtro-compatibilita.idporta-destinatario"));
-				setParameter(object, "setTipoServizio", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.TIPO_SERVIZIO.getFieldType(),
-					this.getObjectFromMap(map,"plugin-filtro-compatibilita.tipo-servizio"));
-				setParameter(object, "setNomeServizio", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.NOME_SERVIZIO.getFieldType(),
-					this.getObjectFromMap(map,"plugin-filtro-compatibilita.nome-servizio"));
-				setParameter(object, "setVersioneServizio", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.VERSIONE_SERVIZIO.getFieldType(),
-					this.getObjectFromMap(map,"plugin-filtro-compatibilita.versione-servizio"));
-				setParameter(object, "setAzione", Plugin.model().PLUGIN_FILTRO_COMPATIBILITA.AZIONE.getFieldType(),
-					this.getObjectFromMap(map,"plugin-filtro-compatibilita.azione"));
-				return object;
-			}
 			if(model.equals(Plugin.model().PLUGIN_PROPRIETA_COMPATIBILITA)){
 				PluginProprietaCompatibilita object = new PluginProprietaCompatibilita();
 				setParameter(object, "setId", Long.class,
@@ -239,9 +186,6 @@ public class PluginFetch extends AbstractJDBCFetch {
 			}
 			if(model.equals(Plugin.model().PLUGIN_SERVIZIO_COMPATIBILITA.PLUGIN_SERVIZIO_AZIONE_COMPATIBILITA)){
 				return new org.openspcoop2.utils.jdbc.CustomKeyGeneratorObject(CostantiDB.REGISTRO_CLASSI_COMPATIBILITA_AZIONE,"id","seq_plugins_azioni_comp","plugins_azioni_comp_init_seq");
-			}
-			if(model.equals(Plugin.model().PLUGIN_FILTRO_COMPATIBILITA)){
-				return new org.openspcoop2.utils.jdbc.CustomKeyGeneratorObject(CostantiDB.REGISTRO_CLASSI_COMPATIBILITA_FILTRO,"id","seq_plugins_filtro_comp","plugins_filtro_comp_init_seq");
 			}
 			if(model.equals(Plugin.model().PLUGIN_PROPRIETA_COMPATIBILITA)){
 				return new org.openspcoop2.utils.jdbc.CustomKeyGeneratorObject(CostantiDB.REGISTRO_CLASSI_COMPATIBILITA_PROPRIETA,"id","seq_plugins_props_comp","plugins_props_comp_init_seq");

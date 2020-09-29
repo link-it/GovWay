@@ -47,7 +47,6 @@ public class PluginModel extends AbstractModel<Plugin> {
 		this.LABEL = new Field("label",java.lang.String.class,"plugin",Plugin.class);
 		this.STATO = new Field("stato",boolean.class,"plugin",Plugin.class);
 		this.PLUGIN_SERVIZIO_COMPATIBILITA = new org.openspcoop2.monitor.engine.config.base.model.PluginServizioCompatibilitaModel(new Field("plugin-servizio-compatibilita",org.openspcoop2.monitor.engine.config.base.PluginServizioCompatibilita.class,"plugin",Plugin.class));
-		this.PLUGIN_FILTRO_COMPATIBILITA = new org.openspcoop2.monitor.engine.config.base.model.PluginFiltroCompatibilitaModel(new Field("plugin-filtro-compatibilita",org.openspcoop2.monitor.engine.config.base.PluginFiltroCompatibilita.class,"plugin",Plugin.class));
 		this.PLUGIN_PROPRIETA_COMPATIBILITA = new org.openspcoop2.monitor.engine.config.base.model.PluginProprietaCompatibilitaModel(new Field("plugin-proprieta-compatibilita",org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita.class,"plugin",Plugin.class));
 	
 	}
@@ -63,7 +62,6 @@ public class PluginModel extends AbstractModel<Plugin> {
 		this.LABEL = new ComplexField(father,"label",java.lang.String.class,"plugin",Plugin.class);
 		this.STATO = new ComplexField(father,"stato",boolean.class,"plugin",Plugin.class);
 		this.PLUGIN_SERVIZIO_COMPATIBILITA = new org.openspcoop2.monitor.engine.config.base.model.PluginServizioCompatibilitaModel(new ComplexField(father,"plugin-servizio-compatibilita",org.openspcoop2.monitor.engine.config.base.PluginServizioCompatibilita.class,"plugin",Plugin.class));
-		this.PLUGIN_FILTRO_COMPATIBILITA = new org.openspcoop2.monitor.engine.config.base.model.PluginFiltroCompatibilitaModel(new ComplexField(father,"plugin-filtro-compatibilita",org.openspcoop2.monitor.engine.config.base.PluginFiltroCompatibilita.class,"plugin",Plugin.class));
 		this.PLUGIN_PROPRIETA_COMPATIBILITA = new org.openspcoop2.monitor.engine.config.base.model.PluginProprietaCompatibilitaModel(new ComplexField(father,"plugin-proprieta-compatibilita",org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita.class,"plugin",Plugin.class));
 	
 	}
@@ -83,8 +81,6 @@ public class PluginModel extends AbstractModel<Plugin> {
 	public IField STATO = null;
 	 
 	public org.openspcoop2.monitor.engine.config.base.model.PluginServizioCompatibilitaModel PLUGIN_SERVIZIO_COMPATIBILITA = null;
-	 
-	public org.openspcoop2.monitor.engine.config.base.model.PluginFiltroCompatibilitaModel PLUGIN_FILTRO_COMPATIBILITA = null;
 	 
 	public org.openspcoop2.monitor.engine.config.base.model.PluginProprietaCompatibilitaModel PLUGIN_PROPRIETA_COMPATIBILITA = null;
 	 

@@ -3842,7 +3842,14 @@ public class DriverControlStationDB  {
 				else{
 					expression.isNull(AttivazionePolicy.model().FILTRO.NOME_EROGATORE);
 				}
-								
+					
+				if(filtro.getTag()!=null){
+					expression.equals(AttivazionePolicy.model().FILTRO.TAG, filtro.getTag());
+				}
+				else{
+					expression.isNull(AttivazionePolicy.model().FILTRO.TAG);
+				}
+				
 				if(filtro.getTipoServizio()!=null){
 					expression.equals(AttivazionePolicy.model().FILTRO.TIPO_SERVIZIO, filtro.getTipoServizio());
 				}
@@ -3854,6 +3861,9 @@ public class DriverControlStationDB  {
 				}
 				else{
 					expression.isNull(AttivazionePolicy.model().FILTRO.NOME_SERVIZIO);
+				}
+				if(filtro.getVersioneServizio()!=null && filtro.getVersioneServizio()>0){
+					expression.equals(AttivazionePolicy.model().FILTRO.VERSIONE_SERVIZIO, filtro.getVersioneServizio());
 				}
 				
 				if(filtro.getAzione()!=null){
@@ -4200,7 +4210,7 @@ public class DriverControlStationDB  {
 		}
 	}
 	public List<IDServizio> getServizi(String protocolloSelezionato,List<String> protocolliSupportati, 
-			String tipoErogatore, String nomeErogatore) throws DriverControlStationException{
+			String tipoErogatore, String nomeErogatore, String tag) throws DriverControlStationException{
 		String nomeMetodo = "getServizi"; 
 		Connection con = null;
 		if (this.atomica) {
@@ -4220,10 +4230,10 @@ public class DriverControlStationDB  {
 		try{
 			org.openspcoop2.core.commons.search.dao.jdbc.JDBCServiceManager serviceManager = RegistroCore.getServiceManager(this.log, this.tipoDB, con);
 			if(protocolloSelezionato!=null) {
-				return RegistroCore.getServizi(serviceManager, protocolloSelezionato, tipoErogatore, nomeErogatore);
+				return RegistroCore.getServizi(serviceManager, protocolloSelezionato, tipoErogatore, nomeErogatore, tag);
 			}
 			else{
-				return RegistroCore.getServizi(serviceManager, protocolliSupportati, tipoErogatore, nomeErogatore);
+				return RegistroCore.getServizi(serviceManager, protocolliSupportati, tipoErogatore, nomeErogatore, tag);
 			}
 		}catch (Exception qe) {
 			throw new DriverControlStationException("[DriverControlStationDB::" + nomeMetodo +"] Errore : " + qe.getMessage(),qe);

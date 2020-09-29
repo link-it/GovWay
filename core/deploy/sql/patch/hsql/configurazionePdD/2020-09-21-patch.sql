@@ -57,3 +57,6 @@ ALTER TABLE registro_plug_jar ALTER COLUMN data SET DEFAULT CURRENT_TIMESTAMP;
 CREATE TABLE registro_plug_jar_init_seq (id BIGINT);
 INSERT INTO registro_plug_jar_init_seq VALUES (NEXT VALUE FOR seq_registro_plug_jar);
 
+-- Aggiunto filtro per tag sul controllo del traffico
+ALTER TABLE ct_active_policy ADD COLUMN filtro_tag VARCHAR(255);
+

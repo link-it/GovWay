@@ -1116,7 +1116,7 @@ public class ConfigurazioneCore extends ControlStationCore {
 		}
 	}
 	public List<IDServizio> getServizi(String protocolloSelezionato,List<String> protocolliSupportati, 
-			String tipoErogatore, String nomeErogatore) throws DriverControlStationException{
+			String tipoErogatore, String nomeErogatore, String tag) throws DriverControlStationException{
 		String nomeMetodo = "getServizi";
 		Connection con = null;
 		DriverControlStationDB driver = null;
@@ -1127,7 +1127,7 @@ public class ConfigurazioneCore extends ControlStationCore {
 			// istanzio il driver
 			driver = new DriverControlStationDB(con, null, this.tipoDB);
 			
-			return driver.getServizi(protocolloSelezionato,protocolliSupportati, tipoErogatore, nomeErogatore);
+			return driver.getServizi(protocolloSelezionato,protocolliSupportati, tipoErogatore, nomeErogatore, tag);
 		} catch (Exception e) {
 			ControlStationCore.log.error("[ControlStationCore::" + nomeMetodo + "] Exception :" + e.getMessage(), e);
 			throw new DriverControlStationException("[ControlStationCore::" + nomeMetodo + "] Error :" + e.getMessage(),e);
