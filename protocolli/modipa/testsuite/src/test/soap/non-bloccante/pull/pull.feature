@@ -4,6 +4,7 @@ Background:
 
 * def url_validazione = govway_base_path + "/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/NonBlockingSoapPullProxy/v1"
 * def url_no_validazione = govway_base_path + "/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/NonBlockingSoapPullNoValidazioneProxy/v1"
+* def url_helper_headers = govway_base_path + "/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/NonBlockingSoapPullHelperHeadersNoValidazioneProxy/v1"
 
 * configure headers = { 'Content-Type': 'application/soap+xml', 'action': url_validazione }
 * def invalid_response = read("invalid-response.xml")
@@ -80,6 +81,7 @@ Scenario: Verifica che la erogazione generi lo header GovWay-Conversation-ID
     And match response == read("recupero-risposta-response.xml")
     And match header GovWay-Conversation-ID == 'd2f49459-1624-4710-b80c-15e33d64b608'
 
+
 # In questo caso l'erogazione aggiunge automaticamente lo header
 # quindi ha senso testare solo la fruizione.
 @no-correlation-in-request-validazione
@@ -136,9 +138,42 @@ Scenario: Testa che l'erogazione si arrabbi se non è presente lo header soap X-
     Then status 500
 
 
-# Controllare che l'erogazione si arrabbi quando non ci metto lo header x-correlation-id nelle richieste stato e richiesta risorsa
-
-
 # Testare la presenza di GovWay-Conversation-ID (solo nella fruizione?)
-Scenario: Test GovWayConversation-ID e GovWayRelates to
+@iniezione-header-soap
+Scenario: Test Iniezione header soap a partire dagli header http di integrazione
+
+    Given url url_helper_headers
+    And request read("richiesta-stato-no-correlation.xml")
+    And header GovWay-TestSuite-Test-Id = 'iniezione-header-soap'
+    And header X-Correlation-ID = "d2f49459-1624-4710-b80c-15e33d64b608"
+    When method post
+    Then status 200
+
+    Given url url_helper_headers
+    And request read("richiesta-stato-no-correlation.xml")
+    And header GovWay-TestSuite-Test-Id = 'iniezione-header-soap'
+    And header GovWay-Conversation-ID = "d2f49459-1624-4710-b80c-15e33d64b608"
+    When method post
+    Then status 200
+
+    Given url url_helper_headers
+    And request read("richiesta-stato-no-correlation.xml")
+    And header GovWay-TestSuite-Test-Id = 'iniezione-header-soap'
+    And param govway_conversation_id = "d2f49459-1624-4710-b80c-15e33d64b608"
+    When method post
+    Then status 200
+
+    Given url url_helper_headers
+    And request read("richiesta-stato-no-correlation.xml")
+    And header GovWay-TestSuite-Test-Id = 'iniezione-header-soap'
+    And header GovWay-Relates-To = "d2f49459-1624-4710-b80c-15e33d64b608"
+    When method post
+    Then status 200
+
+    Given url url_helper_headers
+    And request read("richiesta-stato-no-correlation.xml")
+    And header GovWay-TestSuite-Test-Id = 'iniezione-header-soap'
+    And param govway_relates_to = "d2f49459-1624-4710-b80c-15e33d64b608"
+    When method post
+    Then status 200
 

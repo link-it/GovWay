@@ -55,11 +55,22 @@ Scenario: headerContains('GovWay-TestSuite-Test-Id', 'generazione-header-convers
 * match header GovWay-Conversation-ID == 'd2f49459-1624-4710-b80c-15e33d64b608'
 
 
-# HEADER SOAP X-Correlation-ID non presente nelle richieste stato e risora all'erogazione
+# HEADER SOAP X-Correlation-ID non presente nelle richieste stato e risorsa all'erogazione
+# Secondo il protocollo ModiPA, la fruzione deve far passare la richiesta mentre l'erogazione deve arrabbiarsi
 Scenario: headerContains('GovWay-TestSuite-Test-Id', 'no-correlation-in-soap-header')
 
 * karate.proceed(url_no_validazione)
 * match responseStatus == 500
+
+# INIEZIONE HEADER SOAP A PARTIRE DAGLI HEADER HTTP E PARAMETRI QUERY DI COLLABORAZIONE
+# Come aiuto allo sviluppatore, la fruizione può arricchire il messaggio soap con lo header
+# di collaborazione prendendolo da alcuni campi della richiesta originaria.
+
+Scenario: headerContains('GovWay-TestSuite-Test-Id', 'iniezione-header-soap')
+
+* match bodyPath('/Envelope/Header/X-Correlation-ID') == 'd2f49459-1624-4710-b80c-15e33d64b608'
+* def responseStatus = 200
+* def response = read('classpath:src/test/soap/non-bloccante/pull/richiesta-stato-ready-response.xml')
 
 
 # Catch all

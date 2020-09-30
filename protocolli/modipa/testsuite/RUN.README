@@ -59,3 +59,5 @@ Prerequisiti:
   Per eseguire uno specifico scenario con un determinato tag usare fra le karate.options, l'opzione <--tags>, es:
 	ant run_test -Dtest=NonBloccanteRestTest -Dkarate.options='test/rest/non-bloccante/pull-proxy.feature --tags @no-location-from-status'
 
+  Per evitare la creazione e la cancellazione della configurazione di govway passare i parametri <-Dload=false> e <-Ddelete=false>
+
