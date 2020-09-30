@@ -57,8 +57,10 @@ Scenario: headerContains('GovWay-TestSuite-Test-Id', 'generazione-header-convers
 
 # HEADER SOAP X-Correlation-ID non presente nelle richieste stato e risorsa all'erogazione
 # Secondo il protocollo ModiPA, la fruzione deve far passare la richiesta mentre l'erogazione deve arrabbiarsi
-Scenario: headerContains('GovWay-TestSuite-Test-Id', 'no-correlation-in-soap-header')
 
+Scenario: headerContains('GovWay-TestSuite-Test-Id', 'no-correlation-in-soap-header-erogazione')
+
+* set request = read('classpath:src/test/soap/non-bloccante/pull/richiesta-stato-no-correlation.xml')
 * karate.proceed(url_no_validazione)
 * match responseStatus == 500
 

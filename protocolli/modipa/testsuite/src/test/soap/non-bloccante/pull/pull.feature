@@ -122,20 +122,40 @@ Scenario: Richiesta applicativa senza X-Correlation-ID nella risposta
     And match response == problem
 
 
-@no-correlation-in-soap-header
-Scenario: Testa che l'erogazione si arrabbi se non è presente lo header soap X-Corrleation-ID
+@no-correlation-in-soap-header-fruizione
+Scenario: Testa che la fruizione si arrabbi se non è presente lo header soap X-Corrleation-ID
 
     Given url url_no_validazione
     And request read("richiesta-stato-no-correlation.xml")
-    And header GovWay-TestSuite-Test-Id = 'no-correlation-in-soap-header'
+    #And header GovWay-TestSuite-Test-Id = 'no-correlation-in-soap-header'
     When method post
     Then status 500
+    And match response == read('error-bodies/no-correlation-id-in-request-status.xml')
 
     Given url url_no_validazione
     And request read("recupero-risposta-no-correlation.xml")
-    And header GovWay-TestSuite-Test-Id = 'no-correlation-in-soap-header'
+    #And header GovWay-TestSuite-Test-Id = 'no-correlation-in-soap-header'
     When method post
     Then status 500
+    And match response == read('error-bodies/no-correlation-id-in-request-status.xml')
+
+
+@no-correlation-in-soap-header-erogazione
+Scenario: Testa che la fruizione si arrabbi se non è presente lo header soap X-Corrleation-ID
+
+    Given url url_no_validazione
+    And request read("richiesta-stato-ready.xml")
+    And header GovWay-TestSuite-Test-Id = 'no-correlation-in-soap-header-erogazione'
+    When method post
+    Then status 500
+    And match response == read('error-bodies/no-correlation-id-in-request-status.xml')
+
+    # Given url url_no_validazione
+    # And request read("recupero-risposta.xml")
+    # And header GovWay-TestSuite-Test-Id = 'no-correlation-in-soap-header-erogazione'
+    # When method post
+    # Then status 500
+    # And match response == read('error-bodies/no-correlation-id-in-request-status.xml')
 
 
 # Testare la presenza di GovWay-Conversation-ID (solo nella fruizione?)

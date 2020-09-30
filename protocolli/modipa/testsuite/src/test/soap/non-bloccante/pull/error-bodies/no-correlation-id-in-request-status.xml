@@ -18,7 +18,7 @@
                     <title>BadRequest</title>
                     <status>400</status>
                     <detail>Il servizio richiede una funzionalità non supportata dal protocollo modipa: Header SOAP 'X-Correlation-ID', richiesto dal profilo non bloccante PULL, non trovato</detail>
-                    <govway_id>110fc7ef-59eb-4361-87fb-be91f39a8439</govway_id>
+                    <govway_id>#string</govway_id>
                 </problem>
             </env:Detail>
         </env:Fault>
