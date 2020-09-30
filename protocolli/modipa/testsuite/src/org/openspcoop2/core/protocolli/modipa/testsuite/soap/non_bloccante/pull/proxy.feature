@@ -16,38 +16,50 @@ Scenario: methodIs('post') && headerContains('GovWay-TestSuite-Test-Id', 'no-cor
 * def responseStatus = 200
 
 
-Scenario: methodIs('post') && headerContains('GovWay-TestSuite-Test-Id', 'no-correlation-in-request-erogazione-validazione')
-
-* karate.proceed(url_validazione)
-
-* match responseStatus == 500
-* match response == invalid_response
-
-
 Scenario: methodIs('post') && headerContains('GovWay-TestSuite-Test-Id', 'no-correlation-in-request-fruizione')
 
 * def response = read('classpath:src/test/soap/non-bloccante/pull/richiesta-applicativa-no-correlation-response.xml')
 * def responseStatus = 200
 
-# Controllo che l'erogazione abbia impostato il transaction ID come id di correlazione nello header soap
+
+# GENERAZIONE HEADER SOAP X-Correlation-ID da parte dell'erogazione
+
 Scenario: headerContains('GovWay-TestSuite-Test-Id', 'generazione-header-correlazione')
 
 * karate.proceed(url_validazione)
 
-# Scenario: methodIs('post') && headerContains('GovWay-TestSuite-Test-Id', 'no-correlation-in-request-fruizione-disclosure')
-
-# * def response = read('classpath:src/test/soap/non-bloccante/pull/richiesta-applicativa-no-correlation-response.xml')
-# * def responseStatus = 200
+* match /Envelope/Header/X-Correlation-ID == responseHeaders['GovWay-Transaction-ID'][0]
+* match responseHeaders['GovWay-Transaction-ID'][0] == responseHeaders['GovWay-Conversation-ID'][0]
 
 
-Scenario: methodIs('post') && headerContains('GovWay-TestSuite-Test-Id', 'no-correlation-in-request-erogazione')
+# GENERAZIONE HEADER GovWay-Conversation-ID DA PARTE DELL'EROGAZIONE
+
+Scenario: headerContains('GovWay-TestSuite-Test-Id', 'generazione-header-conversation-id-richiesta')
+
+* karate.proceed(url_validazione)
+* match header GovWay-Conversation-ID == 'd2f49459-1624-4710-b80c-15e33d64b608'
+
+Scenario: headerContains('GovWay-TestSuite-Test-Id', 'generazione-header-conversation-id-stato')
+
+* karate.proceed(url_validazione)
+* match header GovWay-Conversation-ID == 'd2f49459-1624-4710-b80c-15e33d64b608_NOT_READY'
+
+Scenario: headerContains('GovWay-TestSuite-Test-Id', 'generazione-header-conversation-id-stato-ready')
+
+* karate.proceed(url_validazione)
+* match header GovWay-Conversation-ID == 'd2f49459-1624-4710-b80c-15e33d64b608'
+
+Scenario: headerContains('GovWay-TestSuite-Test-Id', 'generazione-header-conversation-id-risposta')
+
+* karate.proceed(url_validazione)
+* match header GovWay-Conversation-ID == 'd2f49459-1624-4710-b80c-15e33d64b608'
+
+
+# HEADER SOAP X-Correlation-ID non presente nelle richieste stato e risora all'erogazione
+Scenario: headerContains('GovWay-TestSuite-Test-Id', 'no-correlation-in-soap-header')
 
 * karate.proceed(url_no_validazione)
-
 * match responseStatus == 500
-* match response == invalid_response
-
-
 
 
 # Catch all
