@@ -1844,10 +1844,20 @@ public class InoltroBuste extends GenericLib{
 					esito.setEsitoInvocazione(true);
 				}else{
 					if(sendRispostaApplicativa){
+						
+						ErroreIntegrazione erroreIntegrazione = null;
+						if(e!=null && e instanceof ProtocolException && ((ProtocolException)e).isInteroperabilityError() ) {
+							erroreIntegrazione = ErroriIntegrazione.ERRORE_439_FUNZIONALITA_NOT_SUPPORTED_BY_PROTOCOL.
+									getErrore439_FunzionalitaNotSupportedByProtocol(e.getMessage(), protocolFactory);
+						}
+						else {
+							erroreIntegrazione = ErroriIntegrazione.ERRORE_5XX_GENERICO_PROCESSAMENTO_MESSAGGIO.
+									get5XX_ErroreProcessamento(CodiceErroreIntegrazione.CODICE_526_GESTIONE_IMBUSTAMENTO);
+						}
+						
 						OpenSPCoop2Message responseMessageError = 
 								this.generatoreErrore.build(pddContext,IntegrationFunctionError.INTEROPERABILITY_PROFILE_ENVELOPING_REQUEST_FAILED,
-										ErroriIntegrazione.ERRORE_5XX_GENERICO_PROCESSAMENTO_MESSAGGIO.
-											get5XX_ErroreProcessamento(CodiceErroreIntegrazione.CODICE_526_GESTIONE_IMBUSTAMENTO),e,
+										erroreIntegrazione,e,
 												(responseMessage!=null ? responseMessage.getParseException() : null));
 						ejbUtils.sendRispostaApplicativaErrore(responseMessageError,richiestaDelegata,rollbackRichiesta,pd,sa);
 						esito.setStatoInvocazione(EsitoLib.ERRORE_GESTITO,msgErroreImbusta);

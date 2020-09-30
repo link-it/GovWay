@@ -7517,7 +7517,7 @@ public class RicezioneBuste {
 					
 					parametriGenerazioneBustaErrore.setBusta(bustaRichiesta);
 					parametriGenerazioneBustaErrore.setIntegrationFunctionError(IntegrationFunctionError.INTEROPERABILITY_PROFILE_ENVELOPING_RESPONSE_FAILED);
-					if(e instanceof ProtocolException && ((ProtocolException)e).isInteroperabilityError() ) {
+					if(e!=null && e instanceof ProtocolException && ((ProtocolException)e).isInteroperabilityError() ) {
 						parametriGenerazioneBustaErrore.setErroreCooperazione(ErroriCooperazione.ERRORE_GENERICO_PROTOCOLLO_NON_CORRETTO.
 								getErroreCooperazione(e.getMessage()));
 						errorOpenSPCoopMsg = generaBustaErroreValidazione(parametriGenerazioneBustaErrore);
