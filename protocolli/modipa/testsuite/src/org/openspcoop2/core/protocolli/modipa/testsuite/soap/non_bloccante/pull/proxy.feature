@@ -84,6 +84,12 @@ Scenario: headerContains('GovWay-TestSuite-Test-Id', 'iniezione-header-soap')
 * def responseStatus = 200
 * def response = read('classpath:src/test/soap/non-bloccante/pull/richiesta-stato-ready-response.xml')
 
+Scenario: headerContains('GovWay-TestSuite-Test-Id', 'iniezione-header-soap-risposta')
+
+* match bodyPath('/Envelope/Header/X-Correlation-ID') == 'd2f49459-1624-4710-b80c-15e33d64b608'
+* def responseStatus = 200
+* def response = read('classpath:src/test/soap/non-bloccante/pull/recupero-risposta-response.xml')
+
 
 # Catch all
 

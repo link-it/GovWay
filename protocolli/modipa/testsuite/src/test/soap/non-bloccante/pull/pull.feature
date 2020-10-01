@@ -255,6 +255,17 @@ Scenario: Test Iniezione header soap a partire dagli header http di integrazione
     * call check_traccia_richiesta_stato ({tid: responseHeaders['GovWay-Transaction-ID'][0], cid: task_id })
     * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_id })
 
+    Given url url_validazione
+    And request read("recupero-risposta-no-correlation.xml")
+    And header GovWay-TestSuite-Test-Id = 'iniezione-header-soap-risposta'
+    And header X-Correlation-ID = task_id
+    When method post
+    Then status 200
+    And match response == read('recupero-risposta-response.xml')
+
+    * call check_traccia_risposta ({tid: responseHeaders['GovWay-Transaction-ID'][0], cid: task_id })
+    * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_id })
+
 
 @iniezione-header-soap-id-collaborazione
 Scenario: Test iniezione header soap per mezzo del parametro query o header http GovWay-Conversation-Id
@@ -282,6 +293,26 @@ Scenario: Test iniezione header soap per mezzo del parametro query o header http
     * call check_traccia_richiesta_stato ({tid: responseHeaders['GovWay-Transaction-ID'][0], cid: task_id })
     * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_id })
 
+    Given url url_helper_id_collaborazione
+    And request read("recupero-risposta-no-correlation.xml")
+    And header GovWay-TestSuite-Test-Id = 'iniezione-header-soap-risposta'
+    And header GovWay-Conversation-ID = task_id
+    When method post
+    Then status 200
+
+    * call check_traccia_risposta ({tid: responseHeaders['GovWay-Transaction-ID'][0], cid: task_id })
+    * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_id })
+
+    Given url url_helper_id_collaborazione
+    And request read("recupero-risposta-no-correlation.xml")
+    And header GovWay-TestSuite-Test-Id = 'iniezione-header-soap-risposta'
+    And param govway_conversation_id = task_id
+    When method post
+    Then status 200
+
+    * call check_traccia_risposta ({tid: responseHeaders['GovWay-Transaction-ID'][0], cid: task_id })
+    * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_id })
+
 
 @iniezione-header-soap-riferimento-id-richiesta
 Scenario: Test iniezione header soap per mezzo del parametro query o header http GovWay-Relates-To
@@ -307,5 +338,25 @@ Scenario: Test iniezione header soap per mezzo del parametro query o header http
     Then status 200
 
     * call check_traccia_richiesta_stato ({tid: responseHeaders['GovWay-Transaction-ID'][0], cid: task_id })
+    * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_id })
+
+    Given url url_helper_riferimento_id_richiesta
+    And request read("recupero-risposta-no-correlation.xml")
+    And header GovWay-TestSuite-Test-Id = 'iniezione-header-soap-risposta'
+    And header GovWay-Relates-To = task_id
+    When method post
+    Then status 200
+
+    * call check_traccia_risposta ({tid: responseHeaders['GovWay-Transaction-ID'][0], cid: task_id })
+    * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_id })
+
+    Given url url_helper_riferimento_id_richiesta
+    And request read("recupero-risposta-no-correlation.xml")
+    And header GovWay-TestSuite-Test-Id = 'iniezione-header-soap-risposta'
+    And param govway_relates_to = task_id
+    When method post
+    Then status 200
+
+    * call check_traccia_risposta ({tid: responseHeaders['GovWay-Transaction-ID'][0], cid: task_id })
     * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_id })
 
