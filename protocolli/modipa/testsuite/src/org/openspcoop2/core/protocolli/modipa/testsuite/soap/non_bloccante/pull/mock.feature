@@ -46,6 +46,7 @@ Scenario: methodIs('post') && headerContains('GovWay-TestSuite-Test-Id', 'no-cor
 Scenario: headerContains('GovWay-TestSuite-Test-Id', 'generazione-header-correlazione')
 
 * def response = read('classpath:src/test/soap/non-bloccante/pull/richiesta-applicativa-no-correlation-response.xml')
+* def responseHeaders = ({ 'GovWay-TestSuite-GovWay-Transaction-ID': requestHeaders['GovWay-Transaction-ID'][0] })
 * def responseStatus = 200
 
 
