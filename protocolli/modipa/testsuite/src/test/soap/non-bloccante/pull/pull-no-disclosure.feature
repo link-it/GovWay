@@ -8,7 +8,7 @@ Background:
 * def result = callonce read('classpath:utils/jmx-disable-error-disclosure.feature')
 
 * configure headers = { 'Content-Type': 'application/soap+xml', 'action': url_validazione }
-* def problem = read("invalid-response.xml")
+* def problem = read("error-bodies/invalid-response.xml")
 
 * def check_traccia_richiesta = read('./check-tracce/richiesta.feature')
 * def check_traccia_richiesta_stato = read('./check-tracce/richiesta-stato.feature')
@@ -59,27 +59,13 @@ Scenario: Testa che la fruizione si arrabbi se nelle richieste non è presente l
     Then status 500
     And match response == read('error-bodies/no-correlation-id-in-request-status-no-disclosure.xml')
     
-    
-
-    # TODO: NOTA 1: Quando la fruizione si arrabbia, non scrive nulla 
-    # Inoltre, l'iniezione degli header secondo la documentazione avviene solo nella richiesta stato, quindi
-    # nel recupero della risorsa non avviene?
-    # * call check_traccia_richiesta_stato ({tid: responseHeaders['GovWay-Transaction-ID'][0], cid: null })
-    # * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: null })
-    # TODO: Nota 2: quando lo header soap non è presente, la fruizione mi da un generico bad request, mentre l'erogazione mi dice
-    #   più precisamente che l'errore è un errore di interoperabilità
 
     Given url url_no_validazione
     And request read("recupero-risposta-no-correlation.xml")
     When method post
     Then status 500
     And match response == read('error-bodies/no-correlation-id-in-request-status-no-disclosure.xml')
-    
-    #read('error-bodies/no-correlation-id-in-request-status.xml')
 
-    # Anche qui, non viene scritto nulla
-    # * call check_traccia_risposta ({tid: responseHeaders['GovWay-Transaction-ID'][0], cid: null })
-    # * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: null })
 
 @no-correlation-in-soap-header-erogazione
 Scenario: Testa che l'erogazione si arrabbi se non è presente lo header soap X-Corrleation-ID nella

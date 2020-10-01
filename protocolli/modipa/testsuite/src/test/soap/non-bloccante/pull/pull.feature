@@ -7,7 +7,6 @@ Background:
 * def url_helper_headers = govway_base_path + "/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/NonBlockingSoapPullHelperHeadersNoValidazioneProxy/v1"
 
 * configure headers = { 'Content-Type': 'application/soap+xml', 'action': url_validazione }
-* def invalid_response = read("invalid-response.xml")
 
 * def result = callonce read('classpath:utils/jmx-enable-error-disclosure.feature')
 * configure afterFeature = function(){ karate.call('classpath:utils/jmx-disable-error-disclosure.feature'); }
@@ -205,22 +204,11 @@ Scenario: Testa che la fruizione si arrabbi se non è presente lo header soap X-
     Then status 500
     And match response == read('error-bodies/no-correlation-id-in-request-status.xml')
 
-    # TODO: NOTA 1: Quando la fruizione si arrabbia, non scrive nulla 
-    # Inoltre, l'iniezione degli header secondo la documentazione avviene solo nella richiesta stato, quindi
-    # nel recupero della risorsa non avviene?
-    # * call check_traccia_richiesta_stato ({tid: responseHeaders['GovWay-Transaction-ID'][0], cid: null })
-    # * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: null })
-
     Given url url_no_validazione
     And request read("recupero-risposta-no-correlation.xml")
     When method post
     Then status 500
-    And match response == read('error-bodies/no-correlation-id-in-request-status.xml')
-
-    # Anche qui, non viene scritto nulla
-    # * call check_traccia_risposta ({tid: responseHeaders['GovWay-Transaction-ID'][0], cid: null })
-    # * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: null })
-    
+    And match response == read('error-bodies/no-correlation-id-in-request-status.xml')    
 
 
 @no-correlation-in-soap-header-erogazione

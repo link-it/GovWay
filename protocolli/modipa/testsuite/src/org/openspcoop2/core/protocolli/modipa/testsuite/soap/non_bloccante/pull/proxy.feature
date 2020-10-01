@@ -5,7 +5,6 @@ Background:
 * def url_no_validazione = govway_base_path + "/soap/in/DemoSoggettoErogatore/NonBlockingSoapPullNoValidazione/v1"
 * def url_helper_headers = govway_base_path + "/soap/in/DemoSoggettoErogatore/NonBlockingSoapPullHelperHeadersNoValidazione/v1"
 
-* def invalid_response = read("classpath:src/test/soap/non-bloccante/pull/invalid-response.xml")
 
 * configure responseHeaders = { 'Content-type': "application/soap+xml" }
 
