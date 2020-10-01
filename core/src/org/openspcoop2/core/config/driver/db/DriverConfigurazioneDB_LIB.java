@@ -8688,11 +8688,10 @@ public class DriverConfigurazioneDB_LIB {
 			}
 			
 			ISQLQueryObject sqlQueryObject = SQLObjectFactory.createSQLQueryObject(DriverConfigurazioneDB_LIB.tipoDB);
-			sqlQueryObject.addFromTable(CostantiDB.REGISTRO_PLUGINS);
+			sqlQueryObject.addUpdateTable(CostantiDB.REGISTRO_PLUGINS);
 			sqlQueryObject.addUpdateField("nome", "?");
 			sqlQueryObject.addUpdateField("posizione", "?");
 			sqlQueryObject.addUpdateField("stato", "?");
-			sqlQueryObject.addUpdateField("nome", "?");
 			sqlQueryObject.addUpdateField("descrizione", "?");
 			sqlQueryObject.addUpdateField("data", "?");
 			sqlQueryObject.addUpdateField("compatibilita", "?");
@@ -8878,7 +8877,7 @@ public class DriverConfigurazioneDB_LIB {
 				sqlQueryObject.addWhereCondition("id_plugin = ?");
 				sqlQueryObject.addWhereCondition("nome = ?");
 				sqlQueryObject.setANDLogicOperator(true);
-				updateQuery = sqlQueryObject.createSQLUpdate();
+				updateQuery = sqlQueryObject.createSQLDelete();
 				updateStmt = con.prepareStatement(updateQuery);
 				index = 1;
 				updateStmt.setLong(index++, idParent);

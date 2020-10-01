@@ -95,7 +95,7 @@ public final class ConfigurazionePluginsArchiviJarDel extends Action {
 				archiviToRemove.add(archivio);
 			}
 
-			Object[] oggetti = archiviToRemove.toArray(new RegistroPlugin[archiviToRemove.size()]); 
+			Object[] oggetti = archiviToRemove.toArray(new RegistroPluginArchivio[archiviToRemove.size()]); 
 			confCore.performDeleteOperation(userLogin, confHelper.smista(), oggetti); 
 			
 			registro.setData(new Date());

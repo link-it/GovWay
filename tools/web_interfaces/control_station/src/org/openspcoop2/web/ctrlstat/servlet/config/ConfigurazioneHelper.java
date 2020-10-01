@@ -40,7 +40,6 @@ import java.util.Vector;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.openspcoop2.core.commons.Filtri;
@@ -129,6 +128,7 @@ import org.openspcoop2.core.transazioni.utils.TipoCredenzialeMittente;
 import org.openspcoop2.generic_project.exception.NotFoundException;
 import org.openspcoop2.generic_project.exception.NotImplementedException;
 import org.openspcoop2.message.constants.ServiceBinding;
+import org.openspcoop2.monitor.engine.config.base.Plugin;
 import org.openspcoop2.monitor.engine.config.base.constants.TipoPlugin;
 import org.openspcoop2.pdd.config.ConfigurazionePdD;
 import org.openspcoop2.pdd.core.CostantiPdD;
@@ -15882,7 +15882,7 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 		de = new DataElement();
 		de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_DESCRIZIONE);
 		de.setValue(descrizione);
-		de.setType(DataElementType.TEXT_AREA);
+		de.setType(DataElementType.TEXT_EDIT);
 		de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_DESCRIZIONE);
 		de.setSize(this.getSize());
 		dati.addElement(de);
@@ -15895,7 +15895,7 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 			de = new DataElement();
 			de.setType(DataElementType.LINK);
 			de.setUrl(ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_PLUGINS_ARCHIVI_JAR_LIST ,
-					new Parameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_OLD_NOME, oldNome));
+					new Parameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_NOME, oldNome));
 			Boolean contaListe = ServletUtils.getContaListeFromSession(this.session);
 			if (contaListe)
 				de.setValue(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_REGISTRO_ARCHIVI_ARCHIVI_JAR +" (" + numeroArchivi + ")");
@@ -16169,10 +16169,8 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 
 			// setto le label delle colonne	
 			List<String> lstLabels = new ArrayList<>();
-			if(lista != null && lista.size() > 1)
-				lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_POSIZIONE);
-			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_STATO);
 			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_NOME);
+			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_SORGENTE);
 			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_ULTIMO_AGGIORNAMENTO);
 			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_APPLICABILITA);
 			this.pd.setLabels(lstLabels.toArray(new String [lstLabels.size()]));
@@ -16196,7 +16194,7 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 					de.setToolTip(registro.getNome());
 					e.addElement(de);
 					
-					// tipo
+					// sorgente
 					de = new DataElement();
 					PluginSorgenteArchivio sorgente = registro.getSorgente();
 					switch (sorgente) {
@@ -16234,6 +16232,354 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 			this.pd.setDati(dati);
 			this.pd.setAddButton(true);
 			this.pd.setRemoveButton(visualizzaElimina);
+		} catch (Exception e) {
+			this.log.error("Exception: " + e.getMessage(), e);
+			throw new Exception(e);
+		}
+	}
+	
+	// Prepara la lista delle classi di plugin configurate
+	public void preparePluginsClassiList(ISearch ricerca, List<Plugin> lista) throws Exception {
+		try {
+			ServletUtils.addListElementIntoSession(this.session, ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_PLUGINS_CLASSI);
+
+			int idLista = Liste.CONFIGURAZIONE_PLUGINS_CLASSI;
+			int limit = ricerca.getPageSize(idLista);
+			int offset = ricerca.getIndexIniziale(idLista);
+			String search = ServletUtils.getSearchFromSession(ricerca, idLista);
+
+			this.pd.setIndex(offset);
+			this.pd.setPageSize(limit);
+			this.pd.setNumEntries(ricerca.getNumEntries(idLista));
+			
+			String filterTipo = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_TIPO_PLUGIN_CLASSI);
+			this.addFilterTipoPlugin(filterTipo, true);
+
+			// filtro dinamico in base al tipo plugin
+			if(!filterTipo.equals("")) {
+				ConfigurazionePluginsTipoPluginUtils.addFiltriSpecificiTipoPlugin(this.pd, this.log, ricerca, idLista, filterTipo, this.getSize());
+			}
+			
+			// setto la barra del titolo
+			List<Parameter> lstParam = new ArrayList<Parameter>();
+
+			lstParam.add(new Parameter(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_GENERALE, ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_GENERALE));
+			
+			
+			this.pd.setSearchLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_LABEL);
+			if(search.equals("")){
+				this.pd.setSearchDescription("");
+				lstParam.add(new Parameter(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_REGISTRO_CLASSI, null));
+			}else{
+				lstParam.add(new Parameter(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_REGISTRO_CLASSI, ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_PLUGINS_CLASSI_LIST));
+				lstParam.add(new Parameter(Costanti.PAGE_DATA_TITLE_LABEL_RISULTATI_RICERCA, null));
+			}
+
+			ServletUtils.setPageDataTitle(this.pd, lstParam);
+			
+			// controllo eventuali risultati ricerca
+			if (!search.equals("")) {
+				ServletUtils.enabledPageDataSearch(this.pd, ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_LABEL, search);
+			}
+
+			// setto le label delle colonne	
+			List<String> lstLabels = new ArrayList<>();
+			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_STATO);
+			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_TIPO_PLUGIN);
+			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_TIPO);
+			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_APPLICABILITA);
+			this.pd.setLabels(lstLabels.toArray(new String [lstLabels.size()]));
+
+			// preparo i dati
+			Vector<Vector<DataElement>> dati = new Vector<Vector<DataElement>>();
+
+			if (lista != null) {
+				Iterator<Plugin> it = lista.iterator();
+				while (it.hasNext()) {
+					Plugin registro = it.next();
+					
+					Vector<DataElement> e = new Vector<DataElement>();
+					Parameter pIdRegistro = new Parameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_ID_PLUGIN, registro.getId() + "");
+					
+					// Stato 
+					DataElement de = new DataElement();
+					de.setWidthPx(10);
+					de.setType(DataElementType.CHECKBOX);
+					if(registro.getStato()){
+						de.setToolTip(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_STATO_ABILITATO);
+						de.setValue(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_STATO_ABILITATO);
+						de.setSelected(CheckboxStatusType.CONFIG_ENABLE);
+					}
+					else{
+						de.setToolTip(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_STATO_DISABILITATO);
+						de.setValue(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_STATO_DISABILITATO);
+						de.setSelected(CheckboxStatusType.CONFIG_DISABLE);
+					}
+//						de.setUrl(ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_PLUGINS_ARCHIVI_CHANGE, pNomeRegola);
+					e.addElement(de);
+					
+					
+					// tipo plugin
+					de = new DataElement();
+					de.setIdToRemove(registro.getId() + "");
+					TipoPlugin tipoPlugin = TipoPlugin.toEnumConstant(registro.getTipoPlugin());
+					String tipoPluginLabel = ConfigurazionePluginsTipoPluginUtils.tipoPluginToLabel(tipoPlugin);
+					de.setValue(tipoPluginLabel);
+					de.setToolTip(tipoPluginLabel);
+					de.setUrl(ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_PLUGINS_CLASSI_CHANGE, pIdRegistro);
+					e.addElement(de);
+					
+					// tipo
+					de = new DataElement();
+					de.setValue(registro.getLabel());
+					e.addElement(de);
+					
+					// applicabilita
+					de = new DataElement();
+					String applicabilita = ConfigurazionePluginsTipoPluginUtils.getApplicabilitaClassePlugin(registro);
+					if(applicabilita != null) {
+						if(applicabilita.length() > 100) {
+							de.setValue(applicabilita.substring(0, 97)+"...");
+							de.setToolTip(applicabilita);
+						} else {
+							de.setValue(applicabilita);
+						}
+					}else {
+						de.setValue("--");
+					}
+					
+					e.addElement(de);
+					
+					dati.addElement(e);
+				}
+			}
+
+			this.pd.setDati(dati);
+			this.pd.setAddButton(true);
+		} catch (Exception e) {
+			this.log.error("Exception: " + e.getMessage(), e);
+			throw new Exception(e);
+		}
+	}
+	public Vector<DataElement> addPluginClassiToDati(TipoOperazione tipoOp, Vector<DataElement> dati, String idPluginS,
+			TipoPlugin tipoPlugin, String tipo, String label, String className, String stato, String descrizione, String ruolo,
+			String shTipo, String mhTipo, String mhRuolo) {
+		
+		DataElement dataElement = new DataElement();
+		dataElement.setLabel(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_PLUGINS_CLASSI_PLUGIN);
+		dataElement.setType(DataElementType.TITLE);
+		dati.add(dataElement);
+		
+		// tipoPlugin
+		DataElement de = new DataElement();
+		de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_TIPO_PLUGIN);
+		de.setLabels(ConfigurazionePluginsTipoPluginUtils.getLabelsTipoPlugin());
+		de.setValues(ConfigurazionePluginsTipoPluginUtils.getValuesTipoPlugin());
+		de.setType(DataElementType.SELECT);
+		de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_TIPO_PLUGIN);
+		de.setSelected(tipoPlugin.toString());
+		de.setRequired(true);
+		de.setPostBack(true);
+		dati.addElement(de);
+		
+		if(tipoOp.equals(TipoOperazione.ADD)) {
+			
+		} else {
+			de = new DataElement();
+			de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_ID_PLUGIN);
+			de.setValue(idPluginS);
+			de.setType(DataElementType.HIDDEN);
+			de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_ID_PLUGIN);
+			de.setSize(getSize());
+			dati.addElement(de);
+		}
+		
+		// sezione dinamica
+		dati = ConfigurazionePluginsTipoPluginUtils.getSezioneDinamicaClassePlugin(dati, tipoPlugin, ruolo, shTipo, mhTipo, mhRuolo);
+		
+		// tipo
+		de = new DataElement();
+		de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_TIPO);
+		de.setValue(tipo);
+		de.setType(DataElementType.TEXT_EDIT);
+		de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_TIPO);
+		de.setSize(this.getSize());
+		de.setRequired(true);
+		dati.addElement(de);
+		
+		// class name
+		de = new DataElement();
+		de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_CLASS_NAME);
+		de.setValue(className);
+		de.setType(DataElementType.TEXT_EDIT);
+		de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_CLASS_NAME);
+		de.setSize(this.getSize());
+		de.setRequired(true);
+		dati.addElement(de);
+		
+		// label
+		de = new DataElement();
+		de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_LABEL);
+		de.setValue(label);
+		de.setType(DataElementType.TEXT_EDIT);
+		de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_LABEL);
+		de.setSize(this.getSize());
+		de.setRequired(true);
+		dati.addElement(de);
+		
+		// stato
+		de = new DataElement();
+		de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_STATO);
+		String [] labelsStato = {StatoFunzionalita.ABILITATO.toString(), StatoFunzionalita.DISABILITATO.toString()};
+		String [] valuesStato = {StatoFunzionalita.ABILITATO.toString(), StatoFunzionalita.DISABILITATO.toString()};
+		de.setLabels(labelsStato);
+		de.setValues(valuesStato);
+		de.setType(DataElementType.SELECT);
+		de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_STATO);
+		de.setSelected(stato);
+		dati.addElement(de);
+		
+		// descrizione
+		de = new DataElement();
+		de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_DESCRIZIONE);
+		de.setValue(descrizione);
+		de.setType(DataElementType.TEXT_EDIT);
+		de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_DESCRIZIONE);
+		de.setSize(this.getSize());
+		dati.addElement(de);
+		
+		return dati;
+	}
+	
+	public boolean pluginClassiCheckData(TipoOperazione tipoOp, Plugin oldPlugin, String idPluginS, TipoPlugin tipoPlugin, String tipo,
+			String label, String className, String stato, String descrizione, String ruolo, String shTipo, String mhTipo, String mhRuolo) throws Exception {
+		
+		try {
+			
+			// tipo plugin
+			if(tipoPlugin==null) {
+				this.pd.setMessage("Indicare un valore nel campo '"+ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_TIPO_PLUGIN+"'");
+				return false;
+			}
+			
+			// sezione dinamica
+			
+			
+			// tipo
+			if(tipo==null || "".equals(tipo)) {
+				this.pd.setMessage("Indicare un valore nel campo '"+ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_TIPO+"'");
+				return false;
+			}
+			if(!this.checkLength255(tipo, ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_TIPO)) {
+				return false;
+			}
+			
+			// label
+			if(label==null || "".equals(label)) {
+				this.pd.setMessage("Indicare un valore nel campo '"+ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_LABEL+"'");
+				return false;
+			}
+			
+			if(!this.checkLength255(label, ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_LABEL)) {
+				return false;
+			}
+			
+			// classname
+			if(className==null || "".equals(className)) {
+				this.pd.setMessage("Indicare un valore nel campo '"+ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_CLASS_NAME+"'");
+				return false;
+			}
+			if(!this.checkLength255(className, ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_CLASS_NAME)) {
+				return false;
+			}
+			
+			if(!this.checkLength255(descrizione, ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_DESCRIZIONE)) {
+				return false;
+			}
+			
+			// Se tipoOp = add, controllo che l'archivio non sia gia' stato registrato
+			boolean existsPlugin = this.confCore.existsPlugin(tipoPlugin, tipo, label, className); 
+						
+			if (tipoOp.equals(TipoOperazione.ADD)) {
+				if (existsPlugin) {
+					this.pd.setMessage(ConfigurazioneCostanti.MESSAGGIO_ERRORE_PLUGINS_PLUGIN_DUPLICATO);
+					return false;
+				}
+			} else {
+				// controllo che le modifiche ai parametri non coincidano con altre regole gia' presenti
+				TipoPlugin oldTipoPlugin = TipoPlugin.toEnumConstant(oldPlugin.getTipoPlugin());
+					
+				// controllare se e' variato uno dei tipi della unique 
+				if((!tipoPlugin.equals(oldTipoPlugin) || !tipo.equals(oldPlugin.getTipo()) 
+						|| !label.equals(oldPlugin.getLabel()) || !className.equals(oldPlugin.getClassName())) && existsPlugin) {
+					this.pd.setMessage(ConfigurazioneCostanti.MESSAGGIO_ERRORE_PLUGINS_PLUGIN_NUOVA_CHIAVE_DUPLICATA); 
+					return false;
+				}
+			}
+				
+			if(!this.checkLength255(descrizione, ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_DESCRIZIONE)) {
+				return false;
+			}
+			
+			return true;
+		} catch (Exception e) {
+			this.log.error("Exception: " + e.getMessage(), e);
+			throw new Exception(e);
+		}
+	}
+	
+	public void addFilterTipoPlugin(String tipoPlugin, boolean postBack) throws Exception{
+		try {
+			
+			List<String> valuesTipoPlugin = ConfigurazionePluginsTipoPluginUtils.getValuesTipoPlugin();
+			List<String> labelsTipoPlugin = ConfigurazionePluginsTipoPluginUtils.getLabelsTipoPlugin();
+			
+			int length = 1;
+			if(valuesTipoPlugin!=null && valuesTipoPlugin.size()>0) {
+				length+=valuesTipoPlugin.size();
+			}
+			String [] values = new String[length];
+			String [] labels = new String[length];
+			labels[0] = CostantiControlStation.LABEL_PARAMETRO_RUOLO_QUALSIASI;
+			values[0] = CostantiControlStation.DEFAULT_VALUE_PARAMETRO_RUOLO_QUALSIASI;
+			if(valuesTipoPlugin!=null && valuesTipoPlugin.size()>0) {
+				for (int i =0; i < valuesTipoPlugin.size() ; i ++) {
+					labels[i+1] = labelsTipoPlugin.get(i);
+					values[i+1] = valuesTipoPlugin.get(i);
+				}
+			}
+			
+			this.pd.addFilter(Filtri.FILTRO_TIPO_PLUGIN_CLASSI, ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_TIPO_PLUGIN, tipoPlugin, values, labels, postBack, this.getSize());
+			
+		} catch (Exception e) {
+			this.log.error("Exception: " + e.getMessage(), e);
+			throw new Exception(e);
+		}
+	}
+	
+	public void addFiltriSpecificiTipoPlugin(String tipoPlugin, boolean postBack) throws Exception{
+		try {
+			
+			List<String> valuesTipoPlugin = ConfigurazionePluginsTipoPluginUtils.getValuesTipoPlugin();
+			List<String> labelsTipoPlugin = ConfigurazionePluginsTipoPluginUtils.getLabelsTipoPlugin();
+			
+			int length = 1;
+			if(valuesTipoPlugin!=null && valuesTipoPlugin.size()>0) {
+				length+=valuesTipoPlugin.size();
+			}
+			String [] values = new String[length];
+			String [] labels = new String[length];
+			labels[0] = CostantiControlStation.LABEL_PARAMETRO_RUOLO_QUALSIASI;
+			values[0] = CostantiControlStation.DEFAULT_VALUE_PARAMETRO_RUOLO_QUALSIASI;
+			if(valuesTipoPlugin!=null && valuesTipoPlugin.size()>0) {
+				for (int i =0; i < valuesTipoPlugin.size() ; i ++) {
+					labels[i+1] = labelsTipoPlugin.get(i);
+					values[i+1] = valuesTipoPlugin.get(i);
+				}
+			}
+			
+			this.pd.addFilter(Filtri.FILTRO_TIPO_PLUGIN_CLASSI, ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_TIPO_PLUGIN, tipoPlugin, values, labels, postBack, this.getSize());
+			
 		} catch (Exception e) {
 			this.log.error("Exception: " + e.getMessage(), e);
 			throw new Exception(e);

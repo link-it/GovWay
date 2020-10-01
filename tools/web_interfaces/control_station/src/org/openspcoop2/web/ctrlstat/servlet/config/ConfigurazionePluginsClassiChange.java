@@ -29,26 +29,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.struts.action.Action;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.openspcoop2.core.commons.Liste;
-import org.openspcoop2.core.config.Configurazione;
-import org.openspcoop2.core.config.ConfigurazioneMultitenant;
-import org.openspcoop2.core.config.ConfigurazioneUrlInvocazione;
-import org.openspcoop2.core.config.ConfigurazioneUrlInvocazioneRegola;
-import org.openspcoop2.core.config.IdSoggetto;
-import org.openspcoop2.core.config.constants.RuoloContesto;
-import org.openspcoop2.core.config.constants.ServiceBinding;
 import org.openspcoop2.core.config.constants.StatoFunzionalita;
-import org.openspcoop2.core.id.IDSoggetto;
+import org.openspcoop2.monitor.engine.config.base.Plugin;
+import org.openspcoop2.monitor.engine.config.base.PluginProprietaCompatibilita;
+import org.openspcoop2.monitor.engine.config.base.constants.TipoPlugin;
+import org.openspcoop2.pdd.config.dynamic.PluginCostanti;
 import org.openspcoop2.web.ctrlstat.core.ControlStationCore;
 import org.openspcoop2.web.ctrlstat.core.Search;
-import org.openspcoop2.web.ctrlstat.costanti.CostantiControlStation;
 import org.openspcoop2.web.ctrlstat.servlet.GeneralHelper;
-import org.openspcoop2.web.ctrlstat.servlet.soggetti.SoggettiCore;
 import org.openspcoop2.web.lib.mvc.Costanti;
 import org.openspcoop2.web.lib.mvc.DataElement;
 import org.openspcoop2.web.lib.mvc.ForwardParams;
@@ -86,41 +79,27 @@ public final class ConfigurazionePluginsClassiChange extends Action {
 		try {
 			ConfigurazioneHelper confHelper = new ConfigurazioneHelper(request, pd, session);
 			
-			String idRegolaS = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROXY_PASS_ID_REGOLA);
-			String nome = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROXY_PASS_REGOLA_NOME);
-			String descrizione = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROXY_PASS_REGOLA_DESCRIZIONE);
-			String stato = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROXY_PASS_REGOLA_STATO);
-			String regExprS = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROXY_PASS_REGOLA_REG_EXPR);
-			boolean regExpr = regExprS != null ? ServletUtils.isCheckBoxEnabled(regExprS) : false;
-			String regolaText = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROXY_PASS_REGOLA_REGOLA_TEXT);
-			String contestoEsterno = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROXY_PASS_REGOLA_CONTESTO_ESTERNO);
-			String baseUrl = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROXY_PASS_REGOLA_BASE_URL);
-			String protocollo = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROXY_PASS_REGOLA_PROFILO);
-			String soggetto = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROXY_PASS_REGOLA_SOGGETTO);
-			String ruolo = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROXY_PASS_REGOLA_RUOLO);
-			String serviceBinding = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROXY_PASS_REGOLA_SERVICE_BINDING);
+			String idPluginS = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_ID_PLUGIN);
+			String descrizione = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_DESCRIZIONE);
+			String stato = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_STATO);
+			String tipo = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_TIPO);
+			String tipoPluginS = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_TIPO_PLUGIN);
+			TipoPlugin tipoPlugin = null;
+			if(tipoPluginS != null) {
+				tipoPlugin = TipoPlugin.toEnumConstant(tipoPluginS);
+			}
+			String label = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_LABEL);
+			String className = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_CLASS_NAME);
+
+			String ruolo = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_FILTRO_RUOLO);
+			
+			String shTipo = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_FILTRO_SERVICE_HANDLER);
+			String mhTipo = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_FILTRO_FASE_MESSAGE_HANDLER);
+			String mhRuolo = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_FILTRO_RUOLO_MESSAGE_HANDLER);
 			
 			ConfigurazioneCore confCore = new ConfigurazioneCore();
-			SoggettiCore soggettiCore = new SoggettiCore(confCore);
-			Configurazione configurazioneGenerale = confCore.getConfigurazioneGenerale();
-			ConfigurazioneMultitenant configurazioneMultitenant = configurazioneGenerale.getMultitenant();
-			boolean multiTenant = false;
-			if(configurazioneMultitenant != null) {
-				StatoFunzionalita statoMultitenant = configurazioneMultitenant.getStato();
-				multiTenant = StatoFunzionalita.ABILITATO.equals(statoMultitenant);
-			}
-			
-			long idRegola = Long.parseLong(idRegolaS);
-			ConfigurazioneUrlInvocazioneRegola oldRegola = null;
-			if(configurazioneGenerale.getUrlInvocazione() != null) {
-				for (ConfigurazioneUrlInvocazioneRegola reg : configurazioneGenerale.getUrlInvocazione().getRegolaList()) {
-					if(reg.getId().longValue() == idRegola) {
-						oldRegola = reg;
-						break;
-					}
-				}
-			}
-			
+			long idPlugin = Long.parseLong(idPluginS);
+			Plugin oldPlugin = confCore.getPlugin(idPlugin);
 
 			// Preparo il menu
 			confHelper.makeMenu();
@@ -128,89 +107,53 @@ public final class ConfigurazionePluginsClassiChange extends Action {
 			
 			String postBackElementName = confHelper.getPostBackElementName();
 			
-			List<String> protocolli = confCore.getProtocolli();
-			List<IDSoggetto> soggetti = new ArrayList<>();
-			// soggetti per profilo
-			if(StringUtils.isNotEmpty(protocollo)) {
-				soggetti = soggettiCore.getIdSoggettiOperativi(protocollo);
-			} 
-			
 			// se ho modificato il soggetto ricalcolo il servizio e il service binding
 			if (postBackElementName != null) {
-				if(postBackElementName.equals(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROXY_PASS_REGOLA_PROFILO)) {
+				if(postBackElementName.equals(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_TIPO_PLUGIN)) {
 				}
 			}
 
 			// setto la barra del titolo
 			lstParam.add(new Parameter(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_GENERALE, ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_GENERALE));
-			lstParam.add(new Parameter(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_PROXY_PASS_REGOLE, ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_PROXY_PASS_REGOLA_LIST));
-			lstParam.add(new Parameter(oldRegola.getNome(), null));
+			lstParam.add(new Parameter(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_REGISTRO_CLASSI, ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_PLUGINS_CLASSI_LIST));
+			lstParam.add(new Parameter(oldPlugin.getLabel(), null));
 			ServletUtils.setPageDataTitle(pd, lstParam);
 
 			// Se nomehid = null, devo visualizzare la pagina per l'inserimento
 			// dati
 			if (confHelper.isEditModeInProgress()) {
 				
-				if(nome == null) {
-					nome = oldRegola.getNome();
-					descrizione = oldRegola.getDescrizione();
-					stato = oldRegola.getStato().toString();
-					regExpr = oldRegola.isRegexpr();
-					regolaText = oldRegola.getRegola();
-					contestoEsterno = oldRegola.getContestoEsterno();
-					baseUrl = oldRegola.getBaseUrl();
-					protocollo = oldRegola.getProtocollo();
-					if(protocollo == null)
-						protocollo = "";
-					if(StringUtils.isNotEmpty(protocollo)) {
-						soggetti = soggettiCore.getIdSoggettiOperativi(protocollo);
-					}
-					if(oldRegola.getSoggetto() == null)
-						soggetto = "";
-					else 
-						soggetto = new IDSoggetto(oldRegola.getSoggetto().getTipo(),oldRegola.getSoggetto().getNome()).toString();
-					
-					if(oldRegola.getRuolo() != null) {
-						switch (oldRegola.getRuolo()) {
-						case PORTA_APPLICATIVA:
-							ruolo = CostantiControlStation.DEFAULT_VALUE_PARAMETRO_PROXY_PASS_REGOLA_RUOLO_EROGAZIONE;
-							break;
-						case PORTA_DELEGATA:
-							ruolo = CostantiControlStation.DEFAULT_VALUE_PARAMETRO_PROXY_PASS_REGOLA_RUOLO_FRUIZIONE;
-							break;
-						}
-					} else 
-						ruolo = CostantiControlStation.DEFAULT_VALUE_PARAMETRO_PROXY_PASS_REGOLA_RUOLO_QUALSIASI;
-					
-					if(oldRegola.getServiceBinding() != null) {
-						switch (oldRegola.getServiceBinding()) {
-						case REST:
-							serviceBinding = CostantiControlStation.DEFAULT_VALUE_PARAMETRO_SERVICE_BINDING_REST; 
-							break;
-						case SOAP:
-							serviceBinding = CostantiControlStation.DEFAULT_VALUE_PARAMETRO_SERVICE_BINDING_SOAP; 
-							break;
-						}
-					} else 
-						serviceBinding = CostantiControlStation.DEFAULT_VALUE_PARAMETRO_SERVICE_BINDING_QUALSIASI; 
+				if(tipoPluginS == null) {
+					tipoPluginS = oldPlugin.getTipoPlugin();
+					tipoPlugin = TipoPlugin.toEnumConstant(tipoPluginS);
+					descrizione = oldPlugin.getDescrizione();
+					stato = oldPlugin.isStato() ? StatoFunzionalita.ABILITATO.toString() :  StatoFunzionalita.DISABILITATO.toString();
+					tipo = oldPlugin.getTipo();
+					label = oldPlugin.getLabel();
+					className = oldPlugin.getClassName();
+					ruolo = ConfigurazionePluginsTipoPluginUtils.getValoreProprieta(oldPlugin, PluginCostanti.FILTRO_RUOLO_NOME);
+					shTipo = ConfigurazionePluginsTipoPluginUtils.getValoreProprieta(oldPlugin, PluginCostanti.FILTRO_SERVICE_HANDLER_NOME);
+					mhTipo = ConfigurazionePluginsTipoPluginUtils.getValoreProprieta(oldPlugin, PluginCostanti.FILTRO_FASE_MESSAGE_HANDLER_NOME); 
+					mhRuolo = ConfigurazionePluginsTipoPluginUtils.getValoreProprieta(oldPlugin, PluginCostanti.FILTRO_RUOLO_MESSAGE_HANDLER_NOME);
 				}
+				
 				// preparo i campi
 				Vector<DataElement> dati = new Vector<DataElement>();
 				dati.addElement(ServletUtils.getDataElementForEditModeFinished());
 
-				dati = confHelper.addProxyPassConfigurazioneRegola(TipoOperazione.CHANGE, dati, idRegolaS, nome, descrizione, stato, regExpr, regolaText, contestoEsterno, baseUrl, protocollo, protocolli, soggetto, soggetti, ruolo, serviceBinding, multiTenant);
+				dati = confHelper.addPluginClassiToDati(TipoOperazione.CHANGE, dati, idPluginS, tipoPlugin, tipo, label, className, stato, descrizione, ruolo, shTipo, mhTipo, mhRuolo);
 
 				pd.setDati(dati);
 
 				ServletUtils.setGeneralAndPageDataIntoSession(session, gd, pd);
 
 				return ServletUtils.getStrutsForwardEditModeInProgress(mapping,
-						ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_PROXY_PASS_REGOLA, 
+						ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_PLUGINS_CLASSI, 
 						ForwardParams.CHANGE());
 			}
 
 			// Controlli sui campi immessi
-			boolean isOk = confHelper.proxyPassConfigurazioneRegolaCheckData(TipoOperazione.CHANGE, oldRegola.getNome());
+			boolean isOk = confHelper.pluginClassiCheckData(TipoOperazione.CHANGE, oldPlugin, idPluginS, tipoPlugin, tipo, label, className, stato, descrizione, ruolo, shTipo, mhTipo, mhRuolo);
 			if (!isOk) {
 
 				// preparo i campi
@@ -218,113 +161,57 @@ public final class ConfigurazionePluginsClassiChange extends Action {
 
 				dati.addElement(ServletUtils.getDataElementForEditModeFinished());
 				
-				dati = confHelper.addProxyPassConfigurazioneRegola(TipoOperazione.CHANGE, dati, idRegolaS, nome, descrizione, stato, regExpr, regolaText, contestoEsterno, baseUrl, protocollo, protocolli, soggetto, soggetti, ruolo, serviceBinding, multiTenant);
+				dati = confHelper.addPluginClassiToDati(TipoOperazione.CHANGE, dati, idPluginS, tipoPlugin, tipo, label, className, stato, descrizione, ruolo, shTipo, mhTipo, mhRuolo);
 
 				pd.setDati(dati);
 
 				ServletUtils.setGeneralAndPageDataIntoSession(session, gd, pd);
 
 				return ServletUtils.getStrutsForwardEditModeCheckError(mapping, 
-						ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_PROXY_PASS_REGOLA, 
+						ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_PLUGINS_CLASSI, 
 						ForwardParams.CHANGE());
 			}
 
-			// rileggo la configurazione
-			configurazioneGenerale = confCore.getConfigurazioneGenerale();
+			// salvataggio plugin
+			Plugin plugin = confCore.getPlugin(idPlugin);
 			
-			if(configurazioneGenerale.getUrlInvocazione() == null)
-				configurazioneGenerale.setUrlInvocazione(new ConfigurazioneUrlInvocazione());
+			plugin.setLabel(label);
+			plugin.setTipo(tipo);
+			plugin.setTipoPlugin(tipoPluginS);
+			plugin.setDescrizione(descrizione);
+			plugin.setStato(stato.equals(StatoFunzionalita.ABILITATO.getValue()) ? true : false);
+			plugin.setClassName(className);
 			
-			// salvataggio regola
-			for (ConfigurazioneUrlInvocazioneRegola regola : configurazioneGenerale.getUrlInvocazione().getRegolaList()) {
-				if(regola.getId().longValue() == idRegola) {
-					regola.setNome(nome);
-					if(descrizione!=null && !"".equals(descrizione)) {
-						regola.setDescrizione(descrizione);
-					}
-					else {
-						regola.setDescrizione(null);
-					}
-					if(baseUrl!=null && !"".equals(baseUrl)) {
-						regola.setBaseUrl(baseUrl);
-					}
-					else {
-						regola.setBaseUrl(null);
-					}
-					if(contestoEsterno!=null && !"".equals(contestoEsterno)) {
-						regola.setContestoEsterno(contestoEsterno);
-					}
-					else {
-						regola.setContestoEsterno("");
-					}
-					regola.setRegexpr(regExpr);
-					regola.setRegola(regolaText);
-					if(StringUtils.isNotEmpty(protocollo))
-						regola.setProtocollo(protocollo);
-					else
-						regola.setProtocollo(null);
-					if(StringUtils.isNotEmpty(soggetto)) {
-						IDSoggetto selezionatoToID = confCore.convertSoggettoSelezionatoToID(soggetto);
-						IdSoggetto idSoggetto = new IdSoggetto();
-						idSoggetto.setTipo(selezionatoToID.getTipo());
-						idSoggetto.setNome(selezionatoToID.getNome());
-
-						// set valori
-						regola.setSoggetto(idSoggetto);
-					}
-					else {
-						regola.setSoggetto(null);
-					}
-					if(StringUtils.isNotEmpty(ruolo)) {
-						if(ruolo.equals(CostantiControlStation.DEFAULT_VALUE_PARAMETRO_PROXY_PASS_REGOLA_RUOLO_EROGAZIONE))
-							regola.setRuolo(RuoloContesto.PORTA_APPLICATIVA);
-						else if(ruolo.equals(CostantiControlStation.DEFAULT_VALUE_PARAMETRO_PROXY_PASS_REGOLA_RUOLO_FRUIZIONE))
-							regola.setRuolo(RuoloContesto.PORTA_DELEGATA);
-					}
-					else {
-						regola.setRuolo(null);
-					}
-					if(StringUtils.isNotEmpty(serviceBinding)) {
-						if(serviceBinding.equals(CostantiControlStation.DEFAULT_VALUE_PARAMETRO_SERVICE_BINDING_SOAP))
-							regola.setServiceBinding(ServiceBinding.SOAP);
-						else if(serviceBinding.equals(CostantiControlStation.DEFAULT_VALUE_PARAMETRO_SERVICE_BINDING_REST))
-							regola.setServiceBinding(ServiceBinding.REST);
-						
-					}
-					else {
-						regola.setServiceBinding(null);
-					}
-					if(stato.equals(StatoFunzionalita.ABILITATO.getValue()))
-						regola.setStato(StatoFunzionalita.ABILITATO);
-					else 
-						regola.setStato(StatoFunzionalita.DISABILITATO);
-					break;
-				}
+			plugin.getPluginProprietaCompatibilitaList().clear();
+			List<PluginProprietaCompatibilita> listaProprieta = ConfigurazionePluginsTipoPluginUtils.getApplicabilitaClassePlugin(tipoPlugin, ruolo, shTipo, mhTipo, mhRuolo);
+			
+			if(listaProprieta.size() > 0) {
+				plugin.getPluginProprietaCompatibilitaList().addAll(listaProprieta);
 			}
 			
-			confCore.performUpdateOperation(userLogin, confHelper.smista(), configurazioneGenerale);
+			confCore.performUpdateOperation(userLogin, confHelper.smista(), plugin);
 			
 			// Preparo la lista
 			Search ricerca = (Search) ServletUtils.getSearchObjectFromSession(session, Search.class);
 
-			int idLista = Liste.CONFIGURAZIONE_PROXY_PASS_REGOLA;
+			int idLista = Liste.CONFIGURAZIONE_PLUGINS_CLASSI;
 
 			ricerca = confHelper.checkSearchParameters(idLista, ricerca);
 			
-			List<ConfigurazioneUrlInvocazioneRegola> lista = confCore.proxyPassConfigurazioneRegolaList(ricerca); 
+			List<Plugin> lista = confCore.pluginsClassiList(ricerca); 
 			
-			confHelper.prepareProxyPassConfigurazioneRegolaList(ricerca, lista);
+			confHelper.preparePluginsClassiList(ricerca, lista);
 
 			pd.setMessage(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_PROPRIETA_SISTEMA_MODIFICATA_CON_SUCCESSO, Costanti.MESSAGE_TYPE_INFO);
 
 			ServletUtils.setGeneralAndPageDataIntoSession(session, gd, pd);
 
 			return ServletUtils.getStrutsForwardEditModeFinished(mapping,
-					ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_PROXY_PASS_REGOLA,
+					ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_PLUGINS_CLASSI,
 					ForwardParams.CHANGE());
 		} catch (Exception e) {
 			return ServletUtils.getStrutsForwardError(ControlStationCore.getLog(), e, pd, session, gd, mapping, 
-					ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_PROXY_PASS_REGOLA, ForwardParams.CHANGE());
+					ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_PLUGINS_CLASSI, ForwardParams.CHANGE());
 		}
 	}
 

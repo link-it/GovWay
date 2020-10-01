@@ -162,6 +162,7 @@ public final class Liste
     
     public final static int CONFIGURAZIONE_PLUGINS_ARCHIVI;
     public final static int CONFIGURAZIONE_PLUGINS_ARCHIVI_JAR;
+    public final static int CONFIGURAZIONE_PLUGINS_CLASSI;
 	
 
     private static int numeroListe = 0;
@@ -278,6 +279,7 @@ public final class Liste
     	CONFIGURAZIONE_PROXY_PASS_REGOLA = numeroListe ++;
     	CONFIGURAZIONE_PLUGINS_ARCHIVI = numeroListe ++;
     	CONFIGURAZIONE_PLUGINS_ARCHIVI_JAR = numeroListe ++;
+    	CONFIGURAZIONE_PLUGINS_CLASSI = numeroListe ++;
     }
     
 	

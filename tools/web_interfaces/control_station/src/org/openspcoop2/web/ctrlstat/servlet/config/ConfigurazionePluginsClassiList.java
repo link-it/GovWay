@@ -27,22 +27,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.struts.action.Action;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.openspcoop2.core.commons.Liste;
-import org.openspcoop2.core.config.Configurazione;
-import org.openspcoop2.core.config.ConfigurazioneUrlInvocazione;
-import org.openspcoop2.core.config.ConfigurazioneUrlInvocazioneRegola;
+import org.openspcoop2.monitor.engine.config.base.Plugin;
 import org.openspcoop2.web.ctrlstat.core.ControlStationCore;
 import org.openspcoop2.web.ctrlstat.core.Search;
-import org.openspcoop2.web.ctrlstat.costanti.CostantiControlStation;
 import org.openspcoop2.web.ctrlstat.servlet.GeneralHelper;
 import org.openspcoop2.web.lib.mvc.ForwardParams;
 import org.openspcoop2.web.lib.mvc.GeneralData;
-import org.openspcoop2.web.lib.mvc.MessageType;
 import org.openspcoop2.web.lib.mvc.PageData;
 import org.openspcoop2.web.lib.mvc.ServletUtils;
 
@@ -65,7 +60,6 @@ public final class ConfigurazionePluginsClassiList extends Action {
 		PageData pd = new PageData();
 
 		GeneralHelper generalHelper = new GeneralHelper(session);
-		String userLogin = ServletUtils.getUserLoginFromSession(session);
 
 		// Inizializzo GeneralData
 		GeneralData gd = generalHelper.initGeneralData(request);
@@ -73,59 +67,21 @@ public final class ConfigurazionePluginsClassiList extends Action {
 		try {
 			ConfigurazioneHelper confHelper = new ConfigurazioneHelper(request, pd, session);
 
-			String cambiaPosizione = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROXY_PASS_REGOLA_POSIZIONE);
-			String idRegolaS = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROXY_PASS_ID_REGOLA);
-			
 			ConfigurazioneCore confCore = new ConfigurazioneCore();
 
 			// Preparo il menu
 			confHelper.makeMenu();
 			
-			if(StringUtils.isNotEmpty(cambiaPosizione)) {
-				
-				Configurazione configurazioneGenerale = confCore.getConfigurazioneGenerale();
-				ConfigurazioneUrlInvocazione urlInvocazione = configurazioneGenerale.getUrlInvocazione();
-				
-				if(urlInvocazione != null) {
-					long idRegola = Long.parseLong(idRegolaS);
-					ConfigurazioneUrlInvocazioneRegola regolaToMove = null;
-					for (ConfigurazioneUrlInvocazioneRegola reg : urlInvocazione.getRegolaList()) {
-						if(reg.getId().longValue() == idRegola) {
-							regolaToMove = reg;
-							break;
-						}
-					}
-					
-					int posizioneAttuale = regolaToMove.getPosizione();
-					int posizioneNuova = cambiaPosizione.equals(CostantiControlStation.VALUE_PARAMETRO_CONFIGURAZIONE_POSIZIONE_SU) ? (posizioneAttuale - 1) : (posizioneAttuale + 1);
-					
-					ConfigurazioneUrlInvocazioneRegola regolaToSwitch = null;
-					for (ConfigurazioneUrlInvocazioneRegola reg : urlInvocazione.getRegolaList()) {
-						if(reg.getPosizione() == posizioneNuova) {
-							regolaToSwitch = reg;
-							break;
-						}
-					}
-					
-					regolaToMove.setPosizione(posizioneNuova);
-					regolaToSwitch.setPosizione(posizioneAttuale);
-					
-					confCore.performUpdateOperation(userLogin, confHelper.smista(), configurazioneGenerale);
-					if(CostantiControlStation.VISUALIZZA_MESSAGGIO_CONFERMA_SPOSTAMENTO_REGOLA_PROXY_PASS)
-						pd.setMessage(CostantiControlStation.MESSAGGIO_CONFERMA_REGOLA_PROXY_PASS_SPOSTATA_CORRETTAMENTE, MessageType.INFO);
-				}
-			}
-
 			// Preparo la lista
 			Search ricerca = (Search) ServletUtils.getSearchObjectFromSession(session, Search.class);
 
-			int idLista = Liste.CONFIGURAZIONE_PROXY_PASS_REGOLA;
+			int idLista = Liste.CONFIGURAZIONE_PLUGINS_CLASSI;
 
 			ricerca = confHelper.checkSearchParameters(idLista, ricerca);
 
-			List<ConfigurazioneUrlInvocazioneRegola> lista = confCore.proxyPassConfigurazioneRegolaList(ricerca); 
+			List<Plugin> lista = confCore.pluginsClassiList(ricerca); 
 			
-			confHelper.prepareProxyPassConfigurazioneRegolaList(ricerca, lista);
+			confHelper.preparePluginsClassiList(ricerca, lista); 
 			
 			// salvo l'oggetto ricerca nella sessione
 			ServletUtils.setSearchObjectIntoSession(session, ricerca);
@@ -133,11 +89,11 @@ public final class ConfigurazionePluginsClassiList extends Action {
 			ServletUtils.setGeneralAndPageDataIntoSession(session, gd, pd);
 			// Forward control to the specified success URI
 			return ServletUtils.getStrutsForward (mapping, 
-					ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_PROXY_PASS_REGOLA,
+					ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_PLUGINS_CLASSI,
 					ForwardParams.LIST());
 		} catch (Exception e) {
 			return ServletUtils.getStrutsForwardError(ControlStationCore.getLog(), e, pd, session, gd, mapping, 
-					ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_PROXY_PASS_REGOLA, ForwardParams.LIST());
+					ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_PLUGINS_CLASSI, ForwardParams.LIST());
 		}
 	}
 }

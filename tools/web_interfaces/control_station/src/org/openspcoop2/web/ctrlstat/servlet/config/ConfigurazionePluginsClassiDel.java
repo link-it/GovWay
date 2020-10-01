@@ -33,9 +33,7 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.openspcoop2.core.commons.Liste;
-import org.openspcoop2.core.config.Configurazione;
-import org.openspcoop2.core.config.ConfigurazioneUrlInvocazione;
-import org.openspcoop2.core.config.ConfigurazioneUrlInvocazioneRegola;
+import org.openspcoop2.monitor.engine.config.base.Plugin;
 import org.openspcoop2.web.ctrlstat.core.ControlStationCore;
 import org.openspcoop2.web.ctrlstat.core.Search;
 import org.openspcoop2.web.ctrlstat.core.Utilities;
@@ -83,24 +81,20 @@ public final class ConfigurazionePluginsClassiDel extends Action {
 
 			Long id = null;
 
-			// Prendo l'accesso registro
-			Configurazione configurazioneGenerale = confCore.getConfigurazioneGenerale();
-			ConfigurazioneUrlInvocazione urlInvocazione = configurazioneGenerale.getUrlInvocazione();
-
+			List<Object> pluginToRemove = new ArrayList<>();
+			
 			for (int i = 0; i < idsToRemove.size(); i++) {
 
 				id = Long.parseLong(idsToRemove.get(i));
-
-				for (int j = 0; j < urlInvocazione.sizeRegolaList(); j++) {
-					ConfigurazioneUrlInvocazioneRegola regola = urlInvocazione.getRegola(j); 
-					if (regola.getId().longValue() == id.longValue()) {
-						urlInvocazione.removeRegola(j);
-					}
-				}
+				
+				Plugin plugin = new Plugin();
+				plugin.setId(id);
+				
+				pluginToRemove.add(plugin);
 			}
 
-			confCore.performUpdateOperation(userLogin, confHelper.smista(), configurazioneGenerale);
-
+			Object[] oggetti = pluginToRemove.toArray(new Plugin[pluginToRemove.size()]); 
+			confCore.performDeleteOperation(userLogin, confHelper.smista(), oggetti);
 			// Preparo il menu
 			confHelper.makeMenu();
 
@@ -108,24 +102,24 @@ public final class ConfigurazionePluginsClassiDel extends Action {
 			// Preparo la lista
 			Search ricerca = (Search) ServletUtils.getSearchObjectFromSession(session, Search.class);
 
-			int idLista = Liste.CONFIGURAZIONE_PROXY_PASS_REGOLA;
+			int idLista = Liste.CONFIGURAZIONE_PLUGINS_CLASSI;
 
 			ricerca = confHelper.checkSearchParameters(idLista, ricerca);
 
-			List<ConfigurazioneUrlInvocazioneRegola> lista = confCore.proxyPassConfigurazioneRegolaList(ricerca); 
+			List<Plugin> lista = confCore.pluginsClassiList(ricerca); 
 			
-			confHelper.prepareProxyPassConfigurazioneRegolaList(ricerca, lista);
+			confHelper.preparePluginsClassiList(ricerca, lista);
 						
 			pd.setMessage(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_PROPRIETA_SISTEMA_MODIFICATA_CON_SUCCESSO, Costanti.MESSAGE_TYPE_INFO);
 			
 			ServletUtils.setGeneralAndPageDataIntoSession(session, gd, pd);
 			// Forward control to the specified success URI
 			return ServletUtils.getStrutsForward (mapping, 
-					ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_PROXY_PASS_REGOLA,
+					ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_PLUGINS_CLASSI,
 					ForwardParams.DEL());
 		} catch (Exception e) {
 			return ServletUtils.getStrutsForwardError(ControlStationCore.getLog(), e, pd, session, gd, mapping, 
-					ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_PROXY_PASS_REGOLA, ForwardParams.DEL());
+					ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_PLUGINS_CLASSI, ForwardParams.DEL());
 		}
 	}
 }

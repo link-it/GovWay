@@ -29,6 +29,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -18674,7 +18675,8 @@ implements IDriverConfigurazioneGet, IDriverConfigurazioneCRUD, IDriverWS, IMoni
 				regola.setPosizione(risultato.getInt("posizione"));
 				regola.setStato(DriverConfigurazioneDB_LIB.getEnumStatoFunzionalita(risultato.getString("stato")));
 				regola.setDescrizione(risultato.getString("descrizione"));
-				regola.setData(risultato.getDate("data"));
+				Timestamp timestamp = risultato.getTimestamp("data");
+				regola.setData(new Date(timestamp.getTime()));
 				
 				String compatibilita = risultato.getString("compatibilita");
 				if(compatibilita != null)
@@ -18772,6 +18774,8 @@ implements IDriverConfigurazioneGet, IDriverConfigurazioneCRUD, IDriverWS, IMoni
 			
 			queryString = sqlQueryObject.createSQLQuery();
 			stmt = con.prepareStatement(queryString);
+			int parameterIndex = 1;
+			stmt.setString(parameterIndex ++, nome);
 			risultato = stmt.executeQuery();
 			if (risultato.next())
 				ricerca.setNumEntries(idLista,risultato.getInt(1));
@@ -18809,13 +18813,16 @@ implements IDriverConfigurazioneGet, IDriverConfigurazioneCRUD, IDriverWS, IMoni
 			sqlQueryObject.setOffset(offset);
 			queryString = sqlQueryObject.createSQLQuery();
 			stmt = con.prepareStatement(queryString);
+			parameterIndex = 1;
+			stmt.setString(parameterIndex ++, nome);
 			risultato = stmt.executeQuery();
 
 			
 			while (risultato.next()) { 
 				RegistroPluginArchivio archivio = new RegistroPluginArchivio();
 				archivio.setNome(risultato.getString("nome"));
-				archivio.setData(risultato.getTimestamp("data"));
+				Timestamp timestamp = risultato.getTimestamp("data");
+				archivio.setData(new Date(timestamp.getTime()));
 				IJDBCAdapter jdbcAdapter = JDBCAdapterFactory.createJDBCAdapter(this.tipoDB);
 				archivio.setSorgente( DriverConfigurazioneDB_LIB.getEnumPluginSorgenteArchivio(risultato.getString("sorgente")));
 				if(!escludiContenuto) {

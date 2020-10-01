@@ -81,7 +81,6 @@ import org.openspcoop2.core.config.PortaApplicativaServizioApplicativo;
 import org.openspcoop2.core.config.PortaDelegata;
 import org.openspcoop2.core.config.PortaDelegataLocalForward;
 import org.openspcoop2.core.config.PortaTracciamento;
-import org.openspcoop2.core.config.RegistroPlugins;
 import org.openspcoop2.core.config.ResponseCachingConfigurazione;
 import org.openspcoop2.core.config.ResponseCachingConfigurazioneControl;
 import org.openspcoop2.core.config.ResponseCachingConfigurazioneGenerale;
@@ -12340,7 +12339,7 @@ public class ConsoleHelper implements IConsoleHelper {
 	}
 	
 	public int numeroPluginsRegistroClassi() throws Exception {
-		return this.confCore.numeroPluginsArchiviList(); // TODO
+		return this.confCore.numeroPluginsClassiList();
 	}
 	
 	public boolean isCorsAbilitato(CorsConfigurazione configurazione) {

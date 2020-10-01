@@ -1089,6 +1089,19 @@ public class ConfigurazioneCostanti {
 	public final static String PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_CLASSI_PLUGIN = "plClassi";
 	public final static String PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_TIPO_PLUGIN = "plTipo";
 	
+	public final static String PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_TIPO = "pcTipo";
+	public final static String PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_TIPO_PLUGIN = "pcTipoPlugin";
+	public final static String PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_LABEL = "pcLabel";
+	public final static String PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_STATO = "pcStato";
+	public final static String PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_CLASS_NAME = "pcClassName";
+	public final static String PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_DESCRIZIONE = "pcDescr";
+	public final static String PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_ID_PLUGIN = "pcId";
+	public final static String PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_FILTRO_RUOLO = "pcFRuolo";
+	public final static String PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_FILTRO_SERVICE_HANDLER = "pcFSH";
+	public final static String PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_FILTRO_FASE_MESSAGE_HANDLER = "pcFFMH";
+	public final static String PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_FILTRO_RUOLO_MESSAGE_HANDLER = "pcFRMH";
+	
+	
 	/* LABEL PARAMETRI */
 	
 	public final static String LABEL_CACHE_SECONDS_NOTE = "Non indicare i secondi per avere un tempo infinito";
@@ -1539,6 +1552,21 @@ public class ConfigurazioneCostanti {
 	
 	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_JAR_NOME = "Nome";
 	
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_ID_PLUGIN = "Id";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_TIPO = "Tipo";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_TIPO_PLUGIN = "Tipo Plugin";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_LABEL = "Label";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_STATO = "Stato";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_APPLICABILITA = "Applicabilit&agrave;";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_DESCRIZIONE = "Descrizione";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_CLASS_NAME = "ClassName";
+	
+	public final static String LABEL_CONFIGURAZIONE_PLUGINS_CLASSI_PLUGIN = "Plugin";
+	
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_FILTRO_RUOLO = "Ruolo";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_FILTRO_SERVICE_HANDLER = "Service Handler";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_FILTRO_FASE_MESSAGE_HANDLER = "Fase Message Handler";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_FILTRO_RUOLO_MESSAGE_HANDLER = "Ruolo Message Handler";
 	
 	/* DEFAULT VALUE PARAMETRI */
 	public final static String DEFAULT_VALUE_PARAMETRO_CONFIGURAZIONE_TIPO_XML = "xml";
@@ -1860,6 +1888,9 @@ public class ConfigurazioneCostanti {
 	
 	public final static String MESSAGGIO_ERRORE_PLUGINS_ARCHIVIO_DUPLICATO = "Esiste gi&agrave; un Archivio con questo nome.";
 	public final static String MESSAGGIO_ERRORE_PLUGINS_ARCHIVIO_NUOVO_NOME_DUPLICATO = "Il nuovo nome scelto &egrave; gi&agrave; usato per un altro Archivio.";
+	
+	public final static String MESSAGGIO_ERRORE_PLUGINS_PLUGIN_DUPLICATO = "Esiste gi&agrave; un Plugin con questa implementazione.";
+	public final static String MESSAGGIO_ERRORE_PLUGINS_PLUGIN_NUOVA_CHIAVE_DUPLICATA = "La nuova implementazione scelta &egrave; gi&agrave; usata per un altro Plugin.";
 }
 
 	

@@ -42,6 +42,7 @@ import org.openspcoop2.core.commons.ISearch;
 import org.openspcoop2.core.commons.Liste;
 import org.openspcoop2.core.commons.SearchUtils;
 import org.openspcoop2.core.commons.search.utils.RegistroCore;
+import org.openspcoop2.core.config.driver.DriverConfigurazioneException;
 import org.openspcoop2.core.config.driver.db.DriverConfigurazioneDB;
 import org.openspcoop2.core.constants.CostantiDB;
 import org.openspcoop2.core.controllo_traffico.AttivazionePolicy;
@@ -81,6 +82,7 @@ import org.openspcoop2.core.registry.driver.IDAccordoCooperazioneFactory;
 import org.openspcoop2.core.registry.driver.IDAccordoFactory;
 import org.openspcoop2.core.registry.driver.db.DriverRegistroServiziDB;
 import org.openspcoop2.core.registry.driver.db.DriverRegistroServiziDB_LIB;
+import org.openspcoop2.generic_project.beans.CustomField;
 import org.openspcoop2.generic_project.beans.IField;
 import org.openspcoop2.generic_project.beans.NonNegativeNumber;
 import org.openspcoop2.generic_project.exception.NotFoundException;
@@ -89,6 +91,13 @@ import org.openspcoop2.generic_project.expression.IPaginatedExpression;
 import org.openspcoop2.generic_project.expression.LikeMode;
 import org.openspcoop2.generic_project.expression.SortOrder;
 import org.openspcoop2.generic_project.utils.ServiceManagerProperties;
+import org.openspcoop2.monitor.engine.config.base.IdPlugin;
+import org.openspcoop2.monitor.engine.config.base.Plugin;
+import org.openspcoop2.monitor.engine.config.base.constants.TipoPlugin;
+import org.openspcoop2.monitor.engine.config.base.dao.IPluginService;
+import org.openspcoop2.monitor.engine.config.base.dao.IPluginServiceSearch;
+import org.openspcoop2.monitor.engine.config.base.dao.jdbc.converter.PluginFieldConverter;
+import org.openspcoop2.pdd.config.dynamic.PluginCostanti;
 import org.openspcoop2.protocol.engine.archive.UtilitiesMappingFruizioneErogazione;
 import org.openspcoop2.protocol.engine.utils.DBOggettiInUsoUtils;
 import org.openspcoop2.utils.TipiDatabase;
@@ -150,6 +159,7 @@ public class DriverControlStationDB  {
 	private DriverAudit auditDB = null;
 	private DriverAuditDBAppender auditDBappender = null;
 	private JDBCServiceManager jdbcServiceManagerControlloTraffico = null;
+	private org.openspcoop2.monitor.engine.config.base.dao.jdbc.JDBCServiceManager jdbcServiceManagerMonitorEngineConfig;
 
 	private IDAccordoFactory idAccordoFactory = null;
 //	@SuppressWarnings("unused")
@@ -181,6 +191,10 @@ public class DriverControlStationDB  {
 	
 	public JDBCServiceManager getJdbcServiceManagerControlloTraffico() {
 		return this.jdbcServiceManagerControlloTraffico;
+	}
+	
+	public org.openspcoop2.monitor.engine.config.base.dao.jdbc.JDBCServiceManager getJdbcServiceManagerMonitorEngineConfig() {
+		return this.jdbcServiceManagerMonitorEngineConfig;
 	}
 
 	public DriverControlStationDB(Connection connection, Properties context, String tipoDB) throws DriverControlStationException {
@@ -218,6 +232,7 @@ public class DriverControlStationDB  {
 			properties.setDatabaseType(this.tipoDB);
 			properties.setShowSql(true);
 			this.jdbcServiceManagerControlloTraffico = new org.openspcoop2.core.controllo_traffico.dao.jdbc.JDBCServiceManager(connection, properties, this.log);
+			this.jdbcServiceManagerMonitorEngineConfig = new org.openspcoop2.monitor.engine.config.base.dao.jdbc.JDBCServiceManager(connection, properties, this.log);
 			this.idAccordoFactory = IDAccordoFactory.getInstance();
 			this.idAccordoCooperazioneFactory = IDAccordoCooperazioneFactory.getInstance();
 		} catch (Exception e) {
@@ -4563,6 +4578,387 @@ public class DriverControlStationDB  {
 			
 		} catch (Exception se) {
 			throw new DriverControlStationException("[DriverControlStationDB::" + nomeMetodo + "] Exception: " + se.getMessage(),se);
+		} finally {
+			try {
+				if (this.atomica) {
+					this.log.debug("rilascio connessioni al db...");
+					con.close();
+				}
+			} catch (Exception e) {
+				// ignore exception
+			}
+		}
+	}
+	
+	public int numeroPluginsClassiList() throws DriverConfigurazioneException {
+		String nomeMetodo = "numeroPluginsClassiList";
+		Connection con = null;
+		int val = 0;
+
+		if (this.atomica) {
+			try {
+				con = this.datasource.getConnection();
+			} catch (Exception e) {
+				throw new DriverConfigurazioneException("[DriverConfigurazioneDB::" + nomeMetodo + "] Exception accedendo al datasource :" + e.getMessage(),e);
+
+			}
+
+		} else {
+			con = this.globalConnection;
+		}
+
+		this.log.debug("operazione this.atomica = " + this.atomica);
+
+		try {
+			IPluginServiceSearch pluginServiceSearch = this.getJdbcServiceManagerMonitorEngineConfig().getPluginServiceSearch();
+			
+			IExpression expr = pluginServiceSearch.newExpression();
+			
+			NonNegativeNumber count = pluginServiceSearch.count(expr);
+			if(count!= null)
+				val = (int) count.longValue();
+			
+			return val;
+
+		} catch (Exception qe) {
+			throw new DriverConfigurazioneException("[DriverConfigurazioneDB::" + nomeMetodo + "] Errore : " + qe.getMessage(),qe);
+		} finally {
+			try {
+				if (this.atomica) {
+					this.log.debug("rilascio connessioni al db...");
+					con.close();
+				}
+			} catch (Exception e) {
+				// ignore exception
+			}
+		}
+	}
+	
+	public List<Plugin> pluginsClassiList(ISearch ricerca) throws DriverConfigurazioneException {
+		String nomeMetodo = "pluginsClassiList";
+		int idLista = Liste.CONFIGURAZIONE_PLUGINS_CLASSI;
+		int offset;
+		int limit;
+		String search;
+
+		limit = ricerca.getPageSize(idLista);
+		offset = ricerca.getIndexIniziale(idLista);
+		search = (org.openspcoop2.core.constants.Costanti.SESSION_ATTRIBUTE_VALUE_RICERCA_UNDEFINED.equals(ricerca.getSearchString(idLista)) ? "" : ricerca.getSearchString(idLista));
+
+		String filterTipoPlugin = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_TIPO_PLUGIN_CLASSI);
+		
+		this.log.debug("search : " + search);
+		
+		Connection con = null;
+		List<Plugin> lista = new ArrayList<Plugin>();
+
+		if (this.atomica) {
+			try {
+				con = this.datasource.getConnection();
+			} catch (Exception e) {
+				throw new DriverConfigurazioneException("[DriverConfigurazioneDB::" + nomeMetodo + "] Exception accedendo al datasource :" + e.getMessage(),e);
+
+			}
+
+		} else {
+			con = this.globalConnection;
+		}
+
+		this.log.debug("operazione this.atomica = " + this.atomica);
+		
+		try {
+			IPluginServiceSearch pluginServiceSearch = this.getJdbcServiceManagerMonitorEngineConfig().getPluginServiceSearch();
+			
+			IExpression expr = pluginServiceSearch.newExpression();
+			
+			boolean addAnd = false;
+			
+			if (!search.equals("")) {
+				expr.ilike(Plugin.model().LABEL, search, LikeMode.ANYWHERE);
+				
+				addAnd = true;
+			}
+			
+			if(!filterTipoPlugin.equals("")) {
+				if(addAnd) {
+					expr.and();
+				}
+				
+				expr.equals(Plugin.model().TIPO_PLUGIN, filterTipoPlugin);
+				
+				TipoPlugin tipoPlugin = TipoPlugin.toEnumConstant(filterTipoPlugin);
+				switch (tipoPlugin) {
+				case AUTENTICAZIONE:
+				case AUTORIZZAZIONE:
+				case AUTORIZZAZIONE_CONTENUTI:
+				case INTEGRAZIONE:
+					String filtroRuolo = SearchUtils.getFilter(ricerca, idLista, PluginCostanti.FILTRO_RUOLO_NOME);
+				
+					if(!filtroRuolo.equals("")) {
+						expr.equals(Plugin.model().PLUGIN_PROPRIETA_COMPATIBILITA.NOME, PluginCostanti.FILTRO_RUOLO_NOME)
+							.and().equals(Plugin.model().PLUGIN_PROPRIETA_COMPATIBILITA.VALORE, filtroRuolo);
+					}
+					break;
+				case SERVICE_HANDLER:
+					String filtroShTipo = SearchUtils.getFilter(ricerca, idLista, PluginCostanti.FILTRO_SERVICE_HANDLER_NOME);
+				
+					if(!filtroShTipo.equals("")) {
+						expr.equals(Plugin.model().PLUGIN_PROPRIETA_COMPATIBILITA.NOME, PluginCostanti.FILTRO_SERVICE_HANDLER_NOME)
+							.and().equals(Plugin.model().PLUGIN_PROPRIETA_COMPATIBILITA.VALORE, filtroShTipo);
+					}
+					break;
+				case MESSAGE_HANDLER:
+					// message handler e ruolo messa ge handler
+					String filtroMhTipo = SearchUtils.getFilter(ricerca, idLista, PluginCostanti.FILTRO_FASE_MESSAGE_HANDLER_NOME);
+
+					if(!filtroMhTipo.equals("")) {
+						expr.equals(Plugin.model().PLUGIN_PROPRIETA_COMPATIBILITA.NOME, PluginCostanti.FILTRO_FASE_MESSAGE_HANDLER_NOME)
+						.and().equals(Plugin.model().PLUGIN_PROPRIETA_COMPATIBILITA.VALORE, filtroMhTipo);
+						
+						String filtroMhRuolo = SearchUtils.getFilter(ricerca, idLista, PluginCostanti.FILTRO_RUOLO_MESSAGE_HANDLER_NOME);
+						if(!filtroMhRuolo.equals("")) {
+							expr.equals(Plugin.model().PLUGIN_PROPRIETA_COMPATIBILITA.NOME, PluginCostanti.FILTRO_RUOLO_MESSAGE_HANDLER_NOME)
+								.and().equals(Plugin.model().PLUGIN_PROPRIETA_COMPATIBILITA.VALORE, filtroMhRuolo);
+						}
+					}
+					break;
+				case ALLARME:
+				case BEHAVIOUR:
+				case CONNETTORE:
+				case RATE_LIMITING:
+//				case RICERCA:
+//				case STATISTICA:
+//				case TRANSAZIONE:
+					break;
+				}
+			}
+			
+			NonNegativeNumber count = pluginServiceSearch.count(expr);
+			ricerca.setNumEntries(idLista,(int) count.longValue());
+			
+			// ricavo le entries
+			if (limit == 0) // con limit
+				limit = ISQLQueryObject.LIMIT_DEFAULT_VALUE;
+			
+			IPaginatedExpression pagExpr = pluginServiceSearch.toPaginatedExpression(expr);
+			
+			pagExpr.limit(limit).offset(offset);
+			pagExpr.addOrder(Plugin.model().LABEL, SortOrder.ASC);
+
+			lista = pluginServiceSearch.findAll(pagExpr);
+
+			return lista;
+
+		} catch (Exception qe) {
+			throw new DriverConfigurazioneException("[DriverConfigurazioneDB::" + nomeMetodo + "] Errore : " + qe.getMessage(),qe);
+		} finally {
+			try {
+				if (this.atomica) {
+					this.log.debug("rilascio connessioni al db...");
+					con.close();
+				}
+			} catch (Exception e) {
+				// ignore exception
+			}
+		}
+	}
+	
+	public void createPluginClassi(Plugin plugin) throws DriverConfigurazioneException {
+		String nomeMetodo = "createPluginClassi";
+
+		Connection con = null;
+
+		if (this.atomica) {
+			try {
+				con = this.datasource.getConnection();
+			} catch (Exception e) {
+				throw new DriverConfigurazioneException("[DriverConfigurazioneDB::" + nomeMetodo + "] Exception accedendo al datasource :" + e.getMessage(),e);
+
+			}
+
+		} else {
+			con = this.globalConnection;
+		}
+
+		this.log.debug("operazione this.atomica = " + this.atomica);
+
+		try {
+			IPluginService pluginService = this.getJdbcServiceManagerMonitorEngineConfig().getPluginService();
+			
+			pluginService.create(plugin);
+			
+		} catch (Exception qe) {
+			throw new DriverConfigurazioneException("[DriverConfigurazioneDB::" + nomeMetodo + "] Errore : " + qe.getMessage(),qe);
+		} finally {
+			try {
+				if (this.atomica) {
+					this.log.debug("rilascio connessioni al db...");
+					con.close();
+				}
+			} catch (Exception e) {
+				// ignore exception
+			}
+		}
+	}
+	
+	public void updatePluginClassi(Plugin plugin) throws DriverConfigurazioneException {
+		String nomeMetodo = "updatePluginClassi";
+
+		Connection con = null;
+
+		if (this.atomica) {
+			try {
+				con = this.datasource.getConnection();
+			} catch (Exception e) {
+				throw new DriverConfigurazioneException("[DriverConfigurazioneDB::" + nomeMetodo + "] Exception accedendo al datasource :" + e.getMessage(),e);
+
+			}
+
+		} else {
+			con = this.globalConnection;
+		}
+
+		this.log.debug("operazione this.atomica = " + this.atomica);
+
+		try {
+			IPluginService pluginService = this.getJdbcServiceManagerMonitorEngineConfig().getPluginService();
+			pluginService.update(plugin.getOldIdPlugin(), plugin);
+			
+		} catch (Exception qe) {
+			throw new DriverConfigurazioneException("[DriverConfigurazioneDB::" + nomeMetodo + "] Errore : " + qe.getMessage(),qe);
+		} finally {
+			try {
+				if (this.atomica) {
+					this.log.debug("rilascio connessioni al db...");
+					con.close();
+				}
+			} catch (Exception e) {
+				// ignore exception
+			}
+		}
+	}
+	
+	public void deletePluginClassi(Plugin plugin) throws DriverConfigurazioneException {
+		String nomeMetodo = "deletePluginClassi";
+
+		Connection con = null;
+
+		if (this.atomica) {
+			try {
+				con = this.datasource.getConnection();
+			} catch (Exception e) {
+				throw new DriverConfigurazioneException("[DriverConfigurazioneDB::" + nomeMetodo + "] Exception accedendo al datasource :" + e.getMessage(),e);
+
+			}
+
+		} else {
+			con = this.globalConnection;
+		}
+
+		this.log.debug("operazione this.atomica = " + this.atomica);
+
+		try {
+			IPluginService pluginService = this.getJdbcServiceManagerMonitorEngineConfig().getPluginService();
+			
+			pluginService.delete(plugin);
+			
+		} catch (Exception qe) {
+			throw new DriverConfigurazioneException("[DriverConfigurazioneDB::" + nomeMetodo + "] Errore : " + qe.getMessage(),qe);
+		} finally {
+			try {
+				if (this.atomica) {
+					this.log.debug("rilascio connessioni al db...");
+					con.close();
+				}
+			} catch (Exception e) {
+				// ignore exception
+			}
+		}
+	}
+
+	public boolean existsPlugin(TipoPlugin tipoPlugin, String tipo, String label, String className) throws DriverConfigurazioneException {
+		String nomeMetodo = "existsPlugin";
+		Connection con = null;
+
+		if (this.atomica) {
+			try {
+				con = this.datasource.getConnection();
+			} catch (Exception e) {
+				throw new DriverConfigurazioneException("[DriverConfigurazioneDB::" + nomeMetodo + "] Exception accedendo al datasource :" + e.getMessage(),e);
+
+			}
+
+		} else {
+			con = this.globalConnection;
+		}
+
+		this.log.debug("operazione this.atomica = " + this.atomica);
+
+		try {
+			IPluginServiceSearch pluginServiceSearch = this.getJdbcServiceManagerMonitorEngineConfig().getPluginServiceSearch();
+			
+			IExpression expr = pluginServiceSearch.newExpression();
+			
+			IExpression tipoExp = pluginServiceSearch.newExpression();
+			tipoExp.equals(Plugin.model().TIPO_PLUGIN, tipoPlugin.toString()).and().equals(Plugin.model().TIPO, tipo);
+			IExpression labelExp = pluginServiceSearch.newExpression();
+			labelExp.equals(Plugin.model().TIPO_PLUGIN, tipoPlugin.toString()).and().equals(Plugin.model().LABEL, label);
+			IExpression classExp = pluginServiceSearch.newExpression();
+			classExp.equals(Plugin.model().TIPO_PLUGIN, tipoPlugin.toString()).and().equals(Plugin.model().CLASS_NAME, className);
+			
+			expr.or(tipoExp, labelExp, classExp);
+			
+			NonNegativeNumber count = pluginServiceSearch.count(expr);
+			
+			return count.longValue() > 0;
+		} catch (Exception qe) {
+			throw new DriverConfigurazioneException("[DriverConfigurazioneDB::" + nomeMetodo + "] Errore : " + qe.getMessage(),qe);
+		} finally {
+			try {
+				if (this.atomica) {
+					this.log.debug("rilascio connessioni al db...");
+					con.close();
+				}
+			} catch (Exception e) {
+				// ignore exception
+			}
+		}
+	}
+
+	public Plugin getPlugin(long idPlugin) throws DriverConfigurazioneException {
+		String nomeMetodo = "getPlugin";
+		Connection con = null;
+
+		if (this.atomica) {
+			try {
+				con = this.datasource.getConnection();
+			} catch (Exception e) {
+				throw new DriverConfigurazioneException("[DriverConfigurazioneDB::" + nomeMetodo + "] Exception accedendo al datasource :" + e.getMessage(),e);
+
+			}
+
+		} else {
+			con = this.globalConnection;
+		}
+
+		this.log.debug("operazione this.atomica = " + this.atomica);
+
+		try {
+			IPluginServiceSearch pluginServiceSearch = this.getJdbcServiceManagerMonitorEngineConfig().getPluginServiceSearch();
+			
+			IExpression expr = pluginServiceSearch.newExpression();
+			
+			PluginFieldConverter converter = new PluginFieldConverter(this.tipoDB);
+			expr.equals(new CustomField("id", Long.class, "id", converter.toTable(Plugin.model())), idPlugin);
+
+			Plugin plugin = pluginServiceSearch.find(expr);
+			
+			IdPlugin idPluginObj = pluginServiceSearch.convertToId(plugin);
+			plugin.setOldIdPlugin(idPluginObj);
+			
+			return plugin;
+		} catch (Exception qe) {
+			throw new DriverConfigurazioneException("[DriverConfigurazioneDB::" + nomeMetodo + "] Errore : " + qe.getMessage(),qe);
 		} finally {
 			try {
 				if (this.atomica) {

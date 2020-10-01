@@ -188,7 +188,7 @@ public final class ConfigurazionePluginsArchiviAdd extends Action {
 			}
 			registro.setData(new Date());
 			if(classiPlugin.equals(ConfigurazioneCostanti.DEFAULT_VALUE_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_CLASSI_PLUGIN_QUALSIASI)) {
-				registro.setCompatibilitaList(null);
+				registro.getCompatibilitaList().clear();
 			} else {
 				for (String tipo : tipoPlugin) {
 					registro.getCompatibilitaList().add(tipo);
