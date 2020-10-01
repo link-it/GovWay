@@ -1,3 +1,4 @@
+
 /*
  * GovWay - A customizable API Gateway 
  * https://govway.org
@@ -19,7 +20,7 @@
  */
 
 
-package org.openspcoop2.core.protocolli.modipa.testsuite.rest.bloccante;
+package org.openspcoop2.core.protocolli.modipa.testsuite.soap.bloccante;
 
 import java.io.File;
 import java.util.HashMap;
@@ -38,25 +39,25 @@ import com.intuit.karate.netty.FeatureServer;
 
 /**
 * MockProxyTest
-* TODO: Rimuovere prefisso proxy
+*
 * @author Francesco Scarlato (scarlato@link.it)
 * @author $Author$
 * @version $Rev$, $Date$
 */
 @RunWith(Karate.class)
 @KarateOptions(features = {
-    "classpath:test/rest/bloccante/modipa-proxy.feature",
-    "classpath:test/rest/bloccante/echo.feature",
-    "classpath:test/rest/bloccante/idac02.feature"
+    "classpath:test/soap/bloccante/echo.feature",
+    "classpath:test/soap/bloccante/proxy.feature",
+    "classpath:test/soap/bloccante/idac02.feature"
     })
-public class ProxyBloccanteRestTest extends ConfigLoader {
+public class BloccanteSoapTest extends ConfigLoader {
     
     private static FeatureServer server;
     
     @SuppressWarnings({ "unchecked", "rawtypes" })
 	@BeforeClass
     public static void beforeClass() {       
-        File file = FileUtils.getFileRelativeTo(ProxyBloccanteRestTest.class, "modipa-mock.feature");
+        File file = FileUtils.getFileRelativeTo(BloccanteSoapTest.class, "mock.feature");
         server = FeatureServer.start(file, Integer.valueOf(prop.getProperty("http_port")), false, new HashMap<String,Object>((Map) prop));
     }
         

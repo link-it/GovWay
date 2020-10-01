@@ -67,7 +67,7 @@ public class NonBloccantePullSoapTest extends ConfigLoader {
 
         // TODO: Rendere una proprietà la porta del proxy, magari rinomiinare anche <http_port> in <http_proxy_port>
         file = FileUtils.getFileRelativeTo(NonBloccantePullSoapTest.class, "mock.feature");
-        proxy = FeatureServer.start(file, 8091 /*Integer.valueOf(prop.getProperty("http_port_mock"))*/, false, new HashMap<String,Object>((Map) prop));
+        proxy = FeatureServer.start(file, Integer.valueOf(prop.getProperty("http_mock_port")), false, new HashMap<String,Object>((Map) prop));
     }
         
     @AfterClass
