@@ -9,7 +9,7 @@
                 </env:Subcode>
             </env:Code>
             <env:Reason>
-                <env:Text xml:lang="it-IT">modipa/DemoSoggettoFruitore ha rilevato le seguenti eccezioni:
+                <env:Text xml:lang="en-US">modipa/DemoSoggettoFruitore ha rilevato le seguenti eccezioni:
 Header SOAP 'X-Correlation-ID' non presente</env:Text>
             </env:Reason>
             <env:Role>http://govway.org/integration</env:Role>

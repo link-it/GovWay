@@ -36,6 +36,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
@@ -927,6 +928,7 @@ public class OpenSPCoop2Properties {
 				this.log.error("Riscontrato errore durante la lettura della proprieta' di openspcoop: 'org.openspcoop2.pdd.erroreApplicativo'.");
 				return false;
 			}
+			getLocaleSOAPFaultString();
 			
 			// Errori http
 			getErroriHttpHeaderGovWayStatus();
@@ -6527,6 +6529,40 @@ public class OpenSPCoop2Properties {
 	}
 
 
+	private static Locale localeSOAPFaultString = null;
+	private static Boolean localeSOAPFaultStringRead = null;
+	public Locale getLocaleSOAPFaultString(){
+		if(OpenSPCoop2Properties.localeSOAPFaultStringRead==null){
+			try{  
+				String value = this.reader.getValue_convertEnvProperties("org.openspcoop2.pdd.erroreApplicativo.faultString.language"); 
+				if (value != null){
+					value = value.trim();
+					
+					String language = value;
+					
+					String country = this.reader.getValue_convertEnvProperties("org.openspcoop2.pdd.erroreApplicativo.faultString.country"); 
+					if(country!=null) {
+						country = country.trim();
+					}
+					
+					String variant = this.reader.getValue_convertEnvProperties("org.openspcoop2.pdd.erroreApplicativo.faultString.variant"); 
+					if(variant!=null) {
+						variant = variant.trim();
+					}
+					
+					OpenSPCoop2Properties.localeSOAPFaultString = new Locale(language, country, variant);
+				}else{
+					this.log.warn("Proprieta' di openspcoop 'org.openspcoop2.pdd.erroreApplicativo.faultString.language' non impostata, viene utilizzato il default="+Locale.getDefault());
+				}
+			}catch(java.lang.Exception e) {
+				this.log.warn("Proprieta' di openspcoop 'org.openspcoop2.pdd.erroreApplicativo.faultString.language' non impostata, viene utilizzato il default="+Locale.getDefault()+", errore:"+e.getMessage(),e);
+			}
+			OpenSPCoop2Properties.localeSOAPFaultStringRead = true;
+		}
+
+		return OpenSPCoop2Properties.localeSOAPFaultString;
+	}
+	
 
 	/**
 	 * Indicazione se l'errore applicativo deve essere inserito in un details.
