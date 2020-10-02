@@ -103,7 +103,7 @@ public class ModIImbustamentoSoap {
 			
 				if(ModICostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RICHIESTA.equals(asyncInteractionRole)) {
 				
-					if(this.modiProperties.isSoapSecurityTokenPushReplyToUpdateOrCreate()) {
+					if(this.modiProperties.isSoapSecurityTokenPushReplyToUpdateOrCreateInFruizione()) {
 						
 						ModIUtilities.addSOAPHeaderReplyTo(soapMessage, replyTo); // aggiorna il valore se già esistente
 						busta.addProperty(ModICostanti.MODIPA_BUSTA_EXT_PROFILO_INTERAZIONE_ASINCRONA_REPLY_TO, replyTo);

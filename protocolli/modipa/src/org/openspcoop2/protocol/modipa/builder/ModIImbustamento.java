@@ -156,7 +156,7 @@ public class ModIImbustamento {
 						// devo cercare l'url di invocazione del servizio erogato correlato.
 						
 						try {
-							replyTo = ModIUtilities.getReplyTo(idServizio, idSoggettoMittente, aspc, nomePortType, azione, 
+							replyTo = ModIUtilities.getReplyToErogazione(idSoggettoMittente, aspc, nomePortType, azione, 
 									registryReader, configIntegrationReader, protocolFactory, state);
 						}catch(Exception e) {
 							throw new Exception("Configurazione presente nel registro non corretta: "+e.getMessage(),e);

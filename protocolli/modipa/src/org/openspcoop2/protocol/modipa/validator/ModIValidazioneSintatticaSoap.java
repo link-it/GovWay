@@ -85,7 +85,8 @@ public class ModIValidazioneSintatticaSoap extends AbstractModIValidazioneSintat
 	}
 
 	public void validateInteractionProfile(OpenSPCoop2Message msg, boolean request, String asyncInteractionType, String asyncInteractionRole, 
-			Busta busta, List<Eccezione> erroriValidazione) throws Exception {
+			Busta busta, List<Eccezione> erroriValidazione,
+			String replyTo) throws Exception {
 		
 		OpenSPCoop2SoapMessage soapMessage = msg.castAsSoap();
 		
@@ -114,6 +115,9 @@ public class ModIValidazioneSintatticaSoap extends AbstractModIValidazioneSintat
 							erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(CodiceErroreCooperazione.SERVIZIO_CORRELATO_NON_PRESENTE, 
 									"Header SOAP '"+replyToName+"' non presente"));
 							return;
+						}
+						if(this.modiProperties.isSoapSecurityTokenPushReplyToUpdateInErogazione()) {
+							ModIUtilities.addSOAPHeaderReplyTo(soapMessage, replyTo); // aggiorna il valore se già esistente
 						}
 					}
 					else {

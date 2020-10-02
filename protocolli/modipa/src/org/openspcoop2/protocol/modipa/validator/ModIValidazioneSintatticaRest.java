@@ -77,7 +77,8 @@ public class ModIValidazioneSintatticaRest extends AbstractModIValidazioneSintat
 	
 	public void validateInteractionProfile(OpenSPCoop2Message msg, boolean request, String asyncInteractionType, String asyncInteractionRole, 
 			AccordoServizioParteComune apiContenenteRisorsa, String azione,
-			Busta busta, List<Eccezione> erroriValidazione) throws Exception {
+			Busta busta, List<Eccezione> erroriValidazione,
+			String replyTo) throws Exception {
 				
 		String correlationIdHeader = this.modiProperties.getRestCorrelationIdHeader();
 		String correlationId = null;
@@ -143,6 +144,12 @@ public class ModIValidazioneSintatticaRest extends AbstractModIValidazioneSintat
 							erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(CodiceErroreCooperazione.SERVIZIO_CORRELATO_NON_PRESENTE, 
 									"Header HTTP '"+replyToHeader+"' non presente"));
 							return;
+						}
+						if(this.modiProperties.isRestSecurityTokenPushReplyToUpdateInErogazione()) {
+							if(msg.getTransportRequestContext()!=null) {
+								msg.getTransportRequestContext().removeParameterTrasporto(replyToHeader); // rimuovo se già esiste
+							}
+							msg.forceTransportHeader(replyToHeader, replyTo);
 						}
 					}
 					else {

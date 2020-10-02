@@ -36,6 +36,7 @@ import org.openspcoop2.core.id.IDResource;
 import org.openspcoop2.core.id.IDServizio;
 import org.openspcoop2.core.id.IDSoggetto;
 import org.openspcoop2.core.mapping.MappingErogazionePortaApplicativa;
+import org.openspcoop2.core.mapping.MappingFruizionePortaDelegata;
 import org.openspcoop2.core.registry.AccordoServizioParteComune;
 import org.openspcoop2.core.registry.Resource;
 import org.openspcoop2.core.registry.constants.ServiceBinding;
@@ -194,8 +195,25 @@ public class ModIUtilities {
 		return null;
 	}
 	
-	
-	public static String getReplyTo(IDServizio idServizio, IDSoggetto idSoggettoMittente, 
+	public static String getReplyToErogazione(IDSoggetto idSoggettoErogatoreServizioCorrelato, 
+			AccordoServizioParteComune aspc, String portType, String azione,
+			IRegistryReader registryReader, IConfigIntegrationReader configIntegrationReader, 
+			IProtocolFactory<?> protocolFactory, IState state) throws Exception {
+		return getReplyTo(false, null, idSoggettoErogatoreServizioCorrelato, 
+				aspc, portType, azione,
+				registryReader, configIntegrationReader, 
+				protocolFactory, state);
+	}
+	public static String getReplyToFruizione(IDSoggetto idSoggettoFrutore, IDSoggetto idSoggettoErogatoreServizioCorrelato, 
+			AccordoServizioParteComune aspc, String portType, String azione,
+			IRegistryReader registryReader, IConfigIntegrationReader configIntegrationReader, 
+			IProtocolFactory<?> protocolFactory, IState state) throws Exception {
+		return getReplyTo(true, idSoggettoFrutore, idSoggettoErogatoreServizioCorrelato, 
+				aspc, portType, azione,
+				registryReader, configIntegrationReader, 
+				protocolFactory, state);
+	}
+	private static String getReplyTo(boolean fruizione, IDSoggetto idSoggettoFrutore, IDSoggetto idSoggettoErogatoreServizioCorrelato, 
 			AccordoServizioParteComune aspc, String portType, String azione,
 			IRegistryReader registryReader, IConfigIntegrationReader configIntegrationReader, 
 			IProtocolFactory<?> protocolFactory, IState state) throws Exception {
@@ -258,7 +276,7 @@ public class ModIUtilities {
 			
 		FiltroRicercaServizi filtroServizi = new FiltroRicercaServizi(); 
 		filtroServizi.setIdAccordoServizioParteComune(idAccordoRisposta);
-		filtroServizi.setSoggettoErogatore(idSoggettoMittente);
+		filtroServizi.setSoggettoErogatore(idSoggettoErogatoreServizioCorrelato);
 		if(!rest) {
 			filtroServizi.setPortType(portTypeRisposta);
 		}
@@ -268,44 +286,79 @@ public class ModIUtilities {
 		}catch(RegistryNotFound notFound) {
 		}
 		if(lIdServizio==null || lIdServizio.size()<=0) {
-			throw new RegistryNotFound("Non è stata individuata alcun'erogazione da parte del soggetto '"+NamingUtils.getLabelSoggetto(idSoggettoMittente)+
-					"' relativamente all'API "+NamingUtils.getLabelAccordoServizioParteComune(idAccordoRisposta));
+			if(fruizione) {
+				throw new RegistryNotFound("Non è stata individuata alcuna fruzione verso l'API "+NamingUtils.getLabelAccordoServizioParteComune(idAccordoRisposta)+
+						" erogata dal soggetto "+NamingUtils.getLabelSoggetto(idSoggettoErogatoreServizioCorrelato));
+			}
+			else {
+				throw new RegistryNotFound("Non è stata individuata alcun'erogazione da parte del soggetto "+NamingUtils.getLabelSoggetto(idSoggettoErogatoreServizioCorrelato)+
+					" relativamente all'API "+NamingUtils.getLabelAccordoServizioParteComune(idAccordoRisposta));
+			}
 		}
 		if(lIdServizio.size()>1) {
-			throw new RegistryNotFound("Sono state individuate più di un'erogazione da parte del soggetto '"+NamingUtils.getLabelSoggetto(idSoggettoMittente)+
-					"' relativamente all'API "+NamingUtils.getLabelAccordoServizioParteComune(idAccordoRisposta));
+			if(fruizione) {
+				throw new RegistryNotFound("Sono state individuate più fruzioni verso l'API "+NamingUtils.getLabelAccordoServizioParteComune(idAccordoRisposta)+
+						" erogata dal soggetto "+NamingUtils.getLabelSoggetto(idSoggettoErogatoreServizioCorrelato));
+			}
+			else {
+				throw new RegistryNotFound("Sono state individuate più di un'erogazione da parte del soggetto "+NamingUtils.getLabelSoggetto(idSoggettoErogatoreServizioCorrelato)+
+					" relativamente all'API "+NamingUtils.getLabelAccordoServizioParteComune(idAccordoRisposta));
+			}
 		}
 		IDServizio idServizioCorrelato = lIdServizio.get(0);
 		
-		List<MappingErogazionePortaApplicativa> listMapping = ConfigurazionePdDManager.getInstance(state).getMappingErogazionePortaApplicativaList(idServizioCorrelato);
-		if(listMapping==null) {
-			throw new RegistryNotFound("(outbound empty) Non è stata individuata alcun'erogazione da parte del soggetto '"+NamingUtils.getLabelSoggetto(idSoggettoMittente)+
-					"' relativamente all'API "+NamingUtils.getLabelAccordoServizioParteComune(idAccordoRisposta));
-		}
-		String nomePA = null;
-		IDSoggetto proprietarioPA = null;
-		for (MappingErogazionePortaApplicativa mappingErogazionePortaApplicativa : listMapping) {
-			if(mappingErogazionePortaApplicativa.isDefault()) {
-				nomePA = mappingErogazionePortaApplicativa.getIdPortaApplicativa().getNome();
-				proprietarioPA = idServizioCorrelato.getSoggettoErogatore();
+		if(fruizione) {
+			List<MappingFruizionePortaDelegata> listMapping = ConfigurazionePdDManager.getInstance(state).getMappingFruizionePortaDelegataList(idSoggettoFrutore, idServizioCorrelato);
+			if(listMapping==null) {
+				throw new RegistryNotFound("(outbound empty) Non è stata individuata alcuna fruzione da parte del soggetto "+NamingUtils.getLabelSoggetto(idSoggettoFrutore)+
+						" verso l'API "+NamingUtils.getLabelAccordoServizioParteComune(idAccordoRisposta)+
+						" erogata dal soggetto "+NamingUtils.getLabelSoggetto(idSoggettoErogatoreServizioCorrelato));
 			}
+			String nomePD = null;
+			IDSoggetto proprietarioPD = null;
+			for (MappingFruizionePortaDelegata mappingFruizionePortaDelegata : listMapping) {
+				if(mappingFruizionePortaDelegata.isDefault()) {
+					nomePD = mappingFruizionePortaDelegata.getIdPortaDelegata().getNome();
+					proprietarioPD = idSoggettoFrutore;
+				}
+			}
+			if(nomePD==null) {
+				throw new RegistryNotFound("(outbound) Non è stata individuata alcuna fruzione da parte del soggetto "+NamingUtils.getLabelSoggetto(idSoggettoFrutore)+
+						" verso l'API "+NamingUtils.getLabelAccordoServizioParteComune(idAccordoRisposta)+
+						" erogata dal soggetto "+NamingUtils.getLabelSoggetto(idSoggettoErogatoreServizioCorrelato));
+			}
+			return getUrlInvocazione(protocolFactory, RuoloContesto.PORTA_DELEGATA, rest, nomePD, proprietarioPD);
 		}
-		if(nomePA==null) {
-			throw new RegistryNotFound("(outbound) Non è stata individuata alcun'erogazione da parte del soggetto '"+NamingUtils.getLabelSoggetto(idSoggettoMittente)+
-					"' relativamente all'API "+NamingUtils.getLabelAccordoServizioParteComune(idAccordoRisposta));
+		else {
+			List<MappingErogazionePortaApplicativa> listMapping = ConfigurazionePdDManager.getInstance(state).getMappingErogazionePortaApplicativaList(idServizioCorrelato);
+			if(listMapping==null) {
+				throw new RegistryNotFound("(inbound empty) Non è stata individuata alcun'erogazione da parte del soggetto "+NamingUtils.getLabelSoggetto(idSoggettoErogatoreServizioCorrelato)+
+						" relativamente all'API "+NamingUtils.getLabelAccordoServizioParteComune(idAccordoRisposta));
+			}
+			String nomePA = null;
+			IDSoggetto proprietarioPA = null;
+			for (MappingErogazionePortaApplicativa mappingErogazionePortaApplicativa : listMapping) {
+				if(mappingErogazionePortaApplicativa.isDefault()) {
+					nomePA = mappingErogazionePortaApplicativa.getIdPortaApplicativa().getNome();
+					proprietarioPA = idServizioCorrelato.getSoggettoErogatore();
+				}
+			}
+			if(nomePA==null) {
+				throw new RegistryNotFound("(inbound) Non è stata individuata alcun'erogazione da parte del soggetto "+NamingUtils.getLabelSoggetto(idSoggettoErogatoreServizioCorrelato)+
+						" relativamente all'API "+NamingUtils.getLabelAccordoServizioParteComune(idAccordoRisposta));
+			}
+			return getUrlInvocazione(protocolFactory, RuoloContesto.PORTA_APPLICATIVA, rest, nomePA, proprietarioPA);
 		}
-
-		return getUrlInvocazionePA(protocolFactory, rest, nomePA, proprietarioPA);
 	}
 	
 	
-	public static String getUrlInvocazionePA(IProtocolFactory<?> protocolFactory, boolean rest, String nomePA, IDSoggetto proprietarioPA) throws Exception {
+	public static String getUrlInvocazione(IProtocolFactory<?> protocolFactory, RuoloContesto ruoloContesto, boolean rest, String nomePorta, IDSoggetto proprietarioPorta) throws Exception {
 		
 		UrlInvocazioneAPI urlInvocazioneApi = ConfigurazionePdDManager.getInstance().getConfigurazioneUrlInvocazione(protocolFactory, 
-				RuoloContesto.PORTA_APPLICATIVA,
+				ruoloContesto,
 				rest ? org.openspcoop2.message.constants.ServiceBinding.REST : org.openspcoop2.message.constants.ServiceBinding.SOAP,
-				nomePA,
-				proprietarioPA);		 
+				nomePorta,
+				proprietarioPorta);		 
 		String prefixGatewayUrl = urlInvocazioneApi.getBaseUrl();
 		String contesto = urlInvocazioneApi.getContext();
 		return Utilities.buildUrl(prefixGatewayUrl, contesto);

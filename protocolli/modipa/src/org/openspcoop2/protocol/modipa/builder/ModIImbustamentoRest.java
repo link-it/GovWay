@@ -95,7 +95,7 @@ public class ModIImbustamentoRest {
 				
 					String headerReplyName = this.modiProperties.getRestReplyToHeader();
 					
-					if(this.modiProperties.isRestSecurityTokenPushReplyToUpdateOrCreate()) {
+					if(this.modiProperties.isRestSecurityTokenPushReplyToUpdateOrCreateInFruizione()) {
 						msg.getTransportRequestContext().removeParameterTrasporto(headerReplyName); // rimuovo se già esiste
 						msg.forceTransportHeader(headerReplyName, replyTo);
 						busta.addProperty(ModICostanti.MODIPA_BUSTA_EXT_PROFILO_INTERAZIONE_ASINCRONA_REPLY_TO, replyTo);
