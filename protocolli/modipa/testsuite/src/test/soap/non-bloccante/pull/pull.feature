@@ -4,7 +4,6 @@ Background:
 
 * def url_validazione = govway_base_path + "/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/NonBlockingSoapPullProxy/v1"
 * def url_no_validazione = govway_base_path + "/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/NonBlockingSoapPullNoValidazioneProxy/v1"
-* def url_helper_headers = govway_base_path + "/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/NonBlockingSoapPullHelperHeadersNoValidazioneProxy/v1"
 
 * configure headers = { 'Content-Type': 'application/soap+xml', 'action': url_validazione }
 

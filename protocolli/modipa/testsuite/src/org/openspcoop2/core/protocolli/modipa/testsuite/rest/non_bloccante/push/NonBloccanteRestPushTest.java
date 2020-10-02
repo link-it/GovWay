@@ -18,7 +18,7 @@
  *
  */
 
-package org.openspcoop2.core.protocolli.modipa.testsuite.rest.non_bloccante;
+package org.openspcoop2.core.protocolli.modipa.testsuite.rest.non_bloccante.push;
 
 import java.io.File;
 import java.util.HashMap;
@@ -43,28 +43,33 @@ import com.intuit.karate.netty.FeatureServer;
 
 @RunWith(Karate.class)
 @KarateOptions( features = { 
-    "classpath:test/rest/non-bloccante/pull.feature",
-    "classpath:test/rest/non-bloccante/pull-errori-fruizione.feature",
-    "classpath:test/rest/non-bloccante/pull-errori-erogazione.feature",
-    "classpath:test/rest/non-bloccante/pull-no-disclosure.feature",
-    "classpath:test/rest/non-bloccante/pull-errori-fruizione-no-disclosure.feature",
-    "classpath:test/rest/non-bloccante/pull-errori-erogazione-no-disclosure.feature"
-
+    "classpath:test/rest/non-bloccante/push/push.feature",
     })
-public class NonBloccanteRestTest extends ConfigLoader { 
+public class NonBloccanteRestPushTest extends ConfigLoader { 
     
     private static FeatureServer server;
+    private static FeatureServer proxy;
     
     @SuppressWarnings({ "unchecked", "rawtypes" })
 	@BeforeClass
     public static void beforeClass() {       
-        File file = FileUtils.getFileRelativeTo(NonBloccanteRestTest.class, "mock-pull.feature");
-        server = FeatureServer.start(file, Integer.valueOf(prop.getProperty("http_port")), false, new HashMap<String,Object>((Map) prop));
+        File file = FileUtils.getFileRelativeTo(NonBloccanteRestPushTest.class, "proxy.feature");
+        proxy = FeatureServer.start(file, Integer.valueOf(prop.getProperty("http_port")), 
+                false,
+                new HashMap<String,Object>((Map) prop)
+            );
+
+        file = FileUtils.getFileRelativeTo(NonBloccanteRestPushTest.class, "mock.feature");
+        server = FeatureServer.start(file, Integer.valueOf(prop.getProperty("http_mock_port")),
+                false,
+                new HashMap<String,Object>((Map) prop)
+            );
     }
         
     @AfterClass
     public static void afterClass() {
         server.stop();
+        proxy.stop();
     }     
 
 }

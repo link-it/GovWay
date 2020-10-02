@@ -61,18 +61,6 @@ Scenario: headerContains('GovWay-TestSuite-Test-Id', 'generazione-header-convers
 * match header GovWay-Conversation-ID == 'd2f49459-1624-4710-b80c-15e33d64b608'
 
 
-# # HEADER SOAP X-Correlation-ID non presente nelle richieste stato e risorsa
-# #
-# #
-# Scenario: headerContains('GovWay-TestSuite-Test-Id', 'no-correlation-in-soap-header-erogazione')
-
-# * def c = request
-# * set c/Envelope = "Puppa"
-
-# * karate.proceed(url_no_validazione)
-# * match responseStatus == 500
-
-
 # INIEZIONE HEADER SOAP A PARTIRE DAGLI HEADER HTTP E PARAMETRI QUERY DI COLLABORAZIONE
 #
 #   Come aiuto allo sviluppatore, la fruizione può arricchire il messaggio soap con lo header
@@ -92,6 +80,8 @@ Scenario: headerContains('GovWay-TestSuite-Test-Id', 'iniezione-header-soap-risp
 
 
 # Catch all
+#
+#
 
 Scenario: methodIs('post')
 * karate.proceed(url_validazione)

@@ -73,6 +73,7 @@ public class NonBloccantePullSoapTest extends ConfigLoader {
     @AfterClass
     public static void afterClass() {
         mock.stop();
+        proxy.stop();
     }     
     
 }
