@@ -33,7 +33,7 @@ And header GovWay-TestSuite-Test-Id = 'test-ok-risposta-server'
 And request read('server-response.json')
 When method post
 Then status 200
-And match body == read('server-response-response.json')
+And match response == read('server-response-response.json')
 # Devo matchare anche qui lo header GovWay-Conversation-ID?
 
 
