@@ -151,48 +151,51 @@ public class ModIProtocolManager extends BasicManager {
 	public OpenSPCoop2Message updateOpenSPCoop2MessageResponse(OpenSPCoop2Message msg, Busta busta, 
     		NotifierInputStreamParams notifierInputStreamParams, 
     		TransportRequestContext transportRequestContext, TransportResponseContext transportResponseContext,
-    		IRegistryReader registryReader) throws ProtocolException{
+    		IRegistryReader registryReader,
+    		boolean integration) throws ProtocolException{
     	
-		try {
-		
-			boolean createCorrelationIdIfNotExists = false;
-			if(msg!=null) {
-				if(ServiceBinding.REST.equals(msg.getServiceBinding())) {
-					createCorrelationIdIfNotExists = this.modipaProperties.isRestSecurityTokenPushCorrelationIdUseTransactionIdIfNotExists();
-				}
-				else {
-					createCorrelationIdIfNotExists = this.modipaProperties.isSoapSecurityTokenPushCorrelationIdUseTransactionIdIfNotExists();
-				}
-			}
+		if(integration) {
+			try {
 			
-			if(busta!=null && createCorrelationIdIfNotExists) {
-				String asyncInteractionType = busta.getProperty(ModICostanti.MODIPA_BUSTA_EXT_PROFILO_INTERAZIONE_ASINCRONA_TIPO);
-				if(ModICostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_VALUE_PUSH.equals(asyncInteractionType)) {
-					String asyncInteractionRole = busta.getProperty(ModICostanti.MODIPA_BUSTA_EXT_PROFILO_INTERAZIONE_ASINCRONA_RUOLO);
-					if(ModICostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RICHIESTA.equals(asyncInteractionRole)) {
-						
-						if(ServiceBinding.REST.equals(msg.getServiceBinding())) {
-							String headerCorrelationId = this.modipaProperties.getRestCorrelationIdHeader();
-							String correlationIdFound = msg.getTransportResponseContext().getParameterTrasporto(headerCorrelationId);
-							if(correlationIdFound==null || "".equals(correlationIdFound)) {
-								msg.getTransportResponseContext().getParametersTrasporto().put(headerCorrelationId, ModICostanti.MODIPA_BUSTA_EXT_PROFILO_INTERAZIONE_ASINCRONA_ID_CORRELAZIONE_AGGIUNTO_PER_CONSENTIRE_VALIDAZIONE_CONTENUTI);
-							}
-						}
-						else {
-							// TODO: add SOAPHeader
-							//       fino a che non viene implementata la validazione dell'header SOAP l'aggiunta non serve
-						}
-						
+				boolean createCorrelationIdIfNotExists = false;
+				if(msg!=null) {
+					if(ServiceBinding.REST.equals(msg.getServiceBinding())) {
+						createCorrelationIdIfNotExists = this.modipaProperties.isRestSecurityTokenPushCorrelationIdUseTransactionIdIfNotExists();
+					}
+					else {
+						createCorrelationIdIfNotExists = this.modipaProperties.isSoapSecurityTokenPushCorrelationIdUseTransactionIdIfNotExists();
 					}
 				}
+				
+				if(busta!=null && createCorrelationIdIfNotExists) {
+					String asyncInteractionType = busta.getProperty(ModICostanti.MODIPA_BUSTA_EXT_PROFILO_INTERAZIONE_ASINCRONA_TIPO);
+					if(ModICostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_VALUE_PUSH.equals(asyncInteractionType)) {
+						String asyncInteractionRole = busta.getProperty(ModICostanti.MODIPA_BUSTA_EXT_PROFILO_INTERAZIONE_ASINCRONA_RUOLO);
+						if(ModICostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RICHIESTA.equals(asyncInteractionRole)) {
+							
+							if(ServiceBinding.REST.equals(msg.getServiceBinding())) {
+								String headerCorrelationId = this.modipaProperties.getRestCorrelationIdHeader();
+								String correlationIdFound = msg.getTransportResponseContext().getParameterTrasporto(headerCorrelationId);
+								if(correlationIdFound==null || "".equals(correlationIdFound)) {
+									msg.getTransportResponseContext().getParametersTrasporto().put(headerCorrelationId, ModICostanti.MODIPA_BUSTA_EXT_PROFILO_INTERAZIONE_ASINCRONA_ID_CORRELAZIONE_AGGIUNTO_PER_CONSENTIRE_VALIDAZIONE_CONTENUTI);
+								}
+							}
+							else {
+								// TODO: add SOAPHeader
+								//       fino a che non viene implementata la validazione dell'header SOAP l'aggiunta non serve
+							}
+							
+						}
+					}
+				}
+				
+			}catch(Exception e) {
+				throw new ProtocolException(e.getMessage(),e);
 			}
-			
-		}catch(Exception e) {
-			throw new ProtocolException(e.getMessage(),e);
 		}
 		
 		return super.updateOpenSPCoop2MessageResponse(msg, busta, 
-				notifierInputStreamParams,transportRequestContext,transportResponseContext,registryReader);
+				notifierInputStreamParams,transportRequestContext,transportResponseContext,registryReader,integration);
 	}
 	
 	
