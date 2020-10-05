@@ -2645,6 +2645,11 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 							
 							de.setStyleClass("ruolo-label-info-0"); //+indexOf);
 							
+							de.setUrl(ServiziApplicativiCostanti.SERVLET_NAME_SERVIZI_APPLICATIVI_RUOLI_LIST,
+									new Parameter(ServiziApplicativiCostanti.PARAMETRO_SERVIZI_APPLICATIVI_ID_SERVIZIO_APPLICATIVO, sa.getId()+""));
+							
+							de.setToolTip(RuoliCostanti.LABEL_RUOLI); 
+							
 							e.addElement(de);
 						}
 					}
@@ -2670,7 +2675,7 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 					Dialog deDialog = new Dialog();
 					
 					HashMap<ErrorsHandlerCostant, List<String>> whereIsInUso = new HashMap<ErrorsHandlerCostant, List<String>>();
-					boolean normalizeObjectIds = false;
+					boolean normalizeObjectIds = true;
 					boolean saInUso  = this.saCore.isServizioApplicativoInUso(idServizioApplicativo, whereIsInUso, this.saCore.isRegistroServiziLocale(), normalizeObjectIds );
 					
 					StringBuilder inUsoMessage = new StringBuilder();

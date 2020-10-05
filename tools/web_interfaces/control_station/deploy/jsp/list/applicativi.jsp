@@ -89,16 +89,33 @@ for (int j = 0; j < riga.size(); j++) {
 		<div id="titolo_<%=numeroEntryS %>" class="titoloEntry">
 			<span class="titoloEntry"><%=deTitoloValue %>&nbsp;&nbsp;&nbsp;&nbsp;</span>	
 			
-			<% if(vectorTags.size() > 0){ %>
+			<% if(vectorTags.size() > 0){
+				DataElement tag0 = vectorTags.get(0);
+				String ruoliTooltip = !tag0.getToolTip().equals("") ? " title=\"" + tag0.getToolTip() + "\"" : "";
+				String ruoliUrl = tag0.getUrl();
+				
+				%>
 				<div id="titolo_<%=numeroEntryS %>_ruoli" class="titoloRuoli">
-					<span class="titoloRuoli-image-sx" id="titolo_<%=numeroEntryS %>_ruoli_0">
-						<i class="material-icons md-18" id="iconInfo_titolo_<%=numeroEntryS %>_ruoli_0">supervisor_account</i>
+					<span class="titoloRuoli-image-sx" id="titolo_<%=numeroEntryS %>_ruoli_icona" <%=ruoliTooltip %> >
+						<i class="material-icons md-18" id="iconInfo_titolo_<%=numeroEntryS %>_ruoli_icona">supervisor_account</i>
 					</span>
 					<% for(int z = 0; z < vectorTags.size(); z ++){ 
 						DataElement tag = vectorTags.get(z);
 					%>
-						<span class="ruolo label ruolo-label-info <%=tag.getStyleClass() %>"><%= tag.getLabel() %></span>
+						<span class="ruolo label ruolo-label-info <%=tag.getStyleClass() %>" <%=ruoliTooltip %> 
+							id="titolo_<%=numeroEntryS %>_ruoli_<%=z %>" ><%= tag.getLabel() %></span>
 					<% } %>
+					<script type="text/javascript">
+						// info
+				    	if($("span[id^='titolo_<%=numeroEntryS %>_ruoli_']").length>0){
+				    		$("span[id^='titolo_<%=numeroEntryS %>_ruoli_']").click(function(e){
+				    			
+				    			<%=Costanti.JS_FUNCTION_VISUALIZZA_AJAX_STATUS %>
+				    			window.location = '<%=ruoliUrl %>';
+				    			e.stopPropagation();
+							});
+				    	}
+						</script>
 				</div>
 			<% } %>	
 			
