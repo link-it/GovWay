@@ -12,13 +12,16 @@ Background:
 * def url_fruizione_client_no_validazione = govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestNonBlockingPushServerNoValidazione/v1"
 
 * def check_traccia_richiesta = read('./check-tracce/richiesta.feature')
+* def check_traccia_richiesta_no_reply_to = read('./check-tracce/richiesta-no-reply-to.feature')
 * def check_traccia_risposta = read('./check-tracce/risposta.feature')
+* def check_traccia_risposta_no_cid = read('./check-tracce/risposta-no-correlation-id.feature')
 * def check_id_collaborazione = read('./check-tracce/id-collaborazione.feature')
 
 @test-ok
 Scenario: Giro completo e senza errori
 
 * def url_fruizione_server_validazione = govway_base_path + "/rest/out/DemoSoggettoErogatore/DemoSoggettoFruitore/RestNonBlockingPushClient/v1"
+* def updated_reply_to = 'http://localhost:8080/govway/rest/in/DemoSoggettoFruitore/RestNonBlockingPushClient/v1'
 
 Given url url_fruizione_client_validazione
 And path 'resources', 1, 'M'
@@ -30,8 +33,8 @@ Then status 202
 And match header X-Correlation-ID == task_id
 And match header GovWay-Conversation-ID == task_id
 
-* call check_traccia_richiesta ({tid: responseHeaders['GovWay-Transaction-ID'][0]})
-* call check_traccia_richiesta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]})
+* call check_traccia_richiesta ({tid: responseHeaders['GovWay-Transaction-ID'][0], reply_to: updated_reply_to })
+* call check_traccia_richiesta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], reply_to: updated_reply_to })
 
 * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_id })
 * call check_id_collaborazione ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], id_collaborazione: task_id })
@@ -56,6 +59,8 @@ And match header GovWay-Conversation-ID == task_id
 @correlation-id-added-by-server
 Scenario: L'erogazione del server deve aggiungere lo header X-Correlation-ID se non inserito dal backend
 
+* def updated_reply_to = 'http://localhost:8080/govway/rest/in/DemoSoggettoFruitore/RestNonBlockingPushClient/v1'
+
 Given url url_fruizione_client_validazione
 And path 'resources', 1, 'M'
 And header X-ReplyTo = 'url_che_la_fruizione_sostituisce'
@@ -64,8 +69,8 @@ And request read('client-request.json')
 When method post
 Then status 202
 
-* call check_traccia_richiesta ({tid: responseHeaders['GovWay-Transaction-ID'][0]})
-* call check_traccia_richiesta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]})
+* call check_traccia_richiesta ({tid: responseHeaders['GovWay-Transaction-ID'][0], reply_to: updated_reply_to })
+* call check_traccia_richiesta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], reply_to: updated_reply_to })
 
 * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0] })
 * call check_id_collaborazione ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], id_collaborazione: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0] })
@@ -146,16 +151,20 @@ And match response == read('server-response-response.json')
 
 
 @no-correlation-id-in-client-request-response
-Scenario: La fruizione del client solleva errore se non trova lo header x-correlation-id
+Scenario: La fruizione del client solleva errore se non trova lo header x-correlation-id nella risposta
+
+* def updated_reply_to = govway_base_path + "/rest/in/DemoSoggettoFruitore/RestNonBlockingPushClientNoValidazione/v1"
 
 Given url url_fruizione_client_no_validazione
 And path 'resources', 1, 'M'
-And header X-ReplyTo = 'url_che_la_fruizione_sostituisce'
 And header GovWay-TestSuite-Test-Id = 'no-correlation-id-in-client-request-response'
 And request read('client-request.json')
 When method post
 Then status 502
 And match response == read('error-bodies/no-correlation-id-in-client-request-response.json')
+
+* call check_traccia_richiesta ({tid: responseHeaders['GovWay-Transaction-ID'][0], reply_to: updated_reply_to })
+* call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: null })
 
 
 
@@ -172,6 +181,9 @@ When method post
 Then status 400
 And match response == read('error-bodies/no-correlation-id-in-server-response-request.json')
 
+* call check_traccia_risposta_no_cid ({tid: responseHeaders['GovWay-Transaction-ID'][0]  })
+* call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: null })
+
 
 * def url_fruizione_server_no_validazione = govway_base_path + "/rest/out/DemoSoggettoErogatore/DemoSoggettoFruitore/RestNonBlockingPushClientNoValidazione/v1"
 
@@ -182,6 +194,8 @@ And request read('server-response.json')
 When method post
 Then status 400
 And match response == read('error-bodies/no-correlation-id-in-server-response-request-fruizione.json')
+
+* call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: null })
 
 
 @no-x-reply-to-in-client-request
@@ -195,3 +209,6 @@ And request read('client-request.json')
 When method post
 Then status 400
 And match response == read('error-bodies/no-x-reply-to-in-client-request.json')
+
+* call check_traccia_richiesta_no_reply_to ({tid: responseHeaders['GovWay-Transaction-ID'][0] })
+* call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: null })
