@@ -1535,7 +1535,8 @@ div.txtA_div_propDialog {
 .entryErogazione,
 .entryFruizione,
 .entryApi,
-.entryApplicativi {
+.entryApplicativi,
+.entrySoggetti {
 	cursor: pointer;
 	padding: 16px;
 }
@@ -1543,7 +1544,8 @@ div.txtA_div_propDialog {
 .entryErogazione .titoloEntry,
 .entryFruizione .titoloEntry,
 .entryApi .titoloEntry,
-.entryApplicativi .titoloEntry {
+.entryApplicativi .titoloEntry,
+.entrySoggetti .titoloEntry {
 	padding: 4px 4px 4px 0px;
     font-weight: bold;
     font-size: 16px;
@@ -1552,7 +1554,8 @@ div.txtA_div_propDialog {
 .entryErogazione .metadatiEntry,
 .entryFruizione .metadatiEntry,
 .entryApi .metadatiEntry,
-.entryApplicativi .metadatiEntry {
+.entryApplicativi .metadatiEntry,
+.entrySoggetti .metadatiEntry {
 	padding: 4px 4px 4px 0px;
 	color: ${body.secondary.color};
 }
@@ -1563,12 +1566,14 @@ div.txtA_div_propDialog {
 	display: inline-flex;
 }
 
-.entryApplicativi .titoloRuoli {
+.entryApplicativi .titoloRuoli,
+.entrySoggetti .titoloRuoli {
 	display: inline-flex;
 	vertical-align: middle;
 }
 
-.entryApplicativi .titoloInfo {
+.entryApplicativi .titoloInfo,
+.entrySoggetti .titoloInfo {
 	display: inline-flex;
 	vertical-align: middle;
 	float: right;

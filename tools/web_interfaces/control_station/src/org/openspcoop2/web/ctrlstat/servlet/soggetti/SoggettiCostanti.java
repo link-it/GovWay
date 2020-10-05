@@ -77,6 +77,9 @@ public class SoggettiCostanti {
 		SERVLET_SOGGETTI_RUOLI.add(SERVLET_NAME_SOGGETTI_RUOLI_DELETE);
 		SERVLET_SOGGETTI_RUOLI.add(SERVLET_NAME_SOGGETTI_RUOLI_LIST);
 	}
+	
+	/* NOME VISTA CUSTOM */
+	public final static String SOGGETTI_NOME_VISTA_CUSTOM_LISTA = "soggetti";
 
 	/* LABEL GENERALI */
 
@@ -157,4 +160,8 @@ public class SoggettiCostanti {
 	public final static String[] SOGGETTI_DOMINI_VALUE = { SOGGETTO_DOMINIO_ESTERNO_VALUE, 
 			SOGGETTO_DOMINIO_OPERATIVO_VALUE};
 
+	public final static String MESSAGE_METADATI_SOGGETTO_VUOTI = "";
+	public final static String MESSAGE_METADATI_SOGGETTO_SOLO_PROFILO = "Profilo Interoperabilit&agrave;: {0}";
+	public final static String MESSAGE_METADATI_SOGGETTO_CON_PROFILO = "Profilo Interoperabilit&agrave;: {0}, Dominio: {1}";
+	public final static String MESSAGE_METADATI_SOGGETTO_SENZA_PROFILO = "Dominio: {0}";
 }

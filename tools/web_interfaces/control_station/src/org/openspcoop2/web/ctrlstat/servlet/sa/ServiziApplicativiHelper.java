@@ -2349,7 +2349,7 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 			this.pd.setCustomListViewName(ServiziApplicativiCostanti.SERVIZI_APPLICATIVI_NOME_VISTA_CUSTOM_LISTA);
 			
 			// colleziono i tags registrati
-			List<String> ruoliDisponibili = this.ruoliCore.getAllRuoli(new FiltroRicercaRuoli());
+//			List<String> ruoliDisponibili = this.ruoliCore.getAllRuoli(new FiltroRicercaRuoli());
 			
 			String idProvider = this.getParameter(ServiziApplicativiCostanti.PARAMETRO_SERVIZI_APPLICATIVI_PROVIDER);
 			
@@ -2633,11 +2633,11 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 							de.setType(DataElementType.BUTTON);
 							de.setLabel(ruolo);
 							
-							int indexOf = ruoliDisponibili.indexOf(ruolo);
-							if(indexOf == -1)
-								indexOf = 0;
-							
-							indexOf = indexOf % CostantiControlStation.NUMERO_GRUPPI_CSS;
+//							int indexOf = ruoliDisponibili.indexOf(ruolo);
+//							if(indexOf == -1)
+//								indexOf = 0;
+//							
+//							indexOf = indexOf % CostantiControlStation.NUMERO_GRUPPI_CSS;
 							
 							de.setStyleClass("ruolo-label-info-0"); //+indexOf);
 							
@@ -2681,6 +2681,7 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 					BodyElement bodyElement = new Dialog().new BodyElement();
 					bodyElement.setType(DataElementType.TEXT_AREA);
 					bodyElement.setLabel("");
+					// TODO implementare versione con servizio
 					bodyElement.setValue(this.saCore.getDettagliServizioApplicativoInUso(idServizioApplicativo));
 					bodyElement.setRows(15);
 					deDialog.addBodyElement(bodyElement );

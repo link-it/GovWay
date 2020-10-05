@@ -22,6 +22,7 @@ package org.openspcoop2.web.ctrlstat.servlet.soggetti;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +32,7 @@ import org.openspcoop2.core.config.Soggetto;
 import org.openspcoop2.core.config.driver.DriverConfigurazioneException;
 import org.openspcoop2.core.config.driver.DriverConfigurazioneNotFound;
 import org.openspcoop2.core.config.driver.db.DriverConfigurazioneDB;
+import org.openspcoop2.core.id.IDServizioApplicativo;
 import org.openspcoop2.core.id.IDSoggetto;
 import org.openspcoop2.core.registry.constants.CredenzialeTipo;
 import org.openspcoop2.core.registry.constants.PddTipologia;
@@ -40,6 +42,7 @@ import org.openspcoop2.core.registry.driver.FiltroRicercaSoggetti;
 import org.openspcoop2.core.registry.driver.db.IDSoggettoDB;
 import org.openspcoop2.pdd.core.autenticazione.ApiKey;
 import org.openspcoop2.pdd.core.autenticazione.ApiKeyUtilities;
+import org.openspcoop2.protocol.engine.utils.DBOggettiInUsoUtils;
 import org.openspcoop2.protocol.sdk.IProtocolFactory;
 import org.openspcoop2.utils.certificate.CertificateInfo;
 import org.openspcoop2.utils.resources.MapReader;
@@ -48,6 +51,7 @@ import org.openspcoop2.web.ctrlstat.dao.SoggettoCtrlStat;
 import org.openspcoop2.web.ctrlstat.driver.DriverControlStationDB;
 import org.openspcoop2.web.ctrlstat.driver.DriverControlStationException;
 import org.openspcoop2.web.ctrlstat.registro.GestoreRegistroServiziRemoto;
+import org.openspcoop2.web.ctrlstat.servlet.sa.ServiziApplicativiCostanti;
 import org.openspcoop2.web.lib.users.DriverUsersDBException;
 
 /**
@@ -1073,4 +1077,26 @@ public class SoggettiCore extends ControlStationCore {
 		}
 	}
 	
+	
+	public String getDettagliSoggettoInUso(org.openspcoop2.core.registry.Soggetto soggetto) throws DriverConfigurazioneException, DriverConfigurazioneNotFound, DriverControlStationException {
+		HashMap<ErrorsHandlerCostant, List<String>> whereIsInUso = new HashMap<ErrorsHandlerCostant, List<String>>();
+		boolean normalizeObjectIds = true;
+		boolean saInUso  = this.isSoggettoInUso(soggetto, whereIsInUso, normalizeObjectIds );
+		
+		StringBuilder inUsoMessage = new StringBuilder();
+		if(saInUso) {
+			
+			IDSoggetto idSoggetto = new IDSoggetto();
+			idSoggetto.setTipo(soggetto.getTipo());
+			idSoggetto.setNome(soggetto.getNome());
+			idSoggetto.setCodicePorta(soggetto.getIdentificativoPorta());
+			
+			inUsoMessage.append(DBOggettiInUsoUtils.toString(idSoggetto , whereIsInUso, false, "\n", normalizeObjectIds)); 
+			inUsoMessage.append("\n");
+		} else {
+			inUsoMessage.append(ServiziApplicativiCostanti.LABEL_IN_USO_BODY_HEADER_NESSUN_RISULTATO);
+		}
+		
+		return inUsoMessage.toString();
+	}
 }
