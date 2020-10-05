@@ -5,8 +5,8 @@ Background:
     * def url_erogazione_server_validazione = govway_base_path + "/rest/in/DemoSoggettoErogatore/RestNonBlockingPushServer/v1"
     * def url_erogazione_client_validazione = govway_base_path + "/rest/in/DemoSoggettoFruitore/RestNonBlockingPushClient/v1"
 
-    * def url_erogazione_server = "/rest/in/DemoSoggettoErogatore/RestNonBlockingPushServerNoValidazione/v1"
-    * def url_erogazione_client = "/rest/in/DemoSoggettoFruitore/RestNonBlockingPushClientNoValidazione/v1"
+    * def url_erogazione_server_no_validazione = "/rest/in/DemoSoggettoErogatore/RestNonBlockingPushServerNoValidazione/v1"
+    * def url_erogazione_client_no_validazione = "/rest/in/DemoSoggettoFruitore/RestNonBlockingPushClientNoValidazione/v1"
 
     * def url_erogazione_client_helper_collaborazione = govway_base_path + "/rest/in/DemoSoggettoFruitore/RestNonBlockingPushClientHelperCollaborazioneNoValidazione/v1"
     * def url_erogazione_client_helper_riferimento = govway_base_path + "/rest/in/DemoSoggettoFruitore/RestNonBlockingPushClientHelperRiferimentoNoValidazione/v1"
@@ -73,6 +73,15 @@ Scenario: isTest('iniezione-header-riferimento-id-richiesta-query')
 * match requestHeaders['X-Correlation-ID'][0] == task_id
 * karate.proceed(url_erogazione_client_helper_riferimento)
 
+
+# Assenza dello header x-correlation-id nella risposta alla fruizione del client
+#
+#
+
+Scenario: isTest('no-correlation-id-in-client-request-response')
+
+    * def responseStatus = 202
+    * def response = { 'outcome': 'accepted' }
 
 
 # CATCH ALL

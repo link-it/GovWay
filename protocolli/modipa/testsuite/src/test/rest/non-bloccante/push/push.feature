@@ -10,6 +10,7 @@ Background:
 * configure afterFeature = function(){ karate.call('classpath:utils/jmx-disable-error-disclosure.feature'); }
 
 * def url_fruizione_client_validazione = govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestNonBlockingPushServer/v1"
+* def url_fruizione_client_no_validazione = govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestNonBlockingPushServerNoValidazione/v1"
 
 
 @test-ok
@@ -105,6 +106,15 @@ And match response == read('server-response-response.json')
 
 @no-correlation-id-in-client-request-response
 Scenario: La fruizione del client solleva errore se non trova lo header x-correlation-id
+
+Given url url_fruizione_client_no_validazione
+And path 'resources', 1, 'M'
+And header X-ReplyTo = 'url_che_la_fruizione_sostituisce'
+And header GovWay-TestSuite-Test-Id = 'no-correlation-id-in-client-request-response'
+And request read('client-request.json')
+When method post
+Then status 200
+
 
 
 @no-correlation-id-in-server-response-request
