@@ -18,7 +18,7 @@
  *
  */
 
-package org.openspcoop2.core.protocolli.modipa.testsuite.rest.non_bloccante;
+package org.openspcoop2.core.protocolli.modipa.testsuite.rest.non_bloccante.pull;
 
 import java.io.File;
 import java.util.HashMap;
@@ -43,12 +43,12 @@ import com.intuit.karate.netty.FeatureServer;
 
 @RunWith(Karate.class)
 @KarateOptions( features = { 
-    "classpath:test/rest/non-bloccante/pull.feature",
-    "classpath:test/rest/non-bloccante/pull-errori-fruizione.feature",
-    "classpath:test/rest/non-bloccante/pull-errori-erogazione.feature",
-    "classpath:test/rest/non-bloccante/pull-no-disclosure.feature",
-    "classpath:test/rest/non-bloccante/pull-errori-fruizione-no-disclosure.feature",
-    "classpath:test/rest/non-bloccante/pull-errori-erogazione-no-disclosure.feature"
+    "classpath:test/rest/non-bloccante/pull/pull.feature",
+    "classpath:test/rest/non-bloccante/pull/pull-errori-fruizione.feature",
+    "classpath:test/rest/non-bloccante/pull/pull-errori-erogazione.feature",
+    "classpath:test/rest/non-bloccante/pull/pull-no-disclosure.feature",
+    "classpath:test/rest/non-bloccante/pull/pull-errori-fruizione-no-disclosure.feature",
+    "classpath:test/rest/non-bloccante/pull/pull-errori-erogazione-no-disclosure.feature"
 
     })
 public class NonBloccanteRestTest extends ConfigLoader { 

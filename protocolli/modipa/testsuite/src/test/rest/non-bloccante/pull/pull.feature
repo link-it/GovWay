@@ -148,7 +148,7 @@ Scenario: Header Location che non corrisponde ad una URI
 @request-task-no-location
 Scenario: Richiesta processamento con stato 202 e senza Header Location
 
-    * def problem = read('classpath:test/rest/non-bloccante/error-bodies/request-task-no-location-erogazione.json')    
+    * def problem = read('classpath:test/rest/non-bloccante/pull/error-bodies/request-task-no-location-erogazione.json')    
 
     Given url url_invocazione
     And path 'tasks', 'queue'
@@ -167,7 +167,7 @@ Scenario: Richiesta processamento con stato 202 e senza Header Location
 @request-task-not-202
 Scenario: Richiesta processamento con stato diverso da 202
 
-    * def problem = read('classpath:test/rest/non-bloccante/error-bodies/request-task-not-202-erogazione.json')    
+    * def problem = read('classpath:test/rest/non-bloccante/pull/error-bodies/request-task-not-202-erogazione.json')    
     
     Given url url_invocazione
     And path 'tasks', 'queue'
@@ -186,7 +186,7 @@ Scenario: Richiesta processamento con stato diverso da 202
 @invalid-status-from-request
 Scenario: Richiesta stato operazione con stato http diverso da 200 e 303
 
-    * def problem = read('classpath:test/rest/non-bloccante/error-bodies/invalid-status-from-request-erogazione.json')
+    * def problem = read('classpath:test/rest/non-bloccante/pull/error-bodies/invalid-status-from-request-erogazione.json')
 
     Given url url_invocazione
     And path 'tasks', 'queue'
@@ -217,7 +217,7 @@ Scenario: Richiesta stato operazione con stato http diverso da 200 e 303
 @no-location-from-status
 Scenario: Richiesta stato operazione completata senza header location
 
-    * def problem = read('classpath:test/rest/non-bloccante/error-bodies/no-location-from-status-erogazione.json')
+    * def problem = read('classpath:test/rest/non-bloccante/pull/error-bodies/no-location-from-status-erogazione.json')
 
     Given url url_invocazione
     And path 'tasks', 'queue', task_uid
@@ -237,7 +237,7 @@ Scenario: Richiesta stato operazione completata senza header location
 @task-response-not-200
 Scenario: Ottenimento risorsa processata con stato diverso da 200 OK    
 
-    * def problem = read('classpath:test/rest/non-bloccante/error-bodies/task-response-not-200-erogazione.json')
+    * def problem = read('classpath:test/rest/non-bloccante/pull/error-bodies/task-response-not-200-erogazione.json')
 
     Given url url_invocazione
     And path 'tasks', 'queue'

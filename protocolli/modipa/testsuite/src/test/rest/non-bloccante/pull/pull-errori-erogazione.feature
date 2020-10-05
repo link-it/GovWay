@@ -21,7 +21,7 @@ Background:
 @request-task-no-location
 Scenario: Richiesta processamento con stato 202 e senza Header Location
     
-    * def problem = read('classpath:test/rest/non-bloccante/error-bodies/request-task-no-location-erogazione.json')
+    * def problem = read('classpath:test/rest/non-bloccante/pull/error-bodies/request-task-no-location-erogazione.json')
 
     Given url url_invocazione
     And path 'tasks', 'queue'
@@ -41,7 +41,7 @@ Scenario: Richiesta processamento con stato 202 e senza Header Location
 Scenario: Richiesta processamento con stato diverso da 202
 
     * def task_id = "Test-Erogazione-Status-Not-202"
-    * def problem = read('classpath:test/rest/non-bloccante/error-bodies/request-task-not-202-erogazione.json')    
+    * def problem = read('classpath:test/rest/non-bloccante/pull/error-bodies/request-task-not-202-erogazione.json')    
     
     Given path 'tasks', 'queue'
     And request body_req
@@ -60,7 +60,7 @@ Scenario: Richiesta processamento con stato diverso da 202
 Scenario: Richiesta stato operazione con stato http diverso da 200 e 303
 
     * def task_id = "Test-Erogazione-Invalid-Status-Request"
-    * def problem = read('classpath:test/rest/non-bloccante/error-bodies/invalid-status-from-request-erogazione.json')    
+    * def problem = read('classpath:test/rest/non-bloccante/pull/error-bodies/invalid-status-from-request-erogazione.json')    
 
     Given url url_invocazione
     And path 'tasks', 'queue', task_id
@@ -80,7 +80,7 @@ Scenario: Richiesta stato operazione con stato http diverso da 200 e 303
 Scenario: Richiesta stato operazione completata senza header location
 
     * def task_id = "Test-Erogazione-Location-Removed-From-Status"
-    * def problem = read('classpath:test/rest/non-bloccante/error-bodies/no-location-from-status-erogazione.json')
+    * def problem = read('classpath:test/rest/non-bloccante/pull/error-bodies/no-location-from-status-erogazione.json')
 
     Given url url_invocazione
     And path 'tasks', 'queue', task_id
@@ -99,7 +99,7 @@ Scenario: Richiesta stato operazione completata senza header location
 Scenario: Ottenimento risorsa processata con stato diverso da 200 OK    
 
     * def task_id = "Test-Erogazione-Response-Not-200"
-    * def problem = read('classpath:test/rest/non-bloccante/error-bodies/task-response-not-200-erogazione.json')
+    * def problem = read('classpath:test/rest/non-bloccante/pull/error-bodies/task-response-not-200-erogazione.json')
 
 
     Given url url_invocazione

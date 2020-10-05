@@ -3,7 +3,7 @@ Feature: ModiPA Proxy test
 Background:
 * def url_invocazione_erogazione = govway_base_path + '/rest/in/DemoSoggettoErogatore/ApiDemoNonBlockingRestPullNoValidazione/v1'
 
-* def problem_no_disclosure = read('classpath:test/rest/non-bloccante/error-bodies/invalid-response-from-implementation.json')
+* def problem_no_disclosure = read('classpath:test/rest/non-bloccante/pull/error-bodies/invalid-response-from-implementation.json')
 
 
 * def match_task =
@@ -51,7 +51,7 @@ Scenario: methodIs('get') && pathMatches('/tasks/result/{tid}') && karate.get('p
 Scenario: methodIs('post') && pathMatches('/tasks/queue') && karate.get('requestParams.returnHttpHeader') == null && karate.get('requestParams.testType') == null
     # Qui viene testato lo stato 202 senza lo header location
     
-    * def problem = read('classpath:test/rest/non-bloccante/error-bodies/request-task-no-location-erogazione.json')
+    * def problem = read('classpath:test/rest/non-bloccante/pull/error-bodies/request-task-no-location-erogazione.json')
 
     * karate.proceed(url_invocazione_erogazione)
     * match responseStatus == 502
@@ -60,7 +60,7 @@ Scenario: methodIs('post') && pathMatches('/tasks/queue') && karate.get('request
 
 Scenario: methodIs('post') && pathMatches('/tasks/queue') && match_task('Test-Erogazione-Status-Not-202')
     
-    * def problem = read('classpath:test/rest/non-bloccante/error-bodies/request-task-not-202-erogazione.json')    
+    * def problem = read('classpath:test/rest/non-bloccante/pull/error-bodies/request-task-not-202-erogazione.json')    
     
     * karate.proceed(url_invocazione_erogazione)
     * match responseStatus == 502
@@ -68,21 +68,21 @@ Scenario: methodIs('post') && pathMatches('/tasks/queue') && match_task('Test-Er
 
 Scenario: methodIs('get') && pathMatches('/tasks/queue/{tid}') && karate.get('pathParams.tid') == 'Test-Erogazione-Invalid-Status-Request'
     
-    * def problem = read('classpath:test/rest/non-bloccante/error-bodies/invalid-status-from-request-erogazione.json')
+    * def problem = read('classpath:test/rest/non-bloccante/pull/error-bodies/invalid-status-from-request-erogazione.json')
 
     * karate.proceed(url_invocazione_erogazione)
     * match responseStatus == 502
     * match response == problem
 
 Scenario: methodIs('get') && pathMatches('/tasks/queue/{tid}') && karate.get('pathParams.tid') == 'Test-Erogazione-Location-Removed-From-Status'
-    * def problem = read('classpath:test/rest/non-bloccante/error-bodies/no-location-from-status-erogazione.json')
+    * def problem = read('classpath:test/rest/non-bloccante/pull/error-bodies/no-location-from-status-erogazione.json')
 
     * karate.proceed(url_invocazione_erogazione)
     * match responseStatus == 502
     * match response == problem
 
 Scenario: methodIs('get') && pathMatches('/tasks/result/{tid}') && karate.get('pathParams.tid') == 'Test-Erogazione-Response-Not-200'
-    * def problem = read('classpath:test/rest/non-bloccante/error-bodies/task-response-not-200-erogazione.json')
+    * def problem = read('classpath:test/rest/non-bloccante/pull/error-bodies/task-response-not-200-erogazione.json')
 
     * karate.proceed(url_invocazione_erogazione)
     * match responseStatus == 502
@@ -94,7 +94,7 @@ Scenario: methodIs('get') && pathMatches('/tasks/result/{tid}') && karate.get('p
 Scenario: methodIs('post') && pathMatches('/tasks/queue') && karate.get('requestParams.testType[0]') == "Test-Erogazione-Request-Task-No-Location"
     # Qui viene testato lo stato 202 senza lo header location
     
-    * def problem = read('classpath:test/rest/non-bloccante/error-bodies/request-task-no-location-erogazione.json')
+    * def problem = read('classpath:test/rest/non-bloccante/pull/error-bodies/request-task-no-location-erogazione.json')
 
     * karate.proceed(url_invocazione_erogazione)
     * match responseStatus == 502

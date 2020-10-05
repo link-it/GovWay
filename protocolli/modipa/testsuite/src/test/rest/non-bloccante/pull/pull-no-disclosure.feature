@@ -18,7 +18,7 @@ Background:
 # Disabilito la error disclosure
 * def result = callonce read('classpath:utils/jmx-disable-error-disclosure.feature')
 
-* def problem = read('classpath:test/rest/non-bloccante/error-bodies/invalid-response-from-implementation.json')
+* def problem = read('classpath:test/rest/non-bloccante/pull/error-bodies/invalid-response-from-implementation.json')
 
 * def check_traccia_richiesta = read('./check-tracce/richiesta.feature')
 * def check_traccia_richiesta_stato = read('./check-tracce/richiesta-stato.feature')
