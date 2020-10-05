@@ -27,8 +27,39 @@ Scenario: isTest('test-ok-risposta-server')
 # CorrelationID Aggiunto dall'erogazione server
 #
 # Invio solo il messaggio di ack senza il correlation ID che verrà aggiunto dall'erogazione server
+#
 
 Scenario: isTest('correlation-id-added-by-server')
 
     * def responseStatus = 202
     * def response = { 'outcome': 'accepted' }
+
+
+# CorrelationID aggiunto dalla fruizione server sfruttando l'id collaborazione
+#
+#
+
+Scenario: isTest('iniezione-header-id-collaborazione')
+
+    * def responseStatus = 200
+    * def response = read('classpath:src/test/rest/non-bloccante/push/server-response-response.json')
+
+Scenario: isTest('iniezione-header-id-collaborazione-query')
+
+    * def responseStatus = 200
+    * def response = read('classpath:src/test/rest/non-bloccante/push/server-response-response.json')
+
+# CorrelationID aggiunto dalla fruizione server sfruttando il riferimento id richiesta
+#
+#
+
+Scenario: isTest('iniezione-header-riferimento-id-richiesta')
+
+    * def responseStatus = 200
+    * def response = read('classpath:src/test/rest/non-bloccante/push/server-response-response.json')
+
+
+Scenario: isTest('iniezione-header-riferimento-id-richiesta-query')
+
+    * def responseStatus = 200
+    * def response = read('classpath:src/test/rest/non-bloccante/push/server-response-response.json')

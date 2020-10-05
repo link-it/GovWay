@@ -53,13 +53,54 @@ Then status 202
 @iniezione-header-id-collaborazione
 Scenario: Aggiunta dello header X-Correlation-ID a partire dall'id collaborazione
 
+# TODO: Considera di abilitare la validazione sulla api
+* def url_fruizione_server_helper_collaborazione = govway_base_path + "/rest/out/DemoSoggettoErogatore/DemoSoggettoFruitore/RestNonBlockingPushClientHelperCollaborazioneNoValidazione/v1"
+
+Given url url_fruizione_server_helper_collaborazione
+And path 'MResponse'
+And header GovWay-Conversation-ID = task_id
+And header GovWay-TestSuite-Test-Id = 'iniezione-header-id-collaborazione'
+And request read('server-response.json')
+When method post
+Then status 200
+And match response == read('server-response-response.json')
+
+
+Given url url_fruizione_server_helper_collaborazione
+And path 'MResponse'
+And header GovWay-TestSuite-Test-Id = 'iniezione-header-id-collaborazione-query'
+And request read('server-response.json')
+And param govway_conversation_id = task_id
+When method post
+Then status 200
+And match response == read('server-response-response.json')
+
 
 @iniezione-header-riferimento-id-richiesta
 Scenario: Aggiunta dello header X-Correlation-ID a partire dal riferimento id richiesta
 
+# TODO: Considera di abilitare la validazione sulla api
+* def url_fruizione_server_helper_riferimento = govway_base_path + "/rest/out/DemoSoggettoErogatore/DemoSoggettoFruitore/RestNonBlockingPushClientHelperRiferimentoNoValidazione/v1"
 
-@modifica-header-x-reply-to
-Scenario: Verifica che la fruizione lato client modifichi lo x-reply-to
+Given url url_fruizione_server_helper_riferimento
+And path 'MResponse'
+And header GovWay-Relates-To = task_id
+And header GovWay-TestSuite-Test-Id = 'iniezione-header-riferimento-id-richiesta'
+And request read('server-response.json')
+When method post
+Then status 200
+And match response == read('server-response-response.json')
+
+
+Given url url_fruizione_server_helper_riferimento
+And path 'MResponse'
+And header GovWay-TestSuite-Test-Id = 'iniezione-header-riferimento-id-richiesta-query'
+And request read('server-response.json')
+And param govway_relates_to = task_id
+When method post
+Then status 200
+And match response == read('server-response-response.json')
+
 
 
 @no-correlation-id-in-client-request-response
