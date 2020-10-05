@@ -94,7 +94,6 @@ import org.openspcoop2.web.lib.mvc.AreaBottoni;
 import org.openspcoop2.web.lib.mvc.BinaryParameter;
 import org.openspcoop2.web.lib.mvc.Costanti;
 import org.openspcoop2.web.lib.mvc.DataElement;
-import org.openspcoop2.web.lib.mvc.DataElementInfo;
 import org.openspcoop2.web.lib.mvc.DataElementType;
 import org.openspcoop2.web.lib.mvc.Dialog;
 import org.openspcoop2.web.lib.mvc.Dialog.BodyElement;
@@ -2642,6 +2641,11 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 							
 							de.setStyleClass("ruolo-label-info-0"); //+indexOf);
 							
+							de.setUrl(ServiziApplicativiCostanti.SERVLET_NAME_SERVIZI_APPLICATIVI_RUOLI_LIST,
+									new Parameter(ServiziApplicativiCostanti.PARAMETRO_SERVIZI_APPLICATIVI_ID_SERVIZIO_APPLICATIVO, sa.getId()+""));
+							
+							de.setToolTip(RuoliCostanti.LABEL_RUOLI); 
+							
 							e.addElement(de);
 						}
 					}
@@ -2651,22 +2655,27 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 					idServizioApplicativo.setNome(sa.getNome());
 					idServizioApplicativo.setIdSoggettoProprietario(new IDSoggetto(sa.getTipoSoggettoProprietario(), sa.getNomeSoggettoProprietario()));
 					
-					// TODO Poli
-					de = new DataElement();
-					de.setType(DataElementType.IMAGE);
-					DataElementInfo dInfoUtilizzo = new DataElementInfo(ServiziApplicativiCostanti.LABEL_APPLICATIVO);
-					dInfoUtilizzo.setBody("L'applicativo " + nome + " gestisce...");
-					de.setInfo(dInfoUtilizzo);
-					de.setToolTip("Visualizza Info");
-					e.addElement(de);
+					// TODO 
+//					de = new DataElement();
+//					de.setType(DataElementType.IMAGE);
+//					DataElementInfo dInfoUtilizzo = new DataElementInfo(ServiziApplicativiCostanti.LABEL_APPLICATIVO);
+//					dInfoUtilizzo.setBody("L'applicativo " + nome + " gestisce...");
+//					de.setInfo(dInfoUtilizzo);
+//					de.setToolTip("Visualizza Info");
+//					e.addElement(de);
 					
 					// In Uso
 					de = new DataElement();
 					de.setType(DataElementType.IMAGE);
 					de.setToolTip(CostantiControlStation.LABEL_IN_USO_TOOLTIP);
-					Dialog deDialog = new Dialog();				
+					Dialog deDialog = new Dialog();
 					deDialog.setIcona(Costanti.ICON_USO);
-					deDialog.setTitolo(CostantiControlStation.LABEL_IN_USO_TITLE);
+					if(this.isSoggettoMultitenantSelezionato()) {
+						deDialog.setTitolo(sa.getNome());
+					}
+					else {
+						deDialog.setTitolo(this.getLabelServizioApplicativoConDominioSoggetto(idServizioApplicativo));
+					}
 					deDialog.setHeaderRiga1(CostantiControlStation.LABEL_IN_USO_BODY_HEADER_RISULTATI);
 //					deDialog.setHeaderRiga2(inUsoMessage.toString());
 					BodyElement bodyElement = new Dialog().new BodyElement();

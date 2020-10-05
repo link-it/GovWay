@@ -697,8 +697,7 @@ public class CostantiControlStation {
 	public final static String LABEL_PARAMETRO_ID_APPLICATIVO_SERVER = "Applicativo";
 	
 	
-	public final static String LABEL_IN_USO_TOOLTIP = "Ricerca dove è in uso";
-	public final static String LABEL_IN_USO_TITLE = "In Uso";
+	public final static String LABEL_IN_USO_TOOLTIP = "Riferimenti";
 	public final static String LABEL_IN_USO_BODY_HEADER_RISULTATI = "Risultati della ricerca";
 	
 	

@@ -255,7 +255,7 @@ public class Costanti {
 	public final static String INFO_BUTTON_ICON_WHITE = "&#xE88F;";
 	public final static String ICON_DIALOG_HEADER = "&#xE8B2;";
 	public final static String ICON_COPY = "file_copy";
-	public final static String ICON_USO = "location_searching";
+	public final static String ICON_USO = "find_in_page";//"location_searching";
 	
 	public static final int LUNGHEZZA_LABEL_TABS = 30;
 	public static final int LUNGHEZZA_RIGA_TESTO_TABELLA = 150;

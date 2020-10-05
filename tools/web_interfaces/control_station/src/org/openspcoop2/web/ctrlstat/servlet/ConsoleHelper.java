@@ -9617,6 +9617,12 @@ public class ConsoleHelper implements IConsoleHelper {
 	public String getLabelServizioApplicativo(String protocollo, IDServizioApplicativo idServizioApplicativo) throws Exception{
 		return NamingUtils.getLabelServizioApplicativo(protocollo, idServizioApplicativo);
 	}
+	public String getLabelServizioApplicativoConDominioSoggetto(IDServizioApplicativo idServizioApplicativo) throws Exception{
+		return NamingUtils.getLabelServizioConDominioErogatore(idServizioApplicativo.getNome(),NamingUtils.getLabelSoggetto(idServizioApplicativo.getIdSoggettoProprietario()));
+	}
+	public String getLabelServizioApplicativoConDominioSoggetto(String protocollo, IDServizioApplicativo idServizioApplicativo) throws Exception{
+		return NamingUtils.getLabelServizioConDominioErogatore(idServizioApplicativo.getNome(),NamingUtils.getLabelSoggetto(protocollo, idServizioApplicativo.getIdSoggettoProprietario()));
+	}
 	
 	
 	// LABEL API
