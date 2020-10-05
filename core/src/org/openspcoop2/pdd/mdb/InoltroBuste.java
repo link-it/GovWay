@@ -2617,7 +2617,8 @@ public class InoltroBuste extends GenericLib{
 				responseMessage = protocolFactory.createProtocolManager().updateOpenSPCoop2MessageResponse(responseMessage, 
 						bustaRichiesta, nParams,
 						requestMessagePrimaTrasformazione.getTransportRequestContext(),transportResponseContext,
-						protocolFactory.getCachedRegistryReader(openspcoopstate.getStatoRichiesta()));
+						protocolFactory.getCachedRegistryReader(openspcoopstate.getStatoRichiesta()),
+						false);
 			} catch (Exception e) {
 				
 				if(e instanceof ProtocolException) {
