@@ -19,7 +19,9 @@
  */
 package org.openspcoop2.web.ctrlstat.servlet.sa;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
@@ -29,6 +31,7 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
+import org.openspcoop2.core.commons.ErrorsHandlerCostant;
 import org.openspcoop2.core.commons.Filtri;
 import org.openspcoop2.core.commons.ISearch;
 import org.openspcoop2.core.commons.Liste;
@@ -65,9 +68,11 @@ import org.openspcoop2.core.registry.Soggetto;
 import org.openspcoop2.core.registry.constants.PddTipologia;
 import org.openspcoop2.core.registry.driver.DriverRegistroServiziException;
 import org.openspcoop2.core.registry.driver.DriverRegistroServiziNotFound;
+import org.openspcoop2.core.registry.driver.FiltroRicercaRuoli;
 import org.openspcoop2.core.registry.driver.IDServizioFactory;
 import org.openspcoop2.message.constants.ServiceBinding;
 import org.openspcoop2.protocol.engine.ProtocolFactoryManager;
+import org.openspcoop2.protocol.engine.utils.DBOggettiInUsoUtils;
 import org.openspcoop2.protocol.sdk.IProtocolFactory;
 import org.openspcoop2.protocol.sdk.config.IProtocolConfiguration;
 import org.openspcoop2.protocol.sdk.constants.ProfiloDiCollaborazione;
@@ -92,7 +97,10 @@ import org.openspcoop2.web.lib.mvc.AreaBottoni;
 import org.openspcoop2.web.lib.mvc.BinaryParameter;
 import org.openspcoop2.web.lib.mvc.Costanti;
 import org.openspcoop2.web.lib.mvc.DataElement;
+import org.openspcoop2.web.lib.mvc.DataElementInfo;
 import org.openspcoop2.web.lib.mvc.DataElementType;
+import org.openspcoop2.web.lib.mvc.Dialog;
+import org.openspcoop2.web.lib.mvc.Dialog.BodyElement;
 import org.openspcoop2.web.lib.mvc.PageData;
 import org.openspcoop2.web.lib.mvc.Parameter;
 import org.openspcoop2.web.lib.mvc.ServletUtils;
@@ -1861,9 +1869,10 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 	}
 
 
-	public void prepareServizioApplicativoList(ISearch ricerca, List<ServizioApplicativo> lista, boolean useIdSoggetto)
-			throws Exception {
+	public void prepareServizioApplicativoList(ISearch ricerca, List<ServizioApplicativo> lista, boolean useIdSoggetto) throws Exception {
 		try {
+			boolean modalitaCompleta = this.isModalitaCompleta();
+			
 			String idProvider = this.getParameter(ServiziApplicativiCostanti.PARAMETRO_SERVIZI_APPLICATIVI_PROVIDER);
 			
 			boolean multitenant = this.saCore.isMultitenant();
@@ -1883,8 +1892,12 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 
 			@SuppressWarnings("unused")
 			Boolean singlePdD = (Boolean) this.session.getAttribute(CostantiControlStation.SESSION_PARAMETRO_SINGLE_PDD);
-
-
+			
+			if(!modalitaCompleta && !useIdSogg) {
+				this.prepareServizioApplicativoListCustom(ricerca, lista, useIdSoggetto);
+				return;
+			}
+			
 			// Prendo il soggetto
 			String tmpTitle = null;
 			String protocolloSoggetto = null;
@@ -1963,7 +1976,7 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 				addFilterDominio(filterDominio, false);
 			}
 			
-			if(this.isModalitaCompleta()) {
+			if(modalitaCompleta) {
 				String filterRuoloSA = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_RUOLO_SERVIZIO_APPLICATIVO);
 				this.addFilterRuoloServizioApplicativo(filterRuoloSA,false);
 			}
@@ -2004,7 +2017,7 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 			
 			String labelApplicativi = ServiziApplicativiCostanti.LABEL_SERVIZI_APPLICATIVI;
 			String labelApplicativiDi = ServiziApplicativiCostanti.LABEL_PARAMETRO_SERVIZI_APPLICATIVI_DI;
-			if(this.isModalitaCompleta()==false) {
+			if(modalitaCompleta==false) {
 				labelApplicativi = ServiziApplicativiCostanti.LABEL_APPLICATIVI;
 				labelApplicativiDi = ServiziApplicativiCostanti.LABEL_PARAMETRO_APPLICATIVI_DI;
 			}
@@ -2082,16 +2095,16 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 			if(this.core.isApplicativiServerEnabled(this)) {
 				labels.add(ServiziApplicativiCostanti.LABEL_TIPO);
 			}
-			if(!this.isModalitaCompleta()) {
+			if(!modalitaCompleta) {
 				labels.add(RuoliCostanti.LABEL_RUOLI);
 			}
-			if(this.isModalitaCompleta()) {
+			if(modalitaCompleta) {
 				labels.add(ServiziApplicativiCostanti.LABEL_TIPOLOGIA);
 			}
-			if (this.isModalitaCompleta()){
+			if (modalitaCompleta){
 				labels.add(ServiziApplicativiCostanti.LABEL_INVOCAZIONE_SERVIZIO);
 			}
-			if(supportAsincroni && this.isModalitaCompleta()){
+			if(supportAsincroni && modalitaCompleta){
 				labels.add(ServiziApplicativiCostanti.LABEL_RISPOSTA_ASINCRONA);
 			}
 			this.pd.setLabels(labels.toArray(new String[1]));
@@ -2133,7 +2146,7 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 							(profiloModIPAusato)
 							)) {
 						de = new DataElement();
-						if(this.isModalitaCompleta()) {
+						if(modalitaCompleta) {
 							de.setUrl(SoggettiCostanti.SERVLET_NAME_SOGGETTI_CHANGE, 
 									new Parameter(SoggettiCostanti.PARAMETRO_SOGGETTO_ID, sa.getIdSoggetto()+""),
 									new Parameter(SoggettiCostanti.PARAMETRO_SOGGETTO_NOME, sa.getNomeSoggettoProprietario()),
@@ -2173,7 +2186,7 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 						e.addElement(de);
 					}
 
-					if(!this.isModalitaCompleta()) {
+					if(!modalitaCompleta) {
 						de = new DataElement();
 						if(isServer) {
 							de.setValue("-");
@@ -2202,13 +2215,13 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 						e.addElement(de);
 					}
 					
-					if (this.isModalitaCompleta()){
+					if (modalitaCompleta){
 						de = new DataElement();
 						de.setValue(this.getTipologia(sa));
 						e.addElement(de);
 					}
 					
-					if (this.isModalitaCompleta()){
+					if (modalitaCompleta){
 						de = new DataElement();
 						// se la pdd e' esterna non e' possibile modificare il
 						// connettore invocazione servizio
@@ -2242,7 +2255,7 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 						e.addElement(de);
 					}
 
-					if(supportAsincroni && this.isModalitaCompleta()){
+					if(supportAsincroni && modalitaCompleta){
 						de = new DataElement();
 						// se la pdd e' esterna non e' possibile modificare il
 						// connettore risposta asincrona
@@ -2293,6 +2306,396 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 						e.addElement(de);
 					}
 
+					dati.addElement(e);
+				}
+			}
+
+			this.pd.setDati(dati);
+			this.pd.setAddButton(true);
+
+			// preparo bottoni
+			if(lista!=null && lista.size()>0){
+				if (this.core.isShowPulsantiImportExport()) {
+
+					ExporterUtils exporterUtils = new ExporterUtils(this.archiviCore);
+					if(exporterUtils.existsAtLeastOneExportMpde(org.openspcoop2.protocol.sdk.constants.ArchiveType.SERVIZIO_APPLICATIVO, this.session)){
+
+						Vector<AreaBottoni> bottoni = new Vector<AreaBottoni>();
+
+						AreaBottoni ab = new AreaBottoni();
+						Vector<DataElement> otherbott = new Vector<DataElement>();
+						DataElement de = new DataElement();
+						de.setValue(ServiziApplicativiCostanti.LABEL_SERVIZI_APPLICATIVI_ESPORTA_SELEZIONATI);
+						de.setOnClick(ServiziApplicativiCostanti.LABEL_SERVIZI_APPLICATIVI_ESPORTA_SELEZIONATI_ONCLICK);
+						de.setDisabilitaAjaxStatus();
+						otherbott.addElement(de);
+						ab.setBottoni(otherbott);
+						bottoni.addElement(ab);
+
+						this.pd.setAreaBottoni(bottoni);
+
+					}
+
+				}
+			}
+			
+		} catch (Exception e) {
+			this.log.error("Exception: " + e.getMessage(), e);
+			throw new Exception(e);
+		}
+	}
+	
+	public void prepareServizioApplicativoListCustom(ISearch ricerca, List<ServizioApplicativo> lista, boolean useIdSoggetto)
+			throws Exception {
+		try {
+			boolean modalitaCompleta = this.isModalitaCompleta();
+			
+			this.pd.setCustomListViewName(ServiziApplicativiCostanti.SERVIZI_APPLICATIVI_NOME_VISTA_CUSTOM_LISTA);
+			
+			// colleziono i tags registrati
+			List<String> ruoliDisponibili = this.ruoliCore.getAllRuoli(new FiltroRicercaRuoli());
+			
+			String idProvider = this.getParameter(ServiziApplicativiCostanti.PARAMETRO_SERVIZI_APPLICATIVI_PROVIDER);
+			
+			boolean multitenant = this.saCore.isMultitenant();
+			
+			// prelevo il flag che mi dice da quale pagina ho acceduto la sezione
+			Integer parentSA = ServletUtils.getIntegerAttributeFromSession(ServiziApplicativiCostanti.ATTRIBUTO_SERVIZI_APPLICATIVI_PARENT, this.session);
+			if(parentSA == null) parentSA = ServiziApplicativiCostanti.ATTRIBUTO_SERVIZI_APPLICATIVI_PARENT_NONE;
+			Boolean useIdSogg = parentSA == ServiziApplicativiCostanti.ATTRIBUTO_SERVIZI_APPLICATIVI_PARENT_SOGGETTO;
+
+			if(useIdSogg){
+				Parameter pProvider = new Parameter(ServiziApplicativiCostanti.PARAMETRO_SERVIZI_APPLICATIVI_PROVIDER, idProvider); 
+				ServletUtils.addListElementIntoSession(this.session, ServiziApplicativiCostanti.OBJECT_NAME_SERVIZI_APPLICATIVI,pProvider );
+			}else 
+				ServletUtils.addListElementIntoSession(this.session, ServiziApplicativiCostanti.OBJECT_NAME_SERVIZI_APPLICATIVI);
+
+			@SuppressWarnings("unused")
+			Boolean singlePdD = (Boolean) this.session.getAttribute(CostantiControlStation.SESSION_PARAMETRO_SINGLE_PDD);
+			
+			// Prendo il soggetto
+			String tmpTitle = null;
+			String protocolloSoggetto = null;
+			boolean supportAsincroni = true;
+			if(useIdSogg){
+				if(this.core.isRegistroServiziLocale()){
+					Soggetto tmpSogg = this.soggettiCore.getSoggettoRegistro(Integer.parseInt(idProvider));
+					protocolloSoggetto = this.soggettiCore.getProtocolloAssociatoTipoSoggetto(tmpSogg.getTipo());
+					tmpTitle = this.getLabelNomeSoggetto(protocolloSoggetto, tmpSogg.getTipo() , tmpSogg.getNome());
+				}else{
+					org.openspcoop2.core.config.Soggetto tmpSogg = this.soggettiCore.getSoggetto(Integer.parseInt(idProvider));
+					protocolloSoggetto = this.soggettiCore.getProtocolloAssociatoTipoSoggetto(tmpSogg.getTipo());
+					tmpTitle = this.getLabelNomeSoggetto(protocolloSoggetto, tmpSogg.getTipo() , tmpSogg.getNome());
+				}
+				
+				List<ServiceBinding> serviceBindingListProtocollo = this.core.getServiceBindingListProtocollo(protocolloSoggetto);
+				for (ServiceBinding serviceBinding : serviceBindingListProtocollo) {
+					supportAsincroni = this.core.isProfiloDiCollaborazioneSupportatoDalProtocollo(protocolloSoggetto,serviceBinding, ProfiloDiCollaborazione.ASINCRONO_ASIMMETRICO)
+							|| this.core.isProfiloDiCollaborazioneSupportatoDalProtocollo(protocolloSoggetto, serviceBinding, ProfiloDiCollaborazione.ASINCRONO_SIMMETRICO);
+				}
+				
+				if(supportAsincroni==false){
+					if (this.isModalitaAvanzata()){
+						supportAsincroni = this.core.isElenchiSA_asincroniNonSupportati_VisualizzaRispostaAsincrona();
+					}
+				}
+			}
+
+			int idLista = useIdSogg ? Liste.SERVIZI_APPLICATIVI_BY_SOGGETTO : Liste.SERVIZIO_APPLICATIVO;
+			int limit = ricerca.getPageSize(idLista);
+			int offset = ricerca.getIndexIniziale(idLista);
+			String search = ServletUtils.getSearchFromSession(ricerca, idLista);
+
+			String filterProtocollo = null;
+			String filterSoggetto = null;
+			boolean profiloSelezionato = false;
+			boolean modipa = false;
+			if(!useIdSogg) {
+				filterProtocollo = addFilterProtocol(ricerca, idLista, true);
+
+				String protocollo = filterProtocollo;
+				if(protocollo==null) {
+					// significa che e' stato selezionato un protocollo nel menu in alto a destra
+					List<String> protocolli = this.core.getProtocolli(this.session);
+					if(protocolli!=null && protocolli.size()==1) {
+						protocollo = protocolli.get(0);
+					}
+				}
+				modipa = isProfiloModIPA(protocollo);  // in modipa devono essere fatti vedere tutti i soggetti, anche quelli esterni.
+				
+				if( (filterProtocollo!=null && !"".equals(filterProtocollo) &&
+						!CostantiControlStation.DEFAULT_VALUE_PARAMETRO_PROTOCOLLO_QUALSIASI.equals(filterProtocollo))
+						||
+					(filterProtocollo==null && protocollo!=null)
+						) {
+					profiloSelezionato = true;
+				}
+				
+				if( profiloSelezionato && 
+						(!this.isSoggettoMultitenantSelezionato() || modipa)) {
+					
+					boolean soloSoggettiOperativi = true;
+					if(modipa) {
+						soloSoggettiOperativi = false;
+					}
+					filterSoggetto = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_SOGGETTO);
+					this.addFilterSoggetto(filterSoggetto,protocollo,soloSoggettiOperativi,true);
+				}
+			}
+			if(this.isSoggettoMultitenantSelezionato()){
+				filterSoggetto = getSoggettoMultitenantSelezionato();
+			}
+			
+			if(this.core.isGestionePddAbilitata(this)==false && multitenant && modipa) {
+				String filterDominio = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_DOMINIO);
+				addFilterDominio(filterDominio, false);
+			}
+			
+			if(modalitaCompleta) {
+				String filterRuoloSA = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_RUOLO_SERVIZIO_APPLICATIVO);
+				this.addFilterRuoloServizioApplicativo(filterRuoloSA,false);
+			}
+			
+			if(this.core.isApplicativiServerEnabled(this)) {
+				String filterTipoSA = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_TIPO_SERVIZIO_APPLICATIVO);
+				this.addFilterTipoServizioApplicativo(filterTipoSA,false);
+			}
+			
+			String filterTipoCredenziali = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_TIPO_CREDENZIALI);
+			this.addFilterTipoCredenziali(filterTipoCredenziali,false);
+			
+			String filterRuolo = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_RUOLO);
+			addFilterRuolo(filterRuolo, false);
+			
+			String filterGruppo = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_GRUPPO);
+			addFilterGruppo(filterGruppo, true);
+			
+			String filterApiContesto = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_API_CONTESTO);
+			this.addFilterApiContesto(filterApiContesto, true);
+			
+			if(profiloSelezionato &&
+					filterApiContesto!=null && !"".equals(filterApiContesto) &&
+					!CostantiControlStation.DEFAULT_VALUE_PARAMETRO_API_CONTESTO_QUALSIASI.equals(filterApiContesto)) {
+				String filterApiImplementazione = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_API_IMPLEMENTAZIONE);
+				this.addFilterApiImplementazione(filterProtocollo, filterSoggetto, filterGruppo, filterApiContesto, filterApiImplementazione, false);
+			}
+			else {
+				SearchUtils.clearFilter(ricerca, idLista, Filtri.FILTRO_API_IMPLEMENTAZIONE);
+			}
+			
+			this.pd.setIndex(offset);
+			this.pd.setPageSize(limit);
+			this.pd.setNumEntries(ricerca.getNumEntries(idLista));
+
+
+			// setto la barra del titolo
+			
+			String labelApplicativi = ServiziApplicativiCostanti.LABEL_SERVIZI_APPLICATIVI;
+			String labelApplicativiDi = ServiziApplicativiCostanti.LABEL_PARAMETRO_SERVIZI_APPLICATIVI_DI;
+			if(modalitaCompleta==false) {
+				labelApplicativi = ServiziApplicativiCostanti.LABEL_APPLICATIVI;
+				labelApplicativiDi = ServiziApplicativiCostanti.LABEL_PARAMETRO_APPLICATIVI_DI;
+			}
+			
+			if(!useIdSogg){
+				this.pd.setSearchLabel(ServiziApplicativiCostanti.LABEL_PARAMETRO_SERVIZI_APPLICATIVI_NOME);
+				if (search.equals("")) {
+					this.pd.setSearchDescription("");
+					ServletUtils.setPageDataTitle(this.pd, 
+							new Parameter(labelApplicativi,ServiziApplicativiCostanti.SERVLET_NAME_SERVIZI_APPLICATIVI_LIST));
+				}
+				else{
+					ServletUtils.setPageDataTitle(this.pd, 
+							new Parameter(labelApplicativi,ServiziApplicativiCostanti.SERVLET_NAME_SERVIZI_APPLICATIVI_LIST),
+							new Parameter(Costanti.PAGE_DATA_TITLE_LABEL_RISULTATI_RICERCA,null));	
+				}
+			} else {
+				List<Parameter> lstParam = new ArrayList<Parameter>();
+
+				lstParam.add(new Parameter(SoggettiCostanti.LABEL_SOGGETTI, SoggettiCostanti.SERVLET_NAME_SOGGETTI_LIST));
+
+				this.pd.setSearchLabel(ServiziApplicativiCostanti.LABEL_PARAMETRO_SERVIZI_APPLICATIVI_NOME);
+				if(search.equals("")){
+					this.pd.setSearchDescription("");
+					lstParam.add(new Parameter(labelApplicativiDi + tmpTitle,null));
+				}else{
+					lstParam.add(new Parameter(labelApplicativiDi + tmpTitle,
+							ServiziApplicativiCostanti.SERVLET_NAME_SERVIZI_APPLICATIVI_LIST ,
+							new Parameter( ServiziApplicativiCostanti.PARAMETRO_SERVIZI_APPLICATIVI_PROVIDER, idProvider)));
+					lstParam.add(new Parameter(PorteApplicativeCostanti.LABEL_PORTE_APPLICATIVE_RISULTATI_RICERCA, null));
+				}
+
+				ServletUtils.setPageDataTitle(this.pd, lstParam.toArray(new Parameter[lstParam.size()]));
+			}
+
+			// controllo eventuali risultati ricerca
+			if (!search.equals("")) {
+				ServletUtils.enabledPageDataSearch(this.pd, labelApplicativi, search);
+			}
+
+			boolean showProtocolli = this.core.countProtocolli(this.session)>1;
+			
+			boolean profiloModIPAusato = false;
+			List<String> protocolli = this.core.getProtocolli(this.session);
+			if(protocolli!=null && protocolli.size()==1) {
+				profiloModIPAusato = this.isProfiloModIPA(protocolli.get(0));
+			}
+			else {
+				if (lista != null) {
+					Iterator<ServizioApplicativo> it = lista.iterator();
+					while (it.hasNext()) {
+						ServizioApplicativo sa = it.next();
+						String protocolloCheck = this.soggettiCore.getProtocolloAssociatoTipoSoggetto(sa.getTipoSoggettoProprietario());
+						if(this.isProfiloModIPA(protocolloCheck)) {
+							profiloModIPAusato = true;
+							break;
+						}
+					}
+				}
+			}
+			
+			// setto le label delle colonne
+			List<String> labels = new ArrayList<String>();
+//			labels.add("");//ServiziApplicativiCostanti.LABEL_SA_STATO); // colonna info
+			labels.add(ServiziApplicativiCostanti.LABEL_APPLICATIVI);
+			
+			this.pd.setLabels(labels.toArray(new String[1]));
+
+			// preparo i dati
+			Vector<Vector<DataElement>> dati = new Vector<Vector<DataElement>>();
+
+			if (lista != null) {
+				Iterator<ServizioApplicativo> it = lista.iterator();
+				while (it.hasNext()) {
+					ServizioApplicativo sa = it.next();
+
+					Vector<DataElement> e = new Vector<DataElement>();
+
+					String protocollo = this.soggettiCore.getProtocolloAssociatoTipoSoggetto(sa.getTipoSoggettoProprietario());
+					
+					IDSoggetto idSoggettoProprietario = new IDSoggetto(sa.getTipoSoggettoProprietario(), sa.getNomeSoggettoProprietario());
+					Soggetto soggettoProprietario = this.soggettiCore.getSoggettoRegistro(idSoggettoProprietario);
+					String dominio = this.pddCore.isPddEsterna(soggettoProprietario.getPortaDominio()) ? SoggettiCostanti.SOGGETTO_DOMINIO_ESTERNO_VALUE : SoggettiCostanti.SOGGETTO_DOMINIO_OPERATIVO_VALUE;
+					
+					Parameter pSAId = new Parameter(ServiziApplicativiCostanti.PARAMETRO_SERVIZI_APPLICATIVI_ID, sa.getId()+"");
+					Parameter pSAIdSoggetto = new Parameter(ServiziApplicativiCostanti.PARAMETRO_SERVIZI_APPLICATIVI_PROVIDER, sa.getIdSoggetto()+"");
+					Parameter pDominio = new Parameter(SoggettiCostanti.PARAMETRO_SOGGETTO_DOMINIO, dominio);
+					
+					// TITOLO (nome + soggetto)
+					String nome = sa.getNome();
+					DataElement de = new DataElement();
+					de.setUrl(ServiziApplicativiCostanti.SERVLET_NAME_SERVIZI_APPLICATIVI_CHANGE, pSAId, pSAIdSoggetto, pDominio);
+					de.setSize(this.core.getElenchiMenuIdentificativiLunghezzaMassima());
+					
+					de.setIdToRemove(sa.getId().toString());
+					de.setType(DataElementType.TITLE);
+					
+					if(!useIdSogg && ((multitenant && !this.isSoggettoMultitenantSelezionato()) || (profiloModIPAusato))) {
+						nome = nome + "@" + this.getLabelNomeSoggetto(protocollo, sa.getTipoSoggettoProprietario() , sa.getNomeSoggettoProprietario());
+					}
+					de.setValue(nome);
+					e.addElement(de);
+
+					// Metadati (profilo + tipo)
+					de = new DataElement();
+					String tipoLabel = "";
+					boolean isServer = false;
+					
+					if(this.core.isApplicativiServerEnabled(this)) {
+						isServer = ServiziApplicativiCostanti.VALUE_SERVIZI_APPLICATIVI_TIPO_SERVER.equals(sa.getTipo());
+						tipoLabel = this.getTipo(sa);
+						if(sa.isUseAsClient()) {
+							isServer = false;
+							tipoLabel = tipoLabel+" / "+ServiziApplicativiCostanti.LABEL_SERVIZI_APPLICATIVI_TIPO_CLIENT;
+						}
+						
+						if(showProtocolli) {
+							String labelProtocollo =this.getLabelProtocollo(protocollo); 
+							de.setValue(MessageFormat.format(ServiziApplicativiCostanti.MESSAGE_METADATI_SERVIZIO_APPLICATIVO_CON_PROFILO, labelProtocollo, tipoLabel));
+						} else {
+							de.setValue(MessageFormat.format(ServiziApplicativiCostanti.MESSAGE_METADATI_SERVIZIO_APPLICATIVO_SENZA_PROFILO, tipoLabel));
+						}
+					} else {
+						if(showProtocolli) {
+							String labelProtocollo =this.getLabelProtocollo(protocollo); 
+							de.setValue(MessageFormat.format(ServiziApplicativiCostanti.MESSAGE_METADATI_SERVIZIO_APPLICATIVO_SOLO_PROFILO, labelProtocollo));
+						} else {
+							de.setValue(ServiziApplicativiCostanti.MESSAGE_METADATI_SERVIZIO_APPLICATIVO_VUOTI);
+						}
+					}
+					de.setType(DataElementType.SUBTITLE);
+					e.addElement(de);
+					
+					// Ruoli e' come i tag per ora
+					if(!isServer) {
+						List<String> listaRuoli = this.saCore.servizioApplicativoRuoliList(sa.getId(),new Search(true));
+						for (int j = 0; j < listaRuoli.size(); j++) {
+							String ruolo = listaRuoli.get(j);
+							
+							de = new DataElement();
+							de.setName(ServiziApplicativiCostanti.PARAMETRO_SERVIZI_APPLICATIVI_RUOLO + "_" + j);
+							de.setType(DataElementType.BUTTON);
+							de.setLabel(ruolo);
+							
+							int indexOf = ruoliDisponibili.indexOf(ruolo);
+							if(indexOf == -1)
+								indexOf = 0;
+							
+							indexOf = indexOf % CostantiControlStation.NUMERO_GRUPPI_CSS;
+							
+							de.setStyleClass("ruolo-label-info-0"); //+indexOf);
+							
+							e.addElement(de);
+						}
+					}
+					
+					// Info e usedIn 2 immagini
+					IDServizioApplicativo idServizioApplicativo = new IDServizioApplicativo();
+					idServizioApplicativo.setNome(sa.getNome());
+					idServizioApplicativo.setIdSoggettoProprietario(new IDSoggetto(sa.getTipoSoggettoProprietario(), sa.getNomeSoggettoProprietario()));
+					
+					// TODO Poli
+					de = new DataElement();
+					de.setType(DataElementType.IMAGE);
+					DataElementInfo dInfoUtilizzo = new DataElementInfo(ServiziApplicativiCostanti.LABEL_APPLICATIVO);
+					dInfoUtilizzo.setBody("L'applicativo " + nome + " gestisce...");
+					de.setInfo(dInfoUtilizzo);
+					de.setToolTip("Visualizza Info");
+					e.addElement(de);
+					
+					// TODO Poli
+					de = new DataElement();
+					de.setType(DataElementType.IMAGE);
+					de.setToolTip("Visualizza Uso");
+					Dialog deDialog = new Dialog();
+					
+					HashMap<ErrorsHandlerCostant, List<String>> whereIsInUso = new HashMap<ErrorsHandlerCostant, List<String>>();
+					boolean normalizeObjectIds = false;
+					boolean saInUso  = this.saCore.isServizioApplicativoInUso(idServizioApplicativo, whereIsInUso, this.saCore.isRegistroServiziLocale(), normalizeObjectIds );
+					
+					StringBuilder inUsoMessage = new StringBuilder();
+					if(saInUso) {
+						inUsoMessage.append(DBOggettiInUsoUtils.toString(idServizioApplicativo, whereIsInUso, false, "\n", normalizeObjectIds));
+						inUsoMessage.append("\n");
+					} else {
+						inUsoMessage.append(ServiziApplicativiCostanti.LABEL_INFO_USO_SA_NO_USATO);
+					}
+					
+					deDialog.setIcona(Costanti.ICON_USO);
+					deDialog.setTitolo(Costanti.MESSAGE_TITLE_USO);
+					deDialog.setHeaderRiga1(ServiziApplicativiCostanti.LABEL_INFO_USO_SA_BODY_HEADER);
+//					deDialog.setHeaderRiga2(inUsoMessage.toString());
+					
+					BodyElement bodyElement = new Dialog().new BodyElement();
+					bodyElement.setType(DataElementType.TEXT_AREA);
+					bodyElement.setLabel("");
+					bodyElement.setValue(inUsoMessage.toString());
+					bodyElement.setRows(15);
+					deDialog.addBodyElement(bodyElement );
+					
+					de.setDialog(deDialog );
+					e.addElement(de);
+					
 					dati.addElement(e);
 				}
 			}

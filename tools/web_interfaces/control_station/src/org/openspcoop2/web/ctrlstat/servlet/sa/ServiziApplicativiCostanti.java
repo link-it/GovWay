@@ -74,6 +74,8 @@ public class ServiziApplicativiCostanti {
 	}
 
 	
+	/* NOME VISTA CUSTOM */
+	public final static String SERVIZI_APPLICATIVI_NOME_VISTA_CUSTOM_LISTA = "applicativi";
 	
 	/* LABEL GENERALI */
 	
@@ -137,6 +139,7 @@ public class ServiziApplicativiCostanti {
 	public final static String PARAMETRO_SERVIZI_APPLICATIVI_TIPO_SA = "tipoSA";
 	
 	public final static String PARAMETRO_SERVIZI_APPLICATIVI_RUOLI = "ruoli";
+	public final static String PARAMETRO_SERVIZI_APPLICATIVI_RUOLO = "ruolo";
 	public final static String PARAMETRO_SERVIZI_APPLICATIVI_RUOLI_ACTION = "action";
 	public final static String PARAMETRO_SERVIZI_APPLICATIVI_RUOLI_CORRELATO = "correlato";
 	
@@ -229,4 +232,13 @@ public class ServiziApplicativiCostanti {
 			return ServiziApplicativiCostanti.LABEL_PARAMETRO_SERVIZI_APPLICATIVI_SBUSTAMENTO_INFO_PROTOCOLLO  + " " +nomeProtocollo.toUpperCase();
 		}
 	}
+	
+	public final static String MESSAGE_METADATI_SERVIZIO_APPLICATIVO_VUOTI = "";
+	public final static String MESSAGE_METADATI_SERVIZIO_APPLICATIVO_SOLO_PROFILO = "Profilo Interoperabilit&agrave;: {0}";
+	public final static String MESSAGE_METADATI_SERVIZIO_APPLICATIVO_CON_PROFILO = "Profilo Interoperabilit&agrave;: {0}, Tipo: {1}";
+	public final static String MESSAGE_METADATI_SERVIZIO_APPLICATIVO_SENZA_PROFILO = "Tipo: {0}";
+	
+	public final static String LABEL_INFO_USO_SA_BODY_HEADER = "L'applicativo &egrave; utilizzato nelle seguenti configurazioni:";
+	public final static String LABEL_INFO_USO_SA_NO_USATO = "L'applicativo &egrave; non &egrave; utilizzato in nessuna configurazione";
+	
 }
