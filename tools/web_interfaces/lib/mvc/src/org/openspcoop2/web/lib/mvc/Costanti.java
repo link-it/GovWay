@@ -265,5 +265,4 @@ public class Costanti {
 	
 	public final static String SA_TIPO_DEFAULT_VALUE = "clientORserver";	
 	
-	public final static String MESSAGE_TITLE_USO = "In Uso";
 }

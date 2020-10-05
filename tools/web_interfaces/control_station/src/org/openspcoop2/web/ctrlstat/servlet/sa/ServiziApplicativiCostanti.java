@@ -237,8 +237,7 @@ public class ServiziApplicativiCostanti {
 	public final static String MESSAGE_METADATI_SERVIZIO_APPLICATIVO_SOLO_PROFILO = "Profilo Interoperabilit&agrave;: {0}";
 	public final static String MESSAGE_METADATI_SERVIZIO_APPLICATIVO_CON_PROFILO = "Profilo Interoperabilit&agrave;: {0}, Tipo: {1}";
 	public final static String MESSAGE_METADATI_SERVIZIO_APPLICATIVO_SENZA_PROFILO = "Tipo: {0}";
-	
-	public final static String LABEL_INFO_USO_SA_BODY_HEADER = "L'applicativo &egrave; utilizzato nelle seguenti configurazioni:";
-	public final static String LABEL_INFO_USO_SA_NO_USATO = "L'applicativo &egrave; non &egrave; utilizzato in nessuna configurazione";
+		
+	public final static String LABEL_IN_USO_BODY_HEADER_NESSUN_RISULTATO = "L'applicativo non risulta utilizzato in alcuna configurazione";
 	
 }

@@ -21,7 +21,6 @@ package org.openspcoop2.web.ctrlstat.servlet.sa;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
@@ -31,7 +30,6 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
-import org.openspcoop2.core.commons.ErrorsHandlerCostant;
 import org.openspcoop2.core.commons.Filtri;
 import org.openspcoop2.core.commons.ISearch;
 import org.openspcoop2.core.commons.Liste;
@@ -72,7 +70,6 @@ import org.openspcoop2.core.registry.driver.FiltroRicercaRuoli;
 import org.openspcoop2.core.registry.driver.IDServizioFactory;
 import org.openspcoop2.message.constants.ServiceBinding;
 import org.openspcoop2.protocol.engine.ProtocolFactoryManager;
-import org.openspcoop2.protocol.engine.utils.DBOggettiInUsoUtils;
 import org.openspcoop2.protocol.sdk.IProtocolFactory;
 import org.openspcoop2.protocol.sdk.config.IProtocolConfiguration;
 import org.openspcoop2.protocol.sdk.constants.ProfiloDiCollaborazione;
@@ -2663,33 +2660,19 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 					de.setToolTip("Visualizza Info");
 					e.addElement(de);
 					
-					// TODO Poli
+					// In Uso
 					de = new DataElement();
 					de.setType(DataElementType.IMAGE);
-					de.setToolTip("Visualizza Uso");
-					Dialog deDialog = new Dialog();
-					
-					HashMap<ErrorsHandlerCostant, List<String>> whereIsInUso = new HashMap<ErrorsHandlerCostant, List<String>>();
-					boolean normalizeObjectIds = false;
-					boolean saInUso  = this.saCore.isServizioApplicativoInUso(idServizioApplicativo, whereIsInUso, this.saCore.isRegistroServiziLocale(), normalizeObjectIds );
-					
-					StringBuilder inUsoMessage = new StringBuilder();
-					if(saInUso) {
-						inUsoMessage.append(DBOggettiInUsoUtils.toString(idServizioApplicativo, whereIsInUso, false, "\n", normalizeObjectIds));
-						inUsoMessage.append("\n");
-					} else {
-						inUsoMessage.append(ServiziApplicativiCostanti.LABEL_INFO_USO_SA_NO_USATO);
-					}
-					
+					de.setToolTip(CostantiControlStation.LABEL_IN_USO_TOOLTIP);
+					Dialog deDialog = new Dialog();				
 					deDialog.setIcona(Costanti.ICON_USO);
-					deDialog.setTitolo(Costanti.MESSAGE_TITLE_USO);
-					deDialog.setHeaderRiga1(ServiziApplicativiCostanti.LABEL_INFO_USO_SA_BODY_HEADER);
+					deDialog.setTitolo(CostantiControlStation.LABEL_IN_USO_TITLE);
+					deDialog.setHeaderRiga1(CostantiControlStation.LABEL_IN_USO_BODY_HEADER_RISULTATI);
 //					deDialog.setHeaderRiga2(inUsoMessage.toString());
-					
 					BodyElement bodyElement = new Dialog().new BodyElement();
 					bodyElement.setType(DataElementType.TEXT_AREA);
 					bodyElement.setLabel("");
-					bodyElement.setValue(inUsoMessage.toString());
+					bodyElement.setValue(this.saCore.getDettagliServizioApplicativoInUso(idServizioApplicativo));
 					bodyElement.setRows(15);
 					deDialog.addBodyElement(bodyElement );
 					
