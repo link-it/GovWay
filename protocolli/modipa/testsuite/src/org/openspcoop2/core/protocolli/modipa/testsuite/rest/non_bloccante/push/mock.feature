@@ -15,13 +15,15 @@ Scenario: isTest('test-ok-richiesta-client')
     # verso l'erogazione del client.
 
     * match requestHeaders['X-ReplyTo'][0] == govway_base_path + "/rest/out/DemoSoggettoErogatore/DemoSoggettoFruitore/RestNonBlockingPushClient/v1"
-    * def responseHeaders = ({ 'X-Correlation-ID': task_id })
+    * def responseHeaders = ({ 'X-Correlation-ID': task_id, 'GovWay-TestSuite-GovWay-Transaction-ID': requestHeaders['GovWay-Transaction-ID'][0] })
+
     * def responseStatus = 202
     * def response = { 'outcome': 'accepted' }
 
 Scenario: isTest('test-ok-risposta-server')
 
     * match requestHeaders['GovWay-Conversation-ID'][0] == task_id
+    * def responseHeaders = ({ 'GovWay-TestSuite-GovWay-Transaction-ID': requestHeaders['GovWay-Transaction-ID'][0] })
     * def responseStatus = 200
     * def response = read('classpath:src/test/rest/non-bloccante/push/server-response-response.json')
     
@@ -33,6 +35,7 @@ Scenario: isTest('test-ok-risposta-server')
 
 Scenario: isTest('correlation-id-added-by-server')
 
+    * def responseHeaders = ({ 'GovWay-TestSuite-GovWay-Transaction-ID': requestHeaders['GovWay-Transaction-ID'][0] })
     * def responseStatus = 202
     * def response = { 'outcome': 'accepted' }
 
@@ -43,11 +46,13 @@ Scenario: isTest('correlation-id-added-by-server')
 
 Scenario: isTest('iniezione-header-id-collaborazione')
 
+    * def responseHeaders = ({ 'GovWay-TestSuite-GovWay-Transaction-ID': requestHeaders['GovWay-Transaction-ID'][0] })
     * def responseStatus = 200
     * def response = read('classpath:src/test/rest/non-bloccante/push/server-response-response.json')
 
 Scenario: isTest('iniezione-header-id-collaborazione-query')
 
+    * def responseHeaders = ({ 'GovWay-TestSuite-GovWay-Transaction-ID': requestHeaders['GovWay-Transaction-ID'][0] })
     * def responseStatus = 200
     * def response = read('classpath:src/test/rest/non-bloccante/push/server-response-response.json')
 
@@ -57,11 +62,13 @@ Scenario: isTest('iniezione-header-id-collaborazione-query')
 
 Scenario: isTest('iniezione-header-riferimento-id-richiesta')
 
+    * def responseHeaders = ({ 'GovWay-TestSuite-GovWay-Transaction-ID': requestHeaders['GovWay-Transaction-ID'][0] })
     * def responseStatus = 200
     * def response = read('classpath:src/test/rest/non-bloccante/push/server-response-response.json')
 
 
 Scenario: isTest('iniezione-header-riferimento-id-richiesta-query')
-
+    
+    * def responseHeaders = ({ 'GovWay-TestSuite-GovWay-Transaction-ID': requestHeaders['GovWay-Transaction-ID'][0] })
     * def responseStatus = 200
     * def response = read('classpath:src/test/rest/non-bloccante/push/server-response-response.json')
