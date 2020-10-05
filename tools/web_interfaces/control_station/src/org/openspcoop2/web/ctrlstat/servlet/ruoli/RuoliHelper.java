@@ -34,6 +34,7 @@ import org.openspcoop2.core.registry.Ruolo;
 import org.openspcoop2.core.registry.constants.RuoloContesto;
 import org.openspcoop2.core.registry.constants.RuoloTipologia;
 import org.openspcoop2.web.ctrlstat.core.ControlStationCore;
+import org.openspcoop2.web.ctrlstat.costanti.CostantiControlStation;
 import org.openspcoop2.web.ctrlstat.servlet.ConsoleHelper;
 import org.openspcoop2.web.ctrlstat.servlet.archivi.ExporterUtils;
 import org.openspcoop2.web.lib.mvc.AreaBottoni;
@@ -236,6 +237,9 @@ public class RuoliHelper extends ConsoleHelper{
 	
 	
 	// Prepara la lista di ruoli
+	
+	public static final int POSIZIONE_FILTRO_PROTOCOLLO = 3; // parte da 0, e' alla quarta posizione se visualizzato
+	
 	public void prepareRuoliList(ISearch ricerca, List<Ruolo> lista)
 			throws Exception {
 		try {
@@ -246,11 +250,97 @@ public class RuoliHelper extends ConsoleHelper{
 			int offset = ricerca.getIndexIniziale(idLista);
 			String search = ServletUtils.getSearchFromSession(ricerca, idLista);
 
+						
 			String filterRuoloTipologia = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_RUOLO_TIPOLOGIA);
 			this.addFilterRuoloTipologia(filterRuoloTipologia, false);
 			
 			String filterRuoloContesto = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_RUOLO_CONTESTO);
 			this.addFilterRuoloContesto(filterRuoloContesto, false);
+						
+			String filterApiContesto = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_API_CONTESTO);
+			this.addFilterApiContestoRuoli(filterApiContesto, true);
+						
+			// NOTA: ATTENZIONE!!! se sei agggiunge o elimina un filtro prima del protocollo indicato sotto, correggere la variabile POSIZIONE_FILTRO_PROTOCOLLO in questa classe
+			
+			String filterProtocollo = null;
+			String filterSoggetto = null;
+			boolean profiloSelezionato = false;
+			if(filterApiContesto!=null && !"".equals(filterApiContesto) &&
+					!CostantiControlStation.DEFAULT_VALUE_PARAMETRO_API_CONTESTO_QUALSIASI.equals(filterApiContesto)) {
+				
+				filterProtocollo = addFilterProtocol(ricerca, idLista, true);
+
+				String protocollo = filterProtocollo;
+				if(protocollo==null) {
+					// significa che e' stato selezionato un protocollo nel menu in alto a destra
+					List<String> protocolli = this.core.getProtocolli(this.session);
+					if(protocolli!=null && protocolli.size()==1) {
+						protocollo = protocolli.get(0);
+					}
+				}
+				
+				if( (filterProtocollo!=null && !"".equals(filterProtocollo) &&
+						!CostantiControlStation.DEFAULT_VALUE_PARAMETRO_PROTOCOLLO_QUALSIASI.equals(filterProtocollo))
+						||
+					(filterProtocollo==null && protocollo!=null)
+						) {
+					profiloSelezionato = true;
+				}
+				
+				if(Filtri.FILTRO_API_CONTESTO_VALUE_SOGGETTI.equals(filterApiContesto)) {
+					filterSoggetto = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_SOGGETTO);
+					boolean soloSoggettiOperativi = false;
+					this.addFilterSoggetto(filterSoggetto,protocollo,soloSoggettiOperativi,true);
+				}
+				else {
+					if( profiloSelezionato && 
+							(!this.isSoggettoMultitenantSelezionato())) {
+						
+						filterSoggetto = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_SOGGETTO);
+						boolean soloSoggettiOperativi = true;
+						this.addFilterSoggetto(filterSoggetto,protocollo,soloSoggettiOperativi,true);
+					}
+					else {
+						filterSoggetto=this.getSoggettoMultitenantSelezionato();
+					}
+				}
+			}
+			
+			String filterGruppo = null;
+			if(filterApiContesto!=null && !"".equals(filterApiContesto) &&
+					!CostantiControlStation.DEFAULT_VALUE_PARAMETRO_API_CONTESTO_QUALSIASI.equals(filterApiContesto) &&
+					!Filtri.FILTRO_API_CONTESTO_VALUE_APPLICATIVI.equals(filterApiContesto) &&
+					!Filtri.FILTRO_API_CONTESTO_VALUE_SOGGETTI.equals(filterApiContesto)) {
+				
+				filterGruppo = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_GRUPPO);
+				addFilterGruppo(filterGruppo, true);
+				
+			}
+			else {
+				SearchUtils.clearFilter(ricerca, idLista, Filtri.FILTRO_GRUPPO);
+			}
+			
+			if(profiloSelezionato &&
+					filterApiContesto!=null && !"".equals(filterApiContesto) &&
+					!CostantiControlStation.DEFAULT_VALUE_PARAMETRO_API_CONTESTO_QUALSIASI.equals(filterApiContesto)  &&
+					!Filtri.FILTRO_API_CONTESTO_VALUE_APPLICATIVI.equals(filterApiContesto)) {
+				String filterApiImplementazione = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_API_IMPLEMENTAZIONE);
+				this.addFilterApiImplementazione(filterProtocollo, filterSoggetto, filterGruppo, filterApiContesto, filterApiImplementazione, false);
+			}
+			else {
+				SearchUtils.clearFilter(ricerca, idLista, Filtri.FILTRO_API_IMPLEMENTAZIONE);
+			}
+			
+			if(profiloSelezionato &&
+					filterApiContesto!=null && !"".equals(filterApiContesto) &&
+					!CostantiControlStation.DEFAULT_VALUE_PARAMETRO_API_CONTESTO_QUALSIASI.equals(filterApiContesto)  &&
+					Filtri.FILTRO_API_CONTESTO_VALUE_APPLICATIVI.equals(filterApiContesto)) {
+				String filterApplicativo = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_SERVIZIO_APPLICATIVO);
+				this.addFilterApplicativo(filterProtocollo, filterSoggetto, filterApplicativo, false);
+			}
+			else {
+				SearchUtils.clearFilter(ricerca, idLista, Filtri.FILTRO_SERVIZIO_APPLICATIVO);
+			}
 			
 			this.pd.setIndex(offset);
 			this.pd.setPageSize(limit);

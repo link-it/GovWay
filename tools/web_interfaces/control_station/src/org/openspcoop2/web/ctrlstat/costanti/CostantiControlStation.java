@@ -1062,10 +1062,16 @@ public class CostantiControlStation {
 	public final static String DEFAULT_VALUE_PARAMETRO_API_CONTESTO_QUALSIASI = "";
 	public final static String API_CONTESTO_UTILIZZO_LABEL_EROGAZIONE = "Erogazione";
 	public final static String API_CONTESTO_UTILIZZO_LABEL_FRUIZIONE = "Fruizione";
+	public final static String API_CONTESTO_UTILIZZO_LABEL_EROGAZIONE_FRUIZIONE = "Erogazione/Fruizione";
+	public final static String API_CONTESTO_UTILIZZO_LABEL_SOGGETTI = "Soggetti";
+	public final static String API_CONTESTO_UTILIZZO_LABEL_APPLICATIVI = "Applicativi";
 	public final static String LABEL_PARAMETRO_API_CONTESTO_QUALSIASI = CostantiControlStation.LABEL_QUALSIASI;
 	
 	public final static String DEFAULT_VALUE_PARAMETRO_API_IMPLEMENTAZIONE_QUALSIASI = "";
 	public final static String LABEL_PARAMETRO_API_IMPLEMENTAZIONE_QUALSIASI = CostantiControlStation.LABEL_QUALSIASI;
+
+	public final static String DEFAULT_VALUE_PARAMETRO_APPLICATIVO_QUALSIASI = "";
+	public final static String LABEL_PARAMETRO_APPLICATIVO_QUALSIASI = CostantiControlStation.LABEL_QUALSIASI;
 	
 	public final static String DEFAULT_VALUE_PARAMETRO_RUOLO_QUALSIASI = "";
 	public final static String LABEL_PARAMETRO_RUOLO_QUALSIASI = CostantiControlStation.LABEL_QUALSIASI;
