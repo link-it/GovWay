@@ -197,7 +197,8 @@ public class ModIImbustamentoRest {
 					String headerCorrelationId = this.modiProperties.getRestCorrelationIdHeader();
 					
 					String correlationIdFound = msg.getTransportResponseContext().getParameterTrasporto(headerCorrelationId);
-					if(correlationIdFound!=null && !"".equals(correlationIdFound)) {
+					if(correlationIdFound!=null && !"".equals(correlationIdFound) && 
+							!ModICostanti.MODIPA_BUSTA_EXT_PROFILO_INTERAZIONE_ASINCRONA_ID_CORRELAZIONE_AGGIUNTO_PER_CONSENTIRE_VALIDAZIONE_CONTENUTI.equals(correlationIdFound)) {
 						busta.addProperty(ModICostanti.MODIPA_BUSTA_EXT_PROFILO_INTERAZIONE_ASINCRONA_ID_CORRELAZIONE, correlationIdFound);
 						busta.setCollaborazione(correlationIdFound);
 					}
