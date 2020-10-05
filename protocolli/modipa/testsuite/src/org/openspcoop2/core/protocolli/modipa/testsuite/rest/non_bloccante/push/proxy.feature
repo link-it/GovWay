@@ -80,9 +80,16 @@ Scenario: isTest('iniezione-header-riferimento-id-richiesta-query')
 
 Scenario: isTest('no-correlation-id-in-client-request-response')
 
-    * def responseStatus = 202
-    * def response = { 'outcome': 'accepted' }
+* def responseStatus = 202
+* def response = { 'outcome': 'accepted' }
 
+# Assenza dello header x-correlation-id nella richiesta del flusso di risposta
+#
+#
+
+Scenario: isTest('no-correlation-id-in-server-response-request')
+
+* karate.proceed(url_erogazione_client_no_validazione)
 
 # CATCH ALL
 #

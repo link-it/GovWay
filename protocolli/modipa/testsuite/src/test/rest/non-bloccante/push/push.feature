@@ -119,4 +119,29 @@ Then status 200
 
 @no-correlation-id-in-server-response-request
 Scenario: L'erogazione del client verifica la presenza dello header x-correlation-id
-# TODO: matchare anche GovWay-Conversation-ID
+
+* def url_erogazione_client_no_validazione = govway_base_path + "/rest/in/DemoSoggettoFruitore/RestNonBlockingPushClientNoValidazione/v1"
+
+Given url url_erogazione_client_no_validazione
+And path 'MResponse'
+And header GovWay-TestSuite-Test-Id = 'no-correlation-id-in-server-response-request'
+And request read('server-response.json')
+When method post
+Then status 400
+And match response == read('error-bodies/no-correlation-id-in-server-response-request.json')
+
+
+* def url_fruizione_server_no_validazione = govway_base_path + "/rest/out/DemoSoggettoErogatore/DemoSoggettoFruitore/RestNonBlockingPushClientNoValidazione/v1"
+
+Given url url_fruizione_server_no_validazione
+And path 'MResponse'
+And header GovWay-TestSuite-Test-Id = 'no-correlation-id-in-server-response-request'
+And request read('server-response.json')
+When method post
+Then status 400
+And match response == read('error-bodies/no-correlation-id-in-server-response-request-fruizione.json')
+
+
+@no-x-reply-to-in-client-request
+Scenario: L'erogazione del server verifica la presenza dello header x-reply-to
+

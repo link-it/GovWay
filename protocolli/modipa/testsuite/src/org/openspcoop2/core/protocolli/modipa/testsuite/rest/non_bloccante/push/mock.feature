@@ -3,6 +3,7 @@ Feature: Feature di mock per i test non bloccante push
 Background:
 
     * def isTest = function(id) { return headerContains('GovWay-TestSuite-Test-Id', id) } 
+    * def task_id = "fb382380-cf98-4f75-95eb-2a65ba45309e"
 
 # GIRO OK
 #
@@ -14,12 +15,13 @@ Scenario: isTest('test-ok-richiesta-client')
     # verso l'erogazione del client.
 
     * match requestHeaders['X-ReplyTo'][0] == govway_base_path + "/rest/out/DemoSoggettoErogatore/DemoSoggettoFruitore/RestNonBlockingPushClient/v1"
-    * def responseHeaders = { 'X-Correlation-ID': "fb382380-cf98-4f75-95eb-2a65ba45309e" }
+    * def responseHeaders = ({ 'X-Correlation-ID': task_id })
     * def responseStatus = 202
     * def response = { 'outcome': 'accepted' }
 
 Scenario: isTest('test-ok-risposta-server')
 
+    * match requestHeaders['GovWay-Conversation-ID'][0] == task_id
     * def responseStatus = 200
     * def response = read('classpath:src/test/rest/non-bloccante/push/server-response-response.json')
     
