@@ -34,6 +34,7 @@ import org.openspcoop2.core.commons.SearchUtils;
 import org.openspcoop2.core.registry.Scope;
 import org.openspcoop2.core.registry.constants.ScopeContesto;
 import org.openspcoop2.web.ctrlstat.core.ControlStationCore;
+import org.openspcoop2.web.ctrlstat.costanti.CostantiControlStation;
 //import org.openspcoop2.core.registry.constants.ScopeTipologia;
 import org.openspcoop2.web.ctrlstat.servlet.ConsoleHelper;
 import org.openspcoop2.web.ctrlstat.servlet.archivi.ExporterUtils;
@@ -56,7 +57,7 @@ import org.openspcoop2.web.lib.mvc.TipoOperazione;
  */
 public class ScopeHelper extends ConsoleHelper{
 	
-	private boolean mostraFiltroScopeTipologia = false;
+	private static boolean mostraFiltroScopeTipologia = false;
 
 	public ScopeHelper(HttpServletRequest request, PageData pd, 
 			HttpSession session) throws Exception {
@@ -114,7 +115,7 @@ public class ScopeHelper extends ConsoleHelper{
 		de.setName(ScopeCostanti.PARAMETRO_SCOPE_TIPOLOGIA);
 		
 		de.setValue(tipologia);
-		if(this.mostraFiltroScopeTipologia)
+		if(mostraFiltroScopeTipologia)
 			de.setType(DataElementType.TEXT_EDIT);
 		else 
 			de.setType(DataElementType.HIDDEN);
@@ -232,6 +233,14 @@ public class ScopeHelper extends ConsoleHelper{
 	
 	
 	// Prepara la lista di scope
+	
+	public static int POSIZIONE_FILTRO_PROTOCOLLO = 2; // parte da 0, e' alla quarta posizione se visualizzato
+	static {
+		if(mostraFiltroScopeTipologia) {
+			POSIZIONE_FILTRO_PROTOCOLLO = 3;
+		}
+	}
+	
 	public void prepareScopeList(ISearch ricerca, List<Scope> lista)
 			throws Exception {
 		try {
@@ -242,13 +251,78 @@ public class ScopeHelper extends ConsoleHelper{
 			int offset = ricerca.getIndexIniziale(idLista);
 			String search = ServletUtils.getSearchFromSession(ricerca, idLista);
 
-			if(this.mostraFiltroScopeTipologia) {
+			if(mostraFiltroScopeTipologia) {
 				String filterScopeTipologia = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_SCOPE_TIPOLOGIA);
 				this.addFilterScopeTipologia(filterScopeTipologia, false);
 			}
 			
 			String filterScopeContesto = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_SCOPE_CONTESTO);
 			this.addFilterScopeContesto(filterScopeContesto, false);
+			
+			String filterApiContesto = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_API_CONTESTO);
+			this.addFilterApiContesto(filterApiContesto, true);
+						
+			// NOTA: ATTENZIONE!!! se sei agggiunge o elimina un filtro prima del protocollo indicato sotto, correggere la variabile POSIZIONE_FILTRO_PROTOCOLLO in questa classe
+			
+			String filterProtocollo = null;
+			String filterSoggetto = null;
+			boolean profiloSelezionato = false;
+			if(filterApiContesto!=null && !"".equals(filterApiContesto) &&
+					!CostantiControlStation.DEFAULT_VALUE_PARAMETRO_API_CONTESTO_QUALSIASI.equals(filterApiContesto)) {
+				
+				filterProtocollo = addFilterProtocol(ricerca, idLista, true);
+
+				String protocollo = filterProtocollo;
+				if(protocollo==null) {
+					// significa che e' stato selezionato un protocollo nel menu in alto a destra
+					List<String> protocolli = this.core.getProtocolli(this.session);
+					if(protocolli!=null && protocolli.size()==1) {
+						protocollo = protocolli.get(0);
+					}
+				}
+				
+				if( (filterProtocollo!=null && !"".equals(filterProtocollo) &&
+						!CostantiControlStation.DEFAULT_VALUE_PARAMETRO_PROTOCOLLO_QUALSIASI.equals(filterProtocollo))
+						||
+					(filterProtocollo==null && protocollo!=null)
+						) {
+					profiloSelezionato = true;
+				}
+				
+				if( profiloSelezionato && 
+						(!this.isSoggettoMultitenantSelezionato())) {
+					
+					filterSoggetto = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_SOGGETTO);
+					boolean soloSoggettiOperativi = true;
+					this.addFilterSoggetto(filterSoggetto,protocollo,soloSoggettiOperativi,true);
+				}
+				else {
+					filterSoggetto=this.getSoggettoMultitenantSelezionato();
+				}
+				
+			}
+			
+			String filterGruppo = null;
+			if(filterApiContesto!=null && !"".equals(filterApiContesto) &&
+					!CostantiControlStation.DEFAULT_VALUE_PARAMETRO_API_CONTESTO_QUALSIASI.equals(filterApiContesto)) {
+				
+				filterGruppo = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_GRUPPO);
+				addFilterGruppo(filterGruppo, true);
+				
+			}
+			else {
+				SearchUtils.clearFilter(ricerca, idLista, Filtri.FILTRO_GRUPPO);
+			}
+			
+			if(profiloSelezionato &&
+					filterApiContesto!=null && !"".equals(filterApiContesto) &&
+					!CostantiControlStation.DEFAULT_VALUE_PARAMETRO_API_CONTESTO_QUALSIASI.equals(filterApiContesto)) {
+				String filterApiImplementazione = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_API_IMPLEMENTAZIONE);
+				this.addFilterApiImplementazione(filterProtocollo, filterSoggetto, filterGruppo, filterApiContesto, filterApiImplementazione, false);
+			}
+			else {
+				SearchUtils.clearFilter(ricerca, idLista, Filtri.FILTRO_API_IMPLEMENTAZIONE);
+			}
 			
 			this.pd.setIndex(offset);
 			this.pd.setPageSize(limit);
@@ -275,7 +349,7 @@ public class ScopeHelper extends ConsoleHelper{
 			// setto le label delle colonne
 			List<String> listLabels= new ArrayList<String>();
 			listLabels.add(ScopeCostanti.LABEL_PARAMETRO_SCOPE_NOME);
-			if(this.mostraFiltroScopeTipologia){
+			if(mostraFiltroScopeTipologia){
 				listLabels.add(ScopeCostanti.LABEL_PARAMETRO_SCOPE_TIPOLOGIA);
 			}
 			listLabels.add(ScopeCostanti.LABEL_PARAMETRO_SCOPE_CONTESTO);
@@ -304,7 +378,7 @@ public class ScopeHelper extends ConsoleHelper{
 					de.setSize(this.core.getElenchiMenuIdentificativiLunghezzaMassima());
 					e.addElement(de);
 					
-					if(this.mostraFiltroScopeTipologia){
+					if(mostraFiltroScopeTipologia){
 						de = new DataElement();
 						de.setValue(scope.getTipologia());
 						e.addElement(de);
