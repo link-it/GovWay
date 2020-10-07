@@ -1,4 +1,4 @@
-Feature: Test del profilo di interazione push non bloccante ModiPA
+Feature: Test del profilo di interazione ModiPA REST non bloccante PUSH
 
 
 Background:

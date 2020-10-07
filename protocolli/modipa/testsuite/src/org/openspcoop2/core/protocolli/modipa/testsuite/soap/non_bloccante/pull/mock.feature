@@ -5,7 +5,6 @@ Background:
     # TODO: Mettici una funzione in configure responseHeaders
     * configure responseHeaders = { 'Content-type': "application/soap+xml" }
 
-# Catch all
 
 # Scenario giro ok, richiesta stato non pronta
 Scenario: methodIs('post') && bodyPath('/Envelope/Body/MProcessingStatus') != null && bodyPath('/Envelope/Header/X-Correlation-ID') == 'd2f49459-1624-4710-b80c-15e33d64b608_NOT_READY'

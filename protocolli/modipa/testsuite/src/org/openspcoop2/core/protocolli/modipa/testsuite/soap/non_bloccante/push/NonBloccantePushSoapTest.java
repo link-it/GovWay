@@ -20,7 +20,7 @@
  */
 
 
-package org.openspcoop2.core.protocolli.modipa.testsuite.soap.non_bloccante.pull;
+package org.openspcoop2.core.protocolli.modipa.testsuite.soap.non_bloccante.push;
 
 import java.io.File;
 import java.util.HashMap;
@@ -46,11 +46,11 @@ import com.intuit.karate.netty.FeatureServer;
 */
 @RunWith(Karate.class)
 @KarateOptions(features = {
-    "classpath:test/soap/non-bloccante/pull/pull.feature",
-    "classpath:test/soap/non-bloccante/pull/pull-no-disclosure.feature",
+    "classpath:test/soap/non-bloccante/push/push.feature",
+    "classpath:test/soap/non-bloccante/push/push-no-disclosure.feature",
     })
 
-public class NonBloccantePullSoapTest extends ConfigLoader {
+public class NonBloccantePushSoapTest extends ConfigLoader {
     
     // Il test instanzia due servlet: il mock, contattato dall'erogazione
     // e il proxy, contattato dalla fruizione.
@@ -62,10 +62,10 @@ public class NonBloccantePullSoapTest extends ConfigLoader {
     @SuppressWarnings({ "unchecked", "rawtypes" })
 	@BeforeClass
     public static void beforeClass() {       
-        File file = FileUtils.getFileRelativeTo(NonBloccantePullSoapTest.class, "proxy.feature");
+        File file = FileUtils.getFileRelativeTo(NonBloccantePushSoapTest.class, "proxy.feature");
         mock = FeatureServer.start(file, Integer.valueOf(prop.getProperty("http_port")), false, new HashMap<String,Object>((Map) prop));
 
-        file = FileUtils.getFileRelativeTo(NonBloccantePullSoapTest.class, "mock.feature");
+        file = FileUtils.getFileRelativeTo(NonBloccantePushSoapTest.class, "mock.feature");
         proxy = FeatureServer.start(file, Integer.valueOf(prop.getProperty("http_mock_port")), false, new HashMap<String,Object>((Map) prop));
     }
         

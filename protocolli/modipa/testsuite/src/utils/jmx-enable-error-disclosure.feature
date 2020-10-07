@@ -1,7 +1,6 @@
 Feature: Abilita La disclosure degli errori di interoperabilità
 
 Scenario:
-    # TODO prendi username e pass dalla configurazione
 
     * def basic = read('classpath:utils/basic-auth.js')
 
