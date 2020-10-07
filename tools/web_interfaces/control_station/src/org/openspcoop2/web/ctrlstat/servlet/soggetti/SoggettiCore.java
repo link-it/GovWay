@@ -50,7 +50,6 @@ import org.openspcoop2.web.ctrlstat.dao.SoggettoCtrlStat;
 import org.openspcoop2.web.ctrlstat.driver.DriverControlStationDB;
 import org.openspcoop2.web.ctrlstat.driver.DriverControlStationException;
 import org.openspcoop2.web.ctrlstat.registro.GestoreRegistroServiziRemoto;
-import org.openspcoop2.web.ctrlstat.servlet.sa.ServiziApplicativiCostanti;
 import org.openspcoop2.web.lib.users.DriverUsersDBException;
 
 /**
@@ -1090,10 +1089,14 @@ public class SoggettiCore extends ControlStationCore {
 			idSoggetto.setNome(soggetto.getNome());
 			idSoggetto.setCodicePorta(soggetto.getIdentificativoPorta());
 			
-			inUsoMessage.append(DBOggettiInUsoUtils.toString(idSoggetto , whereIsInUso, false, "\n", normalizeObjectIds)); 
+			String s = DBOggettiInUsoUtils.toString(idSoggetto , whereIsInUso, false, "\n", normalizeObjectIds);
+			if(s!=null && s.startsWith("\n") && s.length()>1) {
+				s = s.substring(1);
+			}
+			inUsoMessage.append(s);
 			inUsoMessage.append("\n");
 		} else {
-			inUsoMessage.append(ServiziApplicativiCostanti.LABEL_IN_USO_BODY_HEADER_NESSUN_RISULTATO);
+			inUsoMessage.append(SoggettiCostanti.LABEL_IN_USO_BODY_HEADER_NESSUN_RISULTATO);
 		}
 		
 		return inUsoMessage.toString();

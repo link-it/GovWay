@@ -164,4 +164,7 @@ public class SoggettiCostanti {
 	public final static String MESSAGE_METADATI_SOGGETTO_SOLO_PROFILO = "Profilo Interoperabilit&agrave;: {0}";
 	public final static String MESSAGE_METADATI_SOGGETTO_CON_PROFILO = "Profilo Interoperabilit&agrave;: {0}, Dominio: {1}";
 	public final static String MESSAGE_METADATI_SOGGETTO_SENZA_PROFILO = "Dominio: {0}";
+	
+	public final static String LABEL_IN_USO_BODY_HEADER_NESSUN_RISULTATO = "Il soggetto non risulta utilizzato in alcuna configurazione";
+
 }

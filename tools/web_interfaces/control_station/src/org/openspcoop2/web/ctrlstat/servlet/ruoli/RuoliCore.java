@@ -194,7 +194,11 @@ public class RuoliCore extends ControlStationCore {
 		
 		StringBuilder inUsoMessage = new StringBuilder();
 		if(saInUso) {
-			inUsoMessage.append(DBOggettiInUsoUtils.toString(ruolo, whereIsInUso, false, "\n"));
+			String s = DBOggettiInUsoUtils.toString(ruolo, whereIsInUso, false, "\n");
+			if(s!=null && s.startsWith("\n") && s.length()>1) {
+				s = s.substring(1);
+			}
+			inUsoMessage.append(s);
 			inUsoMessage.append("\n");
 		} else {
 			inUsoMessage.append(RuoliCostanti.LABEL_IN_USO_BODY_HEADER_NESSUN_RISULTATO);

@@ -195,7 +195,11 @@ public class ScopeCore extends ControlStationCore {
 		
 		StringBuilder inUsoMessage = new StringBuilder();
 		if(saInUso) {
-			inUsoMessage.append(DBOggettiInUsoUtils.toString(scope, whereIsInUso, false, "\n"));
+			String s = DBOggettiInUsoUtils.toString(scope, whereIsInUso, false, "\n");
+			if(s!=null && s.startsWith("\n") && s.length()>1) {
+				s = s.substring(1);
+			}
+			inUsoMessage.append(s);
 			inUsoMessage.append("\n");
 		} else {
 			inUsoMessage.append(ScopeCostanti.LABEL_IN_USO_BODY_HEADER_NESSUN_RISULTATO);

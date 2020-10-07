@@ -661,7 +661,11 @@ public class ServiziApplicativiCore extends ControlStationCore {
 		
 		StringBuilder inUsoMessage = new StringBuilder();
 		if(saInUso) {
-			inUsoMessage.append(DBOggettiInUsoUtils.toString(idServizioApplicativo, whereIsInUso, false, "\n", normalizeObjectIds));
+			String s = DBOggettiInUsoUtils.toString(idServizioApplicativo, whereIsInUso, false, "\n", normalizeObjectIds);
+			if(s!=null && s.startsWith("\n") && s.length()>1) {
+				s = s.substring(1);
+			}
+			inUsoMessage.append(s);
 			inUsoMessage.append("\n");
 		} else {
 			inUsoMessage.append(ServiziApplicativiCostanti.LABEL_IN_USO_BODY_HEADER_NESSUN_RISULTATO);
