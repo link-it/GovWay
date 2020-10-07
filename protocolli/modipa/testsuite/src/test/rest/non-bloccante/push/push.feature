@@ -21,7 +21,7 @@ Background:
 Scenario: Giro completo e senza errori
 
 * def url_fruizione_server_validazione = govway_base_path + "/rest/out/DemoSoggettoErogatore/DemoSoggettoFruitore/RestNonBlockingPushClient/v1"
-* def updated_reply_to = 'http://localhost:8080/govway/rest/in/DemoSoggettoFruitore/RestNonBlockingPushClient/v1'
+* def updated_reply_to = govway_base_path + '/rest/in/DemoSoggettoFruitore/RestNonBlockingPushClient/v1'
 
 Given url url_fruizione_client_validazione
 And path 'resources', 1, 'M'
@@ -183,7 +183,6 @@ And match response == read('error-bodies/no-correlation-id-in-server-response-re
 
 * call check_traccia_risposta_no_cid ({tid: responseHeaders['GovWay-Transaction-ID'][0]  })
 * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: null })
-
 
 * def url_fruizione_server_no_validazione = govway_base_path + "/rest/out/DemoSoggettoErogatore/DemoSoggettoFruitore/RestNonBlockingPushClientNoValidazione/v1"
 

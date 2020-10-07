@@ -13,9 +13,17 @@ Background:
 * def url_fruizione_client_no_validazione = govway_base_path + "/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapNonBlockingPushServerNoValidazione/v1"
 * def url_fruizione_server_no_validazione = govway_base_path + "/soap/out/DemoSoggettoErogatore/DemoSoggettoFruitore/SoapNonBlockingPushClientNoValidazione/v1"
 
+* def check_traccia_richiesta = read('./check-tracce/richiesta.feature')
+* def check_traccia_richiesta_no_reply_to = read('./check-tracce/richiesta-no-reply-to.feature')
+* def check_traccia_risposta = read('./check-tracce/risposta.feature')
+* def check_traccia_risposta_no_cid = read('./check-tracce/risposta-no-correlation-id.feature')
+* def check_id_collaborazione = read('./check-tracce/id-collaborazione.feature')
+
 
 @test-ok
 Scenario: Giro completo e senza errori
+
+* def updated_reply_to = govway_base_path + '/soap/in/DemoSoggettoFruitore/SoapNonBlockingPushClient/v1'
 
 Given url url_fruizione_client_validazione
 And header GovWay-TestSuite-Test-Id = 'test-ok-richiesta-client'
@@ -27,6 +35,12 @@ Then status 200
 And match response == read('client-request-response.xml')
 And match header GovWay-Conversation-ID == task_id
 
+* call check_traccia_richiesta ({tid: responseHeaders['GovWay-Transaction-ID'][0], reply_to: updated_reply_to })
+* call check_traccia_richiesta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], reply_to: updated_reply_to })
+
+* call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_id })
+* call check_id_collaborazione ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], id_collaborazione: task_id })
+
 Given url url_fruizione_server_validazione
 And header GovWay-TestSuite-Test-Id = 'test-ok-risposta-server'
 And header Content-Type = 'application/soap+xml'
@@ -37,10 +51,16 @@ Then status 200
 And match response == read('server-response-response.xml')
 And match header GovWay-Conversation-ID == task_id
 
+* call check_traccia_risposta ({tid: responseHeaders['GovWay-Transaction-ID'][0], cid: task_id })
+* call check_traccia_risposta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], cid: task_id })
 
+* call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_id })
+* call check_id_collaborazione ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], id_collaborazione: task_id })
 
 @correlation-id-added-by-server
 Scenario: L'erogazione del server deve aggiungere lo header X-Correlation-ID se non inserito dal backend
+
+* def updated_reply_to = govway_base_path + '/soap/in/DemoSoggettoFruitore/SoapNonBlockingPushClient/v1'
 
 Given url url_fruizione_client_validazione
 And header GovWay-TestSuite-Test-Id = 'correlation-id-added-by-server'
@@ -51,6 +71,12 @@ When method post
 Then status 200
 And match /Envelope/Header/X-Correlation-ID == responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]
 
+
+* call check_traccia_richiesta ({tid: responseHeaders['GovWay-Transaction-ID'][0], reply_to: updated_reply_to })
+* call check_traccia_richiesta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], reply_to: updated_reply_to })
+
+* call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0] })
+* call check_id_collaborazione ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], id_collaborazione: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0] })
 
 
 @iniezione-header-id-collaborazione
@@ -69,6 +95,12 @@ Then status 200
 And match response == read('server-response-response.xml')
 And match header GovWay-Conversation-ID == task_id
 
+* call check_traccia_risposta ({tid: responseHeaders['GovWay-Transaction-ID'][0], cid: task_id })
+* call check_traccia_risposta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], cid: task_id })
+
+* call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_id })
+* call check_id_collaborazione ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], id_collaborazione: task_id })
+
 Given url url_fruizione_server_helper_collaborazione
 And header GovWay-TestSuite-Test-Id = 'iniezione-header-id-collaborazione-query'
 And header Content-Type = 'application/soap+xml'
@@ -79,6 +111,12 @@ When method post
 Then status 200
 And match response == read('server-response-response.xml')
 And match header GovWay-Conversation-ID == task_id
+
+* call check_traccia_risposta ({tid: responseHeaders['GovWay-Transaction-ID'][0], cid: task_id })
+* call check_traccia_risposta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], cid: task_id })
+
+* call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_id })
+* call check_id_collaborazione ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], id_collaborazione: task_id })
 
 
 @iniezione-header-riferimento-id-richiesta
@@ -97,6 +135,12 @@ Then status 200
 And match response == read('server-response-response.xml')
 And match header GovWay-Conversation-ID == task_id
 
+* call check_traccia_risposta ({tid: responseHeaders['GovWay-Transaction-ID'][0], cid: task_id })
+* call check_traccia_risposta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], cid: task_id })
+
+* call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_id })
+* call check_id_collaborazione ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], id_collaborazione: task_id })
+
 Given url url_fruizione_server_helper_riferimento
 And header GovWay-TestSuite-Test-Id = 'iniezione-header-riferimento-id-richiesta-query'
 And header Content-Type = 'application/soap+xml'
@@ -108,6 +152,11 @@ Then status 200
 And match response == read('server-response-response.xml')
 And match header GovWay-Conversation-ID == task_id
 
+* call check_traccia_risposta ({tid: responseHeaders['GovWay-Transaction-ID'][0], cid: task_id })
+* call check_traccia_risposta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], cid: task_id })
+
+* call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_id })
+* call check_id_collaborazione ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], id_collaborazione: task_id })
 
 @no-correlation-id-in-client-request-response
 Scenario: La fruizione del client solleva errore se non trova lo header x-correlation-id nella risposta
@@ -122,6 +171,9 @@ And request read('client-request.xml')
 When method post
 Then status 500
 And match response == read('error-bodies/no-correlation-id-in-client-request-response.xml')
+
+* call check_traccia_richiesta ({tid: responseHeaders['GovWay-Transaction-ID'][0], reply_to: updated_reply_to })
+* call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: null })
 
 
 @no-correlation-id-in-server-response-request
@@ -138,9 +190,8 @@ When method post
 Then status 500
 And match response == read('error-bodies/no-correlation-id-in-server-response-request.xml')
 
-# * call check_traccia_risposta_no_cid ({tid: responseHeaders['GovWay-Transaction-ID'][0]  })
-# * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: null })
-
+* call check_traccia_risposta_no_cid ({tid: responseHeaders['GovWay-Transaction-ID'][0]  })
+* call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: null })
 
 * def url_fruizione_server_no_validazione = govway_base_path + "/soap/out/DemoSoggettoErogatore/DemoSoggettoFruitore/SoapNonBlockingPushClientNoValidazione/v1"
 
@@ -153,7 +204,7 @@ When method post
 Then status 500
 And match response == read('error-bodies/no-correlation-id-in-server-response-request-fruizione.xml')
 
-# * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: null })
+* call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: null })
 
 
 @no-x-reply-to-in-client-request
@@ -169,5 +220,5 @@ When method post
 Then status 500
 And match response == read('error-bodies/no-x-reply-to-in-client-request.xml')
 
-#* call check_traccia_richiesta_no_reply_to ({tid: responseHeaders['GovWay-Transaction-ID'][0] })
-#* call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: null })
+* call check_traccia_richiesta_no_reply_to ({tid: responseHeaders['GovWay-Transaction-ID'][0] })
+* call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: null })
