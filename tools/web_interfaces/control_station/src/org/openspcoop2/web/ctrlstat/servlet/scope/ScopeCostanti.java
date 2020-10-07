@@ -121,4 +121,6 @@ public class ScopeCostanti {
 		SCOPE_CONTESTO_UTILIZZO_LABEL.add(SCOPE_CONTESTO_UTILIZZO_LABEL_EROGAZIONE);
 		SCOPE_CONTESTO_UTILIZZO_LABEL.add(SCOPE_CONTESTO_UTILIZZO_LABEL_FRUIZIONE);
 	}
+	
+	public final static String LABEL_IN_USO_BODY_HEADER_NESSUN_RISULTATO = "Lo scope non risulta utilizzato in alcuna configurazione";
 }

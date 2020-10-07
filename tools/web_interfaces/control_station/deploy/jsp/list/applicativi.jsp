@@ -19,6 +19,7 @@
 
 
 
+<%@page import="org.openspcoop2.web.lib.mvc.Dialog.BodyElement"%>
 <%@ page session="true" import="java.util.*, org.openspcoop2.web.lib.mvc.*" %>
 
 <%
@@ -52,6 +53,7 @@ Vector<DataElement> vectorRiepilogo = new Vector<DataElement>();
 Vector<DataElement> vectorImmagini = new Vector<DataElement>();
 Vector<DataElement> vectorCheckBox = new Vector<DataElement>();
 Vector<DataElement> vectorTags = new Vector<DataElement>();
+boolean visualizzaMetadati = false;
 
 for (int j = 0; j < riga.size(); j++) {
     DataElement de = (DataElement) riga.elementAt(j);
@@ -66,6 +68,8 @@ for (int j = 0; j < riga.size(); j++) {
     	vectorRiepilogo.add(de);
     }
 }
+
+visualizzaMetadati = vectorRiepilogo.size() > 1;
 %>
 <td>
 	<div id="entry_<%=numeroEntryS %>" class="entryApplicativi">
@@ -168,9 +172,12 @@ for (int j = 0; j < riga.size(); j++) {
 						String idIconUso = "iconUso_"+numeroEntry; 
 						String idSpanUso = "spanIconUsoBoxList_"+numeroEntry;
 						
+						BodyElement urlElement = dialog.getBody().remove(0);
+						
 						request.setAttribute("idFinestraModale_"+numeroEntry, de.getDialog());
 						%>
 						<div class="iconUsoBoxList" id="<%=idDivIconUso %>" <%=deTip %> >
+							<input type="hidden" name="__i_hidden_title_<%= idIconUso %>" id="hidden_title_<%= idIconUso %>"  value="<%= urlElement.getUrl() %>"/>
 							<span class="spanIconUsoBoxList" id="<%=idSpanUso %>">
 								<i class="material-icons md-18" id="<%=idIconUso %>"><%= dialog.getIcona() %></i>
 							</span>
@@ -186,8 +193,28 @@ for (int j = 0; j < riga.size(); j++) {
 				    			var idx = iconInfoBoxId.substring(iconInfoBoxId.indexOf("_")+1);
 				    			console.log(idx);
 				    			if(idx) {
-				    				var idToOpen = '#' + 'idFinestraModale_<%= numeroEntry %>';
-				    				$(idToOpen).dialog("open");
+				    				var url = $("#hidden_title_iconUso_"+ idx).val();
+				    				// chiamata al servizio
+				    				<%=Costanti.JS_FUNCTION_VISUALIZZA_AJAX_STATUS %>
+				    				
+				    				$.ajax({
+				    							url : url,
+				    							method: 'GET',
+				    							async : false,
+				    							success: function(data, textStatus, jqXHR){
+				    								// inserimento del valore nella text area
+								    				$("textarea[id^='idFinestraModale_<%=numeroEntryS %>_txtA']").val(data);
+								    				
+								    				<%=Costanti.JS_FUNCTION_NASCONDI_AJAX_STATUS %>
+								    				// apertura modale
+								    				var idToOpen = '#' + 'idFinestraModale_<%= numeroEntry %>';
+								    				$(idToOpen).dialog("open");
+				    							},
+				    							error: function(data, textStatus, jqXHR){
+				    								<%=Costanti.JS_FUNCTION_NASCONDI_AJAX_STATUS %>
+				    							}
+				    						}
+				    					);
 				    			}
 				    			e.stopPropagation();
 							});
@@ -202,12 +229,16 @@ for (int j = 0; j < riga.size(); j++) {
 			}%>
 		</div>
 		<% 
+		if(visualizzaMetadati){
 			DataElement deMetadati = (DataElement) vectorRiepilogo.elementAt(1);
 			String deMetadatiValue = !deMetadati.getValue().equals("") ? deMetadati.getValue() : "&nbsp;";
 			%>
-		<div id="metadati_<%=numeroEntryS %>" class="metadatiEntry">
-			<span class="metadatiEntry"><%=deMetadatiValue %>&nbsp;&nbsp;&nbsp;&nbsp;</span>
-		</div>
+			<div id="metadati_<%=numeroEntryS %>" class="metadatiEntry">
+				<span class="metadatiEntry"><%=deMetadatiValue %>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+			</div>
+		<%	
+			}
+		%>
 	</div>
 </td>
 

@@ -59,6 +59,7 @@ import org.openspcoop2.web.ctrlstat.servlet.pd.PorteDelegateCostanti;
 import org.openspcoop2.web.ctrlstat.servlet.pdd.PddCostanti;
 import org.openspcoop2.web.ctrlstat.servlet.ruoli.RuoliCostanti;
 import org.openspcoop2.web.ctrlstat.servlet.sa.ServiziApplicativiCostanti;
+import org.openspcoop2.web.ctrlstat.servlet.utils.UtilsCostanti;
 import org.openspcoop2.web.lib.mvc.AreaBottoni;
 import org.openspcoop2.web.lib.mvc.BinaryParameter;
 import org.openspcoop2.web.lib.mvc.Costanti;
@@ -1511,6 +1512,7 @@ public class SoggettiHelper extends ConnettoriHelper {
 
 				// Metadati (profilo + dominio)
 				if(showProtocolli || multiTenant) {
+					boolean addMetadati = true;
 					de = new DataElement();
 					
 					if(multiTenant) {
@@ -1534,11 +1536,14 @@ public class SoggettiHelper extends ConnettoriHelper {
 							de.setValue(MessageFormat.format(SoggettiCostanti.MESSAGE_METADATI_SOGGETTO_SOLO_PROFILO, labelProtocollo));
 						} else {
 							de.setValue(SoggettiCostanti.MESSAGE_METADATI_SOGGETTO_VUOTI);
+							addMetadati = false;
 						}
 					}
 					
 					de.setType(DataElementType.SUBTITLE);
-					e.addElement(de);
+					
+					if(addMetadati)
+						e.addElement(de);
 				}
 
 				// Ruoli
@@ -1584,12 +1589,21 @@ public class SoggettiHelper extends ConnettoriHelper {
 				deDialog.setIcona(Costanti.ICON_USO);
 				deDialog.setTitolo(this.getLabelNomeSoggetto(protocollo, elem.getTipo(), elem.getNome()));
 				deDialog.setHeaderRiga1(CostantiControlStation.LABEL_IN_USO_BODY_HEADER_RISULTATI);
-//				deDialog.setHeaderRiga2(inUsoMessage.toString());
+				
+				// Inserire sempre la url come primo elemento del body
+				BodyElement bodyElementURL = new Dialog().new BodyElement();
+				bodyElementURL.setType(DataElementType.HIDDEN);
+				bodyElementURL.setName(UtilsCostanti.PARAMETRO_INFORMAZIONI_UTILIZZO_OGGETTO_URL);
+				Parameter pIdOggetto = new Parameter(UtilsCostanti.PARAMETRO_INFORMAZIONI_UTILIZZO_OGGETTO_ID_OGGETTO, elem.getId()+"");
+				Parameter pTipoOggetto = new Parameter(UtilsCostanti.PARAMETRO_INFORMAZIONI_UTILIZZO_OGGETTO_TIPO_OGGETTO, org.openspcoop2.protocol.sdk.constants.ArchiveType.SOGGETTO.toString());
+				Parameter pTipoRisposta = new Parameter(UtilsCostanti.PARAMETRO_INFORMAZIONI_UTILIZZO_OGGETTO_TIPO_RISPOSTA, UtilsCostanti.VALUE_PARAMETRO_INFORMAZIONI_UTILIZZO_OGGETTO_TIPO_RISPOSTA_TEXT);
+				bodyElementURL.setUrl(UtilsCostanti.SERVLET_NAME_INFORMAZIONI_UTILIZZO_OGGETTO, pIdOggetto,pTipoOggetto,pTipoRisposta);
+				deDialog.addBodyElement(bodyElementURL);
+				
 				BodyElement bodyElement = new Dialog().new BodyElement();
 				bodyElement.setType(DataElementType.TEXT_AREA);
 				bodyElement.setLabel("");
-				// TODO implementare versione con servizio
-				bodyElement.setValue(this.soggettiCore.getDettagliSoggettoInUso(elem));
+				bodyElement.setValue("");
 				bodyElement.setRows(15);
 				deDialog.addBodyElement(bodyElement );
 				

@@ -66,7 +66,6 @@ import org.openspcoop2.core.registry.Soggetto;
 import org.openspcoop2.core.registry.constants.PddTipologia;
 import org.openspcoop2.core.registry.driver.DriverRegistroServiziException;
 import org.openspcoop2.core.registry.driver.DriverRegistroServiziNotFound;
-import org.openspcoop2.core.registry.driver.FiltroRicercaRuoli;
 import org.openspcoop2.core.registry.driver.IDServizioFactory;
 import org.openspcoop2.message.constants.ServiceBinding;
 import org.openspcoop2.protocol.engine.ProtocolFactoryManager;
@@ -90,6 +89,7 @@ import org.openspcoop2.web.ctrlstat.servlet.connettori.ConnettoriHelper;
 import org.openspcoop2.web.ctrlstat.servlet.pa.PorteApplicativeCostanti;
 import org.openspcoop2.web.ctrlstat.servlet.ruoli.RuoliCostanti;
 import org.openspcoop2.web.ctrlstat.servlet.soggetti.SoggettiCostanti;
+import org.openspcoop2.web.ctrlstat.servlet.utils.UtilsCostanti;
 import org.openspcoop2.web.lib.mvc.AreaBottoni;
 import org.openspcoop2.web.lib.mvc.BinaryParameter;
 import org.openspcoop2.web.lib.mvc.Costanti;
@@ -2452,7 +2452,8 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 				this.addFilterRuoloServizioApplicativo(filterRuoloSA,false);
 			}
 			
-			if(this.core.isApplicativiServerEnabled(this)) {
+			boolean applicativiServerEnabled = this.core.isApplicativiServerEnabled(this); 
+			if(applicativiServerEnabled) {
 				String filterTipoSA = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_TIPO_SERVIZIO_APPLICATIVO);
 				this.addFilterTipoServizioApplicativo(filterTipoSA,false);
 			}
@@ -2593,34 +2594,42 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 					e.addElement(de);
 
 					// Metadati (profilo + tipo)
-					de = new DataElement();
+					
 					String tipoLabel = "";
 					boolean isServer = false;
 					
-					if(this.core.isApplicativiServerEnabled(this)) {
-						isServer = ServiziApplicativiCostanti.VALUE_SERVIZI_APPLICATIVI_TIPO_SERVER.equals(sa.getTipo());
-						tipoLabel = this.getTipo(sa);
-						if(sa.isUseAsClient()) {
-							isServer = false;
-							tipoLabel = tipoLabel+" / "+ServiziApplicativiCostanti.LABEL_SERVIZI_APPLICATIVI_TIPO_CLIENT;
-						}
+					if(applicativiServerEnabled || showProtocolli) {
+						de = new DataElement();
+						boolean addMetadati = true;
 						
-						if(showProtocolli) {
-							String labelProtocollo =this.getLabelProtocollo(protocollo); 
-							de.setValue(MessageFormat.format(ServiziApplicativiCostanti.MESSAGE_METADATI_SERVIZIO_APPLICATIVO_CON_PROFILO, labelProtocollo, tipoLabel));
+						if(applicativiServerEnabled) {
+							isServer = ServiziApplicativiCostanti.VALUE_SERVIZI_APPLICATIVI_TIPO_SERVER.equals(sa.getTipo());
+							tipoLabel = this.getTipo(sa);
+							if(sa.isUseAsClient()) {
+								isServer = false;
+								tipoLabel = tipoLabel+" / "+ServiziApplicativiCostanti.LABEL_SERVIZI_APPLICATIVI_TIPO_CLIENT;
+							}
+							
+							if(showProtocolli) {
+								String labelProtocollo =this.getLabelProtocollo(protocollo); 
+								de.setValue(MessageFormat.format(ServiziApplicativiCostanti.MESSAGE_METADATI_SERVIZIO_APPLICATIVO_CON_PROFILO, labelProtocollo, tipoLabel));
+							} else {
+								de.setValue(MessageFormat.format(ServiziApplicativiCostanti.MESSAGE_METADATI_SERVIZIO_APPLICATIVO_SENZA_PROFILO, tipoLabel));
+							}
 						} else {
-							de.setValue(MessageFormat.format(ServiziApplicativiCostanti.MESSAGE_METADATI_SERVIZIO_APPLICATIVO_SENZA_PROFILO, tipoLabel));
+							if(showProtocolli) {
+								String labelProtocollo =this.getLabelProtocollo(protocollo); 
+								de.setValue(MessageFormat.format(ServiziApplicativiCostanti.MESSAGE_METADATI_SERVIZIO_APPLICATIVO_SOLO_PROFILO, labelProtocollo));
+							} else {
+								de.setValue(ServiziApplicativiCostanti.MESSAGE_METADATI_SERVIZIO_APPLICATIVO_VUOTI);
+								addMetadati = false;
+							}
 						}
-					} else {
-						if(showProtocolli) {
-							String labelProtocollo =this.getLabelProtocollo(protocollo); 
-							de.setValue(MessageFormat.format(ServiziApplicativiCostanti.MESSAGE_METADATI_SERVIZIO_APPLICATIVO_SOLO_PROFILO, labelProtocollo));
-						} else {
-							de.setValue(ServiziApplicativiCostanti.MESSAGE_METADATI_SERVIZIO_APPLICATIVO_VUOTI);
-						}
+						de.setType(DataElementType.SUBTITLE);
+						
+						if(addMetadati)
+							e.addElement(de);
 					}
-					de.setType(DataElementType.SUBTITLE);
-					e.addElement(de);
 					
 					// Ruoli e' come i tag per ora
 					if(!isServer) {
@@ -2677,14 +2686,26 @@ public class ServiziApplicativiHelper extends ConnettoriHelper {
 						deDialog.setTitolo(this.getLabelServizioApplicativoConDominioSoggetto(idServizioApplicativo));
 					}
 					deDialog.setHeaderRiga1(CostantiControlStation.LABEL_IN_USO_BODY_HEADER_RISULTATI);
-//					deDialog.setHeaderRiga2(inUsoMessage.toString());
+					
+					// Inserire sempre la url come primo elemento del body
+					BodyElement bodyElementURL = new Dialog().new BodyElement();
+					bodyElementURL.setType(DataElementType.HIDDEN);
+					bodyElementURL.setName(UtilsCostanti.PARAMETRO_INFORMAZIONI_UTILIZZO_OGGETTO_URL);
+					Parameter pIdOggetto = new Parameter(UtilsCostanti.PARAMETRO_INFORMAZIONI_UTILIZZO_OGGETTO_ID_OGGETTO, sa.getId()+"");
+					Parameter pTipoOggetto = new Parameter(UtilsCostanti.PARAMETRO_INFORMAZIONI_UTILIZZO_OGGETTO_TIPO_OGGETTO, org.openspcoop2.protocol.sdk.constants.ArchiveType.SERVIZIO_APPLICATIVO.toString());
+					Parameter pTipoRisposta = new Parameter(UtilsCostanti.PARAMETRO_INFORMAZIONI_UTILIZZO_OGGETTO_TIPO_RISPOSTA, UtilsCostanti.VALUE_PARAMETRO_INFORMAZIONI_UTILIZZO_OGGETTO_TIPO_RISPOSTA_TEXT);
+					bodyElementURL.setUrl(UtilsCostanti.SERVLET_NAME_INFORMAZIONI_UTILIZZO_OGGETTO, pIdOggetto,pTipoOggetto,pTipoRisposta);
+					deDialog.addBodyElement(bodyElementURL);
+					
+					// TextArea
 					BodyElement bodyElement = new Dialog().new BodyElement();
 					bodyElement.setType(DataElementType.TEXT_AREA);
 					bodyElement.setLabel("");
-					// TODO implementare versione con servizio
-					bodyElement.setValue(this.saCore.getDettagliServizioApplicativoInUso(idServizioApplicativo));
+					bodyElement.setValue("");
 					bodyElement.setRows(15);
 					deDialog.addBodyElement(bodyElement );
+					
+					
 					
 					de.setDialog(deDialog );
 					e.addElement(de);

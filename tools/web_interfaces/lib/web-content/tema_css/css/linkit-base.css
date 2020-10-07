@@ -1536,7 +1536,9 @@ div.txtA_div_propDialog {
 .entryFruizione,
 .entryApi,
 .entryApplicativi,
-.entrySoggetti {
+.entrySoggetti,
+.entryRuoli,
+.entryScope {
 	cursor: pointer;
 	padding: 16px;
 }
@@ -1545,7 +1547,9 @@ div.txtA_div_propDialog {
 .entryFruizione .titoloEntry,
 .entryApi .titoloEntry,
 .entryApplicativi .titoloEntry,
-.entrySoggetti .titoloEntry {
+.entrySoggetti .titoloEntry,
+.entryRuoli .titoloEntry,
+.entryScope .titoloEntry {
 	padding: 4px 4px 4px 0px;
     font-weight: bold;
     font-size: 16px;
@@ -1555,7 +1559,9 @@ div.txtA_div_propDialog {
 .entryFruizione .metadatiEntry,
 .entryApi .metadatiEntry,
 .entryApplicativi .metadatiEntry,
-.entrySoggetti .metadatiEntry {
+.entrySoggetti .metadatiEntry,
+.entryRuoli .metadatiEntry,
+.entryScope .metadatiEntry {
 	padding: 4px 4px 4px 0px;
 	color: ${body.secondary.color};
 }
@@ -1567,13 +1573,17 @@ div.txtA_div_propDialog {
 }
 
 .entryApplicativi .titoloRuoli,
-.entrySoggetti .titoloRuoli {
+.entrySoggetti .titoloRuoli,
+.entryRuoli .titoloRuoli,
+.entryScope .titoloRuoli {
 	display: inline-flex;
 	vertical-align: middle;
 }
 
 .entryApplicativi .titoloInfo,
-.entrySoggetti .titoloInfo {
+.entrySoggetti .titoloInfo,
+.entryRuoli .titoloInfo,
+.entryScope .titoloInfo {
 	display: inline-flex;
 	vertical-align: middle;
 	float: right;

@@ -144,7 +144,7 @@ Dialog finestraDialog = (Dialog) request.getAttribute(idFinestraModale);
                       				<%
 	     						String taNoEdit = " readonly ";
 	     						%><div class="txtA_div_propDialogInfoUso">
-	     							<textarea id="<%=inputId %>" <%=taNoEdit %> rows='<%= de.getRows() %>' cols='' name="<%= deName  %>" class="<%= classInput %> txtA_propDialogInfoUsoNoResize"><%= de.getValue() %></textarea>
+	     							<textarea id="<%= idFinestraModale %>_<%=inputId %>" <%=taNoEdit %> rows='<%= de.getRows() %>' cols='' name="<%= deName  %>" class="<%= classInput %> txtA_propDialogInfoUsoNoResize"><%= de.getValue() %></textarea>
 	     							<% 
 							      		if(visualizzaIconCopia){
 							      			String idDivIconInfo = "divIconInfo_"+i;

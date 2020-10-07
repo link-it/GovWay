@@ -19,6 +19,7 @@
 
 
 
+<%@page import="org.openspcoop2.web.lib.mvc.Dialog.BodyElement"%>
 <%@ page session="true" import="java.util.*, org.openspcoop2.web.lib.mvc.*" %>
 
 <%
@@ -171,9 +172,12 @@ visualizzaMetadati = vectorRiepilogo.size() > 1;
 						String idIconUso = "iconUso_"+numeroEntry; 
 						String idSpanUso = "spanIconUsoBoxList_"+numeroEntry;
 						
+						BodyElement urlElement = dialog.getBody().remove(0);
+						
 						request.setAttribute("idFinestraModale_"+numeroEntry, de.getDialog());
 						%>
 						<div class="iconUsoBoxList" id="<%=idDivIconUso %>" <%=deTip %> >
+							<input type="hidden" name="__i_hidden_title_<%= idIconUso %>" id="hidden_title_<%= idIconUso %>"  value="<%= urlElement.getUrl() %>"/>
 							<span class="spanIconUsoBoxList" id="<%=idSpanUso %>">
 								<i class="material-icons md-18" id="<%=idIconUso %>"><%= dialog.getIcona() %></i>
 							</span>
@@ -189,8 +193,28 @@ visualizzaMetadati = vectorRiepilogo.size() > 1;
 				    			var idx = iconInfoBoxId.substring(iconInfoBoxId.indexOf("_")+1);
 				    			console.log(idx);
 				    			if(idx) {
-				    				var idToOpen = '#' + 'idFinestraModale_<%= numeroEntry %>';
-				    				$(idToOpen).dialog("open");
+				    				var url = $("#hidden_title_iconUso_"+ idx).val();
+				    				// chiamata al servizio
+				    				<%=Costanti.JS_FUNCTION_VISUALIZZA_AJAX_STATUS %>
+				    				
+				    				$.ajax({
+				    							url : url,
+				    							method: 'GET',
+				    							async : false,
+				    							success: function(data, textStatus, jqXHR){
+				    								// inserimento del valore nella text area
+								    				$("textarea[id^='idFinestraModale_<%=numeroEntryS %>_txtA']").val(data);
+								    				
+								    				<%=Costanti.JS_FUNCTION_NASCONDI_AJAX_STATUS %>
+								    				// apertura modale
+								    				var idToOpen = '#' + 'idFinestraModale_<%= numeroEntry %>';
+								    				$(idToOpen).dialog("open");
+				    							},
+				    							error: function(data, textStatus, jqXHR){
+				    								<%=Costanti.JS_FUNCTION_NASCONDI_AJAX_STATUS %>
+				    							}
+				    						}
+				    					);
 				    			}
 				    			e.stopPropagation();
 							});
