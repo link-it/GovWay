@@ -8,10 +8,6 @@
                 http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.3.xsd
                 http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd">
 
-	<bean id="allarmiAspectBean" class="org.openspcoop2.web.monitor.allarmi.aspect.AllarmiAspect">
-		<property name="service" ref="auditingService"/>
-	</bean>
-	
 	<bean id="searchFormAllarmi" class="org.openspcoop2.web.monitor.allarmi.bean.AllarmiSearchForm" scope="session"/>
 	
 	<bean id="allarmiService" class="org.openspcoop2.web.monitor.allarmi.dao.AllarmiService" scope="request">
@@ -23,4 +19,3 @@
 	</bean>
 	
 </beans>
-

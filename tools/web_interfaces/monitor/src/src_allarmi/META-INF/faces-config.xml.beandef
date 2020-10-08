@@ -28,80 +28,36 @@
 			<value>#{allarmiBean}</value>
 		</managed-property>
 	</managed-bean>
-	<!-- managed-bean>
-		<managed-bean-name>configurazioneAllarmiDM</managed-bean-name>
-		<managed-bean-class>org.openspcoop2.web.monitor.allarmi.datamodel.AllarmiDM</managed-bean-class>
-		<managed-bean-scope>request</managed-bean-scope>
-		<managed-property>
-			<property-name>dataProvider</property-name>
-			<property-class>org.openspcoop2.web.monitor.allarmi.dao.IAllarmiService</property-class>
-			<value>#{configurazioneAllarmiService}</value>
-		</managed-property>
-	</managed-bean -->
 	<navigation-rule>
 		<from-view-id>*</from-view-id>
 		<navigation-case>
-			<from-outcome>configurazioneAllarmi</from-outcome>
-			<to-view-id>/pages/list/allarmi.xhtml</to-view-id>
-		</navigation-case>
-		<navigation-case>
 			<from-outcome>allarmi</from-outcome>
-			<to-view-id>/pages/list/statoAllarmi.xhtml</to-view-id>
+			<to-view-id>/allarmi/pages/list/statoAllarmi.xhtml</to-view-id>
 		</navigation-case>
 	</navigation-rule>
 	<navigation-rule>
-		<from-view-id>/pages/list/statoAllarmi.xhtml</from-view-id>
+		<from-view-id>/allarmi/pages/list/statoAllarmi.xhtml</from-view-id>
 		<navigation-case>
 			<from-outcome>allarme</from-outcome>
-			<to-view-id>/pages/form/allarme.xhtml</to-view-id>
+			<to-view-id>/allarmi/pages/form/allarme.xhtml</to-view-id>
 		</navigation-case>
 	</navigation-rule>
 	<navigation-rule>
-		<from-view-id>/pages/form/allarme.xhtml</from-view-id>
+		<from-view-id>/allarmi/pages/form/allarme.xhtml</from-view-id>
 		<navigation-case>
 			<from-action>#{allarmiBean.salva}</from-action>
 			<from-outcome>success</from-outcome>
-			<to-view-id>/pages/list/statoAllarmi.xhtml</to-view-id>
+			<to-view-id>/allarmi/pages/list/statoAllarmi.xhtml</to-view-id>
 		</navigation-case>
 		<navigation-case>
 			<from-outcome>visualizzaHistoryAllarme</from-outcome>
-			<to-view-id>/pages/list/allarmeHistory.xhtml</to-view-id>
+			<to-view-id>/allarmi/pages/list/allarmeHistory.xhtml</to-view-id>
 		</navigation-case>
 	</navigation-rule>
 	<navigation-rule>
-		<from-view-id>/pages/list/allarmeHistory.xhtml</from-view-id>
+		<from-view-id>/allarmi/pages/list/allarmeHistory.xhtml</from-view-id>
 		<navigation-case>
 			<from-outcome>stato</from-outcome>
-			<to-view-id>/pages/form/allarme.xhtml</to-view-id>
-		</navigation-case>
-		<navigation-case>
-			<from-outcome>configurazione</from-outcome>
-			<to-view-id>/pages/form/configurazioneAllarme.xhtml</to-view-id>
-		</navigation-case>
-	</navigation-rule>
-	<navigation-rule>
-		<from-view-id>/pages/list/allarmi.xhtml</from-view-id>
-		<navigation-case>
-			<from-outcome>configurazioneAllarme</from-outcome>
-			<to-view-id>/pages/form/configurazioneAllarme.xhtml</to-view-id>
-		</navigation-case>
-	</navigation-rule>
-	<navigation-rule>
-		<from-view-id>/pages/form/configurazioneAllarme.xhtml</from-view-id>
-		<navigation-case>
-			<from-action>#{allarmiBean.salva}</from-action>
-			<from-outcome>success</from-outcome>
-			<to-view-id>/pages/list/allarmi.xhtml</to-view-id>
-		</navigation-case>
-		<navigation-case>
-			<from-outcome>visualizzaHistoryAllarme</from-outcome>
-			<to-view-id>/pages/list/allarmeHistory.xhtml</to-view-id>
-		</navigation-case>
-	</navigation-rule>
-	<navigation-rule>
-		<from-view-id>/pages/form/configurazioneAllarmeParam.xhtml</from-view-id>
-		<navigation-case>
-			<from-outcome>configurazioneAllarmi</from-outcome>
-			<to-view-id>/pages/list/allarmi.xhtml</to-view-id>
+			<to-view-id>/allarmi/pages/form/allarme.xhtml</to-view-id>
 		</navigation-case>
 	</navigation-rule>
