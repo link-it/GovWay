@@ -51,8 +51,8 @@ Then status 200
 And match response == read('server-response-response.xml')
 And match header GovWay-Conversation-ID == task_id
 
-* call check_traccia_risposta ({tid: responseHeaders['GovWay-Transaction-ID'][0], cid: task_id })
-* call check_traccia_risposta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], cid: task_id })
+* call check_traccia_risposta ({tid: responseHeaders['GovWay-Transaction-ID'][0], cid: task_id, api_correlata: 'SoapNonBlockingPushServer v1' })
+* call check_traccia_risposta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], cid: task_id, api_correlata: 'SoapNonBlockingPushServer v1' })
 
 * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_id })
 * call check_id_collaborazione ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], id_collaborazione: task_id })
@@ -95,8 +95,8 @@ Then status 200
 And match response == read('server-response-response.xml')
 And match header GovWay-Conversation-ID == task_id
 
-* call check_traccia_risposta ({tid: responseHeaders['GovWay-Transaction-ID'][0], cid: task_id })
-* call check_traccia_risposta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], cid: task_id })
+* call check_traccia_risposta ({tid: responseHeaders['GovWay-Transaction-ID'][0], cid: task_id, api_correlata: 'SoapNonBlockingPushServerHelperCollaborazione v1' })
+* call check_traccia_risposta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], cid: task_id, api_correlata: 'SoapNonBlockingPushServerHelperCollaborazione v1' })
 
 * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_id })
 * call check_id_collaborazione ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], id_collaborazione: task_id })
@@ -112,8 +112,8 @@ Then status 200
 And match response == read('server-response-response.xml')
 And match header GovWay-Conversation-ID == task_id
 
-* call check_traccia_risposta ({tid: responseHeaders['GovWay-Transaction-ID'][0], cid: task_id })
-* call check_traccia_risposta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], cid: task_id })
+* call check_traccia_risposta ({tid: responseHeaders['GovWay-Transaction-ID'][0], cid: task_id, api_correlata: 'SoapNonBlockingPushServerHelperCollaborazione v1' })
+* call check_traccia_risposta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], cid: task_id, api_correlata: 'SoapNonBlockingPushServerHelperCollaborazione v1' })
 
 * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_id })
 * call check_id_collaborazione ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], id_collaborazione: task_id })
@@ -135,8 +135,8 @@ Then status 200
 And match response == read('server-response-response.xml')
 And match header GovWay-Conversation-ID == task_id
 
-* call check_traccia_risposta ({tid: responseHeaders['GovWay-Transaction-ID'][0], cid: task_id })
-* call check_traccia_risposta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], cid: task_id })
+* call check_traccia_risposta ({tid: responseHeaders['GovWay-Transaction-ID'][0], cid: task_id, api_correlata: 'SoapNonBlockingPushServerHelperRiferimento v1' })
+* call check_traccia_risposta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], cid: task_id, api_correlata: 'SoapNonBlockingPushServerHelperRiferimento v1' })
 
 * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_id })
 * call check_id_collaborazione ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], id_collaborazione: task_id })
@@ -152,16 +152,17 @@ Then status 200
 And match response == read('server-response-response.xml')
 And match header GovWay-Conversation-ID == task_id
 
-* call check_traccia_risposta ({tid: responseHeaders['GovWay-Transaction-ID'][0], cid: task_id })
-* call check_traccia_risposta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], cid: task_id })
+* call check_traccia_risposta ({tid: responseHeaders['GovWay-Transaction-ID'][0], cid: task_id, api_correlata: 'SoapNonBlockingPushServerHelperRiferimento v1' })
+* call check_traccia_risposta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], cid: task_id, api_correlata: 'SoapNonBlockingPushServerHelperRiferimento v1' })
 
 * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_id })
 * call check_id_collaborazione ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], id_collaborazione: task_id })
 
+
 @no-correlation-id-in-client-request-response
 Scenario: La fruizione del client solleva errore se non trova lo header x-correlation-id nella risposta
 
-* def updated_reply_to = govway_base_path + "/rest/in/DemoSoggettoFruitore/SoapNonBlockingPushClientNoValidazione/v1"
+* def updated_reply_to = govway_base_path + "/soap/in/DemoSoggettoFruitore/SoapNonBlockingPushClientNoValidazione/v1"
 
 Given url url_fruizione_client_no_validazione
 And header GovWay-TestSuite-Test-Id = 'no-correlation-id-in-client-request-response'
@@ -190,7 +191,7 @@ When method post
 Then status 500
 And match response == read('error-bodies/no-correlation-id-in-server-response-request.xml')
 
-* call check_traccia_risposta_no_cid ({tid: responseHeaders['GovWay-Transaction-ID'][0]  })
+* call check_traccia_risposta_no_cid ({tid: responseHeaders['GovWay-Transaction-ID'][0], api_correlata: 'SoapNonBlockingPushServerNoValidazione v1' })
 * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: null })
 
 * def url_fruizione_server_no_validazione = govway_base_path + "/soap/out/DemoSoggettoErogatore/DemoSoggettoFruitore/SoapNonBlockingPushClientNoValidazione/v1"

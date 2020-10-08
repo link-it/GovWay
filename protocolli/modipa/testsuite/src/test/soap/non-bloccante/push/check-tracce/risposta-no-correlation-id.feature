@@ -11,7 +11,9 @@ Scenario: Controllo traccia risposta IDAC01 su fruizione ed erogazione per profi
     { name: 'ProfiloSicurezzaCanale', value: 'IDAC01' },
     { name: 'ProfiloInterazioneAsincrona-Tipo', value: 'PUSH' },
     { name: 'ProfiloInterazioneAsincrona-Ruolo', value: 'Risposta' },
-    { name: 'ProfiloInterazioneAsincrona-RisorsaCorrelata', value: 'POST /resources/{id_resource}/M' }
+    { name: 'ProfiloInterazioneAsincrona-ApiCorrelata', value: api_correlata },
+    { name: 'ProfiloInterazioneAsincrona-ServizioCorrelato', value: 'SOAPCallback' },
+    { name: 'ProfiloInterazioneAsincrona-AzioneCorrelata', value: 'MRequest'}
 ])
 """
 
