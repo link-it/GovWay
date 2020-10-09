@@ -259,6 +259,14 @@ public class ModIImbustamento {
 					
 					boolean includiRequestDigest = ModIPropertiesUtils.isPropertySecurityMessageIncludiRequestDigest(aspc, nomePortType, azione);
 					
+					if(MessageRole.REQUEST.equals(messageRole)) {
+						if(sa==null) {
+							ProtocolException pe = new ProtocolException("Il profilo di sicurezza richiesto '"+securityMessageProfile+"' richiede l'identificazione di un applicativo");
+							pe.setInteroperabilityError(true);
+							throw pe;
+						}
+					}
+					
 					ModIKeystoreConfig keystoreConfig = null;
 					ModISecurityConfig securityConfig = new ModISecurityConfig(msg, idSoggettoMittente, asps, sa, 
 							rest, fruizione, MessageRole.REQUEST.equals(messageRole), corniceSicurezza,
@@ -266,11 +274,6 @@ public class ModIImbustamento {
 					
 					if(MessageRole.REQUEST.equals(messageRole)) {
 					
-						if(sa==null) {
-							ProtocolException pe = new ProtocolException("Il profilo di sicurezza richiesto '"+securityMessageProfile+"' richiede l'identificazione di un applicativo");
-							pe.setInteroperabilityError(true);
-							throw pe;
-						}
 						keystoreConfig = new ModIKeystoreConfig(sa, securityMessageProfile);
 						
 					}
