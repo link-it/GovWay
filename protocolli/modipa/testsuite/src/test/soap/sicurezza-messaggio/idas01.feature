@@ -12,6 +12,8 @@ Scenario: Test connettività base
 * def resp = read("response.xml")
 * def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS01/v1'
 
+# TODO: Controlla che la validazione lato erogazione funzioni, perchè prima
+# ho messo il tag Header nel tag Body e da wireshark vedevo che l'erogazione accettava la risposta del backend
 Given url soap_url
 And request body
 And header Content-Type = 'application/soap+xml'
