@@ -7,6 +7,7 @@ Background:
     """
     function() { 
         return {
+            'Content-type': "application/soap+xml",
             'GovWay-TestSuite-GovWay-Transaction-ID': karate.get("requestHeaders['GovWay-Transaction-ID'][0]")
         }
     }
@@ -17,7 +18,7 @@ Background:
 
 Scenario: isTest('connettivita-base')
     * def responseStatus = 200
-    * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
+    * def response = read('classpath:test/soap/sicurezza-messaggio/response.xml')
 
 
 # catch all
