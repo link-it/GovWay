@@ -26,9 +26,7 @@ import java.io.InputStream;
 import java.util.Properties;
 import org.junit.BeforeClass;
 
-
 import org.openspcoop2.utils.LoggerWrapperFactory;
-
 import com.intuit.karate.FileUtils;
 
 /**

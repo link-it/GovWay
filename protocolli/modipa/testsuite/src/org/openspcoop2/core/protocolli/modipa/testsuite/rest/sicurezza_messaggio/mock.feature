@@ -16,6 +16,8 @@ Background:
 
 
 Scenario: isTest('connettivita-base')
+    # Controllo che al server non siano arrivate le informazioni di sicurezza
+    * match requestHeaders['Authorization'] == '#notpresent'
     * def responseStatus = 200
     * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
 

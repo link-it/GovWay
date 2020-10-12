@@ -16,6 +16,3 @@ Scenario: Controllo traccia richiesta IDAC01 su fruizione ed erogazione per prof
 
  * def result = get_traccia(tid) 
  * match result contains deep traccia_to_match
-
-#  * def result = get_traccia(responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]) 
-#  * match result contains deep traccia_to_match
