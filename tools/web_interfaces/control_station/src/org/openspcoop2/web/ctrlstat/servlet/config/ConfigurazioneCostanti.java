@@ -109,6 +109,8 @@ public class ConfigurazioneCostanti {
 	public final static String OBJECT_NAME_CONFIGURAZIONE_PLUGINS_ARCHIVI_JAR = "configurazionePluginsArchiviJar";
 	public final static String OBJECT_NAME_CONFIGURAZIONE_PLUGINS_CLASSI = "configurazionePluginsClassi";
 	
+	public final static String OBJECT_NAME_CONFIGURAZIONE_ALLARMI = "configurazioneAllarmi";
+	
 	/* SERVLET NAME */
 	
 	public final static String SERVLET_NAME_CONFIGURAZIONE_GENERALE = OBJECT_NAME_CONFIGURAZIONE_GENERALE+".do";
@@ -408,6 +410,18 @@ public class ConfigurazioneCostanti {
 		SERVLET_CONFIGURAZIONE_PLUGINS_CLASSI.add(SERVLET_NAME_CONFIGURAZIONE_PLUGINS_CLASSI_LIST);
 	}
 	
+	public final static String SERVLET_NAME_CONFIGURAZIONE_ALLARMI_ADD = OBJECT_NAME_CONFIGURAZIONE_ALLARMI+"Add.do";
+	public final static String SERVLET_NAME_CONFIGURAZIONE_ALLARMI_CHANGE = OBJECT_NAME_CONFIGURAZIONE_ALLARMI+"Change.do";
+	public final static String SERVLET_NAME_CONFIGURAZIONE_ALLARMI_DELETE = OBJECT_NAME_CONFIGURAZIONE_ALLARMI+"Del.do";
+	public final static String SERVLET_NAME_CONFIGURAZIONE_ALLARMI_LIST = OBJECT_NAME_CONFIGURAZIONE_ALLARMI+"List.do";
+	public final static Vector<String> SERVLET_CONFIGURAZIONE_ALLARMI = new Vector<String>();
+	static{
+		SERVLET_CONFIGURAZIONE_ALLARMI.add(SERVLET_NAME_CONFIGURAZIONE_ALLARMI_ADD);
+		SERVLET_CONFIGURAZIONE_ALLARMI.add(SERVLET_NAME_CONFIGURAZIONE_ALLARMI_CHANGE);
+		SERVLET_CONFIGURAZIONE_ALLARMI.add(SERVLET_NAME_CONFIGURAZIONE_ALLARMI_DELETE);
+		SERVLET_CONFIGURAZIONE_ALLARMI.add(SERVLET_NAME_CONFIGURAZIONE_ALLARMI_LIST);
+	}
+	
 	/* LABEL GENERALI */
 	
 	public final static String LABEL_CONFIGURAZIONE = "Configurazione";
@@ -661,6 +675,9 @@ public class ConfigurazioneCostanti {
 	public final static String LABEL_CONFIGURAZIONE_CONTROLLO_TRAFFICO_POLICY_INTERVALLO_OSSERVAZIONE = "Intervallo Osservazione";
 	
 	public final static String LABEL_REGOLE_PROXY_PASS = "Regole Proxy Pass";
+	
+	
+	public final static String LABEL_CONFIGURAZIONE_ALLARMI = "Allarmi";
 	
 	/* PARAMETRI */
 	
@@ -1100,6 +1117,13 @@ public class ConfigurazioneCostanti {
 	public final static String PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_FILTRO_SERVICE_HANDLER = "pcFSH";
 	public final static String PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_FILTRO_FASE_MESSAGE_HANDLER = "pcFFMH";
 	public final static String PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_FILTRO_RUOLO_MESSAGE_HANDLER = "pcFRMH";
+	
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_FIRST_TIME = "allFirstTime";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_ID_ALLARME = "allId";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO = "allAbilitato";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_STATO = "allStato";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_NOME = "allNome";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_DESCRIZIONE = "allDescr";
 	
 	
 	/* LABEL PARAMETRI */
@@ -1568,6 +1592,16 @@ public class ConfigurazioneCostanti {
 	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_FILTRO_FASE_MESSAGE_HANDLER = "Fase Message Handler";
 	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_PLUGINS_CLASSI_FILTRO_RUOLO_MESSAGE_HANDLER = "Ruolo Message Handler";
 	
+	
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_ID_ALLARME = "Id";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_NOME = "Nome";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO = "Tipo";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO = "Abilitato";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_STATO = "Stato";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_DESCRIZIONE = "Descrizione";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_PLUGIN = "Plugin";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_EMAIL = "E-mail";
+	
 	/* DEFAULT VALUE PARAMETRI */
 	public final static String DEFAULT_VALUE_PARAMETRO_CONFIGURAZIONE_TIPO_XML = "xml";
 	public final static String DEFAULT_VALUE_PARAMETRO_CONFIGURAZIONE_TIPO_UDDI = "uddi";
@@ -1891,6 +1925,17 @@ public class ConfigurazioneCostanti {
 	
 	public final static String MESSAGGIO_ERRORE_PLUGINS_PLUGIN_DUPLICATO = "Esiste gi&agrave; un Plugin con questa implementazione.";
 	public final static String MESSAGGIO_ERRORE_PLUGINS_PLUGIN_NUOVA_CHIAVE_DUPLICATA = "La nuova implementazione scelta &egrave; gi&agrave; usata per un altro Plugin.";
+	
+	
+	public final static String MESSAGGIO_ERRORE_ALLARME_FILTRO_NON_COMPATIBILE = "I tipi indicati per i campi Fruitore (Soggetto), Erogatore (Soggetto) e Servizio non sono compatibili.";
+	public final static String MESSAGGIO_ERRORE_ALLARME_FILTRO_PLUGIN_NON_TROVATI = "Non risultano registrati plugins per gli allarmi. Prima di poter creare un allarme personalizzato è necessario registrare almeno un plugin tramite la sezione 'Archivi Plugin'";
+	
+	public final static String MESSAGGIO_ERRORE_ALLARME_TIPO_NON_INDICATO = "Non è stato indicato il tipo di allarme (è stato selezionato un plugin?)";
+	public final static String MESSAGGIO_ERRORE_ALLARME_FREQUENZA_NON_INDICATA = "Non è stata indicata la frequenza di attivazione per il controllo dello stato dell'allarme.";
+	public final static String MESSAGGIO_ERRORE_ALLARME_FREQUENZA_NON_VALIDA = "Indicare una frequenza di attivazione (maggiore di 0) per il controllo dello stato dell'allarme";
+	public final static String MESSAGGIO_ERRORE_ALLARME_EMAIL_VUOTA = "Almeno un indirizzo e-mail è obbligatorio";
+	public final static String MESSAGGIO_ERRORE_ALLARME_DUPLICATO = "Esiste gi&agrave; un allarme con questo nome.";
+	
 }
 
 	

@@ -35,6 +35,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 
 import javax.servlet.http.HttpServletRequest;
@@ -42,11 +43,15 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
+import org.openspcoop2.core.allarmi.AllarmeMail;
+import org.openspcoop2.core.allarmi.AllarmeScript;
+import org.openspcoop2.core.allarmi.constants.TipoAllarme;
 import org.openspcoop2.core.commons.Filtri;
 import org.openspcoop2.core.commons.ISearch;
 import org.openspcoop2.core.commons.Liste;
 import org.openspcoop2.core.commons.ModalitaIdentificazione;
 import org.openspcoop2.core.commons.SearchUtils;
+import org.openspcoop2.core.commons.dao.DAOFactory;
 import org.openspcoop2.core.config.AccessoRegistro;
 import org.openspcoop2.core.config.AccessoRegistroRegistro;
 import org.openspcoop2.core.config.Configurazione;
@@ -128,8 +133,16 @@ import org.openspcoop2.core.transazioni.utils.TipoCredenzialeMittente;
 import org.openspcoop2.generic_project.exception.NotFoundException;
 import org.openspcoop2.generic_project.exception.NotImplementedException;
 import org.openspcoop2.message.constants.ServiceBinding;
+import org.openspcoop2.monitor.engine.alarm.AlarmContext;
+import org.openspcoop2.monitor.engine.alarm.AlarmEngineConfig;
+import org.openspcoop2.monitor.engine.alarm.utils.AllarmiUtils;
+import org.openspcoop2.monitor.engine.alarm.wrapper.ConfigurazioneAllarmeBean;
 import org.openspcoop2.monitor.engine.config.base.Plugin;
 import org.openspcoop2.monitor.engine.config.base.constants.TipoPlugin;
+import org.openspcoop2.monitor.engine.dynamic.DynamicFactory;
+import org.openspcoop2.monitor.engine.dynamic.IDynamicValidator;
+import org.openspcoop2.monitor.sdk.condition.Context;
+import org.openspcoop2.monitor.sdk.exceptions.ValidationException;
 import org.openspcoop2.pdd.config.ConfigurazionePdD;
 import org.openspcoop2.pdd.core.CostantiPdD;
 import org.openspcoop2.pdd.core.jmx.JMXUtils;
@@ -142,6 +155,8 @@ import org.openspcoop2.protocol.sdk.InformazioniProtocollo;
 import org.openspcoop2.protocol.utils.ProtocolUtils;
 import org.openspcoop2.utils.regexp.RegularExpressionEngine;
 import org.openspcoop2.utils.resources.MapReader;
+import org.openspcoop2.utils.transport.http.HttpResponse;
+import org.openspcoop2.utils.transport.http.HttpUtilities;
 import org.openspcoop2.web.ctrlstat.core.ControlStationCore;
 import org.openspcoop2.web.ctrlstat.core.Search;
 import org.openspcoop2.web.ctrlstat.costanti.CostantiControlStation;
@@ -168,6 +183,7 @@ import org.openspcoop2.web.lib.mvc.Parameter;
 import org.openspcoop2.web.lib.mvc.ServletUtils;
 import org.openspcoop2.web.lib.mvc.TipoOperazione;
 import org.openspcoop2.web.lib.users.dao.User;
+import org.openspcoop2.web.monitor.allarmi.dao.IAllarmiService;
 
 /**
  * ConfigurazioneHelper
@@ -16585,4 +16601,344 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 			throw new Exception(e);
 		}
 	}
+	public void prepareAllarmiList(Search ricerca, List<ConfigurazioneAllarmeBean> lista) throws Exception{
+		try {
+			ServletUtils.addListElementIntoSession(this.session, ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_ALLARMI);
+
+			int idLista = Liste.CONFIGURAZIONE_ALLARMI;
+			int limit = ricerca.getPageSize(idLista);
+			int offset = ricerca.getIndexIniziale(idLista);
+			String search = ServletUtils.getSearchFromSession(ricerca, idLista);
+
+			this.pd.setIndex(offset);
+			this.pd.setPageSize(limit);
+			this.pd.setNumEntries(ricerca.getNumEntries(idLista));
+			
+			// setto la barra del titolo
+			List<Parameter> lstParam = new ArrayList<Parameter>();
+
+			lstParam.add(new Parameter(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_GENERALE, ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_GENERALE));
+			
+			
+			this.pd.setSearchLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_NOME);
+			if(search.equals("")){
+				this.pd.setSearchDescription("");
+				lstParam.add(new Parameter(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_ALLARMI, null));
+			}else{
+				lstParam.add(new Parameter(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_ALLARMI, ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_ALLARMI_LIST));
+				lstParam.add(new Parameter(Costanti.PAGE_DATA_TITLE_LABEL_RISULTATI_RICERCA, null));
+			}
+
+			ServletUtils.setPageDataTitle(this.pd, lstParam);
+			
+			// controllo eventuali risultati ricerca
+			if (!search.equals("")) {
+				ServletUtils.enabledPageDataSearch(this.pd, ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_ALLARMI, search);
+			}
+
+			// setto le label delle colonne	
+			List<String> lstLabels = new ArrayList<>();
+			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO);
+			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_STATO);
+			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO);
+			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_NOME);
+			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_DESCRIZIONE);
+			this.pd.setLabels(lstLabels.toArray(new String [lstLabels.size()]));
+
+			// preparo i dati
+			Vector<Vector<DataElement>> dati = new Vector<Vector<DataElement>>();
+
+			if (lista != null) {
+				Iterator<ConfigurazioneAllarmeBean> it = lista.iterator();
+				while (it.hasNext()) {
+					ConfigurazioneAllarmeBean allarme = it.next();
+					
+					Parameter pId = new Parameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_ID_ALLARME, allarme.getId() + "");
+					
+					Vector<DataElement> e = new Vector<DataElement>();
+					
+					// Abilitato
+					DataElement de = new DataElement();
+					de.setWidthPx(10);
+					de.setType(DataElementType.CHECKBOX);
+					if(allarme.getEnabled() == 1){
+						de.setToolTip(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_STATO_ABILITATO);
+						de.setValue(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_STATO_ABILITATO);
+						de.setSelected(CheckboxStatusType.CONFIG_ENABLE);
+					}
+					else{
+						de.setToolTip(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_STATO_DISABILITATO);
+						de.setValue(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_STATO_DISABILITATO);
+						de.setSelected(CheckboxStatusType.CONFIG_DISABLE);
+					}
+					de.setUrl(ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_ALLARMI_CHANGE, pId);
+					e.addElement(de);
+					
+					// Stato
+					de = new DataElement();
+					
+					if(allarme.getEnabled() == 1) {
+						if(allarme.getStato() == ConfigurazioneCostanti.CONFIGURAZIONE_ALLARME_STATO_OK) {
+							de.setToolTip(ConfigurazioneCostanti.CONFIGURAZIONE_ALLARME_LABEL_STATO_OK);
+							de.setValue(ConfigurazioneCostanti.CONFIGURAZIONE_ALLARME_LABEL_STATO_OK);
+						} else if(allarme.getStato() == ConfigurazioneCostanti.CONFIGURAZIONE_ALLARME_STATO_ERROR) {
+							de.setToolTip(ConfigurazioneCostanti.CONFIGURAZIONE_ALLARME_LABEL_STATO_ERROR);
+							de.setValue(ConfigurazioneCostanti.CONFIGURAZIONE_ALLARME_LABEL_STATO_ERROR);
+						} else if(allarme.getStato() == ConfigurazioneCostanti.CONFIGURAZIONE_ALLARME_STATO_WARNING) {
+							de.setToolTip(ConfigurazioneCostanti.CONFIGURAZIONE_ALLARME_LABEL_STATO_WARNING);
+							de.setValue(ConfigurazioneCostanti.CONFIGURAZIONE_ALLARME_LABEL_STATO_WARNING);
+						}
+					} else {
+						de.setToolTip(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_STATO_DISABILITATO);
+						de.setValue(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_STATO_DISABILITATO);
+					}
+					
+					de.setValue(allarme.getTipo());
+					e.addElement(de);
+					
+					// Tipo
+					de = new DataElement();
+					de.setValue(allarme.getTipo());
+					e.addElement(de);
+					
+					// Nome 
+					de = new DataElement();
+					de.setUrl(ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_ALLARMI_CHANGE, pId);
+					de.setValue(allarme.getNome());
+					de.setIdToRemove(""+allarme.getId());
+					de.setToolTip(allarme.getNome()); 
+					e.addElement(de);
+					
+					// Descrizione
+					de = new DataElement();
+					de.setValue(allarme.getDescrizioneAbbr());
+					de.setToolTip(allarme.getDescrizione()); 
+					e.addElement(de);
+					
+					dati.addElement(e);
+				}
+			}
+			
+			this.pd.setDati(dati);
+			this.pd.setAddButton(true);
+		} catch (Exception e) {
+			this.log.error("Exception: " + e.getMessage(), e);
+			throw new Exception(e);
+		}
+	}
+	
+	public boolean allarmeCheckData(TipoOperazione tipoOp, ConfigurazioneAllarmeBean oldAllarme, ConfigurazioneAllarmeBean allarme, int numeroPluginRegistrati) throws Exception {
+		
+		try {
+			
+			/* ******** CONTROLLO SUL FILTRO *************** */
+			
+			boolean isFiltroValido = AllarmiUtils.controllaTipiIndicatiNelFiltro(allarme.getFiltro(), CostantiControlStation.VALORE_QUALSIASI_STAR);
+
+			if (!isFiltroValido) {
+				this.pd.setMessage(ConfigurazioneCostanti.MESSAGGIO_ERRORE_ALLARME_FILTRO_NON_COMPATIBILE);
+				return false;
+			}
+			
+			/* ******** CONTROLLO PLUGIN *************** */
+			
+			if(allarme.getPlugin()==null){
+				if(numeroPluginRegistrati<=0){
+					this.log.debug("Non risultano registrati plugins di allarmi");
+					this.pd.setMessage(ConfigurazioneCostanti.MESSAGGIO_ERRORE_ALLARME_FILTRO_PLUGIN_NON_TROVATI);
+				}
+				else{
+					this.log.debug("Non è stato selezionato un plugin");
+					this.pd.setMessage("Indicare un valore nel campo '"+ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_PLUGIN+"'");
+					return false;
+				}
+				return false;
+			}
+			
+			/* ******** ELEMENTI OBBLIGATORI *************** */
+			if(allarme.getTipoAllarme()==null){
+				this.log.debug("Non è stato indicato il tipo di allarme (è stato selezionato un plugin?)");
+				this.pd.setMessage(ConfigurazioneCostanti.MESSAGGIO_ERRORE_ALLARME_TIPO_NON_INDICATO);
+				return false;
+			}
+			if(allarme.getNome()==null || "".equals(allarme.getNome())){
+				this.log.debug("Non è stato indicato un nome identificativo dell'allarme");
+				this.pd.setMessage("Indicare un valore nel campo '"+ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_NOME+"'");
+				return false;
+			}
+			if (!this.checkNCName(allarme.getNome(), ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_NOME)) {
+//					!RegularExpressionEngine.isMatch(allarme.getNome(),"^[\\-/_A-Za-z0-9]*$")) {
+//				String msg = "Il nome dell'allarme dev'essere formato solo da caratteri, cifre, '_' , '-' e '/'";
+//				this.log.debug(msg);
+//				MessageUtils.addErrorMsg(msg);
+				return false;
+			}
+			if(allarme.getTipoAllarme().equals(TipoAllarme.ATTIVO)){
+				if(allarme.getPeriodo()==null){
+					this.log.debug("Non è stata indicata la frequenza di attivazione per il controllo dello stato dell'allarme");
+					this.pd.setMessage(ConfigurazioneCostanti.MESSAGGIO_ERRORE_ALLARME_FREQUENZA_NON_INDICATA);
+					return false;
+				}
+				if(allarme.getPeriodo()<=0){
+					this.log.debug("Indicare una frequenza di attivazione (maggiore di 0) per il controllo dello stato dell'allarme");
+					this.pd.setMessage(ConfigurazioneCostanti.MESSAGGIO_ERRORE_ALLARME_FREQUENZA_NON_VALIDA);
+					return false;
+				}
+			}
+			if(allarme.getMail()!=null && allarme.getMail().getInviaAlert()!=null && allarme.getMail().getInviaAlert()==1){
+				if(allarme.getMail().getDestinatari()==null || "".equals(allarme.getMail().getDestinatari())){
+					this.log.debug("Almeno un indirizzo e-mail è obbligatorio");
+					this.pd.setMessage(ConfigurazioneCostanti.MESSAGGIO_ERRORE_ALLARME_EMAIL_VUOTA);
+					return false;
+				}
+				String [] tmp = allarme.getMail().getDestinatari().split(",");
+				for (int i = 0; i < tmp.length; i++) {
+					if(!this.checkEmail(tmp[i].trim(), ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_EMAIL)==false){
+						this.log.debug("L'indirizzo e-mail fornito ["+tmp[i].trim()+"] non risulta valido"); 
+						return false;
+					}
+				}
+			}
+			
+			
+			boolean existsAllarme = this.confCore.existsAllarme(allarme.getNome());
+			// controllo esistenza allarme con lo stesso nome			
+			if (tipoOp.equals(TipoOperazione.ADD)) {
+				if (existsAllarme) {
+					this.pd.setMessage(ConfigurazioneCostanti.MESSAGGIO_ERRORE_ALLARME_DUPLICATO); 
+					return false;
+				}
+			}
+			
+			/* ******** VALIDAZIONE E SALVATAGGIO PARAMETRI *************** */
+			
+			IDynamicValidator v = DynamicFactory.getInstance().newDynamicValidator(TipoPlugin.ALLARME, allarme.getTipo(), allarme.getPlugin().getClassName(),this.log);
+			
+			List<org.openspcoop2.monitor.sdk.parameters.Parameter<?>> parameters = null;
+			Context context = new AlarmContext(allarme, this.log, DAOFactory.getInstance(this.log), parameters );
+			try {
+				// validazione parametri
+				v.validate(context);
+			}  catch (ValidationException e) {
+				StringBuilder sb = new StringBuilder();
+				
+				sb.append(e.getMessage());
+
+				Map<String, String> errors = e.getErrors();
+				if (errors != null) {
+					Set<String> keys = errors.keySet();
+					
+					StringBuilder sbInner = new StringBuilder();
+
+					for (String key : keys) {
+						if(sbInner.length() >0) {
+							sbInner.append("\n");
+						}
+
+						org.openspcoop2.monitor.sdk.parameters.Parameter<?> sp = context.getParameter(key);
+
+						String errorMsg = errors.get(key);
+
+						// recupero il label del parametro
+						String label = sp != null ? sp.getRendering().getLabel() : key;
+
+						sbInner.append(label).append(": ").append(errorMsg);
+
+					}
+					
+					sb.append("\n").append(sbInner.toString());
+				}
+				this.pd.setMessage(sb.toString()); 
+				return false;
+			}
+			
+			// altri parametri???
+			
+			
+			return true;
+		} catch (Exception e) {
+			this.log.error("Exception: " + e.getMessage(), e);
+			throw new Exception(e);
+		}
+	}
+	
+	public void sendToAllarmi(List<String> urls) throws Exception{
+		if(urls!=null && urls.size()>0){
+			for (String url : urls) {
+				this.log.debug("Invoke ["+url+"] ...");
+				HttpResponse response = HttpUtilities.getHTTPResponse(url);
+				if(response.getContent()!=null){
+					this.log.debug("Invoked ["+url+"] Status["+response.getResultHTTPOperation()+"] Message["+new String(response.getContent())+"]");	
+				}
+				else{
+					this.log.debug("Invoked ["+url+"] Status["+response.getResultHTTPOperation()+"]");
+				}
+				if(response.getResultHTTPOperation()>202){
+					throw new Exception("Error occurs during invoke url["+url+"] Status["+response.getResultHTTPOperation()+"] Message["+new String(response.getContent())+"]");	
+				}	
+			}
+		}
+	}
+	
+	public String readAllarmeFromRequest(TipoOperazione tipoOp, boolean first, ConfigurazioneAllarmeBean allarme, AlarmEngineConfig alarmEngineConfig) {
+
+		StringBuilder sbParsingError = new StringBuilder();
+		
+		allarme.setEnabled(1);
+		
+		allarme.setTipoAllarme(null);
+
+		allarme.setMail(new AllarmeMail());
+		allarme.getMail().setInviaAlert(0);
+		allarme.getMail().setInviaWarning(0);
+		if(alarmEngineConfig.isMailAckMode()){
+			allarme.getMail().setAckMode(1);
+		}else{
+			allarme.getMail().setAckMode(0);
+		}
+
+		allarme.setScript(new AllarmeScript());
+		allarme.getScript().setInvocaAlert(0);
+		allarme.getScript().setInvocaWarning(0);
+		if(alarmEngineConfig.isScriptAckMode()){
+			allarme.getScript().setAckMode(1);
+		}else{
+			allarme.getScript().setAckMode(0);
+		}
+			
+		return null;
+	}
+	
+	public void addAllarmeToDati(Vector<DataElement> dati, TipoOperazione tipoOperazione, ConfigurazioneAllarmeBean allarme, AlarmEngineConfig alarmEngineConfig, List<Plugin> listaPlugin) throws Exception { 
+		
+		// Sezione filtro
+		if(this.isShowFilter(allarme)) {
+			
+		}
+		
+		// Informazioni Generali
+		
+		
+		// sezione dinamica parametri
+		
+		
+		// Notifiche Email
+		
+		
+		// Notifiche monitoraggio esterno
+		
+		
+		
+		
+		
+	}
+	
+	public boolean isShowFilter(ConfigurazioneAllarmeBean allarme) throws Exception {
+		if(allarme==null || allarme.getTipo()==null){
+			return false; // all'inizio deve prima essere scelto il plugin
+		}
+		
+		return this.confCore.isUsableFilter(allarme);
+	}
+	
 }

@@ -23,8 +23,8 @@ package org.openspcoop2.web.monitor.allarmi.datamodel;
 import java.util.List;
 
 import org.openspcoop2.generic_project.expression.SortOrder;
+import org.openspcoop2.monitor.engine.alarm.wrapper.ConfigurazioneAllarmeBean;
 import org.openspcoop2.web.monitor.allarmi.bean.AllarmiSearchForm;
-import org.openspcoop2.web.monitor.allarmi.bean.ConfigurazioneAllarmeBean;
 import org.openspcoop2.web.monitor.allarmi.dao.IAllarmiService;
 import org.openspcoop2.web.monitor.core.datamodel.BaseDataModelWithSearchForm;
 

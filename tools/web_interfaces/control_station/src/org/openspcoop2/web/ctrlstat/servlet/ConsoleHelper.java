@@ -1551,6 +1551,9 @@ public class ConsoleHelper implements IConsoleHelper {
 
 					dimensioneEntries = 5; // configurazione, tracciamento, controllo del traffico, policy e audit
 					
+					if(this.core.isConfigurazioneAllarmiEnabled())
+						dimensioneEntries++; // configurazione allarmi
+					
 					dimensioneEntries++; // gruppi
 
 					if(!isModalitaStandard()) {
@@ -1603,6 +1606,11 @@ public class ConsoleHelper implements IConsoleHelper {
 					entries[index][0] = ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_CONTROLLO_TRAFFICO;
 					entries[index][1] = ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_CONTROLLO_TRAFFICO;
 					index++;
+					if(this.core.isConfigurazioneAllarmiEnabled()) { // configurazione allarmi
+						entries[index][0] = ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_ALLARMI;
+						entries[index][1] = ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_ALLARMI_LIST;
+						index++;	
+					}
 					entries[index][0] = ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_POLICY_GESTIONE_TOKEN;
 					entries[index][1] = ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_POLICY_GESTIONE_TOKEN_LIST;
 					index++;	
@@ -2348,6 +2356,15 @@ public class ConsoleHelper implements IConsoleHelper {
 				this.pd.setMessage("L'informazione fornita nel campo '"+object+"' deve possedere una lunghezza minore di "+maxLength);
 				return false;
 			}
+		}
+		return true;
+	}
+	
+	public boolean checkEmail(String email, String object) throws Exception{
+		// Email deve rispettare il pattern
+		if (!RegularExpressionEngine.isMatch(email,CostantiControlStation.EMAIL_PATTERN)) {
+			this.pd.setMessage("Il campo '"+object+"' non contiene un indirizzo e-mail valido");
+			return false;
 		}
 		return true;
 	}

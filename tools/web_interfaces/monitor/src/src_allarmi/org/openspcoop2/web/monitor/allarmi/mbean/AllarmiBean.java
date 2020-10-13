@@ -22,7 +22,6 @@ package org.openspcoop2.web.monitor.allarmi.mbean;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
@@ -33,7 +32,6 @@ import javax.faces.event.ActionEvent;
 import javax.faces.model.SelectItem;
 
 import org.apache.commons.lang.StringUtils;
-import org.openspcoop2.core.allarmi.Allarme;
 import org.openspcoop2.core.allarmi.AllarmeFiltro;
 import org.openspcoop2.core.allarmi.AllarmeHistory;
 import org.openspcoop2.core.allarmi.AllarmeMail;
@@ -51,6 +49,9 @@ import org.openspcoop2.monitor.engine.alarm.AlarmConfigProperties;
 import org.openspcoop2.monitor.engine.alarm.AlarmEngineConfig;
 import org.openspcoop2.monitor.engine.alarm.AlarmImpl;
 import org.openspcoop2.monitor.engine.alarm.AlarmStatusWithAck;
+import org.openspcoop2.monitor.engine.alarm.utils.AllarmiConfig;
+import org.openspcoop2.monitor.engine.alarm.utils.AllarmiUtils;
+import org.openspcoop2.monitor.engine.alarm.wrapper.ConfigurazioneAllarmeBean;
 import org.openspcoop2.monitor.engine.config.base.Plugin;
 import org.openspcoop2.monitor.engine.config.base.constants.TipoPlugin;
 import org.openspcoop2.monitor.engine.dynamic.DynamicFactory;
@@ -63,14 +64,9 @@ import org.openspcoop2.monitor.sdk.exceptions.AlarmException;
 import org.openspcoop2.monitor.sdk.exceptions.ValidationException;
 import org.openspcoop2.monitor.sdk.parameters.Parameter;
 import org.openspcoop2.monitor.sdk.plugins.IAlarmProcessing;
-import org.openspcoop2.protocol.engine.ProtocolFactoryManager;
-import org.openspcoop2.protocol.sdk.IProtocolFactory;
-import org.openspcoop2.utils.beans.BeanUtils;
 import org.openspcoop2.utils.regexp.RegularExpressionEngine;
-import org.openspcoop2.utils.transport.http.HttpResponse;
-import org.openspcoop2.utils.transport.http.HttpUtilities;
 import org.openspcoop2.web.monitor.allarmi.bean.AllarmiContext;
-import org.openspcoop2.web.monitor.allarmi.bean.ConfigurazioneAllarmeBean;
+import org.openspcoop2.web.monitor.allarmi.bean.AllarmiMonitorConfig;
 import org.openspcoop2.web.monitor.allarmi.dao.IAllarmiService;
 import org.openspcoop2.web.monitor.core.core.PddMonitorProperties;
 import org.openspcoop2.web.monitor.core.core.Utility;
@@ -105,14 +101,6 @@ DynamicPdDBean<ConfigurazioneAllarmeBean, Integer, IService<ConfigurazioneAllarm
 
 	private String ack;
 
-	private boolean allarmiConsultazioneModificaStatoAbilitata;
-	private boolean allarmiAssociazioneAcknowledgedStatoAllarme;
-	private boolean allarmiNotificaMailVisualizzazioneCompleta;
-	private boolean allarmiMonitoraggioEsternoVisualizzazioneCompleta;
-	private boolean allarmiConsultazioneSezioneNotificaMailReadOnly;
-	private boolean allarmiConsultazioneSezioneMonitoraggioEsternoReadOnly;
-	private boolean allarmiConsultazioneSezioneParametriReadOnly;
-
 	private boolean modificatoInformazioniHistory = false;
 	private boolean modificatoStato = false;
 	private boolean modificatoAckwoldegment = false;
@@ -123,6 +111,7 @@ DynamicPdDBean<ConfigurazioneAllarmeBean, Integer, IService<ConfigurazioneAllarm
 	private StatoAllarme statoAllarmePrimaModifica = null;
 	
 	private AlarmEngineConfig alarmEngineConfig;
+	private AllarmiConfig allarmiConfig;
 
 	private String sorgente = null;
 	
@@ -162,14 +151,7 @@ DynamicPdDBean<ConfigurazioneAllarmeBean, Integer, IService<ConfigurazioneAllarm
 	public AllarmiBean() {
 		super();
 		try {
-			this.allarmiConsultazioneModificaStatoAbilitata = PddMonitorProperties.getInstance(log).isAllarmiConsultazioneModificaStatoAbilitata();
-			this.allarmiAssociazioneAcknowledgedStatoAllarme = PddMonitorProperties.getInstance(log).isAllarmiAssociazioneAcknowledgedStatoAllarme();
-			this.allarmiNotificaMailVisualizzazioneCompleta = PddMonitorProperties.getInstance(log).isAllarmiNotificaMailVisualizzazioneCompleta();
-			this.allarmiMonitoraggioEsternoVisualizzazioneCompleta = PddMonitorProperties.getInstance(log).isAllarmiMonitoraggioEsternoVisualizzazioneCompleta();
-			this.allarmiConsultazioneSezioneNotificaMailReadOnly = PddMonitorProperties.getInstance(log).isAllarmiConsultazioneSezioneNotificaMailReadOnly();
-			this.allarmiConsultazioneSezioneMonitoraggioEsternoReadOnly = PddMonitorProperties.getInstance(log).isAllarmiConsultazioneSezioneMonitoraggioEsternoReadOnly();
-			this.allarmiConsultazioneSezioneParametriReadOnly = PddMonitorProperties.getInstance(log).isAllarmiConsultazioneParametriReadOnly();
-			
+			this.allarmiConfig = new AllarmiMonitorConfig(PddMonitorProperties.getInstance(log));
 			this.alarmEngineConfig = AlarmConfigProperties.getAlarmConfiguration(log, PddMonitorProperties.getInstance(log).getAllarmiConfigurazione());
 			
 		} catch (Throwable e) {
@@ -386,31 +368,31 @@ DynamicPdDBean<ConfigurazioneAllarmeBean, Integer, IService<ConfigurazioneAllarm
 	}
 	
 	public boolean isAllarmiConsultazioneModificaStatoAbilitata() {
-		return this.allarmiConsultazioneModificaStatoAbilitata;
+		return this.allarmiConfig.isAllarmiConsultazioneModificaStatoAbilitata();
 	}
 	
 	public boolean isAllarmiAssociazioneAcknowledgedStatoAllarme() {
-		return this.allarmiAssociazioneAcknowledgedStatoAllarme;
+		return this.allarmiConfig.isAllarmiAssociazioneAcknowledgedStatoAllarme();
 	}
 	
 	public boolean isAllarmiNotificaMailVisualizzazioneCompleta() {
-		return this.allarmiNotificaMailVisualizzazioneCompleta;
+		return this.allarmiConfig.isAllarmiNotificaMailVisualizzazioneCompleta();
 	}
 
 	public boolean isAllarmiMonitoraggioEsternoVisualizzazioneCompleta() {
-		return this.allarmiMonitoraggioEsternoVisualizzazioneCompleta;
+		return this.allarmiConfig.isAllarmiMonitoraggioEsternoVisualizzazioneCompleta();
 	}
 
 	public boolean isAllarmiConsultazioneSezioneNotificaMailReadOnly() {
-		return this.allarmiConsultazioneSezioneNotificaMailReadOnly;
+		return this.allarmiConfig.isAllarmiConsultazioneSezioneNotificaMailReadOnly();
 	}
 
 	public boolean isAllarmiConsultazioneSezioneMonitoraggioEsternoReadOnly() {
-		return this.allarmiConsultazioneSezioneMonitoraggioEsternoReadOnly;
+		return this.allarmiConfig.isAllarmiConsultazioneSezioneMonitoraggioEsternoReadOnly();
 	}
 	
 	public boolean isAllarmiConsultazioneSezioneParametriReadOnly() {
-		return this.allarmiConsultazioneSezioneParametriReadOnly;
+		return this.allarmiConfig.isAllarmiConsultazioneParametriReadOnly();
 	}
 
 	public String getLabelStato(){
@@ -756,7 +738,7 @@ DynamicPdDBean<ConfigurazioneAllarmeBean, Integer, IService<ConfigurazioneAllarm
 			
 			/* ******** CONTROLLO SUL FILTRO *************** */
 			
-			boolean isFiltroValido = controllaTipiIndicatiNelFiltro(this.allarme.getFiltro());
+			boolean isFiltroValido = AllarmiUtils.controllaTipiIndicatiNelFiltro(this.allarme.getFiltro(), "*");
 
 			if (!isFiltroValido) {
 				MessageUtils.addErrorMsg("I tipi indicati per i campi Fruitore (Soggetto), Erogatore (Soggetto) e Servizio non sono compatibili.");
@@ -911,9 +893,7 @@ DynamicPdDBean<ConfigurazioneAllarmeBean, Integer, IService<ConfigurazioneAllarm
 			
 			/* ******** GESTIONE AVVIO THREAD NEL CASO DI ATTIVO *************** */
 			
-			this.notifyStateActiveThread(isAdd,oldConfigurazioneAllarme);
-			
-			
+			AllarmiUtils.notifyStateActiveThread(isAdd, this.modificatoStato, this.modificatoAckwoldegment, oldConfigurazioneAllarme, this.allarme, AllarmiBean.log, this.allarmiConfig);
 			
 			MessageUtils.addInfoMsg("Allarme salvato con successo.");
 
@@ -962,123 +942,7 @@ DynamicPdDBean<ConfigurazioneAllarmeBean, Integer, IService<ConfigurazioneAllarm
 		((IAllarmiService)this.service).addHistory(history);
 	}
 	
-	private void notifyStateActiveThread(boolean isAdd, ConfigurazioneAllarmeBean oldAllarmePrimaModifica) throws Exception{
-		
-		if(TipoAllarme.PASSIVO.equals(this.allarme.getTipoAllarme())){
-			// NOTA: il tipo di allarme non è modificabile.
-			AllarmiBean.log.debug("Allarme ["+this.allarme.getNome()+"] è passivo. Non viene attivato alcun thread");
-			return;
-		}
-		
-		PddMonitorProperties prop = PddMonitorProperties.getInstance(log);
-		String prefixUrl = prop.getAllarmiActiveServiceUrl();
-		if(prefixUrl.endsWith("/")==false){
-			prefixUrl = prefixUrl + "/";
-		}
-		prefixUrl = prefixUrl + this.allarme.getNome() + "?";
-		List<String> urls = new ArrayList<String>();
-		if(isAdd){
-			if(this.allarme.getEnabled()==1){
-				// invoco servlet start
-				urls.add(prefixUrl+prop.getAllarmiActiveServiceUrl_SuffixStartAlarm());
-			}
-		}
-		else{
-			// Se è stato modificato solo lo stato non richiede un stop/restart 
-			boolean equals = false;
-			StringBuilder bfDiff = null;
-			if(oldAllarmePrimaModifica!=null){
-				
-				List<String> fieldEsclusi = new ArrayList<String>();
-				fieldEsclusi.add("id");
-				if(this.modificatoStato){
-					fieldEsclusi.add("stato");
-					fieldEsclusi.add("_value_stato");
-					fieldEsclusi.add("precedenteStato");
-					fieldEsclusi.add("_value_precedenteStato");
-					fieldEsclusi.add("dettaglioStato");
-				}
-				if(this.modificatoAckwoldegment){
-					fieldEsclusi.add("acknowledged");
-				}
-				
-				// i metodi equals e diff non funzionano in caso di extends
-				
-				Allarme old = new Allarme();
-				BeanUtils.copy(old, oldAllarmePrimaModifica, null);
-				
-				Allarme attuale = new Allarme();
-				BeanUtils.copy(attuale, this.allarme, null);
-				
-				equals = attuale.equals(old, fieldEsclusi);
-				if(!equals){
-					bfDiff = new StringBuilder();
-					attuale.diff(old, bfDiff, false, fieldEsclusi);
-				}
-			}
-			if(equals){			
-				if(this.modificatoStato){
-					StatoAllarme statoAllarme = AllarmiConverterUtils.toStatoAllarme(this.allarme.getStato());
-					switch (statoAllarme) {
-					case OK:
-						urls.add(prefixUrl+prop.getAllarmiActiveServiceUrl_SuffixUpdateStateOkAlarm());
-						break;
-					case WARNING:
-						urls.add(prefixUrl+prop.getAllarmiActiveServiceUrl_SuffixUpdateStateWarningAlarm());
-						break;
-					case ERROR:
-						urls.add(prefixUrl+prop.getAllarmiActiveServiceUrl_SuffixUpdateStateErrorAlarm());
-						break;
-					}
-				}
-				if(this.modificatoAckwoldegment){
-					if(this.allarme.getAcknowledged()==1){
-						urls.add(prefixUrl+prop.getAllarmiActiveServiceUrl_SuffixUpdateAcknoledgementEnabledAlarm());
-					}
-					else{
-						urls.add(prefixUrl+prop.getAllarmiActiveServiceUrl_SuffixUpdateAcknoledgementDisabledAlarm());
-					}
-				}
-				//else{
-				// non è cambiato nulla
-				//}
-			}
-			else{
-				if(bfDiff!=null){	
-					AllarmiBean.log.debug("Rilevata modifica, diff: "+bfDiff.toString());
-				}
-				
-				if(this.allarme.getEnabled()==0){
-					// invoco servlet stop
-					urls.add(prefixUrl+prop.getAllarmiActiveServiceUrl_SuffixStopAlarm());
-				}
-				else{
-					// invoco servlet restart
-					urls.add(prefixUrl+prop.getAllarmiActiveServiceUrl_SuffixReStartAlarm());
-				}
-			}
-		}
-		this.sendToAllarmi(urls);
-	}
 
-	private void sendToAllarmi(List<String> urls) throws Exception{
-		if(urls!=null && urls.size()>0){
-			for (String url : urls) {
-				AllarmiBean.log.debug("Invoke ["+url+"] ...");
-				HttpResponse response = HttpUtilities.getHTTPResponse(url);
-				if(response.getContent()!=null){
-					AllarmiBean.log.debug("Invoked ["+url+"] Status["+response.getResultHTTPOperation()+"] Message["+new String(response.getContent())+"]");	
-				}
-				else{
-					AllarmiBean.log.debug("Invoked ["+url+"] Status["+response.getResultHTTPOperation()+"]");
-				}
-				if(response.getResultHTTPOperation()>202){
-					throw new Exception("Error occurs during invoke url["+url+"] Status["+response.getResultHTTPOperation()+"] Message["+new String(response.getContent())+"]");	
-				}	
-			}
-		}
-	}
-	
 	@Override
 	public String delete(){
 		
@@ -1101,16 +965,15 @@ DynamicPdDBean<ConfigurazioneAllarmeBean, Integer, IService<ConfigurazioneAllarm
 						continue;
 					}
 					
-					PddMonitorProperties prop = PddMonitorProperties.getInstance(log);
-					String prefixUrl = prop.getAllarmiActiveServiceUrl();
+					String prefixUrl = this.allarmiConfig.getAllarmiActiveServiceUrl();
 					if(prefixUrl.endsWith("/")==false){
 						prefixUrl = prefixUrl + "/";
 					}
 					prefixUrl = prefixUrl + elem.getNome() + "?";
-					urls.add(prefixUrl + prop.getAllarmiActiveServiceUrl_SuffixStopAlarm());
+					urls.add(prefixUrl + this.allarmiConfig.getAllarmiActiveServiceUrl_SuffixStopAlarm());
 				}
 			}
-			this.sendToAllarmi(urls);
+			AllarmiUtils.sendToAllarmi(urls, AllarmiBean.log);
 		
 			super.delete();
 			
@@ -1154,82 +1017,6 @@ DynamicPdDBean<ConfigurazioneAllarmeBean, Integer, IService<ConfigurazioneAllarm
 		}
 	}
 	
-	/***
-	 * 
-	 * Restituisce true se i tipi indicati sono compatibili, false altrimenti.
-	 * 
-	 * @param filtro
-	 * @return
-	 */
-	private boolean controllaTipiIndicatiNelFiltro( AllarmeFiltro filtro) throws Exception{
-
-		String tipoMittente = filtro.getTipoFruitore();
-		String tipoDestinatario = filtro.getTipoErogatore();
-		String tipoServizio = filtro.getTipoServizio();
-
-		List<String> protocolloMittente = new ArrayList<String>();
-		List<String> protocolloDestinatario = new ArrayList<String>();
-		List<String> protocolloServizio = new ArrayList<String>();
-
-
-		try{
-
-			// 1. Carico i tipi disponibili per mittente, destinatario e servizio, se uno dei tre non e' stato scelto ('*') la lista risultera' vuota
-
-			if(!tipoDestinatario.equals("*") ){
-				IProtocolFactory<?> protocolFactory = ProtocolFactoryManager.getInstance().getProtocolFactoryByOrganizationType(tipoDestinatario);
-				protocolloDestinatario.add(protocolFactory.getProtocol());
-				//				tipiDisponibiliDestinatario = protocolFactory.createProtocolConfiguration().getTipiSoggetti();
-			}
-
-			if(!tipoMittente.equals("*")){
-				IProtocolFactory<?> protocolFactory = ProtocolFactoryManager.getInstance().getProtocolFactoryByOrganizationType(tipoMittente);
-				protocolloMittente.add(protocolFactory.getProtocol());
-				//				tipiDisponibiliMittente = protocolFactory.createProtocolConfiguration().getTipiSoggetti();
-			}
-
-			if(!tipoServizio.equals("*")){
-				IProtocolFactory<?> protocolFactory = ProtocolFactoryManager.getInstance().getProtocolFactoryByServiceType(tipoServizio);
-				protocolloServizio.add(protocolFactory.getProtocol());
-				//				tipiDisponibiliServizio = protocolFactory.createProtocolConfiguration().getTipiServizi();
-			}
-
-			// Inserisco tutti i tipi trovati in una mappa, se i tre tipi sono compatibili, l'elenco delle chiavi coincide con la dimesione delle liste di quelli settati.
-			Map<String, String> mappaProtocolli = new HashMap<String, String>();
-			if(protocolloServizio != null && protocolloServizio.size() > 0)
-				for (String tipo : protocolloServizio) {
-					if(!mappaProtocolli.containsKey(tipo))
-						mappaProtocolli.put(tipo, tipo);
-				}
-
-			if(protocolloMittente != null && protocolloMittente.size() > 0)
-				for (String tipo : protocolloMittente) {
-					if(!mappaProtocolli.containsKey(tipo))
-						mappaProtocolli.put(tipo, tipo);
-				}
-
-			if(protocolloDestinatario != null && protocolloDestinatario.size() > 0)
-				for (String tipo : protocolloDestinatario) {
-					if(!mappaProtocolli.containsKey(tipo))
-						mappaProtocolli.put(tipo, tipo);
-				}	
-
-			// controllo di validita  
-			if(protocolloDestinatario.size() > 0 && protocolloDestinatario.size() != mappaProtocolli.keySet().size())
-				return false;
-
-			if(protocolloMittente.size() > 0 && protocolloMittente.size() != mappaProtocolli.keySet().size())
-				return false;
-
-			if(protocolloServizio.size() > 0 && protocolloServizio.size() != mappaProtocolli.keySet().size())
-				return false;
-
-			return true;
-		}catch(Exception e){
-			throw e;
-		}
-	}
-
 	public void toggleAck(ActionEvent ae) {
 		try {
 //			if (this.ack == null)
@@ -1250,7 +1037,7 @@ DynamicPdDBean<ConfigurazioneAllarmeBean, Integer, IService<ConfigurazioneAllarm
 			this.addHistory();
 			
 			// notifico avvio thread o stop
-			this.notifyStateActiveThread(false,this.allarme);
+			AllarmiUtils.notifyStateActiveThread(false, this.modificatoStato, this.modificatoAckwoldegment, this.allarme, this.allarme, AllarmiBean.log, this.allarmiConfig);
 			
 		} catch (Exception e) {
 			AllarmiBean.log.error(e.getMessage(), e);
@@ -1273,7 +1060,7 @@ DynamicPdDBean<ConfigurazioneAllarmeBean, Integer, IService<ConfigurazioneAllarm
 			this.addHistory();
 			
 			// notifico avvio thread o stop
-			this.notifyStateActiveThread(false,null);
+			AllarmiUtils.notifyStateActiveThread(false, this.modificatoStato, this.modificatoAckwoldegment, null, this.allarme, AllarmiBean.log, this.allarmiConfig);
 
 		} catch (Exception e) {
 			AllarmiBean.log.error(e.getMessage(), e);

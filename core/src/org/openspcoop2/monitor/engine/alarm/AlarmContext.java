@@ -23,6 +23,8 @@
 package org.openspcoop2.monitor.engine.alarm;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
@@ -46,16 +48,22 @@ import org.openspcoop2.utils.TipiDatabase;
  * @author $Author$
  * @version $Rev$, $Date$
  */
-class AlarmContext implements Context{
+public class AlarmContext implements Context{
 	
 	private Allarme allarme;
 	private Logger log;
 	private DAOFactory daoFactory;
+	private List<Parameter<?>> parameters;
 
-	AlarmContext(Allarme allarme,Logger log, DAOFactory daoFactory){
+	public AlarmContext(Allarme allarme,Logger log, DAOFactory daoFactory){
+		this(allarme, log, daoFactory, null);
+	}
+	
+	public AlarmContext(Allarme allarme,Logger log, DAOFactory daoFactory,List<Parameter<?>> parameters){
 		this.allarme = allarme;
 		this.log = log;
 		this.daoFactory = daoFactory;
+		this.parameters = parameters;
 	}
 
 	@Override
@@ -177,9 +185,14 @@ class AlarmContext implements Context{
 
 	@Override
 	public Map<String, Parameter<?>> getParameters() {
-
-		return null; // non dovrebbe venire usato in questo contesto
-		
+		// 2020/10/09 modifica per salvataggio in console
+		Map<String, Parameter<?>> map  =  new HashMap<String, Parameter<?>>();
+		if(this.parameters != null){
+			for (Parameter<?> param : this.parameters) {
+				map.put(param.getId(), param);
+			}
+		}
+		return map;
 	}
 
 

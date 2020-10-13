@@ -3417,6 +3417,33 @@
             <forward name="configurazionePluginsClassiDel" path="/jsplib/listElement.jsp"/>
             <forward name="configurazionePluginsClassiError" path="/jsplib/info.jsp"/>
         </action>
+        
+         <!-- Configurazione Allarmi -->
+
+        <action path="/configurazioneAllarmiAdd" type="org.openspcoop2.web.ctrlstat.servlet.config.ConfigurazioneAllarmiAdd"
+            scope="request" validate="true">
+            <forward name="configurazioneAllarmiAddForm" path="/jsplib/addElement.jsp"/>
+            <forward name="configurazioneAllarmiAddOk" path="/jsplib/listElement.jsp"/>
+            <forward name="configurazioneAllarmiAddCheckError" path="/jsplib/addElement.jsp"/>
+            <forward name="configurazioneAllarmiError" path="/jsplib/info.jsp"/>
+        </action>
+        <action path="/configurazioneAllarmiList" type="org.openspcoop2.web.ctrlstat.servlet.config.ConfigurazioneAllarmiList"
+            scope="request" validate="true">
+            <forward name="configurazioneAllarmiList" path="/jsplib/listElement.jsp"/>
+            <forward name="configurazioneAllarmiError" path="/jsplib/info.jsp"/>
+        </action>
+        <action path="/configurazioneAllarmiChange" type="org.openspcoop2.web.ctrlstat.servlet.config.ConfigurazioneAllarmiChange"
+            scope="request" validate="true">
+            <forward name="configurazioneAllarmiChangeForm" path="/jsplib/addElement.jsp"/>
+            <forward name="configurazioneAllarmiChangeOk" path="/jsplib/listElement.jsp"/>
+            <forward name="configurazioneAllarmiChangeCheckError" path="/jsplib/addElement.jsp"/>
+            <forward name="configurazioneAllarmiError" path="/jsplib/info.jsp"/>
+        </action>
+        <action path="/configurazioneAllarmiDel" type="org.openspcoop2.web.ctrlstat.servlet.config.ConfigurazioneAllarmiDel"
+            scope="request" validate="true">
+            <forward name="configurazioneAllarmiDel" path="/jsplib/listElement.jsp"/>
+            <forward name="configurazioneAllarmiError" path="/jsplib/info.jsp"/>
+        </action>
     
      	<!-- Audit (Pagina Iniziale)  -->
     

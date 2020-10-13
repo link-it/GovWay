@@ -40,6 +40,8 @@ import java.util.Vector;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang.StringUtils;
+import org.openspcoop2.core.allarmi.Allarme;
+import org.openspcoop2.core.allarmi.AllarmeHistory;
 import org.openspcoop2.core.commons.DBUtils;
 import org.openspcoop2.core.commons.Filtri;
 import org.openspcoop2.core.commons.ISearch;
@@ -111,6 +113,7 @@ import org.openspcoop2.core.registry.driver.db.DriverRegistroServiziDB;
 import org.openspcoop2.message.config.ServiceBindingConfiguration;
 import org.openspcoop2.message.constants.MessageType;
 import org.openspcoop2.message.constants.ServiceBinding;
+import org.openspcoop2.monitor.engine.alarm.utils.AllarmiConfig;
 import org.openspcoop2.monitor.engine.config.base.Plugin;
 import org.openspcoop2.pdd.config.ConfigurazionePriorita;
 import org.openspcoop2.pdd.core.CostantiPdD;
@@ -149,6 +152,7 @@ import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpResponse;
 import org.openspcoop2.utils.transport.http.HttpUtilities;
+import org.openspcoop2.web.ctrlstat.config.AllarmiConsoleConfig;
 import org.openspcoop2.web.ctrlstat.config.ConsoleProperties;
 import org.openspcoop2.web.ctrlstat.config.DatasourceProperties;
 import org.openspcoop2.web.ctrlstat.costanti.CostantiControlStation;
@@ -1018,6 +1022,16 @@ public class ControlStationCore {
 	}
 	public boolean isConfigurazionePluginsEnabled() {
 		return this.configurazionePluginsEnabled;
+	}
+	
+	/** Configurazione Allarmi */
+	private boolean configurazioneAllarmiEnabled = false;
+	public boolean isConfigurazioneAllarmiEnabled() {
+		return this.configurazioneAllarmiEnabled;
+	}
+	private AllarmiConfig allarmiConfig = null;
+	public AllarmiConfig getAllarmiConfig() {
+		return this.allarmiConfig;
 	}
 
 	/** Motori di Sincronizzazione */
@@ -2345,6 +2359,10 @@ public class ControlStationCore {
 		this.selectListSoggettiOperativi_numeroMassimoSoggetti = core.selectListSoggettiOperativi_numeroMassimoSoggetti;
 		this.selectListSoggettiOperativi_dimensioneMassimaLabel = core.selectListSoggettiOperativi_dimensioneMassimaLabel;
 		this.configurazionePluginsEnabled = core.configurazionePluginsEnabled;
+		
+		/** Configurazione Allarmi */
+		this.configurazioneAllarmiEnabled = core.configurazioneAllarmiEnabled;
+		this.allarmiConfig = core.allarmiConfig;
 
 		/** Motori di Sincronizzazione */
 		this.sincronizzazionePddEngineEnabled = core.sincronizzazionePddEngineEnabled;
@@ -2715,6 +2733,10 @@ public class ControlStationCore {
 			this.selectListSoggettiOperativi_numeroMassimoSoggetti = consoleProperties.getNumeroMassimoSoggettiOperativiMenuUtente();
 			this.selectListSoggettiOperativi_dimensioneMassimaLabel = consoleProperties.getLunghezzaMassimaLabelSoggettiOperativiMenuUtente();
 			this.configurazionePluginsEnabled = consoleProperties.isConfigurazionePluginsEnabled();
+			
+			/** Configurazione Allarmi */
+			this.configurazioneAllarmiEnabled = consoleProperties.isConfigurazioneAllarmiEnabled();
+			this.allarmiConfig = new AllarmiConsoleConfig(consoleProperties);
 			
 			// Gestione govwayConsole centralizzata
 			if(this.singlePdD == false){
@@ -3721,6 +3743,22 @@ public class ControlStationCore {
 					}
 					
 					/***********************************************************
+					 * Operazioni su Allarmi *
+					 **********************************************************/
+					// Allarmi
+					if(oggetto instanceof Allarme) {
+						Allarme allarme = (Allarme) oggetto;
+						driver.createAllarme(allarme);
+						doSetDati = false;
+					}
+					// Allarmi History
+					if(oggetto instanceof AllarmeHistory) {
+						AllarmeHistory allarme = (AllarmeHistory) oggetto;
+						driver.createHistoryAllarme(allarme);
+						doSetDati = false;
+					}
+					
+					/***********************************************************
 					 * Extended *
 					 **********************************************************/
 					if(extendedBean!=null && extendedServlet!=null){
@@ -4299,6 +4337,16 @@ public class ControlStationCore {
 					}
 					
 					/***********************************************************
+					 * Operazioni su Allarmi *
+					 **********************************************************/
+					// Allarmi
+					if(oggetto instanceof Allarme) {
+						Allarme allarme = (Allarme) oggetto;
+						driver.updateAllarme(allarme);
+						doSetDati = false;
+					}
+					
+					/***********************************************************
 					 * Extended *
 					 **********************************************************/
 					if(extendedBean!=null && extendedServlet!=null){
@@ -4799,6 +4847,16 @@ public class ControlStationCore {
 					if(oggetto instanceof Plugin) {
 						Plugin plugin = (Plugin) oggetto;
 						driver.deletePluginClassi(plugin);
+						doSetDati = false;
+					}
+					
+					/***********************************************************
+					 * Operazioni su Allarmi *
+					 **********************************************************/
+					// Allarmi
+					if(oggetto instanceof Allarme) {
+						Allarme allarme = (Allarme) oggetto;
+						driver.deleteAllarme(allarme);
 						doSetDati = false;
 					}
 					
@@ -5946,6 +6004,22 @@ public class ControlStationCore {
 					msg+=":OLD<"+bf2.toString()+">";
 				}
 			}
+		}
+		// Allarme
+		else if(oggetto instanceof Allarme) {
+			Allarme allarme = (Allarme) oggetto;
+			msg+=":"+oggetto.getClass().getSimpleName();
+			StringBuilder bf = new StringBuilder();
+			bf.append("Nome[").append(allarme.getNome()).append("]");
+			msg+=":<"+bf.toString()+">";
+		}
+		// AllarmeHistory
+		else if(oggetto instanceof AllarmeHistory) {
+			AllarmeHistory allarme = (AllarmeHistory) oggetto;
+			msg+=":"+oggetto.getClass().getSimpleName();
+			StringBuilder bf = new StringBuilder();
+			bf.append("Nome[").append(allarme.getIdAllarme().getNome()).append("]");
+			msg+=":<"+bf.toString()+">";
 		}
 		// IExtendedBean
 		else if(oggetto instanceof IExtendedBean){

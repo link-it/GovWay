@@ -163,7 +163,7 @@ public final class Liste
     public final static int CONFIGURAZIONE_PLUGINS_ARCHIVI;
     public final static int CONFIGURAZIONE_PLUGINS_ARCHIVI_JAR;
     public final static int CONFIGURAZIONE_PLUGINS_CLASSI;
-	
+    public final static int CONFIGURAZIONE_ALLARMI;
 
     private static int numeroListe = 0;
     static {
@@ -280,6 +280,7 @@ public final class Liste
     	CONFIGURAZIONE_PLUGINS_ARCHIVI = numeroListe ++;
     	CONFIGURAZIONE_PLUGINS_ARCHIVI_JAR = numeroListe ++;
     	CONFIGURAZIONE_PLUGINS_CLASSI = numeroListe ++;
+    	CONFIGURAZIONE_ALLARMI = numeroListe ++;
     }
     
 	

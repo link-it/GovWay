@@ -46,7 +46,7 @@ import org.openspcoop2.monitor.sdk.parameters.Parameter;
  * @author $Author$
  * @version $Rev$, $Date$
  */
-public class AllarmiContext implements Context{
+public class AllarmiContext implements Context{ 
 
 	private AllarmiBean allarmiBean = null;
 	private TipiDatabase tipoDatabase = null;

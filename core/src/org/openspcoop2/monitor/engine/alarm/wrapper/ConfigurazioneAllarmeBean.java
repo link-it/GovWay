@@ -18,22 +18,22 @@
  *
  */
 
-package org.openspcoop2.web.monitor.allarmi.bean;
+package org.openspcoop2.monitor.engine.alarm.wrapper;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
-import org.slf4j.Logger;
 import org.openspcoop2.core.allarmi.Allarme;
 import org.openspcoop2.monitor.engine.config.base.Plugin;
 import org.openspcoop2.monitor.engine.config.base.constants.TipoPlugin;
 import org.openspcoop2.monitor.engine.dynamic.DynamicFactory;
 import org.openspcoop2.monitor.engine.dynamic.IDynamicLoader;
 import org.openspcoop2.monitor.sdk.plugins.IAlarmProcessing;
+import org.openspcoop2.utils.LoggerWrapperFactory;
 import org.openspcoop2.utils.beans.BeanUtils;
 import org.openspcoop2.utils.beans.BlackListElement;
-import org.openspcoop2.web.monitor.core.logger.LoggerManager;
+import org.slf4j.Logger;
 
 /**
  * ConfigurazioneAllarmeBean 
@@ -149,7 +149,7 @@ public class ConfigurazioneAllarmeBean extends Allarme{
 		}
 	}
 	private static String _getTipoFromInstance(Plugin plugin) {
-		Logger log = LoggerManager.getPddMonitorCoreLogger();
+		Logger log = LoggerWrapperFactory.getLogger(ConfigurazioneAllarmeBean.class);
 		try {
 			IDynamicLoader dl = DynamicFactory.getInstance().newDynamicLoader(TipoPlugin.ALLARME, plugin.getTipo(),plugin.getClassName(), log);
 			IAlarmProcessing alarm = (IAlarmProcessing) dl.newInstance();
