@@ -121,6 +121,7 @@ CREATE TABLE porte_applicative
 	id_soggetto NUMBER NOT NULL,
 	ora_registrazione TIMESTAMP,
 	options VARCHAR2(4000),
+	canale VARCHAR2(20),
 	-- fk/pk columns
 	id NUMBER NOT NULL,
 	-- unique constraints

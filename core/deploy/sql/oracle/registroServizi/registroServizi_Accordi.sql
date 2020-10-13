@@ -81,6 +81,7 @@ CREATE TABLE accordi
 	privato NUMBER,
 	ora_registrazione TIMESTAMP,
 	stato VARCHAR2(255) NOT NULL,
+	canale VARCHAR2(20),
 	-- fk/pk columns
 	id NUMBER NOT NULL,
 	-- check constraints

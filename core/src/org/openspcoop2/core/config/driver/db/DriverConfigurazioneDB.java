@@ -11198,6 +11198,13 @@ implements IDriverConfigurazioneGet, IDriverConfigurazioneCRUD, IDriverWS, IMoni
 
 				}
 				
+				// Canali
+				String canali_stato = rs.getString("canali_stato");
+				config.setGestioneCanali(new CanaliConfigurazione());
+				config.getGestioneCanali().setStato(DriverConfigurazioneDB_LIB.getEnumStatoFunzionalita(canali_stato));
+				if(StatoFunzionalita.ABILITATO.equals(config.getGestioneCanali().getStato())) {
+					DriverConfigurazioneDB_LIB.readCanaliConfigurazione(con, config.getGestioneCanali());
+				}
 				
 				ExtendedInfoManager extInfoManager = ExtendedInfoManager.getInstance();
 				IExtendedInfo extInfoConfigurazioneDriver = extInfoManager.newInstanceExtendedInfoConfigurazione();
@@ -11343,7 +11350,7 @@ implements IDriverConfigurazioneGet, IDriverConfigurazioneCRUD, IDriverWS, IMoni
 					configurazione.setAccessControlAllAllowOrigins(DriverConfigurazioneDB_LIB.getEnumStatoFunzionalita(corsAllAllowOrigins));
 				}
 				if(StatoFunzionalita.DISABILITATO.equals(configurazione.getAccessControlAllAllowOrigins())) {
-					List<String> l = convertToList(rs.getString("cors_allow_origins"));
+					List<String> l = DBUtils.convertToList(rs.getString("cors_allow_origins"));
 					if(!l.isEmpty()) {
 						configurazione.setAccessControlAllowOrigins(new CorsConfigurazioneOrigin());
 					}
@@ -11363,7 +11370,7 @@ implements IDriverConfigurazioneGet, IDriverConfigurazioneCRUD, IDriverWS, IMoni
 					configurazione.setAccessControlMaxAge(corsAllowMaxAgeSeconds);
 				}
 				
-				List<String> l = convertToList(rs.getString("cors_allow_headers"));
+				List<String> l = DBUtils.convertToList(rs.getString("cors_allow_headers"));
 				if(!l.isEmpty()) {
 					configurazione.setAccessControlAllowHeaders(new CorsConfigurazioneHeaders());
 				}
@@ -11371,7 +11378,7 @@ implements IDriverConfigurazioneGet, IDriverConfigurazioneCRUD, IDriverWS, IMoni
 					configurazione.getAccessControlAllowHeaders().addHeader(v);
 				}
 				
-				l = convertToList(rs.getString("cors_allow_methods"));
+				l = DBUtils.convertToList(rs.getString("cors_allow_methods"));
 				if(!l.isEmpty()) {
 					configurazione.setAccessControlAllowMethods(new CorsConfigurazioneMethods());
 				}
@@ -11379,7 +11386,7 @@ implements IDriverConfigurazioneGet, IDriverConfigurazioneCRUD, IDriverWS, IMoni
 					configurazione.getAccessControlAllowMethods().addMethod(v);
 				}
 				
-				l = convertToList(rs.getString("cors_allow_expose_headers"));
+				l = DBUtils.convertToList(rs.getString("cors_allow_expose_headers"));
 				if(!l.isEmpty()) {
 					configurazione.setAccessControlExposeHeaders(new CorsConfigurazioneHeaders());
 				}
@@ -11424,7 +11431,7 @@ implements IDriverConfigurazioneGet, IDriverConfigurazioneCRUD, IDriverWS, IMoni
 			}
 			
 			if(StatoFunzionalitaCacheDigestQueryParameter.SELEZIONE_PUNTUALE.equals(configurazione.getHashGenerator().getQueryParameters())) {
-				List<String> l = convertToList(rs.getString("response_cache_hash_query_list"));
+				List<String> l = DBUtils.convertToList(rs.getString("response_cache_hash_query_list"));
 				for (String v : l) {
 					configurazione.getHashGenerator().addQueryParameter(v);
 				}
@@ -11436,7 +11443,7 @@ implements IDriverConfigurazioneGet, IDriverConfigurazioneCRUD, IDriverWS, IMoni
 			}
 			
 			if(StatoFunzionalita.ABILITATO.equals(configurazione.getHashGenerator().getHeaders())) {
-				List<String> l = convertToList(rs.getString("response_cache_hash_hdr_list"));
+				List<String> l = DBUtils.convertToList(rs.getString("response_cache_hash_hdr_list"));
 				for (String v : l) {
 					configurazione.getHashGenerator().addHeader(v);
 				}
@@ -11543,22 +11550,7 @@ implements IDriverConfigurazioneGet, IDriverConfigurazioneCRUD, IDriverWS, IMoni
 	}
 	
 	
-			
-	private List<String> convertToList(String v){
-		List<String> l = new ArrayList<>();
-		if(v!=null && !"".equals(v)) {
-			if(v.contains(",")) {
-				String [] tmp = v.split(",");
-				for (int i = 0; i < tmp.length; i++) {
-					l.add(tmp[i].trim());
-				}
-			}else {
-				l.add(v.trim());
-			}
-		}
-		return l;
-	}
-
+	
 	public Object getConfigurazioneExtended(Configurazione config, String idExtendedConfiguration) throws DriverConfigurazioneException, DriverConfigurazioneNotFound {
 		Connection con = null;
 		
@@ -19715,6 +19707,7 @@ implements IDriverConfigurazioneGet, IDriverConfigurazioneCRUD, IDriverWS, IMoni
 			sqlQueryObject.addSelectField("id_port_type");
 			sqlQueryObject.addSelectField("options");
 			sqlQueryObject.addSelectField("id_sa_default");
+			sqlQueryObject.addSelectField("canale");
 			sqlQueryObject.addWhereCondition(CostantiDB.PORTE_APPLICATIVE+".id_soggetto = "+this.tabellaSoggetti+".id");
 			sqlQueryObject.addWhereCondition(CostantiDB.PORTE_APPLICATIVE+".id = ?");
 			sqlQueryObject.setANDLogicOperator(true);
@@ -20087,6 +20080,10 @@ implements IDriverConfigurazioneGet, IDriverConfigurazioneCRUD, IDriverWS, IMoni
 				// Servizio Applicativo di default
 				long id_sa_default = rs.getLong("id_sa_default");
 				
+				// Canali
+				String canale = rs.getString("canale");
+				pa.setCanale(canale);
+				
 				rs.close();
 				stm.close();
 
@@ -20344,7 +20341,7 @@ implements IDriverConfigurazioneGet, IDriverConfigurazioneCRUD, IDriverWS, IMoni
 								servizioApplicativo.getDatiConnettore().setPriorita(prioritaConnettore);
 								servizioApplicativo.getDatiConnettore().setPrioritaMax(maxPrioritaConnettore == CostantiDB.TRUE);
 								
-								List<String> l = convertToList(filtriConnettore);
+								List<String> l = DBUtils.convertToList(filtriConnettore);
 								if(!l.isEmpty()) {
 									servizioApplicativo.getDatiConnettore().setFiltroList(l);
 								}
@@ -20811,6 +20808,7 @@ implements IDriverConfigurazioneGet, IDriverConfigurazioneCRUD, IDriverWS, IMoni
 			sqlQueryObject.addSelectField("id_accordo");
 			sqlQueryObject.addSelectField("id_port_type");
 			sqlQueryObject.addSelectField("options");
+			sqlQueryObject.addSelectField("canale");
 			sqlQueryObject.addWhereCondition(CostantiDB.PORTE_DELEGATE+".id_soggetto = "+this.tabellaSoggetti+".id");
 			sqlQueryObject.addWhereCondition(CostantiDB.PORTE_DELEGATE+".id = ?");
 			sqlQueryObject.setANDLogicOperator(true);
@@ -21190,6 +21188,10 @@ implements IDriverConfigurazioneGet, IDriverConfigurazioneCRUD, IDriverWS, IMoni
 					pd.setResponseCaching(new ResponseCachingConfigurazione());
 					readResponseCaching(idPortaDelegata, false, true, pd.getResponseCaching(), rs, con);
 				}
+				
+				// Canali
+				String canale = rs.getString("canale");
+				pd.setCanale(canale);
 				
 				rs.close();
 				stm.close();

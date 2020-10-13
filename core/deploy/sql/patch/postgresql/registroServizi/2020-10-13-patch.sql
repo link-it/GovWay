@@ -1,0 +1,1 @@
+ALTER TABLE accordi ADD COLUMN canale VARCHAR(20);
