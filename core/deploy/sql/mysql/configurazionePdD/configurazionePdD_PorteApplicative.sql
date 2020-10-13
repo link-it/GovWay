@@ -120,6 +120,7 @@ CREATE TABLE porte_applicative
 	-- Precisione ai millisecondi supportata dalla versione 5.6.4, se si utilizza una versione precedente non usare il suffisso '(3)'
 	ora_registrazione TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP(3),
 	options VARCHAR(4000),
+	canale VARCHAR(20),
 	-- fk/pk columns
 	id BIGINT AUTO_INCREMENT,
 	-- unique constraints
@@ -192,7 +193,7 @@ CREATE TABLE pa_behaviour_props
 	-- fk/pk columns
 	id BIGINT AUTO_INCREMENT,
 	-- unique constraints
-	-- CONSTRAINT uniq_pa_behaviour_props_1 UNIQUE (id_porta,nome,valore),
+	CONSTRAINT uniq_pa_behaviour_props_1 UNIQUE (id_porta,nome,valore),
 	-- fk/pk keys constraints
 	CONSTRAINT fk_pa_behaviour_props_1 FOREIGN KEY (id_porta) REFERENCES porte_applicative(id),
 	CONSTRAINT pk_pa_behaviour_props PRIMARY KEY (id)

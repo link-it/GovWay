@@ -1382,6 +1382,7 @@ IDriverWS ,IMonitoraggioRisorsa{
 			sqlQueryObject.addSelectField(CostantiDB.SOGGETTI,"nome_soggetto");
 			sqlQueryObject.addSelectField(CostantiDB.ACCORDI,"versione");
 			sqlQueryObject.addSelectField(CostantiDB.ACCORDI,"stato");
+			sqlQueryObject.addSelectField(CostantiDB.ACCORDI,"canale");
 			sqlQueryObject.addWhereCondition(CostantiDB.ACCORDI+".id = ?");
 			sqlQueryObject.addWhereCondition(CostantiDB.ACCORDI+".id_referente = "+CostantiDB.SOGGETTI+".id");
 			sqlQueryObject.setANDLogicOperator(true);
@@ -1476,6 +1477,10 @@ IDriverWS ,IMonitoraggioRisorsa{
 				tmp = rs.getString("stato");
 				accordoServizio.setStatoPackage(((tmp == null || tmp.equals("")) ? null : tmp));
 
+				// Canali
+				String canale = rs.getString("canale");
+				accordoServizio.setCanale(canale);
+				
 				rs.close();
 				stm.close();
 
@@ -2032,6 +2037,10 @@ IDriverWS ,IMonitoraggioRisorsa{
 				tmp = rs.getString("stato");
 				accordoServizio.setStatoPackage(((tmp == null || tmp.equals("")) ? null : tmp));
 
+				// Canali
+				String canale = rs.getString("canale");
+				accordoServizio.setCanale(canale);
+				
 				rs.close();
 				stm.close();
 
@@ -3816,6 +3825,7 @@ IDriverWS ,IMonitoraggioRisorsa{
 			sqlQueryObject.addInsertField("privato", "?");
 			if(accordoServizio.getStatoPackage()!=null)
 				sqlQueryObject.addInsertField("stato", "?");
+			sqlQueryObject.addInsertField("canale", "?");
 			if(accordoServizio.getSoggettoReferente()!=null)
 				sqlQueryObject.addInsertField("id_referente", "?");
 			sqlQueryObject.addInsertField("versione", "?");
@@ -3853,6 +3863,8 @@ IDriverWS ,IMonitoraggioRisorsa{
 				stm.setString(index, accordoServizio.getStatoPackage());
 				index++;
 			}
+			stm.setString(index, accordoServizio.getCanale());
+			index++;
 			if(accordoServizio.getSoggettoReferente()!=null){
 				long idReferente = DBUtils.getIdSoggetto(accordoServizio.getSoggettoReferente().getNome(), accordoServizio.getSoggettoReferente().getTipo(), connection, this.tipoDB, this.tabellaSoggetti);
 				if(idReferente<=0){
@@ -5042,6 +5054,8 @@ IDriverWS ,IMonitoraggioRisorsa{
 				sqlQueryObject.addUpdateField("stato", "?");
 			}
 
+			sqlQueryObject.addUpdateField("canale", "?");
+			
 			if(accordoServizio.getOraRegistrazione()!=null)
 				sqlQueryObject.addUpdateField("ora_registrazione", "?");
 
@@ -5083,6 +5097,8 @@ IDriverWS ,IMonitoraggioRisorsa{
 				stm.setString(index++, accordoServizio.getStatoPackage());
 			}
 
+			stm.setString(index++, accordoServizio.getCanale());
+			
 			if(accordoServizio.getOraRegistrazione()!=null){
 				stm.setTimestamp(index++, new Timestamp(accordoServizio.getOraRegistrazione().getTime()));
 			}
