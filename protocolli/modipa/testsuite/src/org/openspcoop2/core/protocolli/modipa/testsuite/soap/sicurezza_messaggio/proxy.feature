@@ -5,6 +5,7 @@ Background:
     # TODO: usa Gov...Test-ID anzichè Gov...Test-Id anche negli altri test
     * def isTest = function(id) { return headerContains('GovWay-TestSuite-Test-ID', id) } 
     * def karateCache = Java.type('org.openspcoop2.core.protocolli.modipa.testsuite.KarateCache')
+    * def check_signature = read('check-signature.feature')
 
 
 Scenario: isTest('connettivita-base')
@@ -48,8 +49,10 @@ Scenario: isTest('connettivita-base')
         </wsa:ReplyTo>
     </soap:Header>
     """
-    
     * match client_token == match_to
+
+    * def body = bodyPath('/')
+    * call check_signature [ {element: 'To'}, {element: 'From'}, {element: 'MessageID'}, {element: 'ReplyTo'} ]
 
     * karate.proceed (url_invocazione_erogazione)
 
@@ -62,6 +65,9 @@ Scenario: isTest('connettivita-base')
     * match /Envelope/Header/To == "DemoSoggettoFruitore/ApplicativoBlockingIDA01"
     * match /Envelope/Header/From/Address == "SoapBlockingIDAS01/v1"
     * match /Envelope/Header/MessageID == "#uuid"
+
+    * def body = response
+    * call check_signature [ {element: 'To'}, {element: 'From'}, {element: 'MessageID'}, {element: 'ReplyTo'}, {element: 'RelatesTo'} ]
 
     * xmlstring server_response = response
     * eval karateCache.add("Server-Response", server_response)
@@ -80,6 +86,9 @@ Scenario: isTest('connettivita-base-default-trustore')
     * match bodyPath('/Envelope/Header/From/Address') == "DemoSoggettoFruitore/ApplicativoBlockingIDA01"
     * match bodyPath('/Envelope/Header/MessageID') == "#uuid"
 
+    * def body = bodyPath('/')
+    * call check_signature [ {element: 'To'}, {element: 'From'}, {element: 'MessageID'}, {element: 'ReplyTo'} ]
+
     * karate.proceed (url_invocazione_erogazione)
 
     * match /Envelope/Header/Security/Signature == "#present"
@@ -89,13 +98,24 @@ Scenario: isTest('connettivita-base-default-trustore')
     * match /Envelope/Header/From/Address == "SoapBlockingIDAS01DefaultTrustore/v1"
     * match /Envelope/Header/MessageID == "#uuid"
 
+    * def body = response
+    * call check_signature [ {element: 'To'}, {element: 'From'}, {element: 'MessageID'}, {element: 'ReplyTo'}, {element: 'RelatesTo'} ]
+
     * xmlstring server_response = response
     * eval karateCache.add("Server-Response", server_response)
 
 
 Scenario: isTest('connettivita-base-no-sbustamento')
+
+    * xmlstring client_request = bodyPath('/')
+    * eval karateCache.add("Client-Request", client_request)
+
     * def url_invocazione_erogazione = govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01DefaultTrustoreNoSbustamento/v1'
     * karate.proceed (url_invocazione_erogazione)
+
+    * xmlstring server_response = response
+    * eval karateCache.add("Server-Response", server_response)
+
     
 # catch all
 #

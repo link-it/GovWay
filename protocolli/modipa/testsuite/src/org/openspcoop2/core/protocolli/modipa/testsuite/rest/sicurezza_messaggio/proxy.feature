@@ -86,9 +86,21 @@ Scenario: isTest('connettivita-base-default-trustore')
 
 
 Scenario: isTest('connettivita-base-no-sbustamento')
+    
 
+    # Testo il token del client sulla feature di mock e il token del server sulla feature client (idar01.feature)
+    
     * def url_invocazione_erogazione = govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01DefaultTrustoreNoSbustamento/v1'
     * karate.proceed (url_invocazione_erogazione)
+
+    * def newHeaders = 
+    """
+    ({
+        'GovWay-TestSuite-GovWay-Client-Token': requestHeaders.Authorization[0],
+        'GovWay-TestSuite-GovWay-Server-Token': responseHeaders.Authorization[0],
+    })
+    """
+    * def responseHeaders = karate.merge(responseHeaders,newHeaders)
 
 
 # catch all

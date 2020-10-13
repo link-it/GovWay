@@ -7,6 +7,7 @@ Background:
     * configure afterFeature = function(){ karate.call('classpath:utils/jmx-disable-error-disclosure.feature'); }
     
     * def check_traccia = read('check-tracce/check-traccia.feature')
+    * def check_signature = read('classpath:org/openspcoop2/core/protocolli/modipa/testsuite/soap/sicurezza_messaggio/check-signature.feature')
 
 @connettivita-base
 Scenario: Test connettività base
@@ -123,6 +124,45 @@ And header GovWay-TestSuite-Test-ID = 'connettivita-base-no-sbustamento'
 And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01NoSbustamento', password: 'ApplicativoBlockingIDA01NoSbustamento' })
 When method post
 Then status 200
-And match /Envelope/Header/Security/Timestamp/Created == '#notnull'
 
-# TODO: Controlla che sia arrivato lo header di sicurezza
+* match /Envelope/Header/Security/Signature == "#present"
+* match /Envelope/Header/Security/Timestamp/Created == "#string"
+* match /Envelope/Header/Security/Timestamp/Expires == "#string"
+* match /Envelope/Header/To == "DemoSoggettoFruitore/ApplicativoBlockingIDA01NoSbustamento"
+* match /Envelope/Header/From/Address == "SoapBlockingIDAS01DefaultTrustoreNoSbustamento/v1"
+* match /Envelope/Header/MessageID == "#uuid"
+
+* def body = response
+* call check_signature [ {element: 'To'}, {element: 'From'}, {element: 'MessageID'}, {element: 'ReplyTo'}, {element: 'RelatesTo'} ]
+
+* def karateCache = Java.type('org.openspcoop2.core.protocolli.modipa.testsuite.KarateCache')
+* xml client_request = karateCache.get("Client-Request")
+* xml server_response = karateCache.get("Server-Response")
+
+* def client_token_to_match = 
+"""
+({
+    x509sub: 'CN=ExampleClient1, O=Example, L=Pisa, ST=Italy, C=IT',
+    wsa_to: karate.xmlPath(client_request, '/Envelope/Header/To'),
+    wsa_from: karate.xmlPath(client_request, '/Envelope/Header/From/Address'),
+    message_id: karate.xmlPath(client_request, '/Envelope/Header/MessageID')
+})
+"""
+
+* def server_token_to_match = 
+"""
+({
+    x509sub: 'CN=ExampleServer, O=Example, L=Pisa, ST=Italy, C=IT',
+    wsa_to: karate.xmlPath(server_response, '/Envelope/Header/To'),
+    wsa_from: karate.xmlPath(server_response, '/Envelope/Header/From/Address'),
+    message_id: karate.xmlPath(server_response, '/Envelope/Header/MessageID')
+})
+"""
+
+* def tid = responseHeaders['GovWay-Transaction-ID'][0]
+* call check_traccia ({tid: tid, tipo: 'Richiesta', token: client_token_to_match })
+* call check_traccia ({tid: tid, tipo: 'Risposta', token: server_token_to_match })
+
+* def tid = responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]
+* call check_traccia ({tid: tid, tipo: 'Richiesta', token: client_token_to_match })
+* call check_traccia ({tid: tid, tipo: 'Risposta', token: server_token_to_match })
