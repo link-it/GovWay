@@ -6,10 +6,7 @@ Background:
     * def isTest = function(id) { return headerContains('GovWay-TestSuite-Test-ID', id) } 
     * def checkToken = read('check-token.feature')
 
-   
-Scenario: isTest('connettivita-base')
-
-    * def match_token = 
+    * def client_token_match = 
     """
     ({
         header: { kid: 'ExampleClient1' },
@@ -21,13 +18,18 @@ Scenario: isTest('connettivita-base')
         }
     })
     """
-    
-    * call checkToken ({token: requestHeaders.Authorization[0], match_to: match_token })
+
+
+   
+Scenario: isTest('connettivita-base')
+
+    * call checkToken ({token: requestHeaders.Authorization[0], match_to: client_token_match })
 
     * def url_invocazione_erogazione = govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01/v1'
     * karate.proceed (url_invocazione_erogazione)
     
-    * def match_token = 
+
+    * def server_token_match =
     """
     ({
         header: { kid: 'ExampleServer'},
@@ -39,8 +41,38 @@ Scenario: isTest('connettivita-base')
         }
     })
     """
-    
-    * call checkToken ({token: responseHeaders.Authorization[0], match_to: match_token  })
+    * call checkToken ({token: responseHeaders.Authorization[0], match_to: server_token_match  })
+
+    * def newHeaders = 
+    """
+    ({
+        'GovWay-TestSuite-GovWay-Client-Token': requestHeaders.Authorization[0],
+        'GovWay-TestSuite-GovWay-Server-Token': responseHeaders.Authorization[0],
+    })
+    """
+    * def responseHeaders = karate.merge(responseHeaders,newHeaders)
+
+Scenario: isTest('connettivita-base-default-trustore')
+
+    * call checkToken ({token: requestHeaders.Authorization[0], match_to: client_token_match })
+
+    * def url_invocazione_erogazione = govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01DefaultTrustore/v1'
+    * karate.proceed (url_invocazione_erogazione)
+
+    * def server_token_match =
+    """
+    ({
+        header: { kid: 'ExampleServer'},
+        payload: {
+            aud: 'DemoSoggettoFruitore/ApplicativoBlockingIDA01',
+            client_id: 'RestBlockingIDAR01DefaultTrustore/v1',
+            iss: 'DemoSoggettoErogatore',
+            sub: 'RestBlockingIDAR01DefaultTrustore/v1'
+        }
+    })
+    """
+
+    * call checkToken ({token: responseHeaders.Authorization[0], match_to: server_token_match  })
 
     * def newHeaders = 
     """

@@ -53,12 +53,47 @@ Scenario: isTest('connettivita-base')
 
     * karate.proceed (url_invocazione_erogazione)
 
+    # Qui faccio match manuali, non so perchè quando matcho la risposta si lamenta dell'assenza
+    # del prefisso soap
+
+    * match /Envelope/Header/Security/Signature == "#present"
+    * match /Envelope/Header/Security/Timestamp/Created == "#string"
+    * match /Envelope/Header/Security/Timestamp/Expires == "#string"
+    * match /Envelope/Header/To == "DemoSoggettoFruitore/ApplicativoBlockingIDA01"
+    * match /Envelope/Header/From/Address == "SoapBlockingIDAS01/v1"
+    * match /Envelope/Header/MessageID == "#uuid"
+
     * xmlstring server_response = response
     * eval karateCache.add("Server-Response", server_response)
 
+
+Scenario: isTest('connettivita-base-default-trustore')
+    * def url_invocazione_erogazione = govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01DefaultTrustore/v1'
     
+    * xmlstring client_request = bodyPath('/')
+    * eval karateCache.add("Client-Request", client_request)
+
+    * match bodyPath('/Envelope/Header/Security/Signature') == "#present"
+    * match bodyPath('/Envelope/Header/Security/Timestamp/Created') == "#string"
+    * match bodyPath('/Envelope/Header/Security/Timestamp/Expires') == "#string"
+    * match bodyPath('/Envelope/Header/To') == "testsuite"
+    * match bodyPath('/Envelope/Header/From/Address') == "DemoSoggettoFruitore/ApplicativoBlockingIDA01"
+    * match bodyPath('/Envelope/Header/MessageID') == "#uuid"
+
+    * karate.proceed (url_invocazione_erogazione)
+
+    * match /Envelope/Header/Security/Signature == "#present"
+    * match /Envelope/Header/Security/Timestamp/Created == "#string"
+    * match /Envelope/Header/Security/Timestamp/Expires == "#string"
+    * match /Envelope/Header/To == "DemoSoggettoFruitore/ApplicativoBlockingIDA01"
+    * match /Envelope/Header/From/Address == "SoapBlockingIDAS01DefaultTrustore/v1"
+    * match /Envelope/Header/MessageID == "#uuid"
+
+    * xmlstring server_response = response
+    * eval karateCache.add("Server-Response", server_response)
 
 
+    
 # catch all
 #
 #

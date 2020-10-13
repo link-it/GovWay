@@ -16,7 +16,7 @@ Background:
     * configure responseHeaders = confHeaders
 
 
-Scenario: isTest('connettivita-base')
+Scenario: isTest('connettivita-base') || isTest('connettivita-base-default-trustore')
     * def responseStatus = 200
     * def response = read('classpath:test/soap/sicurezza-messaggio/response.xml')
 

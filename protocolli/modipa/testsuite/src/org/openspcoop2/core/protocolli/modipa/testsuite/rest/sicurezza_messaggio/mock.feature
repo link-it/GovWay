@@ -15,7 +15,7 @@ Background:
     * configure responseHeaders = confHeaders
 
 
-Scenario: isTest('connettivita-base')
+Scenario: isTest('connettivita-base') || isTest('connettivita-base-default-trustore')
     # Controllo che al server non siano arrivate le informazioni di sicurezza
     * match requestHeaders['Authorization'] == '#notpresent'
     * def responseStatus = 200
