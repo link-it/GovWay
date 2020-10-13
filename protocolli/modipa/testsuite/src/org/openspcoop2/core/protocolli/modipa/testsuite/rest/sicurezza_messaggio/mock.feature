@@ -22,6 +22,14 @@ Scenario: isTest('connettivita-base') || isTest('connettivita-base-default-trust
     * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
 
 
+
+Scenario: isTest('connettivita-base-no-sbustamento')
+    # Controllo che al server siano arrivate le informazioni di sicurezza
+    * match requestHeaders['Authorization'] == '#notnull'
+    * def responseStatus = 200
+    * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
+
+
 # catch all
 #
 #

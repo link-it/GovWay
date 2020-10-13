@@ -17,6 +17,15 @@ Background:
 
 
 Scenario: isTest('connettivita-base') || isTest('connettivita-base-default-trustore')
+    
+    * match bodyPath('/Envelope/Header') == ''
+    * def responseStatus = 200
+    * def response = read('classpath:test/soap/sicurezza-messaggio/response.xml')
+
+
+Scenario: isTest('connettivita-base-no-sbustamento')
+    
+    * match bodyPath('/Envelope/Header/Security/Timestamp/Created') == '#notnull'
     * def responseStatus = 200
     * def response = read('classpath:test/soap/sicurezza-messaggio/response.xml')
 

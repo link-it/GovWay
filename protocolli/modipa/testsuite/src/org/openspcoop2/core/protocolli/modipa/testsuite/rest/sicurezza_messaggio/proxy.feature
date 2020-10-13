@@ -52,6 +52,7 @@ Scenario: isTest('connettivita-base')
     """
     * def responseHeaders = karate.merge(responseHeaders,newHeaders)
 
+
 Scenario: isTest('connettivita-base-default-trustore')
 
     * call checkToken ({token: requestHeaders.Authorization[0], match_to: client_token_match })
@@ -82,6 +83,12 @@ Scenario: isTest('connettivita-base-default-trustore')
     })
     """
     * def responseHeaders = karate.merge(responseHeaders,newHeaders)
+
+
+Scenario: isTest('connettivita-base-no-sbustamento')
+
+    * def url_invocazione_erogazione = govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01DefaultTrustoreNoSbustamento/v1'
+    * karate.proceed (url_invocazione_erogazione)
 
 
 # catch all

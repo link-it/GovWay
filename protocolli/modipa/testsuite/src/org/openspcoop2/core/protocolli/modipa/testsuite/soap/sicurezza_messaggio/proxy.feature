@@ -93,6 +93,9 @@ Scenario: isTest('connettivita-base-default-trustore')
     * eval karateCache.add("Server-Response", server_response)
 
 
+Scenario: isTest('connettivita-base-no-sbustamento')
+    * def url_invocazione_erogazione = govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01DefaultTrustoreNoSbustamento/v1'
+    * karate.proceed (url_invocazione_erogazione)
     
 # catch all
 #

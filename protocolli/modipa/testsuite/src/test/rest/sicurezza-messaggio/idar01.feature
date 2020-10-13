@@ -59,3 +59,18 @@ And match header Authorization == '#notpresent'
 * call check_traccia ({ tid: tid, tipo: 'Richiesta', token: client_token, x509sub: 'CN=ExampleClient1, O=Example, L=Pisa, ST=Italy, C=IT' })
 * call check_traccia ({ tid: tid, tipo: 'Risposta', token: server_token, x509sub: 'CN=ExampleServer, O=Example, L=Pisa, ST=Italy, C=IT' })
 
+
+@connettivita-base-no-sbustamento
+Scenario: Test connettività base senza sbustamento modipa
+
+* def url_invocazione = govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01DefaultTrustore/v1"
+
+Given url url_invocazione
+And path 'resources', 1, 'M'
+And request read('request.json')
+And header GovWay-TestSuite-Test-ID = 'connettivita-base-no-sbustamento'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01NoSbustamento', password: 'ApplicativoBlockingIDA01NoSbustamento' })
+When method post
+Then status 200
+And match response == read('response.json')
+And match header Authorization == '#notnull'

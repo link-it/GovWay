@@ -59,7 +59,7 @@ And match response == resp
 
 
 @connettivita-base-default-trustore
-Scenario: Test connettività base
+Scenario: Test connettività base con trustore default
 
 * def body = read("request.xml")
 * def resp = read("response.xml")
@@ -107,3 +107,22 @@ And match response == resp
 * call check_traccia ({tid: tid, tipo: 'Richiesta', token: client_token_to_match })
 * call check_traccia ({tid: tid, tipo: 'Risposta', token: server_token_to_match })
 
+
+@connettivita-base-no-sbustamento
+Scenario: Test connettività base senza sbustamento modipa
+
+* def body = read("request.xml")
+* def resp = read("response.xml")
+* def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS01DefaultTrustore/v1'
+
+Given url soap_url
+And request body
+And header Content-Type = 'application/soap+xml'
+And header action = soap_url
+And header GovWay-TestSuite-Test-ID = 'connettivita-base-no-sbustamento'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01NoSbustamento', password: 'ApplicativoBlockingIDA01NoSbustamento' })
+When method post
+Then status 200
+And match /Envelope/Header/Security/Timestamp/Created == '#notnull'
+
+# TODO: Controlla che sia arrivato lo header di sicurezza
