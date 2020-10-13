@@ -3296,7 +3296,8 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 			boolean responseCachingEnabled,	int responseCachingSeconds, boolean responseCachingMaxResponseSize,	long responseCachingMaxResponseSizeBytes, 
 			boolean responseCachingDigestUrlInvocazione, boolean responseCachingDigestHeaders, boolean responseCachingDigestPayload, String responseCachingDigestHeadersNomiHeaders, StatoFunzionalitaCacheDigestQueryParameter responseCachingDigestQueryParameter, String responseCachingDigestNomiParametriQuery, 
 			boolean responseCachingCacheControlNoCache, boolean responseCachingCacheControlMaxAge, boolean responseCachingCacheControlNoStore, boolean visualizzaLinkConfigurazioneRegola, 
-			String servletResponseCachingConfigurazioneRegolaList, List<Parameter> paramsResponseCachingConfigurazioneRegolaList, int numeroResponseCachingConfigurazioneRegola, int numeroRegoleProxyPass
+			String servletResponseCachingConfigurazioneRegolaList, List<Parameter> paramsResponseCachingConfigurazioneRegolaList, int numeroResponseCachingConfigurazioneRegola, int numeroRegoleProxyPass,
+			boolean canaliEnabled, int numeroCanali, int numeroNodi, String canaliNome, String canaliDescrizione			
 			) throws Exception {
 		DataElement de = new DataElement();
 
@@ -3802,6 +3803,9 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 				visualizzaLinkConfigurazioneRegola, servletResponseCachingConfigurazioneRegolaList, paramsResponseCachingConfigurazioneRegolaList, numeroResponseCachingConfigurazioneRegola,
 				allHidden);
 		
+		// Configurazione Canali
+		this.addConfigurazioneCanaliToDati(dati, canaliEnabled, numeroCanali, numeroNodi, canaliNome, canaliDescrizione, true, allHidden);
+		
 		
 		if(!allHidden && !multitenantEnabled) {
 			de = new DataElement();
@@ -3931,6 +3935,84 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 		return dati;
 	}
 	
+	private void addConfigurazioneCanaliToDati(Vector<DataElement> dati, boolean canaliEnabled, int numeroCanali,
+			int numeroNodi, String canaliNome, String canaliDescrizione, boolean addTitle, boolean allHidden) {
+		
+		boolean contaListeFromSession = ServletUtils.getContaListeFromSession(this.session) != null ? ServletUtils.getContaListeFromSession(this.session) : false;
+		DataElement de;
+		
+		if(!allHidden && addTitle) {
+			de = new DataElement();
+			de.setLabel(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_CANALI);
+			de.setType(DataElementType.TITLE);
+			dati.addElement(de);
+		}
+		
+		de = new DataElement();
+		de.setLabel(addTitle ?  CostantiControlStation.LABEL_PARAMETRO_CONFIGURAZIONE_RESPONSE_CACHING_STATO : "");
+		de.setName(CostantiControlStation.PARAMETRO_CONFIGURAZIONE_RESPONSE_CACHING_STATO);
+		if(allHidden) {
+			de.setType(DataElementType.HIDDEN);
+		}
+		else {
+			de.setType(DataElementType.SELECT);
+			de.setPostBack(true);
+			de.setValues(CostantiControlStation.SELECT_VALUES_STATO_FUNZIONALITA);
+			de.setSelected(canaliEnabled ? StatoFunzionalita.ABILITATO.getValue() : StatoFunzionalita.DISABILITATO.getValue());
+		}
+		de.setValue(canaliEnabled ? StatoFunzionalita.ABILITATO.getValue() : StatoFunzionalita.DISABILITATO.getValue());
+		dati.addElement(de);
+		
+		if(!allHidden) {
+			// se si passa da disabilitato ad abilitato, il numero dei canali e' 0, devo visualizzare la form di inserimento del canale di default
+			if(numeroCanali == 0) {
+				// subtitle
+				de = new DataElement();
+				de.setLabel(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_CANALE);
+				de.setType(DataElementType.SUBTITLE);
+				dati.addElement(de);
+				
+				// nome canale 
+				de = new DataElement();
+				de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_CANALI_NOME);
+				de.setType(DataElementType.HIDDEN);
+				de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_CANALI_NOME);
+				de.setValue(canaliNome);
+				dati.addElement(de);
+				
+				
+				// descrizione canale
+				de = new DataElement();
+				de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_CANALI_NOME);
+				de.setType(DataElementType.HIDDEN);
+				de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_CANALI_NOME);
+				de.setValue(canaliDescrizione);
+				dati.addElement(de);
+			} else {
+				// link canali
+				de = new DataElement();
+				de.setType(DataElementType.LINK);
+				de.setUrl(ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_CANALI_LIST);
+				
+				if (contaListeFromSession)
+					de.setValue(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_CANALI_CANALI +" (" + numeroCanali + ")");
+				else
+					de.setValue(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_CANALI_CANALI);
+				dati.addElement(de);
+				
+				// link nodi
+				de = new DataElement();
+				de.setType(DataElementType.LINK);
+				de.setUrl(ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_CANALI_NODI_LIST);
+				if (contaListeFromSession)
+					de.setValue(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_CANALI_CANALI_NODI +" (" + numeroNodi + ")");
+				else
+					de.setValue(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_CANALI_CANALI_NODI);
+				dati.addElement(de);
+			}
+			
+		}
+	}
 	public void addRegistrazioneMessaggiToDatiAsHidden(String dumpPD, String dumpPA, Configurazione configurazione,	Vector<DataElement> dati) {
 		DataElement de = new DataElement();
 		
