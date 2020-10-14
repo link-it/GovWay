@@ -29,26 +29,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.struts.action.Action;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.openspcoop2.core.commons.Liste;
+import org.openspcoop2.core.config.CanaleConfigurazione;
+import org.openspcoop2.core.config.CanaliConfigurazione;
 import org.openspcoop2.core.config.Configurazione;
-import org.openspcoop2.core.config.ConfigurazioneMultitenant;
-import org.openspcoop2.core.config.ConfigurazioneUrlInvocazione;
-import org.openspcoop2.core.config.ConfigurazioneUrlInvocazioneRegola;
-import org.openspcoop2.core.config.IdSoggetto;
-import org.openspcoop2.core.config.constants.RuoloContesto;
-import org.openspcoop2.core.config.constants.ServiceBinding;
-import org.openspcoop2.core.config.constants.StatoFunzionalita;
-import org.openspcoop2.core.id.IDSoggetto;
 import org.openspcoop2.web.ctrlstat.core.ControlStationCore;
 import org.openspcoop2.web.ctrlstat.core.Search;
-import org.openspcoop2.web.ctrlstat.costanti.CostantiControlStation;
 import org.openspcoop2.web.ctrlstat.servlet.GeneralHelper;
-import org.openspcoop2.web.ctrlstat.servlet.soggetti.SoggettiCore;
 import org.openspcoop2.web.lib.mvc.Costanti;
 import org.openspcoop2.web.lib.mvc.DataElement;
 import org.openspcoop2.web.lib.mvc.ForwardParams;
@@ -59,7 +50,7 @@ import org.openspcoop2.web.lib.mvc.ServletUtils;
 import org.openspcoop2.web.lib.mvc.TipoOperazione;
 
 /**
- * ConfigurazioneProxyPassRegolaAdd
+ * ConfigurazioneCanaliAdd
  * 
  * @author Giuliano Pintori (pintori@link.it)
  * @author $Author$
@@ -88,52 +79,20 @@ public final class ConfigurazioneCanaliAdd extends Action {
 		try {
 			ConfigurazioneHelper confHelper = new ConfigurazioneHelper(request, pd, session);
 			
-			String idRegolaS = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROXY_PASS_ID_REGOLA);
-			String nome = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROXY_PASS_REGOLA_NOME);
-			String descrizione = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROXY_PASS_REGOLA_DESCRIZIONE);
-			String stato = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROXY_PASS_REGOLA_STATO);
-			String regExprS = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROXY_PASS_REGOLA_REG_EXPR);
-			boolean regExpr = regExprS != null ? ServletUtils.isCheckBoxEnabled(regExprS) : false;
-			String regolaText = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROXY_PASS_REGOLA_REGOLA_TEXT);
-			String contestoEsterno = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROXY_PASS_REGOLA_CONTESTO_ESTERNO);
-			String baseUrl = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROXY_PASS_REGOLA_BASE_URL);
-			String protocollo = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROXY_PASS_REGOLA_PROFILO);
-			String soggetto = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROXY_PASS_REGOLA_SOGGETTO);
-			String ruolo = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROXY_PASS_REGOLA_RUOLO);
-			String serviceBinding = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROXY_PASS_REGOLA_SERVICE_BINDING);
-			
+			String idCanaleS = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_CANALI_ID_CANALE);
+			String nome = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_CANALI_NOME);
+			String descrizione = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_CANALI_DESCRIZIONE);
+
 			ConfigurazioneCore confCore = new ConfigurazioneCore();
-			SoggettiCore soggettiCore = new SoggettiCore(confCore);
 			Configurazione configurazioneGenerale = confCore.getConfigurazioneGenerale();
-			ConfigurazioneMultitenant configurazioneMultitenant = configurazioneGenerale.getMultitenant();
-			boolean multiTenant = false;
-			if(configurazioneMultitenant != null) {
-				StatoFunzionalita statoMultitenant = configurazioneMultitenant.getStato();
-				multiTenant = StatoFunzionalita.ABILITATO.equals(statoMultitenant);
-			}
 
 			// Preparo il menu
 			confHelper.makeMenu();
 			List<Parameter> lstParam = new ArrayList<Parameter>();
 			
-			String postBackElementName = confHelper.getPostBackElementName();
-			
-			List<String> protocolli = confCore.getProtocolli();
-			List<IDSoggetto> soggetti = new ArrayList<>();
-			// soggetti per profilo
-			if(StringUtils.isNotEmpty(protocollo)) {
-				  soggetti = soggettiCore.getIdSoggettiOperativi(protocollo);
-				} 
-			
-			// se ho modificato il soggetto ricalcolo il servizio e il service binding
-			if (postBackElementName != null) {
-				if(postBackElementName.equals(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROXY_PASS_REGOLA_PROFILO)) {
-				}
-			}
-
 			// setto la barra del titolo
 			lstParam.add(new Parameter(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_GENERALE, ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_GENERALE));
-			lstParam.add(new Parameter(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_PROXY_PASS_REGOLE, ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_PROXY_PASS_REGOLA_LIST));
+			lstParam.add(new Parameter(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_CANALI, ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_CANALI_LIST));
 			lstParam.add(ServletUtils.getParameterAggiungi());
 			ServletUtils.setPageDataTitle(pd, lstParam);
 
@@ -144,34 +103,25 @@ public final class ConfigurazioneCanaliAdd extends Action {
 				if(nome == null) {
 					nome = "";
 					descrizione = "";
-					stato = StatoFunzionalita.ABILITATO.toString();
-					regExpr = false;
-					regolaText = "";
-					contestoEsterno = "";
-					baseUrl = "";
-					protocollo = "";
-					soggetto = "";
-					ruolo = CostantiControlStation.DEFAULT_VALUE_PARAMETRO_PROXY_PASS_REGOLA_RUOLO_QUALSIASI;
-					serviceBinding = CostantiControlStation.DEFAULT_VALUE_PARAMETRO_SERVICE_BINDING_QUALSIASI; 
 				}
 				
 				// preparo i campi
 				Vector<DataElement> dati = new Vector<DataElement>();
 				dati.addElement(ServletUtils.getDataElementForEditModeFinished());
 
-				dati = confHelper.addProxyPassConfigurazioneRegola(TipoOperazione.ADD, dati, idRegolaS, nome, descrizione, stato, regExpr, regolaText, contestoEsterno, baseUrl, protocollo, protocolli, soggetto, soggetti, ruolo, serviceBinding, multiTenant);
+				dati = confHelper.addCanaleToDati(TipoOperazione.ADD, dati, idCanaleS, nome, descrizione);
 
 				pd.setDati(dati);
 
 				ServletUtils.setGeneralAndPageDataIntoSession(session, gd, pd);
 
 				return ServletUtils.getStrutsForwardEditModeInProgress(mapping,
-						ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_PROXY_PASS_REGOLA, 
+						ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_CANALI, 
 						ForwardParams.ADD());
 			}
 
 			// Controlli sui campi immessi
-			boolean isOk = confHelper.proxyPassConfigurazioneRegolaCheckData(TipoOperazione.ADD, null);
+			boolean isOk = confHelper.canaleCheckData(TipoOperazione.ADD, null);
 			if (!isOk) {
 
 				// preparo i campi
@@ -179,106 +129,54 @@ public final class ConfigurazioneCanaliAdd extends Action {
 
 				dati.addElement(ServletUtils.getDataElementForEditModeFinished());
 				
-				dati = confHelper.addProxyPassConfigurazioneRegola(TipoOperazione.ADD, dati, idRegolaS, nome, descrizione, stato, regExpr, regolaText, contestoEsterno, baseUrl, protocollo, protocolli, soggetto, soggetti, ruolo, serviceBinding, multiTenant);
-
+				dati = confHelper.addCanaleToDati(TipoOperazione.ADD, dati, idCanaleS, nome, descrizione);
+				
 				pd.setDati(dati);
 
 				ServletUtils.setGeneralAndPageDataIntoSession(session, gd, pd);
 
 				return ServletUtils.getStrutsForwardEditModeCheckError(mapping, 
-						ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_PROXY_PASS_REGOLA, 
+						ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_CANALI, 
 						ForwardParams.ADD());
 			}
 
 			// rileggo la configurazione
 			configurazioneGenerale = confCore.getConfigurazioneGenerale();
 			
-			if(configurazioneGenerale.getUrlInvocazione() == null)
-				configurazioneGenerale.setUrlInvocazione(new ConfigurazioneUrlInvocazione());
+			if(configurazioneGenerale.getGestioneCanali() == null) // non dovrebbe mai essere null...
+				configurazioneGenerale.setGestioneCanali(new CanaliConfigurazione());
 			
-			// calcolo prossima posizione
-			int posizione = 1;
-			for (ConfigurazioneUrlInvocazioneRegola check : configurazioneGenerale.getUrlInvocazione().getRegolaList()) {
-				if(check.getPosizione()>=posizione) {
-					posizione = check.getPosizione()+1;
-				}
-			}
+			// salvataggio canale
+			CanaleConfigurazione canale = new CanaleConfigurazione();
+			canale.setNome(nome);
+			canale.setDescrizione(descrizione);
+			canale.setCanaleDefault(false); 
 			
-			// salvataggio regola
-			ConfigurazioneUrlInvocazioneRegola regola = new ConfigurazioneUrlInvocazioneRegola();
-			
-			regola.setNome(nome);
-			if(descrizione!=null && !"".equals(descrizione)) {
-				regola.setDescrizione(descrizione);
-			}
-			if(baseUrl!=null && !"".equals(baseUrl)) {
-				regola.setBaseUrl(baseUrl);
-			}
-			if(contestoEsterno!=null && !"".equals(contestoEsterno)) {
-				regola.setContestoEsterno(contestoEsterno);
-			}
-			else {
-				regola.setContestoEsterno("");
-			}
-			regola.setRegexpr(regExpr);
-			regola.setRegola(regolaText);
-			if(StringUtils.isNotEmpty(protocollo))
-				regola.setProtocollo(protocollo);
-			if(StringUtils.isNotEmpty(soggetto)) {
-				IDSoggetto selezionatoToID = confCore.convertSoggettoSelezionatoToID(soggetto);
-				IdSoggetto idSoggetto = new IdSoggetto();
-				idSoggetto.setTipo(selezionatoToID.getTipo());
-				idSoggetto.setNome(selezionatoToID.getNome());
-
-				// set valori
-				regola.setSoggetto(idSoggetto);
-			}
-			if(StringUtils.isNotEmpty(ruolo)) {
-				if(ruolo.equals(CostantiControlStation.DEFAULT_VALUE_PARAMETRO_PROXY_PASS_REGOLA_RUOLO_EROGAZIONE))
-					regola.setRuolo(RuoloContesto.PORTA_APPLICATIVA);
-				else if(ruolo.equals(CostantiControlStation.DEFAULT_VALUE_PARAMETRO_PROXY_PASS_REGOLA_RUOLO_FRUIZIONE))
-					regola.setRuolo(RuoloContesto.PORTA_DELEGATA);
-			}
-			if(StringUtils.isNotEmpty(serviceBinding)) {
-				if(serviceBinding.equals(CostantiControlStation.DEFAULT_VALUE_PARAMETRO_SERVICE_BINDING_SOAP))
-					regola.setServiceBinding(ServiceBinding.SOAP);
-				else if(serviceBinding.equals(CostantiControlStation.DEFAULT_VALUE_PARAMETRO_SERVICE_BINDING_REST))
-					regola.setServiceBinding(ServiceBinding.REST);
-				
-			}
-			if(stato.equals(StatoFunzionalita.ABILITATO.getValue()))
-				regola.setStato(StatoFunzionalita.ABILITATO);
-			else 
-				regola.setStato(StatoFunzionalita.DISABILITATO);
-			
-			regola.setPosizione(posizione);
-			
-			
-			configurazioneGenerale.getUrlInvocazione().addRegola(regola);
+			configurazioneGenerale.getGestioneCanali().addCanale(canale);
 			
 			confCore.performUpdateOperation(userLogin, confHelper.smista(), configurazioneGenerale);
 			
 			// Preparo la lista
 			Search ricerca = (Search) ServletUtils.getSearchObjectFromSession(session, Search.class);
 
-			int idLista = Liste.CONFIGURAZIONE_PROXY_PASS_REGOLA;
+			int idLista = Liste.CONFIGURAZIONE_CANALI;
 
 			ricerca = confHelper.checkSearchParameters(idLista, ricerca);
 
-			List<ConfigurazioneUrlInvocazioneRegola> lista = confCore.proxyPassConfigurazioneRegolaList(ricerca); 
+			List<CanaleConfigurazione> lista = confCore.canaleConfigurazioneList(ricerca); 
 			
-			confHelper.prepareProxyPassConfigurazioneRegolaList(ricerca, lista);
+			confHelper.prepareCanaleConfigurazioneList(ricerca, lista);
 						
 			pd.setMessage(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_PROPRIETA_SISTEMA_MODIFICATA_CON_SUCCESSO, Costanti.MESSAGE_TYPE_INFO);
 
 			ServletUtils.setGeneralAndPageDataIntoSession(session, gd, pd);
 
 			return ServletUtils.getStrutsForwardEditModeFinished(mapping,
-					ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_PROXY_PASS_REGOLA,
+					ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_CANALI,
 					ForwardParams.ADD());
 		} catch (Exception e) {
 			return ServletUtils.getStrutsForwardError(ControlStationCore.getLog(), e, pd, session, gd, mapping, 
-					ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_PROXY_PASS_REGOLA, ForwardParams.ADD());
+					ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_CANALI, ForwardParams.ADD());
 		}
 	}
 

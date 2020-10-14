@@ -12854,6 +12854,7 @@ public class DriverConfigurazioneDB_LIB {
 			while(rs1.next()){
 				
 				CanaleConfigurazione canale = new CanaleConfigurazione();
+				canale.setId(rs1.getLong("id"));
 				canale.setNome(rs1.getString("nome"));
 				canale.setDescrizione(rs1.getString("descrizione"));
 				int v = rs1.getInt("canale_default");
@@ -12879,6 +12880,7 @@ public class DriverConfigurazioneDB_LIB {
 			while(rs1.next()){
 				
 				CanaleConfigurazioneNodo nodo = new CanaleConfigurazioneNodo();
+				nodo.setId(rs1.getLong("id"));
 				nodo.setNome(rs1.getString("nome"));
 				nodo.setDescrizione(rs1.getString("descrizione"));
 				List<String> l = DBUtils.convertToList(rs1.getString("canali"));

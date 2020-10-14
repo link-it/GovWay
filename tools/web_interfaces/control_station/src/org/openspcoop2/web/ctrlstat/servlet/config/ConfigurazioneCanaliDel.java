@@ -33,9 +33,9 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.openspcoop2.core.commons.Liste;
+import org.openspcoop2.core.config.CanaleConfigurazione;
+import org.openspcoop2.core.config.CanaliConfigurazione;
 import org.openspcoop2.core.config.Configurazione;
-import org.openspcoop2.core.config.ConfigurazioneUrlInvocazione;
-import org.openspcoop2.core.config.ConfigurazioneUrlInvocazioneRegola;
 import org.openspcoop2.web.ctrlstat.core.ControlStationCore;
 import org.openspcoop2.web.ctrlstat.core.Search;
 import org.openspcoop2.web.ctrlstat.core.Utilities;
@@ -47,7 +47,7 @@ import org.openspcoop2.web.lib.mvc.PageData;
 import org.openspcoop2.web.lib.mvc.ServletUtils;
 
 /**
- * ConfigurazioneProxyPassRegolaDel
+ * ConfigurazioneCanaliDel
  * 
  * @author Giuliano Pintori (pintori@link.it)
  * @author $Author$
@@ -85,18 +85,34 @@ public final class ConfigurazioneCanaliDel extends Action {
 
 			// Prendo l'accesso registro
 			Configurazione configurazioneGenerale = confCore.getConfigurazioneGenerale();
-			ConfigurazioneUrlInvocazione urlInvocazione = configurazioneGenerale.getUrlInvocazione();
-
+			CanaliConfigurazione gestioneCanali = configurazioneGenerale.getGestioneCanali();
+			
+			StringBuilder inUsoMessage = new StringBuilder();
+			
 			for (int i = 0; i < idsToRemove.size(); i++) {
 
 				id = Long.parseLong(idsToRemove.get(i));
 
-				for (int j = 0; j < urlInvocazione.sizeRegolaList(); j++) {
-					ConfigurazioneUrlInvocazioneRegola regola = urlInvocazione.getRegola(j); 
-					if (regola.getId().longValue() == id.longValue()) {
-						urlInvocazione.removeRegola(j);
+				for (int j = 0; j < gestioneCanali.sizeCanaleList(); j++) {
+					CanaleConfigurazione canale = gestioneCanali.getCanale(j); 
+					if (canale.getId().longValue() == id.longValue()) {
+						if(!canale.isCanaleDefault()) { // canale di default non si puo' eliminare
+							// calcolo utilizzo canale 
+							//Non sarà possibil eliminare un canale se utilizzato:
+							//	- in un nodo (vedi lista successiva)
+							//	- assegnato ad una API, ad una erogazione o ad una fruizione
+							
+							boolean deleteCanale = ConfigurazioneCanaliUtilities.deleteCanale(canale, userLogin, confCore, confHelper, inUsoMessage, org.openspcoop2.core.constants.Costanti.WEB_NEW_LINE);
+							if(deleteCanale) {
+								gestioneCanali.removeCanale(j);
+							}
+						}
 					}
 				}
+			}
+			
+			if (inUsoMessage.length()>0) {
+				pd.setMessage(inUsoMessage.toString());
 			}
 
 			confCore.performUpdateOperation(userLogin, confHelper.smista(), configurazioneGenerale);
@@ -108,24 +124,26 @@ public final class ConfigurazioneCanaliDel extends Action {
 			// Preparo la lista
 			Search ricerca = (Search) ServletUtils.getSearchObjectFromSession(session, Search.class);
 
-			int idLista = Liste.CONFIGURAZIONE_PROXY_PASS_REGOLA;
+			int idLista = Liste.CONFIGURAZIONE_CANALI;
 
 			ricerca = confHelper.checkSearchParameters(idLista, ricerca);
 
-			List<ConfigurazioneUrlInvocazioneRegola> lista = confCore.proxyPassConfigurazioneRegolaList(ricerca); 
+			List<CanaleConfigurazione> lista = confCore.canaleConfigurazioneList(ricerca); 
 			
-			confHelper.prepareProxyPassConfigurazioneRegolaList(ricerca, lista);
-						
-			pd.setMessage(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_PROPRIETA_SISTEMA_MODIFICATA_CON_SUCCESSO, Costanti.MESSAGE_TYPE_INFO);
+			confHelper.prepareCanaleConfigurazioneList(ricerca, lista);
+				
+			if (inUsoMessage.length() == 0)  {
+				pd.setMessage(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_PROPRIETA_SISTEMA_MODIFICATA_CON_SUCCESSO, Costanti.MESSAGE_TYPE_INFO);
+			}
 			
 			ServletUtils.setGeneralAndPageDataIntoSession(session, gd, pd);
 			// Forward control to the specified success URI
 			return ServletUtils.getStrutsForward (mapping, 
-					ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_PROXY_PASS_REGOLA,
+					ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_CANALI,
 					ForwardParams.DEL());
 		} catch (Exception e) {
 			return ServletUtils.getStrutsForwardError(ControlStationCore.getLog(), e, pd, session, gd, mapping, 
-					ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_PROXY_PASS_REGOLA, ForwardParams.DEL());
+					ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_CANALI, ForwardParams.DEL());
 		}
 	}
 }

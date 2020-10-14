@@ -43,6 +43,9 @@ import org.openspcoop2.core.config.AccessoDatiGestioneToken;
 import org.openspcoop2.core.config.AccessoDatiKeystore;
 import org.openspcoop2.core.config.Attachments;
 import org.openspcoop2.core.config.Cache;
+import org.openspcoop2.core.config.CanaleConfigurazione;
+import org.openspcoop2.core.config.CanaleConfigurazioneNodo;
+import org.openspcoop2.core.config.CanaliConfigurazione;
 import org.openspcoop2.core.config.Configurazione;
 import org.openspcoop2.core.config.ConfigurazioneMultitenant;
 import org.openspcoop2.core.config.ConfigurazioneUrlInvocazione;
@@ -278,13 +281,16 @@ public final class ConfigurazioneGenerale extends Action {
 			List<ResponseCachingConfigurazioneRegola> listaRegoleCachingConfigurazione = cachingConfigurazione != null ?  cachingConfigurazione.getRegolaList() : null;
 			int numeroRegoleProxyPass = confHelper.numeroRegoleProxyPass(configurazione.getUrlInvocazione());
 			
-			String canaliEnabledTmp = confHelper.getParameter(CostantiControlStation.PARAMETRO_CONFIGURAZIONE_CANALI_STATO);
+			String canaliEnabledTmp = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_CANALI_STATO);
 			boolean canaliEnabled = ServletUtils.isCheckBoxEnabled(canaliEnabledTmp);
-			int numeroCanali = 0;
-			int numeroNodi = 0;
-			String canaliNome = confHelper.getParameter(CostantiControlStation.PARAMETRO_CONFIGURAZIONE_CANALI_STATO);
-			String canaliDescrizione = confHelper.getParameter(CostantiControlStation.PARAMETRO_CONFIGURAZIONE_CANALI_STATO);
-			
+			CanaliConfigurazione gestioneCanali = configurazione.getGestioneCanali();
+			List<CanaleConfigurazione> canaleList = gestioneCanali != null ? gestioneCanali.getCanaleList() : null;
+			List<CanaleConfigurazioneNodo> nodoList = gestioneCanali != null ? gestioneCanali.getNodoList() : null;
+			int numeroCanali = confHelper.numeroCanali(gestioneCanali);
+			int numeroNodi = confHelper.numeroNodi(gestioneCanali);
+			String canaliNome = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_CANALI_NOME);
+			String canaliDescrizione = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_CANALI_DESCRIZIONE);
+			String canaliDefault = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_CANALI_DEFAULT);
 
 			String urlInvocazionePA = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROTOCOLLO_PREFIX_URL_INVOCAZIONE_PA);
 			String urlInvocazionePD = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_PROTOCOLLO_PREFIX_URL_INVOCAZIONE_PD);
@@ -374,7 +380,7 @@ public final class ConfigurazioneGenerale extends Action {
 							responseCachingDigestUrlInvocazione, responseCachingDigestHeaders, responseCachingDigestPayload, responseCachingDigestHeadersNomiHeaders, responseCachingDigestQueryParameter, responseCachingDigestNomiParametriQuery,
 							responseCachingCacheControlNoCache, responseCachingCacheControlMaxAge, responseCachingCacheControlNoStore, visualizzaLinkConfigurazioneRegola,
 							servletResponseCachingConfigurazioneRegolaList, paramsResponseCachingConfigurazioneRegolaList, numeroResponseCachingConfigurazioneRegola, numeroRegoleProxyPass,
-							canaliEnabled, numeroCanali, numeroNodi, canaliNome, canaliDescrizione);
+							canaliEnabled, numeroCanali, numeroNodi, canaliNome, canaliDescrizione, canaleList, canaliDefault);
 
 					confHelper.setDataElementCache(dati,ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_CACHE_CONFIG,
 							ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_STATO_CACHE_CONFIG,statocache_config,
@@ -739,6 +745,10 @@ public final class ConfigurazioneGenerale extends Action {
 					newConfigurazione.setResponseCaching(new ResponseCachingConfigurazioneGenerale());
 				}
 				newConfigurazione.getResponseCaching().setConfigurazione(responseCaching);
+
+				// canali
+				CanaliConfigurazione newGestioneCanali = confHelper.getGestioneCanali(canaliEnabled, canaliDefault, canaleList, canaliNome, canaliDescrizione, nodoList);
+				newConfigurazione.setGestioneCanali(newGestioneCanali);
 				
 				numeroResponseCachingConfigurazioneRegola = responseCaching.sizeRegolaList();
 				visualizzaLinkConfigurazioneRegola = responseCaching.getStato().equals(StatoFunzionalita.ABILITATO);
@@ -778,7 +788,7 @@ public final class ConfigurazioneGenerale extends Action {
 						responseCachingDigestUrlInvocazione, responseCachingDigestHeaders, responseCachingDigestPayload, responseCachingDigestHeadersNomiHeaders, responseCachingDigestQueryParameter, responseCachingDigestNomiParametriQuery,
 						responseCachingCacheControlNoCache, responseCachingCacheControlMaxAge, responseCachingCacheControlNoStore, visualizzaLinkConfigurazioneRegola,
 						servletResponseCachingConfigurazioneRegolaList, paramsResponseCachingConfigurazioneRegolaList, numeroResponseCachingConfigurazioneRegola, numeroRegoleProxyPass,
-						canaliEnabled, numeroCanali, numeroNodi, canaliNome, canaliDescrizione);
+						canaliEnabled, numeroCanali, numeroNodi, canaliNome, canaliDescrizione, canaleList, canaliDefault);
 
 				confHelper.setDataElementCache(dati,ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_CACHE_CONFIG,
 						ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_STATO_CACHE_CONFIG,statocache_config,
@@ -1249,6 +1259,25 @@ public final class ConfigurazioneGenerale extends Action {
 						visualizzaLinkConfigurazioneRegola = true;
 					}
 				}
+				
+				canaliEnabled = false;
+				gestioneCanali = configurazione.getGestioneCanali();
+				numeroCanali = confHelper.numeroCanali(gestioneCanali);
+				numeroNodi = confHelper.numeroNodi(gestioneCanali);
+				if(gestioneCanali != null) {
+					if(gestioneCanali.getStato() != null && gestioneCanali.getStato().equals(StatoFunzionalita.ABILITATO)) {
+						canaliEnabled = true;
+						
+						if(numeroCanali > 0) {
+							for (CanaleConfigurazione canaleConfigurazione : gestioneCanali.getCanaleList()) {
+								if(canaleConfigurazione.isCanaleDefault()) {
+									canaliDefault = canaleConfigurazione.getNome();
+									break;
+								}
+							}
+						}
+					}
+				}
 			}
 
 			// preparo i campi
@@ -1273,7 +1302,7 @@ public final class ConfigurazioneGenerale extends Action {
 					responseCachingDigestUrlInvocazione, responseCachingDigestHeaders, responseCachingDigestPayload, responseCachingDigestHeadersNomiHeaders, responseCachingDigestQueryParameter, responseCachingDigestNomiParametriQuery,
 					responseCachingCacheControlNoCache, responseCachingCacheControlMaxAge, responseCachingCacheControlNoStore, visualizzaLinkConfigurazioneRegola,
 					servletResponseCachingConfigurazioneRegolaList, paramsResponseCachingConfigurazioneRegolaList, numeroResponseCachingConfigurazioneRegola, numeroRegoleProxyPass,
-					canaliEnabled, numeroCanali, numeroNodi, canaliNome, canaliDescrizione);
+					canaliEnabled, numeroCanali, numeroNodi, canaliNome, canaliDescrizione, canaleList, canaliDefault);
 
 			confHelper.setDataElementCache(dati,ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_CACHE_CONFIG,
 					ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_STATO_CACHE_CONFIG,statocache_config,

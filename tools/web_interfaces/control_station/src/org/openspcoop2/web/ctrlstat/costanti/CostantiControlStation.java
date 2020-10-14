@@ -1001,10 +1001,6 @@ public class CostantiControlStation {
 	public final static String PARAMETRO_CONFIGURAZIONE_TRASFORMAZIONI_RICHIESTA_PARAMETRO_TIPO = "trReqParTipo";
 	public final static String PARAMETRO_CONFIGURAZIONE_TRASFORMAZIONI_RICHIESTA_PARAMETRO_IDENTIFICAZIONE = "trReqParIden";
 	
-	public final static String PARAMETRO_CONFIGURAZIONE_CANALI_STATO = "canaliStato";
-	public final static String PARAMETRO_CONFIGURAZIONE_CANALI_NOME = "canaliNome";
-	public final static String PARAMETRO_CONFIGURAZIONE_CANALI_DESCRIZIONE = "canaliDescrizione";
-	
 	/** PARAMETRI MESSAGE PAGE **/
 	
 	public static final String PARAMETER_MESSAGE_TEXT = Costanti.PARAMETER_MESSAGE_TEXT;

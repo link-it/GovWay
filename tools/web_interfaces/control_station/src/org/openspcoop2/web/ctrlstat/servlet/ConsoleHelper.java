@@ -59,6 +59,7 @@ import org.openspcoop2.core.commons.Liste;
 import org.openspcoop2.core.commons.ModalitaIdentificazione;
 import org.openspcoop2.core.commons.SearchUtils;
 import org.openspcoop2.core.config.AutorizzazioneScope;
+import org.openspcoop2.core.config.CanaliConfigurazione;
 import org.openspcoop2.core.config.Configurazione;
 import org.openspcoop2.core.config.ConfigurazioneUrlInvocazione;
 import org.openspcoop2.core.config.Connettore;
@@ -2364,6 +2365,9 @@ public class ConsoleHelper implements IConsoleHelper {
 		return true;
 	}
 	
+	public boolean checkLength20(String value, String object) throws Exception{
+		return this.checkLength(value, object, -1, 20);
+	}
 	public boolean checkLength4000(String value, String object) throws Exception{
 		return this.checkLength(value, object, -1, 4000);
 	}
@@ -12675,6 +12679,26 @@ public class ConsoleHelper implements IConsoleHelper {
 		
 		
 		return abilitato;
+	}
+	
+	public int numeroCanali(CanaliConfigurazione configurazione) { 
+		if(configurazione == null || configurazione.getStato() == null)
+			return 0;
+		
+		if(configurazione.getStato().equals(StatoFunzionalita.ABILITATO))
+			return configurazione.sizeCanaleList();
+		
+		return 0;
+	}
+	
+	public int numeroNodi(CanaliConfigurazione configurazione) { 
+		if(configurazione == null || configurazione.getStato() == null)
+			return 0;
+		
+		if(configurazione.getStato().equals(StatoFunzionalita.ABILITATO))
+			return configurazione.sizeNodoList();
+		
+		return 0;
 	}
 	
 	public boolean checkDataConfigurazioneResponseCachingPorta(TipoOperazione tipoOperazione,boolean showStato, String statoResponseCachingPorta) throws Exception{
