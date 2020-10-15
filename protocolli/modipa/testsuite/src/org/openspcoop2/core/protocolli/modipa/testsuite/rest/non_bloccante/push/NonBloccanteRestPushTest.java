@@ -35,7 +35,7 @@ import com.intuit.karate.junit4.Karate;
 import com.intuit.karate.netty.FeatureServer;
 
 /**
- * ApplicativiTest
+ * NonBloccanteRestPushTest
  *
  * @author Francesco Scarlato (scarlato@link.it)
  * @version $Rev$, $Date$

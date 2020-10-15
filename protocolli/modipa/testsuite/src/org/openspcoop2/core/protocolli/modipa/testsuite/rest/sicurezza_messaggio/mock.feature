@@ -1,7 +1,7 @@
 Feature: Server mock per il testing della sicurezza messaggio
 
 Background:
-    * def isTest = function(id) { return headerContains('GovWay-TestSuite-Test-ID', id) } 
+    * def isTest = function(id) { return karate.get("requestHeaders['GovWay-TestSuite-Test-ID'][0]") == id } 
     * def checkToken = read('check-token.feature')
 
     * def confHeaders = 
@@ -45,6 +45,22 @@ Scenario: isTest('connettivita-base-no-sbustamento')
     * def responseStatus = 200
     * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
 
+
+Scenario: isTest('response-without-payload')
+    * match requestHeaders['Authorization'] == '#notpresent'
+    * def responseStatus = 201
+    * def response = {}
+
+
+Scenario: isTest('request-without-payload')
+    * match requestHeaders['Authorization'] == '#notpresent'
+    * def responseStatus = 200
+    * def response = read('classpath:test/rest/sicurezza-messaggio/request.json')
+
+Scenario: isTest('request-response-without-payload')
+    * match requestHeaders['Authorization'] == '#notpresent'
+    * def responseStatus = 204
+    * def response = {}
 
 # catch all
 #

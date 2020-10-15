@@ -37,8 +37,8 @@ import com.intuit.karate.netty.FeatureServer;
 
 
 /**
-* MockProxyTest
-* TODO: Rimuovere prefisso proxy
+* BloccanteSoapSicurezzaMessaggioTest
+*
 * @author Francesco Scarlato (scarlato@link.it)
 * @author $Author$
 * @version $Rev$, $Date$

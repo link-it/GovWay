@@ -38,7 +38,7 @@ import com.intuit.karate.netty.FeatureServer;
 
 
 /**
-* MockProxyTest
+* NonBloccantePushSoapTest
 *
 * @author Francesco Scarlato (scarlato@link.it)
 * @author $Author$
