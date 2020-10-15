@@ -42,10 +42,9 @@ Scenario: isTest('connettivita-base-no-sbustamento')
 
 Scenario: isTest('response-without-payload')
     
-    * def emptyresp = '<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope"></soap:Envelope>'
     * match bodyPath('/Envelope/Header') == ''
     * def responseStatus = 200
-    * def response = emptyresp
+    * def response = ''
 
 # catch all
 #

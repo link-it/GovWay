@@ -234,3 +234,23 @@ And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', p
 When method post
 Then status 200
 And match response == ''
+
+* def karateCache = Java.type('org.openspcoop2.core.protocolli.modipa.testsuite.KarateCache')
+* xml client_request = karateCache.get("Client-Request")
+
+* def client_token_to_match = 
+"""
+({
+    x509sub: 'CN=ExampleClient1, O=Example, L=Pisa, ST=Italy, C=IT',
+    wsa_to: karate.xmlPath(client_request, '/Envelope/Header/To'),
+    wsa_from: karate.xmlPath(client_request, '/Envelope/Header/From/Address'),
+    message_id: karate.xmlPath(client_request, '/Envelope/Header/MessageID')
+})
+"""
+
+* def tid = responseHeaders['GovWay-Transaction-ID'][0]
+* call check_traccia ({tid: tid, tipo: 'Richiesta', token: client_token_to_match })
+
+
+* def tid = responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]
+* call check_traccia ({tid: tid, tipo: 'Richiesta', token: client_token_to_match })

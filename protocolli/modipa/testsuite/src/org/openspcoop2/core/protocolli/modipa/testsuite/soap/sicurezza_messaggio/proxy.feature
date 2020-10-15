@@ -166,19 +166,7 @@ Scenario: isTest('response-without-payload')
 
     * karate.proceed (url_invocazione_erogazione)
 
-    * match /Envelope/Header/Security/Signature == "#present"
-    * match /Envelope/Header/Security/Timestamp/Created == "#string"
-    * match /Envelope/Header/Security/Timestamp/Expires == "#string"
-    * match /Envelope/Header/To == "DemoSoggettoFruitore/ApplicativoBlockingIDA01"
-    * match /Envelope/Header/From/Address == "SoapBlockingIDAS01MultipleOP/v1"
-    * match /Envelope/Header/MessageID == "#uuid"
-
-    * def body = response
-    * call check_signature [ {element: 'To'}, {element: 'From'}, {element: 'MessageID'}, {element: 'ReplyTo'}, {element: 'RelatesTo'} ]
-
-    * xmlstring server_response = response
-    * eval karateCache.add("Server-Response", server_response)
-
+    # La signature non viene fatta su di una risposta vuota
 
 # catch all
 #
