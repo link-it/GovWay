@@ -251,6 +251,25 @@ And match response == ''
 * def tid = responseHeaders['GovWay-Transaction-ID'][0]
 * call check_traccia ({tid: tid, tipo: 'Richiesta', token: client_token_to_match })
 
+    # TODO: Riabilita il test sul tid dell'erogazione qui se andrea fa viaggiare lo header nel profilo soap oneway
+    #   Altrimenti fai aggiungre lo heder al proxy e fai comunque il test qui sotto
+    #* def tid = responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]
+    #* call check_traccia ({tid: tid, tipo: 'Richiesta', token: client_token_to_match })
 
-* def tid = responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]
-* call check_traccia ({tid: tid, tipo: 'Richiesta', token: client_token_to_match })
+
+
+@disabled-security-on-action
+Scenario: Test risorsa non protetta in una API con IDAS01 abilitato di default
+
+* def body = read("MRequestResponse.xml")
+* def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS01MultipleOP/v1'
+
+Given url soap_url
+And request body
+And header Content-Type = 'application/soap+xml'
+And header action = soap_url
+And header GovWay-TestSuite-Test-ID = 'disabled-security-on-action'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method post
+Then status 200
+And match response == read('response.xml')

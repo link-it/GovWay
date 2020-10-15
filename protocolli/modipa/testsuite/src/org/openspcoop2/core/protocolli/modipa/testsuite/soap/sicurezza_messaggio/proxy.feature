@@ -168,6 +168,16 @@ Scenario: isTest('response-without-payload')
 
     # La signature non viene fatta su di una risposta vuota
 
+
+Scenario: isTest('disabled-security-on-action')
+    * def url_invocazione_erogazione = govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01MultipleOP/v1'
+
+    * match bodyPath('/Envelope/Header') == ''
+
+    * karate.proceed (url_invocazione_erogazione)
+
+    * match /Envelope/Header == ''
+
 # catch all
 #
 #
