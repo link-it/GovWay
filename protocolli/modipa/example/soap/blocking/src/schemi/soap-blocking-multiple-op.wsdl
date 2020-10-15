@@ -11,6 +11,7 @@
 			xmlns:tns="http://amministrazioneesempio.it/nomeinterfacciaservizio" 
 			attributeFormDefault="unqualified" elementFormDefault="unqualified" 
 			targetNamespace="http://amministrazioneesempio.it/nomeinterfacciaservizio">
+			<xs:element name="MOnlyRequest" type="tns:MRequest"/>
 			<xs:element name="MRequest" type="tns:MRequest"/>
 			<xs:element name="MRequestResponse" type="tns:MRequestResponse"/>
 			<xs:complexType name="MRequest">
@@ -60,6 +61,9 @@
 	<wsdl:message name="MRequestResponse">
 		<wsdl:part element="tns:MRequestResponse" name="parameters"/>
 	</wsdl:message>
+	<wsdl:message name="MOnlyRequest">
+		<wsdl:part element="tns:MOnlyRequest" name="parameters"/>
+	</wsdl:message>
 	<wsdl:message name="ErrorMessageException">
 		<wsdl:part element="tns:ErrorMessageFault" name="ErrorMessageException"/>
 	</wsdl:message>
@@ -70,7 +74,7 @@
 			<wsdl:fault message="tns:ErrorMessageException" name="ErrorMessageException"/>
 		</wsdl:operation>
 		<wsdl:operation name="MOnlyRequest">
-			<wsdl:input message="tns:MRequest" name="MRequest"/>
+			<wsdl:input message="tns:MOnlyRequest" name="MOnlyRequest"/>
 			<wsdl:fault message="tns:ErrorMessageException" name="ErrorMessageException"/>
 		</wsdl:operation>
 	</wsdl:portType>
@@ -90,7 +94,7 @@
 		</wsdl:operation>
 		<wsdl:operation name="MOnlyRequest">
 			<soap:operation soapAction="" style="document"/>
-			<wsdl:input name="MRequest">
+			<wsdl:input name="MOnlyRequest">
 				<soap:body use="literal"/>
 			</wsdl:input>
 			<wsdl:fault name="ErrorMessageException">
