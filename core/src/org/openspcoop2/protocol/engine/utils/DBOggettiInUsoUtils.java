@@ -3769,6 +3769,16 @@ public class DBOggettiInUsoUtils  {
 		return msg;
 	}
 	
+	
+	
+	
+	
+	
+	
+
+	
+	// ***** CANALE ******
+	
 	public static String toString(CanaleConfigurazione canale, Map<ErrorsHandlerCostant, List<String>> whereIsInUso, boolean prefix, String separator){
 		return toString(canale, whereIsInUso, prefix, separator," non eliminabile perch&egrave; :");
 	}
@@ -3830,7 +3840,7 @@ public class DBOggettiInUsoUtils  {
 		return msg;
 	}
 	public static boolean isCanaleInUso(Connection con, String tipoDB, CanaleConfigurazione canale, Map<ErrorsHandlerCostant, List<String>> whereIsInUso, boolean normalizeObjectIds) throws UtilsException {
-		String nomeMetodo = "_isGruppoInUso";
+		String nomeMetodo = "_isCanaleInUso";
 
 		PreparedStatement stmt = null;
 		ResultSet risultato = null;
@@ -3946,6 +3956,7 @@ public class DBOggettiInUsoUtils  {
 				risultato.close();
 				stmt.close();
 			}
+			
 			// Controllo che il canale non sia in uso nelle porte applicative
 			if(config){
 				ISQLQueryObject sqlQueryObject = SQLObjectFactory.createSQLQueryObject(tipoDB);
