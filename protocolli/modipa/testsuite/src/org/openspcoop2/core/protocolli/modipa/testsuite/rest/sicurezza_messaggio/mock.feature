@@ -15,6 +15,22 @@ Background:
 
     * configure responseHeaders = confHeaders
 
+Scenario: isTest('karate-proxy-post')
+
+    * def responseStatus = 200
+    * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
+
+
+Scenario: isTest('karate-proxy-get')
+    
+    * def responseStatus = 200
+    * def response = read('classpath:test/rest/sicurezza-messaggio/request.json')
+
+Scenario: isTest('karate-proxy-delete')
+    
+    * def responseStatus = 204
+    * def response = {}
+
 
 Scenario: isTest('connettivita-base') || isTest('connettivita-base-default-trustore') || isTest('connettivita-base-truststore-ca')
     

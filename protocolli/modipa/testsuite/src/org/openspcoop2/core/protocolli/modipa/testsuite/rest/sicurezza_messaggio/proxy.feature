@@ -19,6 +19,27 @@ Background:
     """
 
 
+Scenario: isTest('karate-proxy-post')
+    * karate.proceed("http://localhost:8091")
+
+    # * def responseStatus = 200
+    # * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
+
+
+Scenario: isTest('karate-proxy-get')
+    * karate.proceed("http://localhost:8091")
+
+    # * def responseStatus = 200
+    # * def response = read('classpath:test/rest/sicurezza-messaggio/request.json')
+
+Scenario: isTest('karate-proxy-delete')
+    # * def c = request
+    # * remove c.a
+    # * remove c.b
+    * request ''
+    * set requestHeaders['Content-Type'][0] = 'text/html'
+    * karate.proceed("http://localhost:8091")
+
    
 Scenario: isTest('connettivita-base')
 
@@ -193,6 +214,7 @@ Scenario: isTest('request-response-without-payload')
     })
     """
     * def responseHeaders = karate.merge(responseHeaders,newHeaders)
+
 
 
 # catch all

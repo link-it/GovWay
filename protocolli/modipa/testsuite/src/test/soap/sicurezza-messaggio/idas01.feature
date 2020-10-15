@@ -217,3 +217,20 @@ And match response == resp
 * def tid = responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]
 * call check_traccia ({tid: tid, tipo: 'Richiesta', token: client_token_to_match })
 * call check_traccia ({tid: tid, tipo: 'Risposta', token: server_token_to_match })
+
+
+@response-without-payload
+Scenario: Test di una azione che non ha il payload nella risposta
+
+* def body = read("request.xml")
+* def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS01MultipleOP/v1'
+
+Given url soap_url
+And request body
+And header Content-Type = 'application/soap+xml'
+And header action = soap_url
+And header GovWay-TestSuite-Test-ID = 'response-without-payload'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method post
+Then status 200
+And match response == ''

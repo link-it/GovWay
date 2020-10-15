@@ -1,7 +1,7 @@
 Feature: Server mock per il testing della sicurezza messaggio
 
 Background:
-    * def isTest = function(id) { return headerContains('GovWay-TestSuite-Test-ID', id) } 
+    * def isTest = function(id) { return karate.get("requestHeaders['GovWay-TestSuite-Test-ID'][0]") == id } 
     * def check_signature = read('check-signature.feature')
 
     * def confHeaders = 
@@ -39,6 +39,12 @@ Scenario: isTest('connettivita-base-no-sbustamento')
     * def responseStatus = 200
     * def response = read('classpath:test/soap/sicurezza-messaggio/response.xml')
 
+
+Scenario: isTest('response-without-payload')
+    
+    * match bodyPath('/Envelope/Header') == ''
+    * def responseStatus = 200
+    * def response = <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope"></soap:Envelope>
 
 # catch all
 #
