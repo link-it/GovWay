@@ -222,7 +222,7 @@ And match response == resp
 @response-without-payload
 Scenario: Test di una azione che non ha il payload nella risposta
 
-* def body = read("request.xml")
+* def body = read("only-request.xml")
 * def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS01MultipleOP/v1'
 
 Given url soap_url
