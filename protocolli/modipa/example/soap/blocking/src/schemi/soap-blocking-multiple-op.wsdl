@@ -11,10 +11,10 @@
 			xmlns:tns="http://amministrazioneesempio.it/nomeinterfacciaservizio" 
 			attributeFormDefault="unqualified" elementFormDefault="unqualified" 
 			targetNamespace="http://amministrazioneesempio.it/nomeinterfacciaservizio">
-			<xs:element name="MOnlyRequest" type="tns:MRequest"/>
-			<xs:element name="MRequest" type="tns:MRequest"/>
-			<xs:element name="MRequestResponse" type="tns:MRequestResponse"/>
-			<xs:complexType name="MRequest">
+			<xs:element name="MOnlyRequestOp" type="tns:MRequestType"/>
+			<xs:element name="MRequestOp" type="tns:MRequestType"/>
+			<xs:element name="MRequestResponseOp" type="tns:MRequestResponseType"/>
+			<xs:complexType name="MRequestType">
 				<xs:sequence>
 					<xs:element minOccurs="0" name="M" type="tns:mType"/>
 				</xs:sequence>
@@ -37,7 +37,7 @@
 					<xs:element maxOccurs="unbounded" minOccurs="0" name="a1" nillable="true" type="xs:string"/>
 				</xs:sequence>
 			</xs:complexType>
-			<xs:complexType name="MRequestResponse">
+			<xs:complexType name="MRequestResponseType">
 				<xs:sequence>
 					<xs:element minOccurs="0" name="return" type="tns:mResponseType"/>
 				</xs:sequence>
@@ -56,13 +56,13 @@
 		</xs:schema>
 	</wsdl:types>
 	<wsdl:message name="MRequest">
-		<wsdl:part element="tns:MRequest" name="parameters"/>
+		<wsdl:part element="tns:MRequestOp" name="parameters"/>
 	</wsdl:message>
 	<wsdl:message name="MRequestResponse">
-		<wsdl:part element="tns:MRequestResponse" name="parameters"/>
+		<wsdl:part element="tns:MRequestResponseOp" name="parameters"/>
 	</wsdl:message>
 	<wsdl:message name="MOnlyRequest">
-		<wsdl:part element="tns:MOnlyRequest" name="parameters"/>
+		<wsdl:part element="tns:MOnlyRequestOp" name="parameters"/>
 	</wsdl:message>
 	<wsdl:message name="ErrorMessageException">
 		<wsdl:part element="tns:ErrorMessageFault" name="ErrorMessageException"/>
