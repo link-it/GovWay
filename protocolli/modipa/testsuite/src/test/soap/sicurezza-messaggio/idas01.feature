@@ -272,4 +272,4 @@ And header GovWay-TestSuite-Test-ID = 'disabled-security-on-action'
 And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
 When method post
 Then status 200
-And match response == read('response.xml')
+And match response == read('response-op.xml')

@@ -48,9 +48,9 @@ Scenario: isTest('response-without-payload')
 
 
 Scenario: isTest('disabled-security-on-action')
-    * match bodyPath('/Envelope/Header') == ''
+    
     * def responseStatus = 200
-    * def response = read('classpath:test/soap/sicurezza-messaggio/response.xml')
+    * def response = read('classpath:test/soap/sicurezza-messaggio/response-op.xml')
 
 
 # catch all

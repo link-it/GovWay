@@ -172,11 +172,13 @@ Scenario: isTest('response-without-payload')
 Scenario: isTest('disabled-security-on-action')
     * def url_invocazione_erogazione = govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01MultipleOP/v1'
 
-    * match bodyPath('/Envelope/Header') == ''
+    * def c = request
+
+    * match c/Envelope/Header/Security/BinarySecurityToken == "#notpresent"
 
     * karate.proceed (url_invocazione_erogazione)
 
-    * match /Envelope/Header == ''
+    * match /Envelope/Header/Security/BinarySecurityToken == "#notpresent"
 
 # catch all
 #
