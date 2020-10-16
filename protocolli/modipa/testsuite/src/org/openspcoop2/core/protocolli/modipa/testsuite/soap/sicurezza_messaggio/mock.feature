@@ -48,10 +48,19 @@ Scenario: isTest('response-without-payload')
 
 
 Scenario: isTest('disabled-security-on-action')
-    
     * def responseStatus = 200
     * def response = read('classpath:test/soap/sicurezza-messaggio/response-op.xml')
 
+
+
+Scenario: isTest('enabled-security-on-action') && bodyPath('/Envelope/Body/MRequestOp') != ''
+    * def responseStatus = 200
+    * def response = read('classpath:test/soap/sicurezza-messaggio/response-op.xml')
+
+
+Scenario: isTest('enabled-security-on-action') && bodyPath('/Envelope/Body/MRequestOp1') != ''
+    * def responseStatus = 200
+    * def response = read('classpath:test/soap/sicurezza-messaggio/response-op.xml')
 
 # catch all
 #

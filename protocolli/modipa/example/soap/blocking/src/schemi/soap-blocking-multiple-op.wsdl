@@ -13,6 +13,7 @@
 			targetNamespace="http://amministrazioneesempio.it/nomeinterfacciaservizio">
 			<xs:element name="MOnlyRequestOp" type="tns:MRequestType"/>
 			<xs:element name="MRequestOp" type="tns:MRequestType"/>
+			<xs:element name="MRequestOp1" type="tns:MRequestType"/>
 			<xs:element name="MRequestResponseOp" type="tns:MRequestResponseType"/>
 			<xs:complexType name="MRequestType">
 				<xs:sequence>
@@ -58,6 +59,9 @@
 	<wsdl:message name="MRequest">
 		<wsdl:part element="tns:MRequestOp" name="parameters"/>
 	</wsdl:message>
+	<wsdl:message name="MRequest1">
+		<wsdl:part element="tns:MRequestOp1" name="parameters"/>
+	</wsdl:message>
 	<wsdl:message name="MRequestResponse">
 		<wsdl:part element="tns:MRequestResponseOp" name="parameters"/>
 	</wsdl:message>
@@ -70,6 +74,11 @@
 	<wsdl:portType name="SOAPBlockingImpl">
 		<wsdl:operation name="MRequestResponse">
 			<wsdl:input message="tns:MRequest" name="MRequest"/>
+			<wsdl:output message="tns:MRequestResponse" name="MRequestResponse"/>
+			<wsdl:fault message="tns:ErrorMessageException" name="ErrorMessageException"/>
+		</wsdl:operation>
+		<wsdl:operation name="MRequestResponse1">
+			<wsdl:input message="tns:MRequest1" name="MRequest1"/>
 			<wsdl:output message="tns:MRequestResponse" name="MRequestResponse"/>
 			<wsdl:fault message="tns:ErrorMessageException" name="ErrorMessageException"/>
 		</wsdl:operation>

@@ -166,19 +166,88 @@ Scenario: isTest('response-without-payload')
 
     * karate.proceed (url_invocazione_erogazione)
 
+    # Controllo qui la traccia della erogazione perchè non posso far viaggiare header
+    # opzionali indietro visto che l'azione è one-way
+    
+    * def check_traccia = read("classpath:test/soap/sicurezza-messaggio/check-tracce/check-traccia.feature")
+    * xml client_request = client_request
+    * def client_token_to_match = 
+    """
+    ({
+        x509sub: 'CN=ExampleClient1, O=Example, L=Pisa, ST=Italy, C=IT',
+        wsa_to: karate.xmlPath(client_request, '/Envelope/Header/To'),
+        wsa_from: karate.xmlPath(client_request, '/Envelope/Header/From/Address'),
+        message_id: karate.xmlPath(client_request, '/Envelope/Header/MessageID')
+    })
+    """
+    * def tid = responseHeaders['GovWay-Transaction-ID'][0]
+    * call check_traccia ({tid: tid, tipo: 'Richiesta', token: client_token_to_match })
+
     # La signature non viene fatta su di una risposta vuota
 
 
 Scenario: isTest('disabled-security-on-action')
+    * def c = request
+
+    * match c/Envelope/Header/Security/BinarySecurityToken == "#notpresent"
+    
     * def url_invocazione_erogazione = govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01MultipleOP/v1'
+    * karate.proceed (url_invocazione_erogazione)
+
+    * match /Envelope/Header/Security/BinarySecurityToken == "#notpresent"
+
+##
+# Controllo che la sicurezza sia abilitata puntualmente su una operazione,
+# mentre di default è disabilitata
+#
+#
+
+Scenario: isTest('enabled-security-on-action') && bodyPath('/Envelope/Body/MRequestOp') != ''
+    
+    * xmlstring client_request = bodyPath('/')
+    * eval karateCache.add("Client-Request", client_request)
+
+    * match bodyPath('/Envelope/Header/Security/Signature') == "#present"
+    * match bodyPath('/Envelope/Header/Security/Timestamp/Created') == "#string"
+    * match bodyPath('/Envelope/Header/Security/Timestamp/Expires') == "#string"
+    * match bodyPath('/Envelope/Header/To') == "testsuite"
+    * match bodyPath('/Envelope/Header/From/Address') == "DemoSoggettoFruitore/ApplicativoBlockingIDA01"
+    * match bodyPath('/Envelope/Header/MessageID') == "#uuid"
+
+    * def body = bodyPath('/')
+    * call check_signature [ {element: 'To'}, {element: 'From'}, {element: 'MessageID'}, {element: 'ReplyTo'} ]
+    
+    * def url_invocazione_erogazione = govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01MultipleOPNoDefaultSecurity/v1'
+    * karate.proceed (url_invocazione_erogazione)
+
+    * match /Envelope/Header/Security/Signature == "#present"
+    * match /Envelope/Header/Security/Timestamp/Created == "#string"
+    * match /Envelope/Header/Security/Timestamp/Expires == "#string"
+    * match /Envelope/Header/To == "DemoSoggettoFruitore/ApplicativoBlockingIDA01"
+    * match /Envelope/Header/From/Address == "SoapBlockingIDAS01MultipleOPNoDefaultSecurity/v1"
+    * match /Envelope/Header/MessageID == "#uuid"
+
+    * def body = response
+    * call check_signature [ {element: 'To'}, {element: 'From'}, {element: 'MessageID'}, {element: 'ReplyTo'}, {element: 'RelatesTo'} ]
+
+    * xmlstring server_response = response
+    * eval karateCache.add("Server-Response", server_response)
+
+
+Scenario: isTest('enabled-security-on-action') && bodyPath('/Envelope/Body/MRequestOp1') != ''
 
     * def c = request
 
     * match c/Envelope/Header/Security/BinarySecurityToken == "#notpresent"
-
+    
+    * def url_invocazione_erogazione = govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01MultipleOPNoDefaultSecurity/v1'
     * karate.proceed (url_invocazione_erogazione)
 
+    # Qui siamo in oneway, quindi al ritorno il token non c'è proprio
+    # perchè la richiesta non viene gestita.
+
     * match /Envelope/Header/Security/BinarySecurityToken == "#notpresent"
+
 
 # catch all
 #
