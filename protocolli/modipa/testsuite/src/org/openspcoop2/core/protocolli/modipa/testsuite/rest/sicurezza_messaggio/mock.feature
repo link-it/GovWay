@@ -15,24 +15,24 @@ Background:
 
     * configure responseHeaders = confHeaders
 
-Scenario: isTest('karate-proxy-post')
+# Scenario: isTest('karate-proxy-post')
 
-    * def responseStatus = 200
-    * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
+#     * def responseStatus = 200
+#     * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
 
 
-Scenario: isTest('karate-proxy-get')
+# Scenario: isTest('karate-proxy-get')
     
-    * def responseStatus = 200
-    * def response = read('classpath:test/rest/sicurezza-messaggio/request.json')
+#     * def responseStatus = 200
+#     * def response = read('classpath:test/rest/sicurezza-messaggio/request.json')
 
-Scenario: isTest('karate-proxy-delete')
+# Scenario: isTest('karate-proxy-delete')
     
-    * def responseStatus = 204
-    * def response = {}
+#     * def responseStatus = 204
+#     * def response = {}
 
 
-Scenario: isTest('connettivita-base') || isTest('connettivita-base-default-trustore') || isTest('connettivita-base-truststore-ca')
+Scenario: isTest('connettivita-base') || isTest('connettivita-base-default-trustore') || isTest('connettivita-base-truststore-ca') || isTest('disabled-security-on-action') || isTest('enabled-security-on-action')
     
     # Controllo che al server non siano arrivate le informazioni di sicurezza
     * match requestHeaders['Authorization'] == '#notpresent'
@@ -72,6 +72,7 @@ Scenario: isTest('request-without-payload')
     * match requestHeaders['Authorization'] == '#notpresent'
     * def responseStatus = 200
     * def response = read('classpath:test/rest/sicurezza-messaggio/request.json')
+
 
 Scenario: isTest('request-response-without-payload')
     * match requestHeaders['Authorization'] == '#notpresent'

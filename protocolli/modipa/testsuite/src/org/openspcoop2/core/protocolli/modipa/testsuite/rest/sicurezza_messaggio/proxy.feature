@@ -19,26 +19,26 @@ Background:
     """
 
 
-Scenario: isTest('karate-proxy-post')
-    * karate.proceed("http://localhost:8091")
+# Scenario: isTest('karate-proxy-post')
+#     * karate.proceed("http://localhost:8091")
 
-    # * def responseStatus = 200
-    # * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
+#     # * def responseStatus = 200
+#     # * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
 
 
-Scenario: isTest('karate-proxy-get')
-    * karate.proceed("http://localhost:8091")
+# Scenario: isTest('karate-proxy-get')
+#     * karate.proceed("http://localhost:8091")
 
-    # * def responseStatus = 200
-    # * def response = read('classpath:test/rest/sicurezza-messaggio/request.json')
+#     # * def responseStatus = 200
+#     # * def response = read('classpath:test/rest/sicurezza-messaggio/request.json')
 
-Scenario: isTest('karate-proxy-delete')
-    # * def c = request
-    # * remove c.a
-    # * remove c.b
-    * request ''
-    * set requestHeaders['Content-Type'][0] = 'text/html'
-    * karate.proceed("http://localhost:8091")
+# Scenario: isTest('karate-proxy-delete')
+#     # * def c = request
+#     # * remove c.a
+#     # * remove c.b
+#     * request ''
+#     * set requestHeaders['Content-Type'][0] = 'text/html'
+#     * karate.proceed("http://localhost:8091")
 
    
 Scenario: isTest('connettivita-base')
@@ -216,7 +216,50 @@ Scenario: isTest('request-response-without-payload')
     * def responseHeaders = karate.merge(responseHeaders,newHeaders)
 
 
+Scenario: isTest('disabled-security-on-action')
 
+    * match requestHeaders.Authorization == "#notpresent"
+
+    * def url_invocazione_erogazione = govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01CRUD/v1'
+    * karate.proceed(url_invocazione_erogazione)
+
+    * match responseHeaders.Authorization == "#notpresent"
+
+
+Scenario: isTest('enabled-security-on-action')
+
+    * call checkToken ({token: requestHeaders.Authorization[0], match_to: client_token_match })
+
+    # Cambia questo
+    * def url_invocazione_erogazione = govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01CRUDNoDefaultSecurity/v1' 
+
+    * karate.proceed (url_invocazione_erogazione)
+    
+    # Cambia il sub
+    * def server_token_match =
+    """
+    ({
+        header: { kid: 'ExampleServer'},
+        payload: {
+            aud: 'DemoSoggettoFruitore/ApplicativoBlockingIDA01',
+            client_id: 'RestBlockingIDAR01CRUDNoDefaultSecurity/v1',
+            iss: 'DemoSoggettoErogatore',
+            sub: 'RestBlockingIDAR01CRUDNoDefaultSecurity/v1'
+        }
+    })
+    """
+    
+    * call checkToken ({token: responseHeaders.Authorization[0], match_to: server_token_match  })
+
+    * def newHeaders = 
+    """
+    ({
+        'GovWay-TestSuite-GovWay-Client-Token': requestHeaders.Authorization[0],
+        'GovWay-TestSuite-GovWay-Server-Token': responseHeaders.Authorization[0],
+    })
+    """
+    * def responseHeaders = karate.merge(responseHeaders,newHeaders)
+    
 # catch all
 #
 #

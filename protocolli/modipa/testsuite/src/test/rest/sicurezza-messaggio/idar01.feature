@@ -8,47 +8,47 @@ Background:
     * def checkToken = read('classpath:org/openspcoop2/core/protocolli/modipa/testsuite/rest/sicurezza_messaggio/check-token.feature')
 
 
-@karate
-@karate-proxy-post
-Scenario: 
+# @karate
+# @karate-proxy-post
+# Scenario: 
 
-* def url_invocazione = "http://localhost:8090"
+# * def url_invocazione = "http://localhost:8090"
 
-Given url url_invocazione
-And path 'resources', 1, 'M'
-And request read('request.json')
-And header GovWay-TestSuite-Test-ID = 'karate-proxy-post'
-And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
-When method post
-Then status 200
-And match response == read('response.json')
+# Given url url_invocazione
+# And path 'resources', 1, 'M'
+# And request read('request.json')
+# And header GovWay-TestSuite-Test-ID = 'karate-proxy-post'
+# And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+# When method post
+# Then status 200
+# And match response == read('response.json')
 
-@karate
-@karate-proxy-get
-Scenario:
+# @karate
+# @karate-proxy-get
+# Scenario:
 
-* def url_invocazione = "http://localhost:8090"
+# * def url_invocazione = "http://localhost:8090"
 
-Given url url_invocazione
-And path 'resources', 'object', 1
-And header GovWay-TestSuite-Test-ID = 'karate-proxy-get'
-And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
-When method get
-Then status 200
-And match response == read('request.json')
+# Given url url_invocazione
+# And path 'resources', 'object', 1
+# And header GovWay-TestSuite-Test-ID = 'karate-proxy-get'
+# And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+# When method get
+# Then status 200
+# And match response == read('request.json')
 
-@karate
-@karate-proxy-delete
-Scenario:
+# @karate
+# @karate-proxy-delete
+# Scenario:
 
-* def url_invocazione = "http://localhost:8090"
+# * def url_invocazione = "http://localhost:8090"
 
-Given url url_invocazione
-And path 'resources', 'object', 1
-And header GovWay-TestSuite-Test-ID = 'karate-proxy-delete'
-And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
-When method delete
-Then status 204
+# Given url url_invocazione
+# And path 'resources', 'object', 1
+# And header GovWay-TestSuite-Test-ID = 'karate-proxy-delete'
+# And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+# When method delete
+# Then status 204
 
 
 @connettivita-base
@@ -66,31 +66,6 @@ Then status 200
 And match response == read('response.json')
 And match header Authorization == '#notpresent'
 
-
-* def client_token = decode_token(responseHeaders['GovWay-TestSuite-GovWay-Client-Token'][0])
-* def server_token = decode_token(responseHeaders['GovWay-TestSuite-GovWay-Server-Token'][0])
-
-* def tid = responseHeaders['GovWay-Transaction-ID'][0]
-* call check_traccia ({ tid: tid, tipo: 'Richiesta', token: client_token, x509sub: 'CN=ExampleClient1, O=Example, L=Pisa, ST=Italy, C=IT' })
-* call check_traccia ({ tid: tid, tipo: 'Risposta', token: server_token, x509sub: 'CN=ExampleServer, O=Example, L=Pisa, ST=Italy, C=IT' })
-
-* def tid = responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]
-* call check_traccia ({ tid: tid, tipo: 'Richiesta', token: client_token, x509sub: 'CN=ExampleClient1, O=Example, L=Pisa, ST=Italy, C=IT' })
-* call check_traccia ({ tid: tid, tipo: 'Risposta', token: server_token, x509sub: 'CN=ExampleServer, O=Example, L=Pisa, ST=Italy, C=IT' })
-
-@request-without-payload
-Scenario: Test di un endpoint che non ha il payload nella richiesta
-
-* def url_invocazione = govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01CRUD/v1"
-
-Given url url_invocazione
-And path 'resources', 'object', 1
-And header GovWay-TestSuite-Test-ID = 'request-without-payload'
-And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
-When method get
-Then status 200
-And match header Authorization == '#notpresent'
-And match response == read('request.json')
 
 * def client_token = decode_token(responseHeaders['GovWay-TestSuite-GovWay-Client-Token'][0])
 * def server_token = decode_token(responseHeaders['GovWay-TestSuite-GovWay-Server-Token'][0])
@@ -202,6 +177,58 @@ And match header Authorization == '#notpresent'
 * call check_traccia ({ tid: tid, tipo: 'Risposta', token: server_token, x509sub: 'CN=ExampleServer, O=Example, L=Pisa, ST=Italy, C=IT' })
 
 
+@response-without-payload
+Scenario: Test di un endpoint che non ha il payload nella risposta
+
+* def url_invocazione = govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01CRUD/v1"
+
+Given url url_invocazione
+And path 'resources', 'object'
+And request read('request.json')
+And header GovWay-TestSuite-Test-ID = 'response-without-payload'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method post
+Then status 201
+And match header Authorization == '#notpresent'
+
+* def client_token = decode_token(responseHeaders['GovWay-TestSuite-GovWay-Client-Token'][0])
+* def server_token = decode_token(responseHeaders['GovWay-TestSuite-GovWay-Server-Token'][0])
+
+* def tid = responseHeaders['GovWay-Transaction-ID'][0]
+* call check_traccia ({ tid: tid, tipo: 'Richiesta', token: client_token, x509sub: 'CN=ExampleClient1, O=Example, L=Pisa, ST=Italy, C=IT' })
+* call check_traccia ({ tid: tid, tipo: 'Risposta', token: server_token, x509sub: 'CN=ExampleServer, O=Example, L=Pisa, ST=Italy, C=IT' })
+
+* def tid = responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]
+* call check_traccia ({ tid: tid, tipo: 'Richiesta', token: client_token, x509sub: 'CN=ExampleClient1, O=Example, L=Pisa, ST=Italy, C=IT' })
+* call check_traccia ({ tid: tid, tipo: 'Risposta', token: server_token, x509sub: 'CN=ExampleServer, O=Example, L=Pisa, ST=Italy, C=IT' })
+
+
+@request-without-payload
+Scenario: Test di un endpoint che non ha il payload nella richiesta
+
+* def url_invocazione = govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01CRUD/v1"
+
+Given url url_invocazione
+And path 'resources', 'object', 1
+And header GovWay-TestSuite-Test-ID = 'request-without-payload'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method get
+Then status 200
+And match header Authorization == '#notpresent'
+And match response == read('request.json')
+
+* def client_token = decode_token(responseHeaders['GovWay-TestSuite-GovWay-Client-Token'][0])
+* def server_token = decode_token(responseHeaders['GovWay-TestSuite-GovWay-Server-Token'][0])
+
+* def tid = responseHeaders['GovWay-Transaction-ID'][0]
+* call check_traccia ({ tid: tid, tipo: 'Richiesta', token: client_token, x509sub: 'CN=ExampleClient1, O=Example, L=Pisa, ST=Italy, C=IT' })
+* call check_traccia ({ tid: tid, tipo: 'Risposta', token: server_token, x509sub: 'CN=ExampleServer, O=Example, L=Pisa, ST=Italy, C=IT' })
+
+* def tid = responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]
+* call check_traccia ({ tid: tid, tipo: 'Richiesta', token: client_token, x509sub: 'CN=ExampleClient1, O=Example, L=Pisa, ST=Italy, C=IT' })
+* call check_traccia ({ tid: tid, tipo: 'Risposta', token: server_token, x509sub: 'CN=ExampleServer, O=Example, L=Pisa, ST=Italy, C=IT' })
+
+
 
 @request-response-without-payload
 Scenario: Test di un endpoint che non ha il payload ne nella richiesta ne nella risposta
@@ -228,27 +255,33 @@ And match header Authorization == '#notpresent'
 * call check_traccia ({ tid: tid, tipo: 'Risposta', token: server_token, x509sub: 'CN=ExampleServer, O=Example, L=Pisa, ST=Italy, C=IT' })
 
 
-@response-without-payload
-Scenario: Test di un endpoint che non ha il payload nella risposta
+@disabled-security-on-action
+Scenario: Sicurezza disabilitata puntualmente su una sola azione
 
 * def url_invocazione = govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01CRUD/v1"
 
 Given url url_invocazione
-And path 'resources', 'object'
+And path 'resources', 'object', 1
 And request read('request.json')
-And header GovWay-TestSuite-Test-ID = 'response-without-payload'
+And header GovWay-TestSuite-Test-ID = 'disabled-security-on-action'
 And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
-When method post
-Then status 201
+When method put
+Then status 200
+And match response == read('response.json')
 And match header Authorization == '#notpresent'
 
-* def client_token = decode_token(responseHeaders['GovWay-TestSuite-GovWay-Client-Token'][0])
-* def server_token = decode_token(responseHeaders['GovWay-TestSuite-GovWay-Server-Token'][0])
 
-* def tid = responseHeaders['GovWay-Transaction-ID'][0]
-* call check_traccia ({ tid: tid, tipo: 'Richiesta', token: client_token, x509sub: 'CN=ExampleClient1, O=Example, L=Pisa, ST=Italy, C=IT' })
-* call check_traccia ({ tid: tid, tipo: 'Risposta', token: server_token, x509sub: 'CN=ExampleServer, O=Example, L=Pisa, ST=Italy, C=IT' })
+@enabled-security-on-action
+Scenario: Sicurezza disabilitata puntualmente su una sola azione
 
-* def tid = responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]
-* call check_traccia ({ tid: tid, tipo: 'Richiesta', token: client_token, x509sub: 'CN=ExampleClient1, O=Example, L=Pisa, ST=Italy, C=IT' })
-* call check_traccia ({ tid: tid, tipo: 'Risposta', token: server_token, x509sub: 'CN=ExampleServer, O=Example, L=Pisa, ST=Italy, C=IT' })
+* def url_invocazione = govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01CRUDNoDefaultSecurity/v1"
+
+Given url url_invocazione
+And path 'resources', 'object', 1
+And request read('request.json')
+And header GovWay-TestSuite-Test-ID = 'enabled-security-on-action'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method put
+Then status 200
+And match response == read('response.json')
+And match header Authorization == '#notpresent'
