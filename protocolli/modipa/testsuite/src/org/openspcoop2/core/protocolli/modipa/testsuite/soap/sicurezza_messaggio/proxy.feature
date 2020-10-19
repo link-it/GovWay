@@ -171,8 +171,51 @@ Scenario: isTest('riferimento-x509-ThumbprintKey-SKIKey')
     
     * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01SKIKey/v1')
 
-    * call check_server_token ({ from: "SoapBlockingIDAS01IssuerSerial/v1", to: "DemoSoggettoFruitore/ApplicativoBlockingIDA01" })
+    * call check_server_token ({ from: "SoapBlockingIDAS01SKIKey/v1", to: "DemoSoggettoFruitore/ApplicativoBlockingIDA01" })
     # Testo la presenza del Subject Key Identifier nello header
+    * match /Envelope/Header/Security/Signature/KeyInfo/SecurityTokenReference/KeyIdentifier == "#present"
+
+    * xmlstring server_response = response
+    * eval karateCache.add("Server-Response", server_response)
+
+
+Scenario: isTest('riferimento-x509-x509Key-ThumbprintKey')
+    
+    * xmlstring client_request = bodyPath('/')
+    * eval karateCache.add("Client-Request", client_request)
+
+    * call check_client_token ({ address: "DemoSoggettoFruitore/ApplicativoBlockingIDA01", to: "testsuite" })
+    
+    # TODO: Testare che l'attributo con il certificato sia presente
+    * match bodyPath("/Envelope/Header/Security/Signature/KeyInfo/SecurityTokenReference/KeyIdentifier") == "#present"
+    
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01ThumbprintKey/v1')
+
+    * call check_server_token ({ from: "SoapBlockingIDAS01ThumbprintKey/v1", to: "DemoSoggettoFruitore/ApplicativoBlockingIDA01" })
+    
+    # TODO: Confrontare con il valore sha-1 del certificato server
+    * match /Envelope/Header/Security/Signature/KeyInfo/SecurityTokenReference/KeyIdentifier == "#present"
+
+    * xmlstring server_response = response
+    * eval karateCache.add("Server-Response", server_response)
+
+
+Scenario: isTest('riferimento-x509-IssuerSerial-x509Key')
+    
+    * xmlstring client_request = bodyPath('/')
+    * eval karateCache.add("Client-Request", client_request)
+
+    * call check_client_token ({ address: "DemoSoggettoFruitore/ApplicativoBlockingIDA01", to: "testsuite" })
+    
+    # TODO: Leggere i veri valori
+    * match bodyPath('/Envelope/Header/Security/Signature/KeyInfo/SecurityTokenReference/X509Data/X509IssuerSerial/X509IssuerName') == "#present"
+    * match bodyPath('/Envelope/Header/Security/Signature/KeyInfo/SecurityTokenReference/X509Data/X509IssuerSerial/X509SerialNumber') == "#present"
+    
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01X509KeyId/v1')
+
+    * call check_server_token ({ from: "SoapBlockingIDAS01X509KeyId/v1", to: "DemoSoggettoFruitore/ApplicativoBlockingIDA01" })
+    
+    # Testo la presenza della thumbprint sha-1 del certificato server
     * match /Envelope/Header/Security/Signature/KeyInfo/SecurityTokenReference/KeyIdentifier == "#present"
 
     * xmlstring server_response = response
