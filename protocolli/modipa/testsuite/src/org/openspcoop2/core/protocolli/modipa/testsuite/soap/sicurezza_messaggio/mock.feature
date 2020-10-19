@@ -17,7 +17,7 @@ Background:
     * configure responseHeaders = confHeaders
 
 
-Scenario: isTest('connettivita-base') || isTest('connettivita-base-default-trustore') || isTest('connettivita-base-truststore-ca')
+Scenario: isTest('connettivita-base') || isTest('connettivita-base-default-trustore') || isTest('connettivita-base-truststore-ca') || isTest('riferimento-x509-SKIKey-IssuerSerial') || isTest('riferimento-x509-ThumbprintKey-SKIKey')
     
     * match bodyPath('/Envelope/Header') == ''
     * def responseStatus = 200
