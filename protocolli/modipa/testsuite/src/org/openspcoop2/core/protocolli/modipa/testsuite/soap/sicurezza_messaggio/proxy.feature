@@ -142,8 +142,9 @@ Scenario: isTest('riferimento-x509-SKIKey-IssuerSerial')
     * eval karateCache.add("Client-Request", client_request)
 
     * call check_client_token ({ address: "DemoSoggettoFruitore/ApplicativoBlockingIDA01", to: "testsuite" })
+    
     # Testo la presenza del Subject Key Identifier nello header
-    * match bodyPath('/Envelope/Header/Security/Signature/KeyInfo/SecurityTokenReference/KeyIdentifier') == "#present"
+    * match bodyPath('/Envelope/Header/Security/Signature/KeyInfo/SecurityTokenReference/KeyIdentifier') == "V8ojtQaElmusOPopR34itbvzPW8="
     
     * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01IssuerSerial/v1')
 
@@ -163,10 +164,7 @@ Scenario: isTest('riferimento-x509-ThumbprintKey-SKIKey')
     * eval karateCache.add("Client-Request", client_request)
 
     * call check_client_token ({ address: "DemoSoggettoFruitore/ApplicativoBlockingIDA01", to: "testsuite" })
-    
-    # Testo la presenza dell'identificatore della chiave con una thumbprint sha-1
-    # TODO: Utilizzare i valori ottenuti dalla risposta, perchè in questo caso il valore che identifica
-    # il certificato è lo sha-1, nel caso SKIKey invece è la codifica in base64 del Subject Key Identifier
+
     * match bodyPath("/Envelope/Header/Security/Signature/KeyInfo/SecurityTokenReference/KeyIdentifier") == "#present"
     
     * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01SKIKey/v1')
@@ -186,14 +184,12 @@ Scenario: isTest('riferimento-x509-x509Key-ThumbprintKey')
 
     * call check_client_token ({ address: "DemoSoggettoFruitore/ApplicativoBlockingIDA01", to: "testsuite" })
     
-    # TODO: Testare che l'attributo con il certificato sia presente
     * match bodyPath("/Envelope/Header/Security/Signature/KeyInfo/SecurityTokenReference/KeyIdentifier") == "#present"
     
     * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01ThumbprintKey/v1')
 
     * call check_server_token ({ from: "SoapBlockingIDAS01ThumbprintKey/v1", to: "DemoSoggettoFruitore/ApplicativoBlockingIDA01" })
     
-    # TODO: Confrontare con il valore sha-1 del certificato server
     * match /Envelope/Header/Security/Signature/KeyInfo/SecurityTokenReference/KeyIdentifier == "#present"
 
     * xmlstring server_response = response
@@ -207,7 +203,6 @@ Scenario: isTest('riferimento-x509-IssuerSerial-x509Key')
 
     * call check_client_token ({ address: "DemoSoggettoFruitore/ApplicativoBlockingIDA01", to: "testsuite" })
     
-    # TODO: Leggere i veri valori
     * match bodyPath('/Envelope/Header/Security/Signature/KeyInfo/SecurityTokenReference/X509Data/X509IssuerSerial/X509IssuerName') == "#present"
     * match bodyPath('/Envelope/Header/Security/Signature/KeyInfo/SecurityTokenReference/X509Data/X509IssuerSerial/X509SerialNumber') == "#present"
     
