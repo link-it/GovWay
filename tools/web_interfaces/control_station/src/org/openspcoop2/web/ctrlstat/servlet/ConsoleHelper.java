@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Scanner;
 import java.util.Vector;
+import java.util.stream.Collectors;
 
 import javax.mail.BodyPart;
 import javax.servlet.http.HttpServletRequest;
@@ -59,6 +60,7 @@ import org.openspcoop2.core.commons.Liste;
 import org.openspcoop2.core.commons.ModalitaIdentificazione;
 import org.openspcoop2.core.commons.SearchUtils;
 import org.openspcoop2.core.config.AutorizzazioneScope;
+import org.openspcoop2.core.config.CanaleConfigurazione;
 import org.openspcoop2.core.config.CanaliConfigurazione;
 import org.openspcoop2.core.config.Configurazione;
 import org.openspcoop2.core.config.ConfigurazioneUrlInvocazione;
@@ -7531,7 +7533,42 @@ public class ConsoleHelper implements IConsoleHelper {
 		de.setStatusValue(statusValue);
 		de.setStatusToolTip(statusTooltip);
 	}
-	
+	public void setStatoCanale(DataElement de, String canaleNome, List<CanaleConfigurazione> canaleList) throws DriverConfigurazioneNotFound, DriverConfigurazioneException {
+		de.setType(DataElementType.TEXT);
+		
+		String canaleTooltip;
+		if(canaleNome == null) { // default
+			CanaleConfigurazione canaleConfigurazioneDefault = canaleList.stream().filter((c) -> c.isCanaleDefault()).findFirst().get();
+			canaleNome =  canaleConfigurazioneDefault.getNome();
+			canaleTooltip = CostantiControlStation.LABEL_CONFIGURAZIONE_CANALE_DEFAULT;
+		} else {
+			canaleTooltip = CostantiControlStation.LABEL_CONFIGURAZIONE_CANALE_RIDEFINITO;
+		}
+		
+		de.setValue(canaleNome);
+		de.setToolTip(canaleTooltip);
+	}
+	public void setStatoCanalePorta(DataElement de, String canaleNome, String canaleAPINome,  List<CanaleConfigurazione> canaleList) throws DriverConfigurazioneNotFound, DriverConfigurazioneException {
+		
+		de.setType(DataElementType.TEXT);
+		
+		String canaleTooltip;
+		if(canaleNome == null) { // default
+			if(canaleAPINome == null) { // default sistema
+				CanaleConfigurazione canaleConfigurazioneDefault = canaleList.stream().filter((c) -> c.isCanaleDefault()).findFirst().get();
+				canaleNome =  canaleConfigurazioneDefault.getNome();
+				canaleTooltip = CostantiControlStation.LABEL_CONFIGURAZIONE_CANALE_DEFAULT;	
+			} else { // default API
+				canaleNome = canaleAPINome;
+				canaleTooltip = CostantiControlStation.LABEL_CONFIGURAZIONE_CANALE_DEFAULT_API;
+			}
+		} else {
+			canaleTooltip = CostantiControlStation.LABEL_CONFIGURAZIONE_CANALE_RIDEFINITO;
+		}
+		
+		de.setValue(canaleNome);
+		de.setToolTip(canaleTooltip);
+	}
 	
 	public void setStatoOpzioniAvanzatePortaDelegataDefault(DataElement de, String options) throws Exception {
 		this._setStatoOpzioniAvanzatePortaDefault(de, options);
@@ -16074,10 +16111,19 @@ public class ConsoleHelper implements IConsoleHelper {
 		
 	}
 	
+	public void addInUsoButtonVisualizzazioneClassica(Vector<DataElement> e, String titolo, String id, org.openspcoop2.protocol.sdk.constants.ArchiveType archiveType) {
+		this.addInUsoButton(e, DataElementType.BUTTON, titolo, id, archiveType);
+	}
+	
 	public void addInUsoButton(Vector<DataElement> e, String titolo, String id, org.openspcoop2.protocol.sdk.constants.ArchiveType archiveType) {
+		this.addInUsoButton(e, DataElementType.IMAGE, titolo, id, archiveType);
+	}
+	
+	private void addInUsoButton(Vector<DataElement> e, DataElementType deType, String titolo, String id, org.openspcoop2.protocol.sdk.constants.ArchiveType archiveType) {
 		DataElement de = new DataElement();
-		de.setType(DataElementType.IMAGE);
+		de.setType(deType);
 		de.setToolTip(CostantiControlStation.LABEL_IN_USO_TOOLTIP);
+		de.setWidthPx(15);	
 		Dialog deDialog = new Dialog();
 		deDialog.setIcona(Costanti.ICON_USO);
 		deDialog.setTitolo(titolo);
@@ -16103,5 +16149,95 @@ public class ConsoleHelper implements IConsoleHelper {
 		
 		de.setDialog(deDialog );
 		e.addElement(de);
+	}
+	
+	public void addCanaleToDati(Vector<DataElement> dati, TipoOperazione tipoOperazione, String canaleStato, String canale, String canaleAPI,
+			List<CanaleConfigurazione> canaleList, boolean gestioneCanaliEnabled) {
+		this.addCanaleToDati(dati, tipoOperazione, canaleStato, canale, canaleAPI, canaleList, gestioneCanaliEnabled, true);
+	}
+	
+	public void addCanaleToDati(Vector<DataElement> dati, TipoOperazione tipoOperazione, String canaleStato, String canale, String canaleAPI,
+			List<CanaleConfigurazione> canaleList, boolean gestioneCanaliEnabled, boolean addTitle) {
+		DataElement de;
+		// canale
+		if(gestioneCanaliEnabled) {
+			if(addTitle) {
+				DataElement dataElement = new DataElement();
+				dataElement.setLabel(CostantiControlStation.LABEL_CONFIGURAZIONE_CANALE);
+				dataElement.setType(DataElementType.TITLE);
+				dati.add(dataElement);
+			}
+			
+			de = new DataElement();
+			de.setLabel(CostantiControlStation.LABEL_PARAMETRO_CONFIGURAZIONE_CANALI_CANALE_STATO);
+			de.setValues(CostantiControlStation.VALUES_PARAMETRO_CONFIGURAZIONE_CANALI_CANALE_STATO);
+			
+			List<String> labelsCanaleStato = new ArrayList<>();
+			CanaleConfigurazione canaleConfigurazioneDefault = canaleList.stream().filter((c) -> c.isCanaleDefault()).findFirst().get();
+			String nomeCanaleDefault = MessageFormat.format(CostantiControlStation.LABEL_DEFAULT_VALUE_PARAMETRO_CONFIGURAZIONE_CANALI_CANALE_STATO_DEFAULT, canaleConfigurazioneDefault.getNome());
+			if(canaleAPI != null) {
+				nomeCanaleDefault = MessageFormat.format(CostantiControlStation.LABEL_DEFAULT_VALUE_PARAMETRO_CONFIGURAZIONE_CANALI_CANALE_STATO_DEFAULT_API, canaleAPI);
+			}
+			labelsCanaleStato.add(nomeCanaleDefault);
+			labelsCanaleStato.add(CostantiControlStation.LABEL_DEFAULT_VALUE_PARAMETRO_CONFIGURAZIONE_CANALI_CANALE_STATO_RIDEFINITO);
+			
+			de.setLabels(labelsCanaleStato);
+			de.setType(DataElementType.SELECT);
+			de.setSelected(canaleStato);
+			de.setName(CostantiControlStation.PARAMETRO_CONFIGURAZIONE_CANALI_CANALE_STATO);
+			de.setSize(this.getSize());
+			de.setPostBack(true);
+			dati.addElement(de);
+			
+			if(canaleStato.equals(CostantiControlStation.DEFAULT_VALUE_PARAMETRO_CANALE_STATO_RIDEFINITO)) {
+				de = new DataElement();
+				de.setLabel(""); //(AccordiServizioParteComuneCostanti.LABEL_PARAMETRO_APC_CANALE);
+				List<String> canaliListValues = canaleList.stream().map(CanaleConfigurazione::getNome).collect(Collectors.toList());
+				de.setValues(canaliListValues);
+				de.setLabels(canaliListValues);
+				de.setType(DataElementType.SELECT);
+				de.setSelected(canale);
+				de.setName(CostantiControlStation.PARAMETRO_CONFIGURAZIONE_CANALI_CANALE);
+				de.setSize(this.getSize());
+				dati.addElement(de);
+			}
+		}
+	}
+	
+	public void addCanaleToDatiAsHidden(Vector<DataElement> dati, TipoOperazione tipoOperazione, String canaleStato, String canale, boolean gestioneCanaliEnabled) {
+		DataElement de;
+		// canale
+		if(gestioneCanaliEnabled) {
+			de = new DataElement();
+			de.setLabel(CostantiControlStation.LABEL_PARAMETRO_CONFIGURAZIONE_CANALI_CANALE_STATO);
+			de.setType(DataElementType.HIDDEN);
+			de.setValue(canaleStato);
+			de.setName(CostantiControlStation.PARAMETRO_CONFIGURAZIONE_CANALI_CANALE_STATO);
+			de.setSize(this.getSize());
+			dati.addElement(de);
+			
+			if(canaleStato.equals(CostantiControlStation.DEFAULT_VALUE_PARAMETRO_CANALE_STATO_RIDEFINITO)) {
+				de = new DataElement();
+				de.setLabel(""); //(AccordiServizioParteComuneCostanti.LABEL_PARAMETRO_APC_CANALE);
+				de.setType(DataElementType.HIDDEN);
+				de.setValue(canale);
+				de.setName(CostantiControlStation.PARAMETRO_CONFIGURAZIONE_CANALI_CANALE);
+				de.setSize(this.getSize());
+				dati.addElement(de);
+			}
+		}
+	}
+	
+	public boolean canaleCheckData(String canaleStato, String canale, boolean gestioneCanaliEnabled) throws Exception {
+		// validazione canale
+		if(gestioneCanaliEnabled) {
+			if(canaleStato.equals(CostantiControlStation.DEFAULT_VALUE_PARAMETRO_CANALE_STATO_RIDEFINITO)) {
+				if(this.checkNCName(canale, CostantiControlStation.LABEL_PARAMETRO_CONFIGURAZIONE_CANALI_CANALE)==false){
+					return false;
+				}
+			}
+		}
+		
+		return true;
 	}
 }

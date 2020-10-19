@@ -479,7 +479,7 @@ public class ConfigurazioneCostanti {
 	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_CANALI_NOME = "Nome";
 	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_CANALI_DESCRIZIONE = "Descrizione";
 	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_CANALI_STATO = "Stato";
-	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_CANALI_DEFAULT = "Canale di default";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_CANALI_DEFAULT = "Default";
 	
 	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_CANALI_NODI_NOME = "Nome";
 	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_CANALI_NODI_DESCRIZIONE = "Descrizione";
@@ -1780,6 +1780,9 @@ public class ConfigurazioneCostanti {
 	public final static String PARAMETRO_CONFIGURAZIONE_CONTROLLO_TRAFFICO_POLICY_ACTIVE_POLICY_MODALITA_RISORSA_INTERVALLO_OSSERVAZIONE_DEFAULT = TipoPeriodoRealtime.ORARIO.getValue();
 	
 	/* MESSAGGI */
+	
+	public final static String LABEL_CANALE_IN_USO_BODY_HEADER_NESSUN_RISULTATO = "Il Canale non risulta utilizzato in alcuna configurazione";
+	public static final String MESSAGGIO_FUNZIONALITA_CANALI_NON_DISATTIVABILE = "Impossibile disabilitare la configurazione dei Canali perch&egrave; : {0}";
 	
 	public final static String MESSAGGIO_CONFERMA_ELIMINAZIONE_POLICY_GESTIONE_TOKEN_OK = "Eliminazione Policy selezionate completata";
 	

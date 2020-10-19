@@ -12839,7 +12839,7 @@ public class DriverConfigurazioneDB_LIB {
 		}
 	}
 	
-	protected static void readCanaliConfigurazione(Connection con, CanaliConfigurazione configCanali) throws Exception {
+	protected static void readCanaliConfigurazione(Connection con, CanaliConfigurazione configCanali, boolean readNodi) throws Exception {
 		PreparedStatement stm1=null;
 		ResultSet rs1= null;
 		try {
@@ -12870,23 +12870,25 @@ public class DriverConfigurazioneDB_LIB {
 			rs1.close();
 			stm1.close();
 
-			sqlQueryObject = SQLObjectFactory.createSQLQueryObject(tipoDB);
-			sqlQueryObject.addFromTable(CostantiDB.CONFIGURAZIONE_CANALI_NODI);
-			sqlQueryObject.addSelectField("*");
-			sqlQueryObject.setANDLogicOperator(true);
-			sqlQuery = sqlQueryObject.createSQLQuery();
-			stm1 = con.prepareStatement(sqlQuery);
-			rs1 = stm1.executeQuery();
-			while(rs1.next()){
-				
-				CanaleConfigurazioneNodo nodo = new CanaleConfigurazioneNodo();
-				nodo.setId(rs1.getLong("id"));
-				nodo.setNome(rs1.getString("nome"));
-				nodo.setDescrizione(rs1.getString("descrizione"));
-				List<String> l = DBUtils.convertToList(rs1.getString("canali"));
-				nodo.setCanaleList(l);
-				configCanali.addNodo(nodo);
-				
+			if(readNodi) {
+				sqlQueryObject = SQLObjectFactory.createSQLQueryObject(tipoDB);
+				sqlQueryObject.addFromTable(CostantiDB.CONFIGURAZIONE_CANALI_NODI);
+				sqlQueryObject.addSelectField("*");
+				sqlQueryObject.setANDLogicOperator(true);
+				sqlQuery = sqlQueryObject.createSQLQuery();
+				stm1 = con.prepareStatement(sqlQuery);
+				rs1 = stm1.executeQuery();
+				while(rs1.next()){
+					
+					CanaleConfigurazioneNodo nodo = new CanaleConfigurazioneNodo();
+					nodo.setId(rs1.getLong("id"));
+					nodo.setNome(rs1.getString("nome"));
+					nodo.setDescrizione(rs1.getString("descrizione"));
+					List<String> l = DBUtils.convertToList(rs1.getString("canali"));
+					nodo.setCanaleList(l);
+					configCanali.addNodo(nodo);
+					
+				}
 			}
 
 		}finally {

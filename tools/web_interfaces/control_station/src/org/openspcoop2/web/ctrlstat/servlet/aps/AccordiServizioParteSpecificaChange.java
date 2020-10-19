@@ -39,6 +39,8 @@ import org.apache.struts.action.Action;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
+import org.openspcoop2.core.config.CanaleConfigurazione;
+import org.openspcoop2.core.config.CanaliConfigurazione;
 import org.openspcoop2.core.config.constants.CostantiConfigurazione;
 import org.openspcoop2.core.config.driver.db.IDServizioApplicativoDB;
 import org.openspcoop2.core.constants.CostantiDB;
@@ -343,6 +345,9 @@ public final class AccordiServizioParteSpecificaChange extends Action {
 			boolean erogazioneServizioApplicativoServerEnabled = ServletUtils.isCheckBoxEnabled(erogazioneServizioApplicativoServerEnabledS);
 			String erogazioneServizioApplicativoServer = apsHelper.getParameter(AccordiServizioParteSpecificaCostanti.PARAMETRO_APS_ID_APPLICATIVO_SERVER);
 			
+			String canale = apsHelper.getParameter(CostantiControlStation.PARAMETRO_CONFIGURAZIONE_CANALI_CANALE);
+			String canaleStato = apsHelper.getParameter(CostantiControlStation.PARAMETRO_CONFIGURAZIONE_CANALI_CANALE_STATO);
+			
 			// Preparo il menu
 			apsHelper.makeMenu();
 
@@ -387,6 +392,12 @@ public final class AccordiServizioParteSpecificaChange extends Action {
 			porteDelegateCore = new PorteDelegateCore(apsCore);
 			PddCore pddCore = new PddCore(apsCore);
 			ServiziApplicativiCore saCore = new ServiziApplicativiCore(apsCore);
+			ConfigurazioneCore confCore = new ConfigurazioneCore(apsCore);
+			
+			// carico i canali
+			CanaliConfigurazione gestioneCanali = confCore.getCanaliConfigurazione();
+			List<CanaleConfigurazione> canaleList = gestioneCanali != null ? gestioneCanali.getCanaleList() : new ArrayList<>();
+			boolean gestioneCanaliEnabled = gestioneCanali != null && gestioneCanali.getStato().equals(org.openspcoop2.core.config.constants.StatoFunzionalita.ABILITATO);
 			
 			String tipologia = ServletUtils.getObjectFromSession(session, String.class, AccordiServizioParteSpecificaCostanti.PARAMETRO_APS_TIPO_EROGAZIONE);
 			boolean gestioneFruitori = false;
@@ -552,6 +563,8 @@ public final class AccordiServizioParteSpecificaChange extends Action {
 				as = apcCore.getAccordoServizioSintetico(idAccordoFactory.getIDAccordoFromUri(asps.getAccordoServizioParteComune()));
 				portType = asps.getPortType();
 			}
+			
+			String canaleAPI = as != null ? as.getCanale() : null;  
 		
 			ServiceBinding serviceBinding = apcCore.toMessageServiceBinding(as.getServiceBinding());
 			org.openspcoop2.protocol.manifest.constants.InterfaceType formatoSpecifica = apcCore.formatoSpecifica2InterfaceType(as.getFormatoSpecifica());
@@ -846,8 +859,7 @@ public final class AccordiServizioParteSpecificaChange extends Action {
 				if(nomeservizio==null){
 					nomeservizio = asps.getNome();
 				}
-
-
+				
 				// Controllo se il soggetto erogare appartiene ad una pdd di tipo operativo.
 				IDSoggetto idSoggettoEr = new IDSoggetto( tipoSoggettoErogatore,  nomeSoggettoErogatore);
 				Soggetto soggetto = soggettiCore.getSoggettoRegistro(idSoggettoEr );
@@ -1187,7 +1199,7 @@ public final class AccordiServizioParteSpecificaChange extends Action {
 							null,null,null,null,null,null,null,null,null,null,
 							null,null,null,null,null,
 							null,null,
-							null,null,null,null,moreThenOneImplementation);
+							null,null,null,null,moreThenOneImplementation, canaleStato, canaleAPI, canale, canaleList, gestioneCanaliEnabled);
 
 					if(apsHelper.isModalitaCompleta() || (!soggettoOperativo && !gestioneFruitori)) {
 					
@@ -1310,7 +1322,8 @@ public final class AccordiServizioParteSpecificaChange extends Action {
 					null, null, null, null,
 					tipoProtocollo,null, 
 					descrizione, tipoSoggettoFruitore, nomeSoggettoFruitore,
-					autenticazioneToken, token_policy, erogazioneServizioApplicativoServerEnabled, erogazioneServizioApplicativoServer);
+					autenticazioneToken, token_policy, erogazioneServizioApplicativoServerEnabled, erogazioneServizioApplicativoServer, 
+					canaleStato, canale, gestioneCanaliEnabled);
 			
 			// updateDynamic
 			if(isOk) {
@@ -1379,7 +1392,7 @@ public final class AccordiServizioParteSpecificaChange extends Action {
 						null,null,null,null,null,null,null,null,null,null,
 						null,null,null,null,null,
 						null,null,
-						null,null,null,null,moreThenOneImplementation);
+						null,null,null,null,moreThenOneImplementation, canaleStato, canaleAPI, canale, canaleList, gestioneCanaliEnabled);
 
 				if(apsHelper.isModalitaCompleta() || (!soggettoOperativo && !gestioneFruitori)) {
 				
@@ -1497,7 +1510,7 @@ public final class AccordiServizioParteSpecificaChange extends Action {
 							null,null,null,null,null,null,null,null,null,null,
 							null,null,null,null,null,
 							null,null,
-							null,null,null,null,moreThenOneImplementation);
+							null,null,null,null,moreThenOneImplementation, canaleStato, canaleAPI, canale, canaleList, gestioneCanaliEnabled);
 
 					if(apsHelper.isModalitaCompleta() || (!soggettoOperativo && !gestioneFruitori)) {
 						boolean forceEnableConnettore = false;
@@ -1833,7 +1846,7 @@ public final class AccordiServizioParteSpecificaChange extends Action {
 							null,null,null,null,null,null,null,null,null,null,
 							null,null,null,null,null,
 							null,null,
-							null,null,null,null,moreThenOneImplementation);
+							null,null,null,null,moreThenOneImplementation, canaleStato, canaleAPI, canale, canaleList, gestioneCanaliEnabled);
 
 					if(apsHelper.isModalitaCompleta() || (!soggettoOperativo && !gestioneFruitori)) {
 					

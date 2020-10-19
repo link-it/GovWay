@@ -427,6 +427,10 @@ public class CostantiControlStation {
 	public final static String LABEL_CONFIGURAZIONE_CORS_ACCESS_CONTROL = "Access Control";
 	public final static String LABEL_CONFIGURAZIONE_CORS_DI = "Gestione CORS di ";
 	
+	public final static String LABEL_CONFIGURAZIONE_CANALE = "Canale";
+	public final static String LABEL_CONFIGURAZIONE_CANALE_DI = "Canale di ";
+	
+	
 	public final static String LABEL_CONFIGURAZIONE_VERIFICA_CONNETTORE_BOTTONE = "Verifica";
 	public final static String LABEL_CONFIGURAZIONE_CONNETTIVITA = "Connettività";
 	public final static String LABEL_CONFIGURAZIONE_VERIFICA_CONNETTORE_TITLE = "Verifica Connettività";
@@ -466,11 +470,15 @@ public class CostantiControlStation {
 	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_CORS_MAX_AGE_SECONDS = "Max Age Seconds";
 	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_CORS_MAX_AGE_SECONDS_NOTE = "Utilizza il valore -1 per disabilitare il caching";
 	
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_CANALI_CANALE = "Canale";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_CANALI_CANALE_STATO = "Canale";
+	
 	public final static String LABEL_PARAMETRO_CORS_STATO_PORTA = "Stato";
 	public final static String LABEL_PARAMETRO_CORS_STATO_PORTA_DEFAULT = "default";
 	public final static String LABEL_PARAMETRO_CORS_STATO_PORTA_RIDEFINITO = "ridefinito";
 	public static final String LABEL_GESTIONE_CORS_MODIFICATA_CON_SUCCESSO = "Configurazione CORS modificata con successo";
 	public static final String LABEL_CONFIGURAZIONE_RESPONSE_CACHING_GENERAZIONE_HASH = "Generazione Hash";
+	public static final String LABEL_GESTIONE_CANALE_MODIFICATA_CON_SUCCESSO = "Configurazione Canale modificata con successo";
 	
 	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_RESPONSE_CACHING_STATO = "Stato";
 	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_RESPONSE_CACHING_TIMEOUT = "Cache Timeout (secondi)";
@@ -696,9 +704,13 @@ public class CostantiControlStation {
 	public final static String LABEL_PARAMETRO_ABILITA_USO_APPLICATIVO_SERVER = "Utilizza Applicativo Server";
 	public final static String LABEL_PARAMETRO_ID_APPLICATIVO_SERVER = "Applicativo";
 	
-	
+	public final static String LABEL_IN_USO_COLONNA_HEADER = "Uso";
 	public final static String LABEL_IN_USO_TOOLTIP = "Riferimenti";
 	public final static String LABEL_IN_USO_BODY_HEADER_RISULTATI = "Risultati della ricerca";
+	
+	public final static String LABEL_CONFIGURAZIONE_CANALE_DEFAULT = "Configurazione di default del Gateway";
+	public final static String LABEL_CONFIGURAZIONE_CANALE_DEFAULT_API = "Configurazione di default dell'API";
+	public final static String LABEL_CONFIGURAZIONE_CANALE_RIDEFINITO = "Configurazione ridefinita per l'API";
 	
 	
 	// POLICY RISORSA TIPO
@@ -873,6 +885,9 @@ public class CostantiControlStation {
 	public final static String PARAMETRO_CONFIGURAZIONE_CORS_MAX_AGE = "corsMaxAge";
 	public final static String PARAMETRO_CONFIGURAZIONE_CORS_MAX_AGE_SECONDS = "corsMaxAgeSec";
 	public final static String PARAMETRO_CONFIGURAZIONE_CORS_STATO_PORTA = "corsStatoPorta";
+	
+	public final static String PARAMETRO_CONFIGURAZIONE_CANALI_CANALE = "canale";
+	public final static String PARAMETRO_CONFIGURAZIONE_CANALI_CANALE_STATO = "canaleStato";
 	
 	public final static String PARAMETRO_VERIFICA_CONNETTORE_ID = "connettoreId";
 	public final static String PARAMETRO_VERIFICA_CONNETTORE_ACCESSO_DA_GRUPPI = "connettoreAccessoDaGruppi";
@@ -1269,6 +1284,15 @@ public class CostantiControlStation {
 	
 	public final static String[] SELECT_VALUES_PARAMETRO_PROXY_PASS_REGOLA_SERVICE_BINDING = { DEFAULT_VALUE_PARAMETRO_SERVICE_BINDING_QUALSIASI, DEFAULT_VALUE_PARAMETRO_SERVICE_BINDING_SOAP, DEFAULT_VALUE_PARAMETRO_SERVICE_BINDING_REST };
 	public final static String[] SELECT_LABELS_PARAMETRO_PROXY_PASS_REGOLA_SERVICE_BINDING = { LABEL_PARAMETRO_SERVICE_BINDING_QUALSIASI, LABEL_PARAMETRO_SERVICE_BINDING_SOAP, LABEL_PARAMETRO_SERVICE_BINDING_REST };
+	
+	public final static String LABEL_DEFAULT_VALUE_PARAMETRO_CONFIGURAZIONE_CANALI_CANALE_STATO_RIDEFINITO = "ridefinito";
+	public final static String LABEL_DEFAULT_VALUE_PARAMETRO_CONFIGURAZIONE_CANALI_CANALE_STATO_DEFAULT = "default ({0})";
+	public final static String LABEL_DEFAULT_VALUE_PARAMETRO_CONFIGURAZIONE_CANALI_CANALE_STATO_DEFAULT_API = "default API ({0})";
+	
+	public final static String DEFAULT_VALUE_PARAMETRO_CANALE_STATO_RIDEFINITO = "ridefinito";
+	public final static String DEFAULT_VALUE_PARAMETRO_CANALE_STATO_DEFAULT = "default";
+	
+	public final static String[] VALUES_PARAMETRO_CONFIGURAZIONE_CANALI_CANALE_STATO = { DEFAULT_VALUE_PARAMETRO_CANALE_STATO_DEFAULT, DEFAULT_VALUE_PARAMETRO_CANALE_STATO_RIDEFINITO	 };
 	
 	/** OTHER */
 	public final static String IMAGES_DIR = "images";

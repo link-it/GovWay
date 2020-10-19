@@ -1586,6 +1586,16 @@
             <forward name="porteDelegateGestioneCorsCheckError" path="/jsplib/addElement.jsp"/>
             <forward name="porteDelegateGestioneCorsError" path="/jsplib/info.jsp"/>
         </action>
+        
+         <!-- Porte Delegate (Gestione Canale) -->
+    
+    	<action path="/porteDelegateGestioneCanale" type="org.openspcoop2.web.ctrlstat.servlet.pd.PorteDelegateGestioneCanale"
+            scope="request" validate="true">
+            <forward name="porteDelegateGestioneCanaleForm" path="/jsplib/addElement.jsp"/>
+            <forward name="porteDelegateGestioneCanaleOk" path="/jsplib/addElement.jsp"/>
+            <forward name="porteDelegateGestioneCanaleCheckError" path="/jsplib/addElement.jsp"/>
+            <forward name="porteDelegateGestioneCanaleError" path="/jsplib/info.jsp"/>
+        </action>
 
         <!-- Porte Delegate (Verifica Connettore) -->
     
@@ -2348,6 +2358,16 @@
             <forward name="porteApplicativeGestioneCorsOk" path="/jsplib/addElement.jsp"/>
             <forward name="porteApplicativeGestioneCorsCheckError" path="/jsplib/addElement.jsp"/>
             <forward name="porteApplicativeGestioneCorsError" path="/jsplib/info.jsp"/>
+        </action>
+        
+        <!-- Porte Applicative (Gestione Canale) -->
+    
+    	<action path="/porteApplicativeGestioneCanale" type="org.openspcoop2.web.ctrlstat.servlet.pa.PorteApplicativeGestioneCanale"
+            scope="request" validate="true">
+            <forward name="porteApplicativeGestioneCanaleForm" path="/jsplib/addElement.jsp"/>
+            <forward name="porteApplicativeGestioneCanaleOk" path="/jsplib/addElement.jsp"/>
+            <forward name="porteApplicativeGestioneCanaleCheckError" path="/jsplib/addElement.jsp"/>
+            <forward name="porteApplicativeGestioneCanaleError" path="/jsplib/info.jsp"/>
         </action>
 
         <!-- Porte Applicative (Verifica Connettore) -->

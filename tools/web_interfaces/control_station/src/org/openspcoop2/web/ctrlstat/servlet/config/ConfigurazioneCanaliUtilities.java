@@ -39,4 +39,22 @@ public class ConfigurazioneCanaliUtilities {
 
 		return deleteCanale;
 	}
+	
+	public static boolean isCanaleInUsoRegistro(CanaleConfigurazione canale, 
+			ConfigurazioneCore confCore, ConfigurazioneHelper confHelper, StringBuilder inUsoMessage, String newLine) throws Exception {
+
+		// Controllo che il canale non sia in uso
+		Map<ErrorsHandlerCostant, List<String>> whereIsInUso = new Hashtable<ErrorsHandlerCostant, List<String>>();
+		boolean normalizeObjectIds = !confHelper.isModalitaCompleta();
+		boolean canaleInUso  = confCore.isCanaleInUsoRegistro(canale, whereIsInUso, normalizeObjectIds);
+
+		if (canaleInUso) {
+
+			inUsoMessage.append(DBOggettiInUsoUtils.toString(canale, whereIsInUso, true, newLine));
+			inUsoMessage.append(newLine);
+
+		}  
+
+		return canaleInUso;
+	}
 }

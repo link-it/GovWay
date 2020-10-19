@@ -27,6 +27,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpSession;
 
+import org.openspcoop2.core.config.CanaleConfigurazione;
 import org.openspcoop2.core.config.PortaApplicativa;
 import org.openspcoop2.core.config.PortaApplicativaAutorizzazioneServizioApplicativo;
 import org.openspcoop2.core.config.PortaApplicativaAutorizzazioneSoggetto;
@@ -285,6 +286,17 @@ public class ExporterUtils {
 			idsScope.add(idScope);
 		}
 		return idsScope;
+	}
+	
+	public List<?> getIdsCanale(String ids) throws DriverRegistroServiziNotFound, DriverRegistroServiziException{
+		List<CanaleConfigurazione> idsCanali = new ArrayList<CanaleConfigurazione>();
+		ArrayList<String> idsToExport = Utilities.parseIdsToRemove(ids);
+		for (String id : idsToExport) {
+			CanaleConfigurazione canale = new CanaleConfigurazione();
+			canale.setNome(id);
+			idsCanali.add(canale);
+		}
+		return idsCanali;
 	}
 	
 	public void filterByProtocol(List<String> tipiSoggetti,List<String> tipiServizi,Archive archive) throws ProtocolException {

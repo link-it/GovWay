@@ -127,7 +127,6 @@ public class PorteDelegateGestioneCanale extends Action {
 			if(postBackElementName != null ){
 				if(postBackElementName.equalsIgnoreCase(CostantiControlStation.PARAMETRO_CONFIGURAZIONE_CANALI_CANALE_STATO)){
 				}
-				
 			}
 			
 			// setto la barra del titolo
@@ -214,7 +213,7 @@ public class PorteDelegateGestioneCanale extends Action {
 			porteDelegateCore.performUpdateOperation(userLogin, porteDelegateHelper.smista(), portaDelegata);
 		
 			// Preparo la lista
-			pd.setMessage(PorteDelegateCostanti.LABEL_PORTE_DELEGATE_CORS_CON_SUCCESSO, Costanti.MESSAGE_TYPE_INFO);
+			pd.setMessage(PorteDelegateCostanti.LABEL_PORTE_DELEGATE_CANALE_CON_SUCCESSO, Costanti.MESSAGE_TYPE_INFO);
 
 			portaDelegata = porteDelegateCore.getPortaDelegata(idInt);
 			idporta = portaDelegata.getNome();

@@ -208,7 +208,7 @@ public class PorteApplicativeGestioneCanale extends Action {
 
 			porteApplicativeCore.performUpdateOperation(userLogin, porteApplicativeHelper.smista(), pa);
 			// Preparo la lista
-			pd.setMessage(PorteApplicativeCostanti.LABEL_PORTE_APPLICATIVE_CORS_CON_SUCCESSO, Costanti.MESSAGE_TYPE_INFO);
+			pd.setMessage(PorteApplicativeCostanti.LABEL_PORTE_APPLICATIVE_CANALE_CON_SUCCESSO, Costanti.MESSAGE_TYPE_INFO);
 
 			pa = porteApplicativeCore.getPortaApplicativa(idInt);
 			idporta = pa.getNome();

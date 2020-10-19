@@ -129,6 +129,7 @@ import org.openspcoop2.pdd.timers.TimerState;
 import org.openspcoop2.protocol.engine.ProtocolFactoryManager;
 import org.openspcoop2.protocol.sdk.IProtocolFactory;
 import org.openspcoop2.protocol.sdk.InformazioniProtocollo;
+import org.openspcoop2.protocol.sdk.constants.ArchiveType;
 import org.openspcoop2.protocol.utils.ProtocolUtils;
 import org.openspcoop2.utils.regexp.RegularExpressionEngine;
 import org.openspcoop2.utils.resources.MapReader;
@@ -2339,16 +2340,15 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 			String canaliEnabledTmp = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_CANALI_STATO);
 			boolean canaliEnabled = ServletUtils.isCheckBoxEnabled(canaliEnabledTmp);
 			
+			Configurazione configurazione = this.confCore.getConfigurazioneGenerale();
+			CanaliConfigurazione gestioneCanali = configurazione.getGestioneCanali();
+			List<CanaleConfigurazione> canaleList = gestioneCanali != null ? gestioneCanali.getCanaleList() : null;
+			
 			if(canaliEnabled) {
 				String canaliNome = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_CANALI_NOME);
 				String canaliDescrizione = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_CANALI_DESCRIZIONE);
 				String canaliDefault = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_CANALI_DEFAULT);
 			
-				
-				Configurazione configurazione = this.confCore.getConfigurazioneGenerale();
-				CanaliConfigurazione gestioneCanali = configurazione.getGestioneCanali();
-				List<CanaleConfigurazione> canaleList = gestioneCanali != null ? gestioneCanali.getCanaleList() : null;
-				
 				if(canaleList == null || canaleList.size() == 0) { // in questa situazione mi dovrei trovare solo quando attivo la funzionalita'
 					if(canaleDatiCheckData(canaliNome, canaliDescrizione) == false) {
 						return false;
@@ -2370,6 +2370,23 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 					if(found ==false) {
 						this.pd.setMessage(ConfigurazioneCostanti.MESSAGGIO_CANALE_DEFAULT_SELEZIONATO_NON_ESISTE);
 						return false;
+					}
+				}
+			} else {
+				boolean oldEnabled = (gestioneCanali != null && gestioneCanali.getStato().equals(StatoFunzionalita.ABILITATO) ) ? true: false;
+				
+				StringBuilder inUsoMessage = new StringBuilder();
+				
+				if(oldEnabled) { 
+					// se era abilitato e ora sto disabilitando devo controllare che non ci sia nessun canale in uso in API, Erogazioni o Fruizioni
+					
+					if(canaleList != null) {
+						for (CanaleConfigurazione canale : canaleList) {
+							if(ConfigurazioneCanaliUtilities.isCanaleInUsoRegistro(canale, this.confCore, this, inUsoMessage, org.openspcoop2.core.constants.Costanti.WEB_NEW_LINE)) {
+								this.pd.setMessage(MessageFormat.format(ConfigurazioneCostanti.MESSAGGIO_FUNZIONALITA_CANALI_NON_DISATTIVABILE, inUsoMessage.toString()));
+								return false;
+							}
+						}
 					}
 				}
 			}
@@ -15826,6 +15843,7 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_CANALI_NOME);
 			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_CANALI_DESCRIZIONE);
 			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_CANALI_DEFAULT);
+			lstLabels.add(CostantiControlStation.LABEL_IN_USO_COLONNA_HEADER); // inuso
 			this.pd.setLabels(lstLabels.toArray(new String [lstLabels.size()]));
 
 			// preparo i dati
@@ -15867,6 +15885,9 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 						de.setValue("No");
 					}
 					e.addElement(de);
+					
+					
+					this.addInUsoButtonVisualizzazioneClassica(e, regola.getNome(), regola.getNome(), ArchiveType.CANALE);
 
 					dati.addElement(e);
 				}

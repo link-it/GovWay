@@ -21,6 +21,7 @@ package org.openspcoop2.web.ctrlstat.servlet.config;
 
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -1324,5 +1325,43 @@ public class ConfigurazioneCore extends ControlStationCore {
 		} finally {
 			ControlStationCore.dbM.releaseConnection(con);
 		}
+	}
+	
+	public boolean isCanaleInUsoRegistro(CanaleConfigurazione canale, Map<ErrorsHandlerCostant, List<String>> whereIsInUso,	boolean normalizeObjectIds) throws DriverConfigurazioneException {
+		Connection con = null; 
+		String nomeMetodo = "isCanaleInUsoRegistro";
+		
+		try {
+			// prendo una connessione
+			con = ControlStationCore.dbM.getConnection();
+	
+			return DBOggettiInUsoUtils.isCanaleInUsoRegistro(con, this.tipoDB, canale, whereIsInUso, normalizeObjectIds);
+	
+		} catch (Exception e) {
+			ControlStationCore.log.error("[ControlStationCore::" + nomeMetodo + "] Exception :" + e.getMessage(), e);
+			throw new DriverConfigurazioneException("[ControlStationCore::" + nomeMetodo + "] Error :" + e.getMessage(),e);
+		} finally {
+			ControlStationCore.dbM.releaseConnection(con);
+		}
+	}
+	
+	public String getDettagliCanaleInUso(CanaleConfigurazione canale) throws DriverConfigurazioneException, DriverConfigurazioneNotFound {
+		HashMap<ErrorsHandlerCostant, List<String>> whereIsInUso = new HashMap<ErrorsHandlerCostant, List<String>>();
+		boolean normalizeObjectIds = true;
+		boolean canaleInUso  = this.isCanaleInUso(canale, whereIsInUso, normalizeObjectIds);
+		
+		StringBuilder inUsoMessage = new StringBuilder();
+		if(canaleInUso) {
+			String s = DBOggettiInUsoUtils.toString(canale, whereIsInUso, false, "\n");
+			if(s!=null && s.startsWith("\n") && s.length()>1) {
+				s = s.substring(1);
+			}
+			inUsoMessage.append(s);
+			inUsoMessage.append("\n");
+		} else {
+			inUsoMessage.append(ConfigurazioneCostanti.LABEL_CANALE_IN_USO_BODY_HEADER_NESSUN_RISULTATO);
+		}
+		
+		return inUsoMessage.toString();
 	}
 }

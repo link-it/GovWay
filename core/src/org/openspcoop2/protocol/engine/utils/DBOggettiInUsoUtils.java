@@ -3839,7 +3839,13 @@ public class DBOggettiInUsoUtils  {
 
 		return msg;
 	}
+	public static boolean isCanaleInUsoRegistro(Connection con, String tipoDB, CanaleConfigurazione canale, Map<ErrorsHandlerCostant, List<String>> whereIsInUso, boolean normalizeObjectIds) throws UtilsException {
+		return isCanaleInUso(con, tipoDB, canale, whereIsInUso, normalizeObjectIds, true, true, false);
+	}
 	public static boolean isCanaleInUso(Connection con, String tipoDB, CanaleConfigurazione canale, Map<ErrorsHandlerCostant, List<String>> whereIsInUso, boolean normalizeObjectIds) throws UtilsException {
+		return isCanaleInUso(con, tipoDB, canale, whereIsInUso, normalizeObjectIds, true, true, true);
+	}
+	public static boolean isCanaleInUso(Connection con, String tipoDB, CanaleConfigurazione canale, Map<ErrorsHandlerCostant, List<String>> whereIsInUso, boolean normalizeObjectIds, boolean registry, boolean config, boolean nodi) throws UtilsException {
 		String nomeMetodo = "_isCanaleInUso";
 
 		PreparedStatement stmt = null;
@@ -3848,9 +3854,6 @@ public class DBOggettiInUsoUtils  {
 		ResultSet risultato2 = null;
 		String queryString;
 
-		boolean registry = true;
-		boolean config = true;
-		
 		try {
 			String nomeCanale = canale.getNome();
 			
@@ -4016,15 +4019,21 @@ public class DBOggettiInUsoUtils  {
 			}
 			
 			// Controllo che il canale non sia in uso in un nodo
-			if(config){
+			if(nodi){
 				ISQLQueryObject sqlQueryObject = SQLObjectFactory.createSQLQueryObject(tipoDB);
 				sqlQueryObject.addFromTable(CostantiDB.CONFIGURAZIONE_CANALI_NODI);
 				sqlQueryObject.addSelectField(CostantiDB.CONFIGURAZIONE_CANALI_NODI+".nome");
-				sqlQueryObject.setANDLogicOperator(true);
+				sqlQueryObject.setANDLogicOperator(false);
 				sqlQueryObject.setSelectDistinct(true);
-				sqlQueryObject.addWhereLikeCondition(CostantiDB.CONFIGURAZIONE_CANALI_NODI+".canali", nomeCanale, true , true);
+				// condizione di controllo
+				// (canali == 'NOME') OR (canali like 'CANALE,%') OR (canali like '%,CANALE') OR (canali like '%,CANALE,%')
+				sqlQueryObject.addWhereCondition(CostantiDB.CONFIGURAZIONE_CANALI_NODI+".canali = ?");
+				sqlQueryObject.addWhereLikeCondition(CostantiDB.CONFIGURAZIONE_CANALI_NODI+".canali", nomeCanale+",", true , false);
+				sqlQueryObject.addWhereLikeCondition(CostantiDB.CONFIGURAZIONE_CANALI_NODI+".canali", ","+nomeCanale, true , false);
+				sqlQueryObject.addWhereLikeCondition(CostantiDB.CONFIGURAZIONE_CANALI_NODI+".canali", ","+nomeCanale+",", true , false);
 				queryString = sqlQueryObject.createSQLQuery(); 
 				stmt = con.prepareStatement(queryString);
+				stmt.setString(1, nomeCanale);
 				risultato = stmt.executeQuery();
 				while (risultato.next()) {
 					String nome = risultato.getString("nome");

@@ -34,6 +34,8 @@ import org.openspcoop2.core.commons.Filtri;
 import org.openspcoop2.core.commons.ISearch;
 import org.openspcoop2.core.commons.Liste;
 import org.openspcoop2.core.commons.SearchUtils;
+import org.openspcoop2.core.config.CanaleConfigurazione;
+import org.openspcoop2.core.config.CanaliConfigurazione;
 import org.openspcoop2.core.config.Connettore;
 import org.openspcoop2.core.config.InvocazioneServizio;
 import org.openspcoop2.core.config.MessageSecurity;
@@ -530,6 +532,12 @@ public class ErogazioniHelper extends AccordiServizioParteSpecificaHelper{
 			
 			// colleziono i tags registrati
 			List<String> tagsDisponibili = this.gruppiCore.getAllGruppiOrdinatiPerDataRegistrazione();
+			
+			// configurazione dei canali
+			CanaliConfigurazione gestioneCanali = this.confCore.getCanaliConfigurazione();
+			boolean gestioneCanaliEnabled = gestioneCanali != null && gestioneCanali.getStato().equals(org.openspcoop2.core.config.constants.StatoFunzionalita.ABILITATO);
+			List<CanaleConfigurazione> canaleList = gestioneCanali != null ? gestioneCanali.getCanaleList() : new ArrayList<>();
+			CanaleConfigurazione canaleConfigurazioneDefault = gestioneCanaliEnabled ? canaleList.stream().filter((c) -> c.isCanaleDefault()).findFirst().get(): null;
 
 			for (AccordoServizioParteSpecifica asps : lista) {
 				AccordoServizioParteComuneSintetico apc = this.apcCore.getAccordoServizioSintetico(asps.getIdAccordo());
@@ -604,11 +612,50 @@ public class ErogazioniHelper extends AccordiServizioParteSpecificaHelper{
 				}
 				de.setType(DataElementType.TITLE);
 				e.addElement(de);
+				
+				AccordoServizioParteComuneSintetico apc = listApc.get(i);
+				ServiceBinding serviceBinding = this.apcCore.toMessageServiceBinding(apc.getServiceBinding());
+				
+				DataElement dataElementStatoApi = null;
+				String labelCanalePorta = null;
+				// stato gruppi
+				if(showConfigurazionePA) {
+					List<MappingErogazionePortaApplicativa> listaMappingErogazionePortaApplicativa = this.apsCore.mappingServiziPorteAppList(idServizio,asps.getId(), null);
+					List<PortaApplicativa> listaPorteApplicativeAssociate = new ArrayList<>();
+
+					String nomePortaDefault = null;
+					for(MappingErogazionePortaApplicativa mappinErogazione : listaMappingErogazionePortaApplicativa) {
+						PortaApplicativa pa = this.porteApplicativeCore.getPortaApplicativa(mappinErogazione.getIdPortaApplicativa());
+						if(mappinErogazione.isDefault()) {
+							nomePortaDefault = mappinErogazione.getIdPortaApplicativa().getNome();
+							labelCanalePorta = pa.getCanale();
+						}
+						listaPorteApplicativeAssociate.add(pa);
+					}
+					
+					dataElementStatoApi = this.newDataElementStatoApiErogazione(null, true, asps, apc, nomePortaDefault, listaMappingErogazionePortaApplicativa, listaPorteApplicativeAssociate);
+				}
+				
+				if(showConfigurazionePD) {
+					List<MappingFruizionePortaDelegata> listaMappingFruzionePortaDelegata = this.apsCore.serviziFruitoriMappingList(fruitore.getId(), idSoggettoFruitore, idServizio, null);	
+					List<PortaDelegata> listaPorteDelegateAssociate = new ArrayList<>();
+
+					String nomePortaDefault = null;
+					for(MappingFruizionePortaDelegata mappingFruizione : listaMappingFruzionePortaDelegata) {
+						PortaDelegata pd = this.porteDelegateCore.getPortaDelegata(mappingFruizione.getIdPortaDelegata());
+						if(mappingFruizione.isDefault()) {
+							nomePortaDefault = mappingFruizione.getIdPortaDelegata().getNome();
+							labelCanalePorta = pd.getCanale();
+						}					
+						
+						listaPorteDelegateAssociate.add(pd);
+					}
+					
+					dataElementStatoApi = this.newDataElementStatoApiFruizione(null, true, asps, apc, nomePortaDefault, listaMappingFruzionePortaDelegata, listaPorteDelegateAssociate);
+				}
 
 				// Metadati Servizio 
 				de = new DataElement();
-				AccordoServizioParteComuneSintetico apc = listApc.get(i);
-				ServiceBinding serviceBinding = this.apcCore.toMessageServiceBinding(apc.getServiceBinding());
 				
 				String labelAPI = this.getLabelIdAccordo(apc);
 				String labelServiceBinding = null;
@@ -622,11 +669,28 @@ public class ErogazioniHelper extends AccordiServizioParteSpecificaHelper{
 					break;
 				}
 
-				if(showProtocolli) {
-					String labelProtocollo =this.getLabelProtocollo(protocollo); 
-					de.setValue(MessageFormat.format(ErogazioniCostanti.MESSAGE_METADATI_SERVIZIO_EROGAZIONI_CON_PROFILO, labelServiceBinding, labelAPI, labelProtocollo));
+				if(gestioneCanaliEnabled) {
+					if(labelCanalePorta == null) { // default dell'accordo
+						labelCanalePorta =  apc.getCanale();
+					}
+					
+					if(labelCanalePorta == null) { // default del sistema
+						labelCanalePorta =  canaleConfigurazioneDefault.getNome();
+					}
+					
+					if(showProtocolli) {
+						String labelProtocollo =this.getLabelProtocollo(protocollo); 
+						de.setValue(MessageFormat.format(ErogazioniCostanti.MESSAGE_METADATI_SERVIZIO_EROGAZIONI_CON_PROFILO_CON_CANALE, labelServiceBinding, labelAPI, labelCanalePorta, labelProtocollo));
+					} else {
+						de.setValue(MessageFormat.format(ErogazioniCostanti.MESSAGE_METADATI_SERVIZIO_EROGAZIONI_LIST_CON_CANALE, labelServiceBinding, labelAPI, labelCanalePorta));
+					}
 				} else {
-					de.setValue(MessageFormat.format(ErogazioniCostanti.MESSAGE_METADATI_SERVIZIO_EROGAZIONI_LIST, labelServiceBinding, labelAPI));
+					if(showProtocolli) {
+						String labelProtocollo =this.getLabelProtocollo(protocollo); 
+						de.setValue(MessageFormat.format(ErogazioniCostanti.MESSAGE_METADATI_SERVIZIO_EROGAZIONI_CON_PROFILO, labelServiceBinding, labelAPI, labelProtocollo));
+					} else {
+						de.setValue(MessageFormat.format(ErogazioniCostanti.MESSAGE_METADATI_SERVIZIO_EROGAZIONI_LIST, labelServiceBinding, labelAPI));
+					}
 				}
 				de.setType(DataElementType.SUBTITLE);
 				e.addElement(de);
@@ -653,39 +717,7 @@ public class ErogazioniHelper extends AccordiServizioParteSpecificaHelper{
 					}
 				}
 				
-				DataElement dataElementStatoApi = null;
-				// stato gruppi
-				if(showConfigurazionePA) {
-					List<MappingErogazionePortaApplicativa> listaMappingErogazionePortaApplicativa = this.apsCore.mappingServiziPorteAppList(idServizio,asps.getId(), null);
-					List<PortaApplicativa> listaPorteApplicativeAssociate = new ArrayList<>();
-
-					String nomePortaDefault = null;
-					for(MappingErogazionePortaApplicativa mappinErogazione : listaMappingErogazionePortaApplicativa) {
-						if(mappinErogazione.isDefault()) {
-							nomePortaDefault = mappinErogazione.getIdPortaApplicativa().getNome();
-						}
-						PortaApplicativa pa = this.porteApplicativeCore.getPortaApplicativa(mappinErogazione.getIdPortaApplicativa());
-						listaPorteApplicativeAssociate.add(pa);
-					}
-					
-					dataElementStatoApi = this.newDataElementStatoApiErogazione(null, true, asps, apc, nomePortaDefault, listaMappingErogazionePortaApplicativa, listaPorteApplicativeAssociate);
-				}
 				
-				if(showConfigurazionePD) {
-					List<MappingFruizionePortaDelegata> listaMappingFruzionePortaDelegata = this.apsCore.serviziFruitoriMappingList(fruitore.getId(), idSoggettoFruitore, idServizio, null);	
-					List<PortaDelegata> listaPorteDelegateAssociate = new ArrayList<>();
-
-					String nomePortaDefault = null;
-					for(MappingFruizionePortaDelegata mappingFruizione : listaMappingFruzionePortaDelegata) {
-						if(mappingFruizione.isDefault()) {
-							nomePortaDefault = mappingFruizione.getIdPortaDelegata().getNome();
-						}					
-						PortaDelegata pd = this.porteDelegateCore.getPortaDelegata(mappingFruizione.getIdPortaDelegata());
-						listaPorteDelegateAssociate.add(pd);
-					}
-					
-					dataElementStatoApi = this.newDataElementStatoApiFruizione(null, true, asps, apc, nomePortaDefault, listaMappingFruzionePortaDelegata, listaPorteDelegateAssociate);
-				}
 				
 				if(dataElementStatoApi!=null) {
 					e.addElement(dataElementStatoApi);
@@ -1471,6 +1503,7 @@ public class ErogazioniHelper extends AccordiServizioParteSpecificaHelper{
 		IDPortaApplicativa idPA = null;
 		PortaApplicativa paDefault = null;
 		PortaApplicativaServizioApplicativo paSADefault =  null;
+		String canalePorta = null;
 
 		if(gestioneErogatori) {
 			
@@ -1532,6 +1565,8 @@ public class ErogazioniHelper extends AccordiServizioParteSpecificaHelper{
 						visualizzaConnettore = false;
 						break;
 					}
+				} else {
+					canalePorta = paAssociata.getCanale();
 				}
 				
 			}
@@ -1656,6 +1691,25 @@ public class ErogazioniHelper extends AccordiServizioParteSpecificaHelper{
 			dati.addElement(de);
 			
 			
+			// Canale
+			CanaliConfigurazione gestioneCanali = this.confCore.getCanaliConfigurazione();
+			boolean gestioneCanaliEnabled = gestioneCanali != null && gestioneCanali.getStato().equals(org.openspcoop2.core.config.constants.StatoFunzionalita.ABILITATO);
+			if(gestioneCanaliEnabled) {
+				List<CanaleConfigurazione> canaleList = gestioneCanali != null ? gestioneCanali.getCanaleList() : new ArrayList<>();
+				de = new DataElement();
+				de.setType(DataElementType.TEXT);
+				de.setLabel(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_CANALE);
+				this.setStatoCanalePorta(de, canalePorta, as.getCanale(), canaleList);
+				
+				image = new DataElementImage();
+				image.setToolTip(MessageFormat.format(ErogazioniCostanti.ASPS_EROGAZIONI_ICONA_MODIFICA_CONFIGURAZIONE_TOOLTIP_CON_PARAMETRO, ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_CANALE));
+				image.setImage(ErogazioniCostanti.ASPS_EROGAZIONI_ICONA_MODIFICA_CONFIGURAZIONE);
+				image.setUrl(PorteApplicativeCostanti.SERVLET_NAME_PORTE_APPLICATIVE_GESTIONE_CANALE, paIdSogg, paIdPorta, pIdAsps);
+				de.setImage(image);
+				
+				dati.addElement(de);
+			}
+			
 			
 			// Opzioni Avanzate
 			
@@ -1686,6 +1740,7 @@ public class ErogazioniHelper extends AccordiServizioParteSpecificaHelper{
 			IDSoggetto idFruitore = new IDSoggetto(fruitore.getTipo(), fruitore.getNome());
 			IDPortaDelegata idPD = this.porteDelegateCore.getIDPortaDelegataAssociataDefault(idServizio, idFruitore);
 			PortaDelegata pdDefault = this.porteDelegateCore.getPortaDelegata(idPD);
+			canalePorta = pdDefault.getCanale();
 				
 			Parameter pIdPD = new Parameter(PorteDelegateCostanti.PARAMETRO_PORTE_DELEGATE_ID, "" + pdDefault.getId());
 			Parameter pNomePD = new Parameter(PorteDelegateCostanti.PARAMETRO_PORTE_DELEGATE_NOME_PORTA, pdDefault.getNome());
@@ -1842,6 +1897,25 @@ public class ErogazioniHelper extends AccordiServizioParteSpecificaHelper{
 			image.setUrl(PorteDelegateCostanti.SERVLET_NAME_PORTE_DELEGATE_GESTIONE_CORS, pIdPD, pNomePD, pIdSoggPD, pIdAsps, pIdFruitore);
 			de.setImage(image);
 			dati.addElement(de);
+			
+			// Canale
+			CanaliConfigurazione gestioneCanali = this.confCore.getCanaliConfigurazione();
+			boolean gestioneCanaliEnabled = gestioneCanali != null && gestioneCanali.getStato().equals(org.openspcoop2.core.config.constants.StatoFunzionalita.ABILITATO);
+			if(gestioneCanaliEnabled) {
+				List<CanaleConfigurazione> canaleList = gestioneCanali != null ? gestioneCanali.getCanaleList() : new ArrayList<>();
+				de = new DataElement();
+				de.setType(DataElementType.TEXT);
+				de.setLabel(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_CANALE);
+				this.setStatoCanalePorta(de, canalePorta, as.getCanale(), canaleList);
+				
+				image = new DataElementImage();
+				image.setToolTip(MessageFormat.format(ErogazioniCostanti.ASPS_EROGAZIONI_ICONA_MODIFICA_CONFIGURAZIONE_TOOLTIP_CON_PARAMETRO, ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_CANALE));
+				image.setImage(ErogazioniCostanti.ASPS_EROGAZIONI_ICONA_MODIFICA_CONFIGURAZIONE);
+				image.setUrl(PorteDelegateCostanti.SERVLET_NAME_PORTE_DELEGATE_GESTIONE_CANALE, pIdPD, pNomePD, pIdSoggPD, pIdAsps, pIdFruitore);
+				de.setImage(image);
+				
+				dati.addElement(de);
+			}
 			
 			
 			// Opzioni Avanzate

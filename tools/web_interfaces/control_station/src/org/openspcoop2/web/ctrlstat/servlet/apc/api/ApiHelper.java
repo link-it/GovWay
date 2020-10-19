@@ -31,6 +31,8 @@ import org.openspcoop2.core.commons.Filtri;
 import org.openspcoop2.core.commons.ISearch;
 import org.openspcoop2.core.commons.Liste;
 import org.openspcoop2.core.commons.SearchUtils;
+import org.openspcoop2.core.config.CanaleConfigurazione;
+import org.openspcoop2.core.config.CanaliConfigurazione;
 import org.openspcoop2.core.id.IDAccordo;
 import org.openspcoop2.core.registry.AccordoServizioParteComune;
 import org.openspcoop2.core.registry.GruppiAccordo;
@@ -172,6 +174,12 @@ public class ApiHelper extends AccordiServizioParteComuneHelper {
 			
 			// colleziono i tags registrati
 			List<String> tagsDisponibili = this.gruppiCore.getAllGruppiOrdinatiPerDataRegistrazione();
+			
+			// configurazione dei canali
+			CanaliConfigurazione gestioneCanali = this.confCore.getCanaliConfigurazione();
+			boolean gestioneCanaliEnabled = gestioneCanali != null && gestioneCanali.getStato().equals(org.openspcoop2.core.config.constants.StatoFunzionalita.ABILITATO);
+			List<CanaleConfigurazione> canaleList = gestioneCanali != null ? gestioneCanali.getCanaleList() : new ArrayList<>();
+			CanaleConfigurazione canaleConfigurazioneDefault = gestioneCanaliEnabled ? canaleList.stream().filter((c) -> c.isCanaleDefault()).findFirst().get(): null;
 
 			for (int i = 0; i < lista.size(); i++) {
 				Vector<DataElement> e = new Vector<DataElement>();
@@ -215,12 +223,27 @@ public class ApiHelper extends AccordiServizioParteComuneHelper {
 				InterfaceType interfaceType = this.apcCore.formatoSpecifica2InterfaceType(accordoServizio.getFormatoSpecifica());
 				labelServiceBinding = labelServiceBinding + " " + this.getLabelWSDLFromFormatoSpecifica(interfaceType);
 				
-				if(showProtocolli) {
-					String labelProtocollo =this.getLabelProtocollo(protocollo); 
-					de.setValue(MessageFormat.format(ApiCostanti.MESSAGE_METADATI_APC_API_CON_PROFILO, labelServiceBinding, labelProtocollo));
+				if(gestioneCanaliEnabled) {
+					String labelCanale = accordoServizio.getCanale();
+					if(labelCanale == null) { // default
+						labelCanale =  canaleConfigurazioneDefault.getNome();
+					}
+					
+					if(showProtocolli) {
+						String labelProtocollo =this.getLabelProtocollo(protocollo); 
+						de.setValue(MessageFormat.format(ApiCostanti.MESSAGE_METADATI_APC_API_CON_CANALE_CON_PROFILO, labelServiceBinding, labelCanale, labelProtocollo));
+					} else {
+						de.setValue(MessageFormat.format(ApiCostanti.MESSAGE_METADATI_APC_API_LIST_CON_CANALE, labelServiceBinding, labelCanale));
+					}
 				} else {
-					de.setValue(MessageFormat.format(ApiCostanti.MESSAGE_METADATI_APC_API_LIST, labelServiceBinding));
+					if(showProtocolli) {
+						String labelProtocollo =this.getLabelProtocollo(protocollo); 
+						de.setValue(MessageFormat.format(ApiCostanti.MESSAGE_METADATI_APC_API_CON_PROFILO, labelServiceBinding, labelProtocollo));
+					} else {
+						de.setValue(MessageFormat.format(ApiCostanti.MESSAGE_METADATI_APC_API_LIST, labelServiceBinding));
+					}
 				}
+				
 				de.setType(DataElementType.SUBTITLE);
 				e.addElement(de);
 				
@@ -677,7 +700,27 @@ public class ApiHelper extends AccordiServizioParteComuneHelper {
 		
 		dati.addElement(de);
 		
-		
+		// Canale
+		CanaliConfigurazione gestioneCanali = this.confCore.getCanaliConfigurazione();
+		boolean gestioneCanaliEnabled = gestioneCanali != null && gestioneCanali.getStato().equals(org.openspcoop2.core.config.constants.StatoFunzionalita.ABILITATO);
+		if(gestioneCanaliEnabled) {
+			List<CanaleConfigurazione> canaleList = gestioneCanali != null ? gestioneCanali.getCanaleList() : new ArrayList<>();
+			de = new DataElement();
+			de.setType(DataElementType.TEXT);
+			de.setLabel(AccordiServizioParteComuneCostanti.LABEL_PARAMETRO_APC_CANALE);
+			this.setStatoCanale(de, as.getCanale(), canaleList);
+			listParametersApi.get(0).setValue(ApiCostanti.VALORE_PARAMETRO_APC_API_CANALE);
+			de.setIcon(ApiCostanti.APC_API_ICONA_MODIFICA_API);
+			
+			image = new DataElementImage();
+			listParametersApi.get(0).setValue(ApiCostanti.VALORE_PARAMETRO_APC_API_CANALE);
+			image.setUrl(AccordiServizioParteComuneCostanti.SERVLET_NAME_APC_CHANGE, listParametersApi.toArray(new Parameter[1]));
+			image.setToolTip(MessageFormat.format(ApiCostanti.APC_API_ICONA_MODIFICA_API_TOOLTIP_CON_PARAMETRO, AccordiServizioParteComuneCostanti.LABEL_PARAMETRO_APC_CANALE));
+			image.setImage(ApiCostanti.APC_API_ICONA_MODIFICA_API);
+			de.setImage(image);
+			
+			dati.addElement(de);
+		}
 		
 		// link
 		// 1. risorse/servizi

@@ -16,6 +16,7 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.openspcoop2.core.config.CanaleConfigurazione;
 import org.openspcoop2.core.id.IDAccordo;
 import org.openspcoop2.core.id.IDRuolo;
 import org.openspcoop2.core.id.IDScope;
@@ -30,6 +31,7 @@ import org.openspcoop2.web.ctrlstat.core.ControlStationCore;
 import org.openspcoop2.web.ctrlstat.servlet.apc.AccordiServizioParteComuneCore;
 import org.openspcoop2.web.ctrlstat.servlet.archivi.ArchiviCore;
 import org.openspcoop2.web.ctrlstat.servlet.archivi.ExporterUtils;
+import org.openspcoop2.web.ctrlstat.servlet.config.ConfigurazioneCore;
 import org.openspcoop2.web.ctrlstat.servlet.ruoli.RuoliCore;
 import org.openspcoop2.web.ctrlstat.servlet.sa.ServiziApplicativiCore;
 import org.openspcoop2.web.ctrlstat.servlet.scope.ScopeCore;
@@ -73,6 +75,7 @@ public class InformazioniUtilizzoOggettoRegistro extends HttpServlet{
 			ServiziApplicativiCore saCore = new ServiziApplicativiCore(archiviCore);
 			RuoliCore ruoliCore = new RuoliCore(archiviCore);
 			ScopeCore scopeCore = new ScopeCore(archiviCore);
+			ConfigurazioneCore confCore = new ConfigurazioneCore(archiviCore);
 
 			String identificativoOggetto = registroHelper.getParameter(UtilsCostanti.PARAMETRO_INFORMAZIONI_UTILIZZO_OGGETTO_ID_OGGETTO); 
 			String tipoOggetto = registroHelper.getParameter(UtilsCostanti.PARAMETRO_INFORMAZIONI_UTILIZZO_OGGETTO_TIPO_OGGETTO); 
@@ -121,6 +124,13 @@ public class InformazioniUtilizzoOggettoRegistro extends HttpServlet{
 				for (Object object : identificativi) {
 					IDScope idScope = (IDScope)object;
 					risultatiRicerca.add(scopeCore.getDettagliScopeInUso(idScope));
+				}
+				break;
+			case CANALE:
+				identificativi = exporterUtils.getIdsCanale(identificativoOggetto);
+				for (Object object : identificativi) {
+					CanaleConfigurazione canale = (CanaleConfigurazione)object;
+					risultatiRicerca.add(confCore.getDettagliCanaleInUso(canale));
 				}
 				break;
 			case ACCORDO_COOPERAZIONE:

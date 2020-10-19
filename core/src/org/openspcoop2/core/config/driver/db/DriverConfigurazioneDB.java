@@ -11203,7 +11203,7 @@ implements IDriverConfigurazioneGet, IDriverConfigurazioneCRUD, IDriverWS, IMoni
 				config.setGestioneCanali(new CanaliConfigurazione());
 				config.getGestioneCanali().setStato(DriverConfigurazioneDB_LIB.getEnumStatoFunzionalita(canali_stato));
 				if(StatoFunzionalita.ABILITATO.equals(config.getGestioneCanali().getStato())) {
-					DriverConfigurazioneDB_LIB.readCanaliConfigurazione(con, config.getGestioneCanali());
+					DriverConfigurazioneDB_LIB.readCanaliConfigurazione(con, config.getGestioneCanali(), true);
 				}
 				
 				ExtendedInfoManager extInfoManager = ExtendedInfoManager.getInstance();
@@ -28768,5 +28768,89 @@ implements IDriverConfigurazioneGet, IDriverConfigurazioneCRUD, IDriverWS, IMoni
 				// ignore exception
 			}
 		}
+	}
+	
+	/**
+	 * Restituisce la configurazione dei canali
+	 * 
+	 * @return Configurazione
+	 * 
+	 */
+	public CanaliConfigurazione getCanaliConfigurazione() throws DriverConfigurazioneException,DriverConfigurazioneNotFound {
+		// ritorna la configurazione generale della PdD
+
+		Connection con = null;
+		PreparedStatement stm = null;
+		ResultSet rs = null;
+		PreparedStatement stm1 = null;
+		ResultSet rs1 = null;
+		PreparedStatement stm2 = null;
+		ResultSet rs2 = null;
+
+		String sqlQuery = "";
+
+		if (this.atomica) {
+			try {
+				con = getConnectionFromDatasource("getCanaliConfigurazione");
+
+			} catch (Exception e) {
+				throw new DriverConfigurazioneException("[DriverConfigurazioneDB::getCanaliConfigurazione] Exception accedendo al datasource :" + e.getMessage(),e);
+
+			}
+
+		} else
+			con = this.globalConnection;
+
+		this.log.debug("operazione this.atomica = " + this.atomica);
+		CanaliConfigurazione config = new CanaliConfigurazione();
+		config.setStato(StatoFunzionalita.DISABILITATO);
+		try {
+			ISQLQueryObject sqlQueryObject = SQLObjectFactory.createSQLQueryObject(this.tipoDB);
+			sqlQueryObject.addFromTable(CostantiDB.CONFIGURAZIONE);
+			sqlQueryObject.addSelectField(CostantiDB.CONFIGURAZIONE + ".canali_stato");
+			sqlQuery = sqlQueryObject.createSQLQuery();
+
+			this.log.debug("eseguo query: " + DBUtils.formatSQLString(sqlQuery));
+			stm = con.prepareStatement(sqlQuery);
+			rs = stm.executeQuery();
+
+			if (rs.next()) {
+
+				// Canali
+				String canali_stato = rs.getString("canali_stato");
+				config.setStato(DriverConfigurazioneDB_LIB.getEnumStatoFunzionalita(canali_stato));
+				if(StatoFunzionalita.ABILITATO.equals(config.getStato())) {
+					DriverConfigurazioneDB_LIB.readCanaliConfigurazione(con, config, false);
+				}
+			} else {
+				throw new DriverConfigurazioneNotFound("[DriverConfigurazioneDB::getCanaliConfigurazione] Configurazione non presente.");
+			}
+
+		} catch (DriverConfigurazioneNotFound e) {
+			throw e;
+		}catch (Exception se) {
+			throw new DriverConfigurazioneException("[DriverConfigurazioneDB::getCanaliConfigurazione] Exception: " + se.getMessage(),se);
+		} finally {
+			//Chiudo statement and resultset
+			try{
+				if(rs!=null) rs.close();
+				if(stm!=null) stm.close();
+				if(rs1!=null) rs1.close();
+				if(stm1!=null) stm1.close();
+				if(rs2!=null) rs2.close();
+				if(stm2!=null) stm2.close();
+			}catch (Exception e) {
+				//ignore
+			}
+			try {
+				if (this.atomica) {
+					this.log.debug("rilascio connessioni al db...");
+					con.close();
+				}
+			} catch (Exception e) {
+				// ignore exception
+			}
+		}
+		return config;
 	}
 }
