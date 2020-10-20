@@ -250,7 +250,7 @@ And match header Authorization == '#notpresent'
 @riferimento-x509-x5u-x5t
 Scenario: Riferimento X509 con x5u nella fruizione e x5t nell'erogazione
 
-Given url govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01X5U/v1"
+Given url govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01X5U-X5T/v1"
 And path 'resources', 1, 'M'
 And request read('request.json')
 And header GovWay-TestSuite-Test-ID = 'riferimento-x509-x5u-x5t'
@@ -260,9 +260,20 @@ Then status 200
 And match response == read('response.json')
 And match header Authorization == '#notpresent'
 
-# NOTA ANDREA: Non funziona se non matchano le modalità fra fruizione ed erogazione, cioè
-# se l'erogazione è impostata su x5t, allora si aspetta tale header valorizzato, DEVO INFATTI IMPSOSTARLI UGUALI NELLA RICHESTA
-# e modificarli nella RISPOSTA
+
+@riferimento-x509-x5t-x5u
+Scenario: Riferimento X509 con x5u nella fruizione e x5t nell'erogazione
+
+Given url govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01X5T-X5U/v1"
+And path 'resources', 1, 'M'
+And request read('request.json')
+And header GovWay-TestSuite-Test-ID = 'riferimento-x509-x5t-x5u'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method post
+Then status 200
+And match response == read('response.json')
+And match header Authorization == '#notpresent'
+
 
 @no-token-to-erogazione
 Scenario: All'erogazione non arriva nessun token e questa deve arrabbiarsi

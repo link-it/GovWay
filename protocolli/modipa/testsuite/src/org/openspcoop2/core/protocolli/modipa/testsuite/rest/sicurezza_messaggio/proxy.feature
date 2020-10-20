@@ -279,7 +279,8 @@ Scenario: isTest('riferimento-x509-x5u-x5t')
         header: { 
             kid: 'ExampleServer',
             x5c: '#notpresent',
-            x5t: '#present'
+            x5u: '#notpresent',
+            'x5t#S256': '#present'
         },
         payload: {
             aud: 'DemoSoggettoFruitore/ApplicativoBlockingIDA01',
@@ -301,6 +302,59 @@ Scenario: isTest('riferimento-x509-x5u-x5t')
     """
     * def responseHeaders = karate.merge(responseHeaders,newHeaders)
 
+
+Scenario: isTest('riferimento-x509-x5t-x5u')
+
+    * def client_token_match = 
+    """
+    ({
+        header: { 
+            kid: 'ExampleClient1',
+            x5c: '#notpresent',
+            x5u: '#notpresent',
+            'x5t#S256': '#present'
+        },
+        payload: { 
+            aud: 'testsuite',
+            client_id: 'DemoSoggettoFruitore/ApplicativoBlockingIDA01',
+            iss: 'DemoSoggettoFruitore',
+            sub: 'ApplicativoBlockingIDA01'
+        }
+    })
+    """
+
+    * call checkToken ({token: requestHeaders.Authorization[0], match_to: client_token_match })
+
+    * karate.proceed (govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01X5T-X5U/v1')
+    * match responseStatus == 200
+    
+    * def server_token_match =
+    """
+    ({
+        header: { 
+            kid: 'ExampleServer',
+            x5c: '#notpresent',
+            x5u: 'http://localhost:8080/ExampleServer.crt'
+        },
+        payload: {
+            aud: 'DemoSoggettoFruitore/ApplicativoBlockingIDA01',
+            client_id: 'RestBlockingIDAR01X5T-X5U/v1',
+            iss: 'DemoSoggettoErogatore',
+            sub: 'RestBlockingIDAR01X5T-X5U/v1'
+        }
+    })
+    """
+    
+    * call checkToken ({token: responseHeaders.Authorization[0], match_to: server_token_match  })
+
+    * def newHeaders = 
+    """
+    ({
+        'GovWay-TestSuite-GovWay-Client-Token': requestHeaders.Authorization[0],
+        'GovWay-TestSuite-GovWay-Server-Token': responseHeaders.Authorization[0],
+    })
+    """
+    * def responseHeaders = karate.merge(responseHeaders,newHeaders)
 
 Scenario: isTest('no-token-fruizione')
 
