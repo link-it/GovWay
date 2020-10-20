@@ -1,4 +1,3 @@
-@parallel=false
 Feature: Testing Sicurezza Messaggio ModiPA IDAR01
 
 Background:
@@ -7,48 +6,8 @@ Background:
     * def decode_token = read('classpath:utils/decode-token.js')
     * def checkToken = read('classpath:org/openspcoop2/core/protocolli/modipa/testsuite/rest/sicurezza_messaggio/check-token.feature')
 
-
-# @karate
-# @karate-proxy-post
-# Scenario: 
-
-# * def url_invocazione = "http://localhost:8090"
-
-# Given url url_invocazione
-# And path 'resources', 1, 'M'
-# And request read('request.json')
-# And header GovWay-TestSuite-Test-ID = 'karate-proxy-post'
-# And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
-# When method post
-# Then status 200
-# And match response == read('response.json')
-
-# @karate
-# @karate-proxy-get
-# Scenario:
-
-# * def url_invocazione = "http://localhost:8090"
-
-# Given url url_invocazione
-# And path 'resources', 'object', 1
-# And header GovWay-TestSuite-Test-ID = 'karate-proxy-get'
-# And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
-# When method get
-# Then status 200
-# And match response == read('request.json')
-
-# @karate
-# @karate-proxy-delete
-# Scenario:
-
-# * def url_invocazione = "http://localhost:8090"
-
-# Given url url_invocazione
-# And path 'resources', 'object', 1
-# And header GovWay-TestSuite-Test-ID = 'karate-proxy-delete'
-# And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
-# When method delete
-# Then status 204
+    * def result = callonce read('classpath:utils/jmx-enable-error-disclosure.feature')
+    * configure afterFeature = function(){ karate.call('classpath:utils/jmx-disable-error-disclosure.feature'); }
 
 
 @connettivita-base
@@ -272,7 +231,7 @@ And match header Authorization == '#notpresent'
 
 
 @enabled-security-on-action
-Scenario: Sicurezza disabilitata puntualmente su una sola azione
+Scenario: Sicurezza abilitata puntualmente su una sola azione
 
 * def url_invocazione = govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01CRUDNoDefaultSecurity/v1"
 
@@ -285,3 +244,127 @@ When method put
 Then status 200
 And match response == read('response.json')
 And match header Authorization == '#notpresent'
+
+# TODO: Controllare tracce?
+
+@riferimento-x509-x5u-x5t
+Scenario: Riferimento X509 con x5u nella fruizione e x5t nell'erogazione
+
+Given url govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01X5U/v1"
+And path 'resources', 1, 'M'
+And request read('request.json')
+And header GovWay-TestSuite-Test-ID = 'riferimento-x509-x5u-x5t'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method post
+Then status 200
+And match response == read('response.json')
+And match header Authorization == '#notpresent'
+
+# NOTA ANDREA: Non funziona se non matchano le modalità fra fruizione ed erogazione, cioè
+# se l'erogazione è impostata su x5t, allora si aspetta tale header valorizzato, DEVO INFATTI IMPSOSTARLI UGUALI NELLA RICHESTA
+# e modificarli nella RISPOSTA
+
+@no-token-to-erogazione
+Scenario: All'erogazione non arriva nessun token e questa deve arrabbiarsi
+
+Given url govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01/v1'
+And path 'resources', 1, 'M'
+And request read('request.json')
+When method post
+Then status 400
+And match response == read('error-bodies/no-header-authorization.json')
+
+
+@no-token-fruizione
+Scenario: Nella risposta alla fruizione non arriva nessun token e questa deve arrabbiarsi
+
+Given url govway_base_path + '/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01/v1'
+And path 'resources', 1, 'M'
+And request read('request.json')
+And header GovWay-TestSuite-Test-ID = 'no-token-fruizione'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method post
+Then status 502
+And match response == read('error-bodies/no-header-authorization-in-response.json')
+
+
+@manomissione-token-richiesta
+Scenario: Il payload del token di richiesta viene manomesso in modo da non far corrispondere più la firma e far arrabbiare l'erogazione
+
+Given url govway_base_path + '/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01/v1'
+And path 'resources', 1, 'M'
+And request read('request.json')
+And header GovWay-TestSuite-Test-ID = 'manomissione-token-richiesta'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method post
+Then status 502
+# TODO: Considerare l'utilizzo di erogazioni e fruizioni senza validazione per vedere come galleggia il messaggio.
+
+
+@manomissione-token-risposta
+Scenario: Il payload del token di risposta viene manomesso in modo da non far corrispondere più la firma e far arrabbiare la fruizione
+
+Given url govway_base_path + '/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01/v1'
+And path 'resources', 1, 'M'
+And request read('request.json')
+And header GovWay-TestSuite-Test-ID = 'manomissione-token-risposta'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method post
+Then status 502
+And match response == read('error-bodies/invalid-token-signature-in-response.json')
+
+# TODO: NON FUNZIONA, La fruizione invece di arrabbiarsi lascia passare il payload modificato
+# USARE MODALITA' IDA03
+# @manomissione-payload-risposta
+# Scenario: Il payload della risposta viene modificato in modo da non far coincidere la firma e fare arrabbiare la fruizione
+
+# Given url govway_base_path + '/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01/v1'
+# And path 'resources', 1, 'M'
+# And request read('request.json')
+# And header GovWay-TestSuite-Test-ID = 'manomissione-payload-risposta'
+# And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+# When method post
+# Then status 502
+# And match response == read('error-bodies/no-header-authorization-in-response.json')
+
+
+# # TODO: Anche questo non funziona, sto modificando il payload e tutto continua a funzionare.
+# @manomissione-payload-richiesta
+# Scenario: Il payload della richiesta viene modificato in modo da non far coincidere la firma e fare arrabbiare l'erogazione
+
+# Given url govway_base_path + '/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01/v1'
+# And path 'resources', 1, 'M'
+# And request read('request.json')
+# And header GovWay-TestSuite-Test-ID = 'manomissione-payload-richiesta'
+# And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+# When method post
+# Then status 502
+# And match response == read('error-bodies/no-header-authorization-in-response.json')
+
+
+@low-ttl-fruizione
+Scenario: Il TTL del token della fruizione (richiesta) viene superato e l'erogazione si arrabbia
+
+Given url govway_base_path + '/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01LowTTL/v1'
+And path 'resources', 1, 'M'
+And request read('request.json')
+And header GovWay-TestSuite-Test-ID = 'low-ttl-fruizione'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method post
+Then status 502
+
+
+@low-ttl-erogazione
+Scenario: Il ttl del token dell'erogazione (risposta) viene superato e la fruizione si arrabbia
+
+Given url govway_base_path + '/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01/v1'
+And path 'resources', 1, 'M'
+And request read('request.json')
+And header GovWay-TestSuite-Test-ID = 'low-ttl-erogazione'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method post
+Then status 502
+And match response == read('error-bodies/ttl-scaduto-in-response.json')
+
+
+# TODO: Rifare tutti i test 'errore' senza disclosure
