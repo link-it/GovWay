@@ -22,6 +22,10 @@ Prerequisiti:
 	c) Configurazione della JVM dell'A.S. in modo che utilizzi il truststore config_https/jks/erogatore.jks
 	   Indicazioni descritte per JBoss in config_https/configurazioneTrustStoreJBOSS.txt
 
++ Disabilitare il mantenimento in vita delle connessioni tcp
+	- Se si usa wildfly, editare il file <bin/standalone.conf> aggiungendo in fondo:
+			JAVA_OPTS="$JAVA_OPTS -Dhttp.keepAlive=false"
+
 + Nel file /etc/govway/govway_local.properties abilitare le seguenti proprietà:
 	org.openspcoop2.pdd.check.readJMXResources.enabled=true
 	org.openspcoop2.pdd.check.readJMXResources.username=admin

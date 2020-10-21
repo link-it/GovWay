@@ -81,17 +81,9 @@ Scenario: isTest('response-without-payload')
     
     * def check_traccia = read("classpath:test/soap/sicurezza-messaggio/check-tracce/check-traccia.feature")
     * xml client_request = client_request
-    * def client_token_to_match = 
-    """
-    ({
-        x509sub: 'CN=ExampleClient1, O=Example, L=Pisa, ST=Italy, C=IT',
-        wsa_to: karate.xmlPath(client_request, '/Envelope/Header/To'),
-        wsa_from: karate.xmlPath(client_request, '/Envelope/Header/From/Address'),
-        message_id: karate.xmlPath(client_request, '/Envelope/Header/MessageID')
-    })
-    """
+
     * def tid = responseHeaders['GovWay-Transaction-ID'][0]
-    * call check_traccia ({tid: tid, tipo: 'Richiesta', token: client_token_to_match })
+    * call check_traccia ({tid: tid, tipo: 'Richiesta', body: client_request, x509sub: 'CN=ExampleClient1, O=Example, L=Pisa, ST=Italy, C=IT' })
 
 
 
