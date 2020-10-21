@@ -625,6 +625,10 @@ public class OpenSPCoop2Properties {
 
 			
 			// Servizi HTTP: warning
+			isHttpDisableKeepAlive();
+			isServiceRequestHttpMethodPatchEnabled();
+			isServiceRequestHttpMethodLinkEnabled();
+			isServiceRequestHttpMethodUnlinkEnabled();
 			TransferLengthModes modeConsegna = this.getTransferLengthModes_consegnaContenutiApplicativi();
 			if(TransferLengthModes.TRANSFER_ENCODING_CHUNKED.equals(modeConsegna)){
 				this.getChunkLength_consegnaContenutiApplicativi();
@@ -11903,6 +11907,29 @@ public class OpenSPCoop2Properties {
 	
 	
 	/* ***************** Servizi HTTP  ************* */
+	
+	private static Boolean isHttpDisableKeepAlive = null;
+	public boolean isHttpDisableKeepAlive() {	
+		String pName = "org.openspcoop2.pdd.services.http.disableKeepAlive";
+		if(OpenSPCoop2Properties.isHttpDisableKeepAlive==null){
+			try{ 
+				String name = null;
+				name = this.reader.getValue_convertEnvProperties(pName);
+				if(name!=null){
+					name = name.trim();
+					OpenSPCoop2Properties.isHttpDisableKeepAlive = Boolean.parseBoolean(name);
+				}else{
+					this.log.warn("Proprieta' di openspcoop '"+pName+"' non impostata, viene utilizzato il default="+false);
+					OpenSPCoop2Properties.isHttpDisableKeepAlive = false;
+				}
+			}catch(java.lang.Exception e) {
+				this.log.warn("Proprieta' di openspcoop '"+pName+"' non impostata, viene utilizzato il default="+false+", errore:"+e.getMessage(),e);
+				OpenSPCoop2Properties.isHttpDisableKeepAlive = false;
+			}  
+		}
+
+		return OpenSPCoop2Properties.isHttpDisableKeepAlive;
+	}
 	
 	private static Boolean serviceRequestHttpMethodPatchEnabled = null;
 	public boolean isServiceRequestHttpMethodPatchEnabled() {	
