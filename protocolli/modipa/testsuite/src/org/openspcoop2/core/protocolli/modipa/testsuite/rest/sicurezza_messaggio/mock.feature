@@ -8,7 +8,8 @@ Background:
     """
     function() { 
         return {
-            'GovWay-TestSuite-GovWay-Transaction-ID': karate.get("requestHeaders['GovWay-Transaction-ID'][0]")
+            'GovWay-TestSuite-GovWay-Transaction-ID': karate.get("requestHeaders['GovWay-Transaction-ID'][0]"),
+            'Connection': 'close'
         }
     }
     """

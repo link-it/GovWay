@@ -208,6 +208,34 @@ Scenario: isTest('riferimento-x509-IssuerSerial-x509Key')
     * xmlstring server_response = response
     * eval karateCache.add("Server-Response", server_response)
 
+Scenario: isTest('no-token-to-fruizione')
+
+    * def responseStatus = 200
+    * def response = read('classpath:test/soap/sicurezza-messaggio/response.xml')
+    * def responseHeaders = { 'Content-type': "application/soap+xml" }
+
+
+Scenario: isTest('manomissione-token-richiesta')
+
+    * def c = request
+    * set c /Envelope/Header/To = "tampered_content"
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01/v1')
+    * match responseStatus == 500
+    * match response == read('test/soap/sicurezza-messaggio/error-bodies/manomissione-token-richiesta.xml')
+
+Scenario: isTest('manomissione-token-risposta')
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01/v1')
+    * match responseStatus == 200
+    
+    * def c = response
+    * set c /Envelope/Header/To = "tampered_content"
+
+    
+
+
+
 # catch all
 #
 #

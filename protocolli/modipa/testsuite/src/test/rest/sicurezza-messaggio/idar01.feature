@@ -309,6 +309,7 @@ And match header Authorization == '#notpresent'
 * call check_traccia ({ tid: tid, tipo: 'Richiesta', token: client_token, x509sub: 'CN=ExampleClient1, O=Example, L=Pisa, ST=Italy, C=IT' })
 * call check_traccia ({ tid: tid, tipo: 'Risposta', token: server_token, x509sub: 'CN=ExampleServer, O=Example, L=Pisa, ST=Italy, C=IT' })
 
+# TODO: Riferimento doppio x5cx5t-x5cx5t (default)
 
 @no-token-to-erogazione
 Scenario: All'erogazione non arriva nessun token e questa deve arrabbiarsi

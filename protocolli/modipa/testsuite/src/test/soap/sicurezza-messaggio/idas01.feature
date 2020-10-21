@@ -349,3 +349,71 @@ And match response == resp
 * def tid = responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]
 * call check_traccia ({tid: tid, tipo: 'Richiesta', body: client_request, x509sub: 'CN=ExampleClient1, O=Example, L=Pisa, ST=Italy, C=IT' })
 * call check_traccia ({tid: tid, tipo: 'Risposta', body: server_response, x509sub: 'CN=ExampleServer, O=Example, L=Pisa, ST=Italy, C=IT' })
+
+
+@no-token-to-erogazione
+Scenario: All'erogazione non arriva nessun token e questa deve arrabbiarsi
+
+* def body = read("request.xml")
+* def soap_url = govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01/v1'
+
+Given url soap_url
+And request body
+And header Content-Type = 'application/soap+xml'
+And header action = soap_url
+When method post
+Then status 500
+And match response == read('error-bodies/no-token-in-richiesta.xml')
+
+
+@no-token-to-fruizione
+Scenario: Nella risposta alla fruizione non arriva nessun token e questa deve arrabbiarsi
+
+* def body = read("request.xml")
+* def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS01/v1'
+
+Given url soap_url
+And request body
+And header Content-Type = 'application/soap+xml'
+And header action = soap_url
+And header GovWay-TestSuite-Test-ID = 'no-token-to-fruizione'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method post
+Then status 500
+And match response == read('error-bodies/no-token-in-risposta.xml')
+
+@manomissione-token-richiesta
+Scenario: Il payload del token di richiesta viene manomesso in modo da non far corrispondere più la firma e far arrabbiare l'erogazione
+
+* def body = read("request.xml")
+* def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS01/v1'
+
+Given url soap_url
+And request body
+And header Content-Type = 'application/soap+xml'
+And header action = soap_url
+And header GovWay-TestSuite-Test-ID = 'manomissione-token-richiesta'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method post
+Then status 500
+And match response == read('error-bodies/manomissione-token-richiesta.xml')
+
+
+@manomissione-token-risposta
+Scenario: Il payload del token di richiesta viene manomesso in modo da non far corrispondere più la firma e far arrabbiare l'erogazione
+
+* def body = read("request.xml")
+* def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS01/v1'
+
+Given url soap_url
+And request body
+And header Content-Type = 'application/soap+xml'
+And header action = soap_url
+And header GovWay-TestSuite-Test-ID = 'manomissione-token-risposta'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method post
+Then status 500
+And match response == read('error-bodies/manomissione-token-risposta.xml')
+
+# @low-ttl-fruizione
+# Scenario: Il TTL del token della fruizione (richiesta) viene superato e l'erogazione si arrabbia
