@@ -514,7 +514,19 @@ public class OpenSPCoop2Startup implements ServletContextListener {
 				return;
 			}
 			
-			
+			if(propertiesReader.isHttpDisableKeepAlive()) {
+				/* ------------ 
+				 * Disabilita KeepAlive
+				 */
+				try{
+					System.setProperty("http.keepAlive","false");
+					OpenSPCoop2Startup.log.info("Impostazione http.keepAlive=false effettuata");
+				}catch(Exception e){
+					this.logError("Impostazione http.keepAlive=false non riuscita",e);
+					return;
+				}
+			}
+						
 			
 			
 			
