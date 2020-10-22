@@ -358,20 +358,20 @@ And match response == read('error-bodies/no-header-authorization-in-response.jso
 @manomissione-token-richiesta
 Scenario: Il payload del token di richiesta viene manomesso in modo da non far corrispondere più la firma e far arrabbiare l'erogazione
 
-Given url govway_base_path + '/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01/v1'
+Given url govway_base_path + '/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01NoValidazione/v1'
 And path 'resources', 1, 'M'
 And request read('request.json')
 And header GovWay-TestSuite-Test-ID = 'manomissione-token-richiesta'
 And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
 When method post
-Then status 502
-# TODO: Considerare l'utilizzo di erogazioni e fruizioni senza validazione per vedere come galleggia il messaggio.
+Then status 400
+And match response == read('error-bodies/signature-verification-failed-request.json')
 
 
 @manomissione-token-risposta
 Scenario: Il payload del token di risposta viene manomesso in modo da non far corrispondere più la firma e far arrabbiare la fruizione
 
-Given url govway_base_path + '/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01/v1'
+Given url govway_base_path + '/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01NoValidazione/v1'
 And path 'resources', 1, 'M'
 And request read('request.json')
 And header GovWay-TestSuite-Test-ID = 'manomissione-token-risposta'
@@ -432,6 +432,3 @@ And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', p
 When method post
 Then status 502
 And match response == read('error-bodies/ttl-scaduto-in-response.json')
-
-
-# TODO: Rifare tutti i test 'errore' senza disclosure

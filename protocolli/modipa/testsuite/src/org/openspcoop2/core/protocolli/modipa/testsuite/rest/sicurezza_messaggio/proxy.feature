@@ -441,6 +441,15 @@ Scenario: isTest('low-ttl-fruizione')
     * match responseStatus == 400
     * match response == read('classpath:test/rest/sicurezza-messaggio/error-bodies/ttl-scaduto-in-request.json')
 
+
+Scenario: isTest('low-ttl-fruizione-no-disclosure')
+
+    * java.lang.Thread.sleep(2000)
+
+    * karate.proceed(govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01/v1')
+    * match responseStatus == 400
+    * match response == read('classpath:test/rest/sicurezza-messaggio/error-bodies/interoperability-invalid-request.json')
+
 Scenario: isTest('low-ttl-erogazione')
     
     * karate.proceed(govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01LowTTL/v1')
@@ -451,14 +460,21 @@ Scenario: isTest('low-ttl-erogazione')
 Scenario: isTest('manomissione-token-richiesta')
 
     * set requestHeaders['Authorization'][0] = tamper_token(requestHeaders['Authorization'][0])
-    * karate.proceed(govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01/v1')
+    * karate.proceed(govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01NoValidazione/v1')
     * match responseStatus == 400
     * match response == read('classpath:test/rest/sicurezza-messaggio/error-bodies/invalid-token-signature-in-request.json')
 
 
+Scenario: isTest('manomissione-token-richiesta-no-disclosure')
+
+    * set requestHeaders['Authorization'][0] = tamper_token(requestHeaders['Authorization'][0])
+    * karate.proceed(govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01NoValidazione/v1')
+    * match responseStatus == 400
+    * match response == read('classpath:test/rest/sicurezza-messaggio/error-bodies/interoperability-invalid-request.json')
+
 Scenario: isTest('manomissione-token-risposta')
 
-    * karate.proceed(govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01/v1')
+    * karate.proceed(govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01NoValidazione/v1')
     
     * set responseHeaders['Authorization'][0] = tamper_token(responseHeaders['Authorization'][0])
 

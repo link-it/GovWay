@@ -46,7 +46,9 @@ import com.intuit.karate.netty.FeatureServer;
 @RunWith(Karate.class)
 @KarateOptions(features = {
     "classpath:test/soap/sicurezza-messaggio/idas01.feature",
+    "classpath:test/soap/sicurezza-messaggio/idas01-no-disclosure.feature",
     })
+
 public class BloccanteSoapSicurezzaMessaggioTest extends ConfigLoader {
     
     private static FeatureServer server;

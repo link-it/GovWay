@@ -231,7 +231,17 @@ Scenario: isTest('manomissione-token-richiesta')
 
     * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01/v1')
     * match responseStatus == 500
-    * match response == read('test/soap/sicurezza-messaggio/error-bodies/manomissione-token-richiesta.xml')
+    * match response == read('classpath:test/soap/sicurezza-messaggio/error-bodies/manomissione-token-richiesta.xml')
+
+
+Scenario: isTest('manomissione-token-richiesta-no-disclosure')
+
+    * def c = request
+    * set c /Envelope/Header/To = "tampered_content"
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01/v1')
+    * match responseStatus == 500
+    * match response == read('classpath:test/soap/sicurezza-messaggio/error-bodies/interoperability-invalid-request.xml')
 
 Scenario: isTest('manomissione-token-risposta')
 
@@ -248,6 +258,15 @@ Scenario: isTest('low-ttl-fruizione')
     * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01/v1')
     * match responseStatus == 500
     * match response == read('classpath:test/soap/sicurezza-messaggio/error-bodies/ttl-scaduto-in-request.xml')
+
+
+Scenario: isTest('low-ttl-fruizione-no-disclosure')
+
+    * java.lang.Thread.sleep(2000)
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01/v1')
+    * match responseStatus == 500
+    * match response == read('classpath:test/soap/sicurezza-messaggio/error-bodies/interoperability-invalid-request.xml')
     
 
 Scenario: isTest('low-ttl-erogazione')
