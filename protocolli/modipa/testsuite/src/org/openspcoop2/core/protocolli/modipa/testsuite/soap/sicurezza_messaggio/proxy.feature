@@ -17,9 +17,18 @@ Scenario: isTest('connettivita-base')
 
     * call check_client_token ({ address: "DemoSoggettoFruitore/ApplicativoBlockingIDA01", to: "testsuite" })
 
+    # Siccome abbiamo un Riferimento X509 DirectReference, controllo che KeyInfo riferisca il BinarySecurityToken
+    * def keyRef = bodyPath('/Envelope/Header/Security/Signature/KeyInfo/SecurityTokenReference/Reference/@URI')
+    * def key = bodyPath('/Envelope/Header/Security/BinarySecurityToken/@Id')
+    * match keyRef == '#' + key
+
     * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01/v1')
 
     * call check_server_token ({ from: "SoapBlockingIDAS01/v1", to: "DemoSoggettoFruitore/ApplicativoBlockingIDA01" })
+
+    * def keyRef = /Envelope/Header/Security/Signature/KeyInfo/SecurityTokenReference/Reference/@URI
+    * def key = /Envelope/Header/Security/BinarySecurityToken/@Id
+    * match keyRef == '#' + key
 
     * xmlstring server_response = response
     * eval karateCache.add("Server-Response", server_response)
@@ -232,6 +241,22 @@ Scenario: isTest('manomissione-token-risposta')
     * def c = response
     * set c /Envelope/Header/To = "tampered_content"
 
+Scenario: isTest('low-ttl-fruizione')
+
+    * java.lang.Thread.sleep(2000)
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01/v1')
+    * match responseStatus == 500
+    * match response == read('classpath:test/soap/sicurezza-messaggio/error-bodies/ttl-scaduto-in-request.xml')
+    
+
+Scenario: isTest('low-ttl-erogazione')
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SOAPBlockingIDAS01LowTTL/v1')
+    * match responseStatus == 200
+
+    * java.lang.Thread.sleep(2000)
+    
     
 
 

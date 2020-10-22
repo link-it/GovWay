@@ -43,12 +43,11 @@ And match response == resp
 @connettivita-base-default-trustore
 Scenario: Test connettività base con trustore default
 
-* def body = read("request.xml")
 * def resp = read("response.xml")
 * def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS01DefaultTrustore/v1'
 
 Given url soap_url
-And request body
+And request read("request.xml")
 And header Content-Type = 'application/soap+xml'
 And header action = soap_url
 And header GovWay-TestSuite-Test-ID = 'connettivita-base-default-trustore'
@@ -369,11 +368,10 @@ And match response == read('error-bodies/no-token-in-richiesta.xml')
 @no-token-to-fruizione
 Scenario: Nella risposta alla fruizione non arriva nessun token e questa deve arrabbiarsi
 
-* def body = read("request.xml")
 * def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS01/v1'
 
 Given url soap_url
-And request body
+And request read("request.xml")
 And header Content-Type = 'application/soap+xml'
 And header action = soap_url
 And header GovWay-TestSuite-Test-ID = 'no-token-to-fruizione'
@@ -385,11 +383,10 @@ And match response == read('error-bodies/no-token-in-risposta.xml')
 @manomissione-token-richiesta
 Scenario: Il payload del token di richiesta viene manomesso in modo da non far corrispondere più la firma e far arrabbiare l'erogazione
 
-* def body = read("request.xml")
 * def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS01/v1'
 
 Given url soap_url
-And request body
+And request read("request.xml")
 And header Content-Type = 'application/soap+xml'
 And header action = soap_url
 And header GovWay-TestSuite-Test-ID = 'manomissione-token-richiesta'
@@ -402,11 +399,10 @@ And match response == read('error-bodies/manomissione-token-richiesta.xml')
 @manomissione-token-risposta
 Scenario: Il payload del token di richiesta viene manomesso in modo da non far corrispondere più la firma e far arrabbiare l'erogazione
 
-* def body = read("request.xml")
 * def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS01/v1'
 
 Given url soap_url
-And request body
+And request read("request.xml")
 And header Content-Type = 'application/soap+xml'
 And header action = soap_url
 And header GovWay-TestSuite-Test-ID = 'manomissione-token-risposta'
@@ -415,5 +411,34 @@ When method post
 Then status 500
 And match response == read('error-bodies/manomissione-token-risposta.xml')
 
-# @low-ttl-fruizione
-# Scenario: Il TTL del token della fruizione (richiesta) viene superato e l'erogazione si arrabbia
+
+@low-ttl-fruizione
+Scenario: Il TTL del token della fruizione (richiesta) viene superato e l'erogazione si arrabbia
+
+* def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS01LowTTL/v1'
+
+Given url soap_url
+And request read("request.xml")
+And header Content-Type = 'application/soap+xml'
+And header action = soap_url
+And header GovWay-TestSuite-Test-ID = 'low-ttl-fruizione'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method post
+Then status 500
+And match response == read('error-bodies/ttl-scaduto-in-request.xml')
+
+
+@low-ttl-erogazione
+Scenario: Il TTL del token della erogazione (risposta) viene superato e la fruizione si arrabbia
+
+* def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS01/v1'
+
+Given url soap_url
+And request read("request.xml")
+And header Content-Type = 'application/soap+xml'
+And header action = soap_url
+And header GovWay-TestSuite-Test-ID = 'low-ttl-erogazione'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method post
+Then status 500
+And match response == read('error-bodies/ttl-scaduto-in-response.xml')
