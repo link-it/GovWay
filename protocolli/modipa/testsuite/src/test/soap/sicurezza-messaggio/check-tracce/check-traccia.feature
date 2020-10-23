@@ -5,13 +5,14 @@ Scenario: Controllo traccia IDAS01
 
 * def get_traccia = read('classpath:utils/get_traccia.js')
 
+* def profilo_sicurezza = karate.get('profilo_sicurezza', 'IDAS01')
 
 * def traccia_to_match = 
 """
 ([
     { name: 'ProfiloInterazione', value: 'bloccante' },
     { name: 'ProfiloSicurezzaCanale', value: 'IDAC01' },
-    { name: 'ProfiloSicurezzaMessaggio', value: 'IDAS01' },
+    { name: 'ProfiloSicurezzaMessaggio', value: profilo_sicurezza },
     { name: 'ProfiloSicurezzaMessaggio-X509-Subject', value: x509sub },
     { name: 'ProfiloSicurezzaMessaggio-X509-Issuer', value: 'CN=ExampleCA, O=Example, L=Pisa, ST=Italy, C=IT' },
     { name: 'ProfiloSicurezzaMessaggio-IssuedAt', value: '#string' },

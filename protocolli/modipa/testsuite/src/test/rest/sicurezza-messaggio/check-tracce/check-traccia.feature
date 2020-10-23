@@ -3,13 +3,15 @@ Feature: Controllo traccia IDAR01
 Scenario: Controllo traccia IDAR01
 
 
+* def profilo_sicurezza = karate.get('profilo_sicurezza', 'IDAR01')
+
 * def get_traccia = read('classpath:utils/get_traccia.js')
 * def traccia_to_match = 
 """
 ([
     { name: 'ProfiloInterazione', value: 'bloccante' },
     { name: 'ProfiloSicurezzaCanale', value: 'IDAC01' },
-    { name: 'ProfiloSicurezzaMessaggio', value: 'IDAR01' },
+    { name: 'ProfiloSicurezzaMessaggio', value: profilo_sicurezza },
     { name: 'ProfiloSicurezzaMessaggio-IssuedAt', value: '#string' },
     { name: 'ProfiloSicurezzaMessaggio-NotBefore', value: '#string' },
     { name: 'ProfiloSicurezzaMessaggio-Expiration', value: '#string' },

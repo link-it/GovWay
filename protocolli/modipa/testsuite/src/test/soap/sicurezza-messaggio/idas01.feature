@@ -1,4 +1,4 @@
-Feature: Testing Sicurezza Messaggio ModiPA IDAR01
+Feature: Testing Sicurezza Messaggio ModiPA IDAS01
 
 Background:
     * def basic = read('classpath:utils/basic-auth.js')

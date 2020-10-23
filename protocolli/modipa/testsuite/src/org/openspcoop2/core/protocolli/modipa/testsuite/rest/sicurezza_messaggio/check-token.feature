@@ -12,6 +12,7 @@ Scenario:
         'typ': 'JWT',
         'kid': '#string',
         'x5c': [ '#string' ],
+        'x5t#S256': '#ignore'
     }
     """
     * def tok_payload = 

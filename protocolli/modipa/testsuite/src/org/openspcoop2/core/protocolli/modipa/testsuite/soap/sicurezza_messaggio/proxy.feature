@@ -277,7 +277,30 @@ Scenario: isTest('low-ttl-erogazione')
     * java.lang.Thread.sleep(2000)
     
     
+######################
+#       IDAS02
+######################
 
+Scenario: isTest('connettivita-base-idas02')
+
+    * xmlstring client_request = bodyPath('/')
+    * eval karateCache.add("Client-Request", client_request)
+
+    * call check_client_token ({ address: "DemoSoggettoFruitore/ApplicativoBlockingIDA01", to: "testsuite" })
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS02/v1')
+
+    * call check_server_token ({ from: "SoapBlockingIDAS02/v1", to: "DemoSoggettoFruitore/ApplicativoBlockingIDA01" })
+
+    * xmlstring server_response = response
+    * eval karateCache.add("Server-Response", server_response)
+
+Scenario: isTest('riutilizzo-token')
+
+    * xml server_response = karateCache.get("Server-Response")
+    * def response = server_response
+    * def responseStatus = 200
+    * def responseHeaders = { 'Content-type': "application/soap+xml" }
 
 
 # catch all
