@@ -3,6 +3,7 @@ Feature: Controllo traccia richiesta IDAC01 su fruizione ed erogazione per profi
 Scenario: Controllo traccia richiesta IDAC01 su fruizione ed erogazione per profilo Non Bloccante Rest
 
 
+# * def tipo = karate.get('tipo', 'Richiesta' )
 * def get_traccia = read('classpath:utils/get_traccia.js')
 * def traccia_to_match = 
 """
@@ -14,5 +15,8 @@ Scenario: Controllo traccia richiesta IDAC01 su fruizione ed erogazione per prof
 ]
 """
 
- * def result = get_traccia(tid) 
- * match result contains deep traccia_to_match
+* def result = get_traccia(tid, 'Richiesta')
+* match result contains deep traccia_to_match
+
+* def result = get_traccia(tid, 'Risposta')
+* match result contains deep traccia_to_match
