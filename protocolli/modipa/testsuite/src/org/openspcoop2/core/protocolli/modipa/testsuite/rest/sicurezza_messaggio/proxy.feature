@@ -478,6 +478,10 @@ Scenario: isTest('manomissione-token-risposta')
     
     * set responseHeaders['Authorization'][0] = tamper_token(responseHeaders['Authorization'][0])
 
+# TODO: Cambiare il nome dell'erogazione da autenticazionepuntuale a autorizzazionepuntuale
+Scenario: isTest('applicativo-non-autorizzato')
+
+    * karate.proceed(govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01AutenticazionePuntuale/v1')
 
 
 ##############################
@@ -547,7 +551,7 @@ Scenario: isTest('riutilizzo-token-risposta')
     * def responseHeaders =  ({ 'Authorization': requestHeaders['GovWay-TestSuite-Server-Token'][0] })
     * def responseStatus = 200
     * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
-    
+
 # catch all
 #
 #

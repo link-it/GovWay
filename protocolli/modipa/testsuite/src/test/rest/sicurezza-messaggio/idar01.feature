@@ -12,9 +12,7 @@ Background:
 @connettivita-base
 Scenario: Test connettività base
 
-* def url_invocazione = govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01/v1"
-
-Given url url_invocazione
+Given url govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01/v1"
 And path 'resources', 1, 'M'
 And request read('request.json')
 And header GovWay-TestSuite-Test-ID = 'connettivita-base'
@@ -432,3 +430,18 @@ And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', p
 When method post
 Then status 502
 And match response == read('error-bodies/ttl-scaduto-in-response.json')
+
+
+# TODO: Non funziona, infatti all'erogazione viene identificato l'ApplicativoBlockingIDA01
+# @applicativo-non-autorizzato
+# Scenario: Viene utilizzato l'identificativo di un applicativo non autorizzato dalla erogazione
+
+# Given url govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01AutenticazionePuntuale/v1"
+# And path 'resources', 1, 'M'
+# And request read('request.json')
+# And header GovWay-TestSuite-Test-ID = 'applicativo-non-autorizzato'
+# And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01NoSbustamento', password: 'ApplicativoBlockingIDA01NoSbustamento' })
+# When method post
+# Then status 200
+# And match response == read('response.json')
+# And match header Authorization == '#notpresent'
