@@ -23,6 +23,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
+import org.openspcoop2.core.allarmi.constants.StatoAllarme;
+import org.openspcoop2.core.allarmi.constants.TipoPeriodo;
+import org.openspcoop2.core.allarmi.utils.AllarmiConverterUtils;
 import org.openspcoop2.core.commons.ModalitaIdentificazione;
 import org.openspcoop2.core.config.constants.CostantiConfigurazione;
 import org.openspcoop2.core.config.constants.StatoFunzionalita;
@@ -110,6 +113,7 @@ public class ConfigurazioneCostanti {
 	public final static String OBJECT_NAME_CONFIGURAZIONE_PLUGINS_CLASSI = "configurazionePluginsClassi";
 	
 	public final static String OBJECT_NAME_CONFIGURAZIONE_ALLARMI = "configurazioneAllarmi";
+	public final static String OBJECT_NAME_CONFIGURAZIONE_ALLARMI_HISTORY = "configurazioneAllarmiHistory";
 	
 	/* SERVLET NAME */
 	
@@ -414,14 +418,19 @@ public class ConfigurazioneCostanti {
 	public final static String SERVLET_NAME_CONFIGURAZIONE_ALLARMI_CHANGE = OBJECT_NAME_CONFIGURAZIONE_ALLARMI+"Change.do";
 	public final static String SERVLET_NAME_CONFIGURAZIONE_ALLARMI_DELETE = OBJECT_NAME_CONFIGURAZIONE_ALLARMI+"Del.do";
 	public final static String SERVLET_NAME_CONFIGURAZIONE_ALLARMI_LIST = OBJECT_NAME_CONFIGURAZIONE_ALLARMI+"List.do";
+	public final static String SERVLET_NAME_CONFIGURAZIONE_ALLARMI_HISTORY_LIST = OBJECT_NAME_CONFIGURAZIONE_ALLARMI_HISTORY+"List.do";
 	public final static Vector<String> SERVLET_CONFIGURAZIONE_ALLARMI = new Vector<String>();
 	static{
 		SERVLET_CONFIGURAZIONE_ALLARMI.add(SERVLET_NAME_CONFIGURAZIONE_ALLARMI_ADD);
 		SERVLET_CONFIGURAZIONE_ALLARMI.add(SERVLET_NAME_CONFIGURAZIONE_ALLARMI_CHANGE);
 		SERVLET_CONFIGURAZIONE_ALLARMI.add(SERVLET_NAME_CONFIGURAZIONE_ALLARMI_DELETE);
 		SERVLET_CONFIGURAZIONE_ALLARMI.add(SERVLET_NAME_CONFIGURAZIONE_ALLARMI_LIST);
+		
+		SERVLET_CONFIGURAZIONE_ALLARMI.add(SERVLET_NAME_CONFIGURAZIONE_ALLARMI_HISTORY_LIST);
 	}
 	
+	public final static String SESSION_PARAMETRO_OLD_PLUGIN = "_confAllPluginScelto_";
+	public final static String SESSION_PARAMETRO_OLD_PARAMETRI = "_confAllParameterPluginScelto_";
 	/* LABEL GENERALI */
 	
 	public final static String LABEL_CONFIGURAZIONE = "Configurazione";
@@ -678,6 +687,13 @@ public class ConfigurazioneCostanti {
 	
 	
 	public final static String LABEL_CONFIGURAZIONE_ALLARMI = "Allarmi";
+	public final static String LABEL_CONFIGURAZIONE_ALLARMI_ALLARME = "Allarme";
+	public final static String LABEL_CONFIGURAZIONE_ALLARMI_FILTRO = "Filtro";
+	public final static String LABEL_CONFIGURAZIONE_ALLARMI_INFORMAZIONI_GENERALI = "Informazioni Generali";
+	public final static String LABEL_CONFIGURAZIONE_ALLARMI_INFORMAZIONI_GENERALI_FREQUENZA = "Frequenza";
+	public final static String LABEL_CONFIGURAZIONE_ALLARMI_PARAMETRI = "Parametri";
+	public final static String LABEL_CONFIGURAZIONE_ALLARMI_NOTIFICA_EMAIL = "Notifica via Email";
+	public final static String LABEL_CONFIGURAZIONE_ALLARMI_NOTIFICA_MONITORAGGIO_ESTERNO = "Notifica Monitoraggio Esterno";
 	
 	/* PARAMETRI */
 	
@@ -1124,6 +1140,84 @@ public class ConfigurazioneCostanti {
 	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_STATO = "allStato";
 	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_NOME = "allNome";
 	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_DESCRIZIONE = "allDescr";
+	
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_ENABLED = "allFiltroEnabled";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_ENABLED_CONSOLE_ONLY = "allFiltroEnabledConsoleOnly";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_RUOLO_PDD = "allFiltroRuoloPdd";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_PROTOCOLLO = "allFiltroRuoloProtocollo";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_RUOLO_FRUITORE = "allFiltroRuoloFruitore";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_FRUITORE = "allFiltroFruitore";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_SA_FRUITORE = "allFiltroSAFruitore";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_RUOLO_EROGATORE = "allFiltroRuoloErogatore";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_EROGATORE = "allFiltroErogatore";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_SA_EROGATORE = "allFiltroSAErogatore";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_TAG = "allFiltroTag";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_SERVIZIO = "allFiltroServizio";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE = "allFiltroAzione";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE_PUNTUALE = "allFiltroAzionePuntuale";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_PER_CHIAVE_ENABLED = "allFiltroPerChiaveEnabled";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_PER_CHIAVE_TIPO = "allFiltroPerChiaveTipo";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_PER_CHIAVE_NOME = "allFiltroPerChiaveNome";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_PER_CHIAVE_VALORE = "allFiltroPerChiaveValore";
+	
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_ENABLED = "allGroupByEnabled";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_RUOLO_PDD = "allGroupByRuoloPdd";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_PROTOCOLLO = "allGroupByRuoloProtocollo";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_FRUITORE = "allGroupByFruitore";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_SA_FRUITORE = "allGroupBySAFruitore";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_EROGATORE = "allGroupByErogatore";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_SA_EROGATORE = "allGroupBySAErogatore";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_SERVIZIO = "allGroupByServizio";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_AZIONE = "allGroupByAzione";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_RICHIEDENTE = "allGroupByRichiedente";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_TOKEN = "allGroupByToken";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_TOKEN_CLAIMS = "allGroupByTokenClaims";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_PER_CHIAVE_ENABLED = "allGroupByPerChiaveEnabled";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_PER_CHIAVE_TIPO = "allGroupByPerChiaveTipo";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_PER_CHIAVE_NOME = "allGroupByPerChiaveNome";
+	
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_PLUGIN = "allPlugin";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_PLUGIN_NOME_SEP = "__$$__$$__";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_MODALITA = "allModalita";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_MODALITA_LABEL = "allModalitaLab";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_PERIODO = "allPeriodo";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO_PERIODO = "allTipoPeriodo";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_ACKNOWLEDGED = "allAcknowledged";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_INVIA_EMAIL_ALERT = "allInviaEmailAlert";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_DESTINATARI_EMAIL = "allDestinatariEmail";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_NOTIFICA_WARNING = "allInviaEmailWarning";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_INVIA_EMAIL_MAIL_ACK_MODE = "allMailAckMode";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_INVIA_EMAIL_SUBJECT = "allSubjectMail";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_INVIA_EMAIL_BODY = "allBodyMail";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_INVOCA_SCRIPT_ALERT = "allInvocaScriptAlert";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_NOTIFICA_WARNING_SCRIPT = "allInvocaScriptWarning";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_NOTIFICA_SCRIPT_ACK_MODE = "allScriptAckMode";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_NOTIFICA_SCRIPT_PATH = "allScriptPath";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_NOTIFICA_SCRIPT_ARGUMENTS = "allScriptArgs";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPOLOGIA_ERRORE = "allTipoErrore";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPOLOGIA_ERRORE_DESCRIZIONE = "allTipoErroreDescr";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_RUOLO_PORTA = "allRuoloPorta";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_NOME_PORTA = "allNomePorta";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_SERVICE_BINDING = "allServiceBinding"; 
+	
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE_PUNTUALE_ALL_VALUE_TRUE = Costanti.CHECK_BOX_ENABLED;
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE_PUNTUALE_ALL_VALUE_FALSE = Costanti.CHECK_BOX_DISABLED;
+	public final static String [] PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE_PUNTUALE_ALL_VALUES = new String [] {
+			PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE_PUNTUALE_ALL_VALUE_TRUE,
+			PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE_PUNTUALE_ALL_VALUE_FALSE
+	};
+	
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE_PUNTUALE_ALL_VALUE_TRUE = "Qualsiasi";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE_PUNTUALE_ALL_VALUE_FALSE = "Azioni selezionate";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE_PUNTUALE_RISORSE_ALL_VALUE_FALSE = "Risorse selezionate";
+	public final static String [] LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE_PUNTUALE_ALL_VALUES = new String [] {
+			LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE_PUNTUALE_ALL_VALUE_TRUE,
+			LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE_PUNTUALE_ALL_VALUE_FALSE
+	};
+	public final static String [] LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE_PUNTUALE_RISORSE_ALL_VALUES = new String [] {
+			LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE_PUNTUALE_ALL_VALUE_TRUE,
+			LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE_PUNTUALE_RISORSE_ALL_VALUE_FALSE
+	};
 	
 	
 	/* LABEL PARAMETRI */
@@ -1601,6 +1695,83 @@ public class ConfigurazioneCostanti {
 	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_DESCRIZIONE = "Descrizione";
 	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_PLUGIN = "Plugin";
 	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_EMAIL = "E-mail";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_MODALITA = "Modalit&agrave;";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_PERIODO = "Periodo";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO_PERIODO = "Tipo Periodo";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO = "Filtro";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_RAGGRUPPAMENTO = "Raggruppamento";
+	
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_ID_PDD_FRUITORE = "Fruitore (ID PdD)";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_FRUITORE_SOGGETTO = "Fruitore (Soggetto)";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_ID_PDD_EROGATORE = "Erogatore (ID PdD)";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_EROGATORE_SOGGETTO = "Erogatore (Soggetto)";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_ARCHIVIO_STATI = "Archivio Stati";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_ACKNOWLEDGED = "Acknowledge";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_INVIA_EMAIL_ALERT = "Notifica via Email";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_INVIA_EMAIL_ALERT_ABILITATO = "Abilitato";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_DESTINATARI_EMAIL = "Destinatari Email";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_DESTINATARI_EMAIL_NOTE = "Indicare una o più e-mail separandole con la virgola ','";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_NOTIFICA_WARNING = "Notifica Warning";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_INVIA_EMAIL_MAIL_ACK_MODE = "Acknowledge";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_INVIA_EMAIL_MAIL_ACK_MODE_NOTE = "Notifica una mail, ad ogni intervallo di frequenza, fino a che non viene effettuato un ack manuale dell'allarme";	
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_INVIA_EMAIL_SUBJECT = "Subject";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_INVIA_EMAIL_BODY = "Body";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_INVOCA_SCRIPT_ALERT = "Notifica Monitoraggio Esterno";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_INVOCA_SCRIPT_ALERT_ABILITATO = "Abilitato";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_NOTIFICA_WARNING_SCRIPT = "Notifica Warning";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_NOTIFICA_SCRIPT_ACK_MODE = "Acknowledge";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_NOTIFICA_SCRIPT_ACK_MODE_NOTE = "Viene invocato lo script, ad ogni intervallo di frequenza, fino a che non viene effettuato un ack manuale dell'allarme";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_NOTIFICA_SCRIPT_PATH = "Script Path";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_NOTIFICA_SCRIPT_ARGUMENTS = "Script Arguments";
+	
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_ENABLED = "Stato";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_RUOLO_PDD = "Tipologia";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_PROTOCOLLO = "Profilo";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_PORTA = "Porta";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_RUOLO_FRUITORE = "Ruolo Fruitore";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_RUOLO_RICHIEDENTE = "Ruolo Richiedente";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_FRUITORE = "Soggetto Fruitore";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_FRUITORE_COMPACT = "Fruitore";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_SA_FRUITORE = "Applicativo Fruitore";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_SA_FRUITORE_COMPACT = "Applicativo";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_RUOLO_EROGATORE = "Ruolo Erogatore";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_EROGATORE = "Soggetto Erogatore";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_EROGATORE_COMPACT = "Erogatore";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_SA_EROGATORE = "Applicativo Erogatore";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_TAG = "Tag";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_SERVIZIO = "API";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE = "Azioni";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_PER_CHIAVE_ENABLED = "Filtro per Chiave";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_PER_CHIAVE_ENABLED_COMPACT = "Chiave";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_PER_CHIAVE_TIPO = "Tipologia";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_PER_CHIAVE_VALORE = "Valore";
+	
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_ENABLED = "Modalità Calcolo";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_ENABLED_STATO = "Stato";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_RUOLO_PDD_LABEL = "Fruizione / Erogazione";//"Tipologia";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_RUOLO_PDD_NOTE = "Raggruppamento per Fruizione o Erogazione";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_PROTOCOLLO = "Profilo";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_FRUITORE = "Soggetto Fruitore";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_FRUITORE_COMPACT = "Fruitore";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_SA_FRUITORE = "Applicativo Fruitore";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_SA_FRUITORE_COMPACT = "Applicativo";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_RICHIEDENTE = "Richiedente";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_TOKEN = "Token";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_TOKEN_CLAIMS = "Claims";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_EROGATORE = "Soggetto Erogatore";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_EROGATORE_COMPACT = "Erogatore";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_SA_EROGATORE = "Applicativo Erogatore";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_SERVIZIO = "API";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_AZIONE = "Azione";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_PER_CHIAVE_ENABLED_LABEL = "Chiave";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_PER_CHIAVE_ENABLED_NOTE = "Raggruppamento per Chiave";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_PER_CHIAVE_TIPO = "Tipologia";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_PER_CHIAVE_NOME_CUSTOM = "Tipo Personalizzato";
+	
+	public final static String LABEL_CONFIGURAZIONE_ALLARMI_GROUPBY_DATI_GENERALI = "Dati Generali";
+	public final static String LABEL_CONFIGURAZIONE_ALLARMI_GROUPBY_API = "Dati API";
+	public final static String LABEL_CONFIGURAZIONE_ALLARMI_GROUPBY_MITTENTE = "Dati Mittente";
+	
 	
 	/* DEFAULT VALUE PARAMETRI */
 	public final static String DEFAULT_VALUE_PARAMETRO_CONFIGURAZIONE_TIPO_XML = "xml";
@@ -1911,6 +2082,66 @@ public class ConfigurazioneCostanti {
 	public final static String PARAMETRO_CONFIGURAZIONE_CONTROLLO_TRAFFICO_POLICY_ACTIVE_POLICY_MODALITA_RISORSA_DEFAULT = PARAMETRO_CONFIGURAZIONE_CONTROLLO_TRAFFICO_POLICY_ACTIVE_POLICY_MODALITA_RISORSA_NUMERO_RICHIESTE;
 	public final static String PARAMETRO_CONFIGURAZIONE_CONTROLLO_TRAFFICO_POLICY_ACTIVE_POLICY_MODALITA_RISORSA_ESITI_DEFAULT = CostantiControlStation.LABEL_QUALSIASI;
 	public final static String PARAMETRO_CONFIGURAZIONE_CONTROLLO_TRAFFICO_POLICY_ACTIVE_POLICY_MODALITA_RISORSA_INTERVALLO_OSSERVAZIONE_DEFAULT = TipoPeriodoRealtime.ORARIO.getValue();
+	
+	public final static String DEFAULT_VALUE_NESSUNO = "[Nessuno]"; 
+	public final static String LABEL_DEFAULT_VALUE_NESSUNO = "[Nessuno]";
+	
+	public final static String VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_MODALITA_ATTIVA = "Attiva"; 
+	public final static String VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_MODALITA_PASSIVA = "Passiva";
+	
+	public final static String VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO_PERIODO_ORE = AllarmiConverterUtils.toValue(TipoPeriodo.H); 
+	public final static String VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO_PERIODO_GIORNI = AllarmiConverterUtils.toValue(TipoPeriodo.G); 
+	public final static String VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO_PERIODO_MINUTI = AllarmiConverterUtils.toValue(TipoPeriodo.M);
+	
+	public final static String[] VALUES_PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO_PERIODO = {
+			ConfigurazioneCostanti.VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO_PERIODO_GIORNI,
+			ConfigurazioneCostanti.VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO_PERIODO_ORE,
+			ConfigurazioneCostanti.VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO_PERIODO_MINUTI
+	};
+	
+	public final static String LABEL_VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO_PERIODO_ORE = "Ore"; 
+	public final static String LABEL_VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO_PERIODO_GIORNI = "Giorni" ; 
+	public final static String LABEL_VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO_PERIODO_MINUTI = "Minuti"; 
+	
+	public final static String[] LABELS_PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO_PERIODO = {
+			ConfigurazioneCostanti.LABEL_VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO_PERIODO_GIORNI,
+			ConfigurazioneCostanti.LABEL_VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO_PERIODO_ORE,
+			ConfigurazioneCostanti.LABEL_VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO_PERIODO_MINUTI
+	};
+	
+	public final static String VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO_SI = "1"; 
+	public final static String VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO_NO = "0";
+	
+	public final static String[] VALUES_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO = {
+			ConfigurazioneCostanti.VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO_SI,
+			ConfigurazioneCostanti.VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO_NO
+	};
+	
+	public final static String LABEL_VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO_SI = "Si"; 
+	public final static String LABEL_VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO_NO = "No";
+	
+	public final static String[] LABELS_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO = {
+			ConfigurazioneCostanti.LABEL_VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO_SI,
+			ConfigurazioneCostanti.LABEL_VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO_NO
+	};
+	
+	public final static String LABEL_VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_ACKNOWLEDGE_SI = "Si"; 
+	public final static String LABEL_VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_ACKNOWLEDGE_NO = "No";
+	
+	
+	public static String getLabelStato(StatoAllarme stato){
+		if(stato!=null){
+			switch (stato) {
+			case OK:
+				return ConfigurazioneCostanti.CONFIGURAZIONE_ALLARME_LABEL_STATO_OK;
+			case WARNING:
+				return ConfigurazioneCostanti.CONFIGURAZIONE_ALLARME_LABEL_STATO_WARNING;
+			case ERROR:
+				return ConfigurazioneCostanti.CONFIGURAZIONE_ALLARME_LABEL_STATO_ERROR;
+			}
+		}
+		return null;
+	}
 	
 	/* MESSAGGI */
 	

@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.openspcoop2.core.allarmi.Allarme;
+import org.openspcoop2.core.allarmi.AllarmeParametro;
 import org.openspcoop2.core.commons.Filtri;
 import org.openspcoop2.core.commons.ISearch;
 import org.openspcoop2.core.commons.Liste;
@@ -45,6 +46,7 @@ import org.openspcoop2.core.config.PortaDelegata;
 import org.openspcoop2.core.config.Property;
 import org.openspcoop2.core.config.RegistroPlugin;
 import org.openspcoop2.core.config.RegistroPluginArchivio;
+import org.openspcoop2.core.config.RegistroPlugins;
 import org.openspcoop2.core.config.ResponseCachingConfigurazioneRegola;
 import org.openspcoop2.core.config.RoutingTable;
 import org.openspcoop2.core.config.RoutingTableDestinazione;
@@ -68,11 +70,12 @@ import org.openspcoop2.core.mvc.properties.utils.DBPropertiesUtils;
 import org.openspcoop2.generic_project.exception.NotFoundException;
 import org.openspcoop2.message.constants.ServiceBinding;
 import org.openspcoop2.monitor.engine.alarm.wrapper.ConfigurazioneAllarmeBean;
-import org.openspcoop2.monitor.engine.config.base.IdPlugin;
 import org.openspcoop2.monitor.engine.config.base.Plugin;
 import org.openspcoop2.monitor.engine.config.base.constants.TipoPlugin;
 import org.openspcoop2.monitor.engine.dynamic.DynamicFactory;
 import org.openspcoop2.monitor.engine.dynamic.IDynamicLoader;
+import org.openspcoop2.monitor.sdk.condition.Context;
+import org.openspcoop2.monitor.sdk.parameters.Parameter;
 import org.openspcoop2.monitor.sdk.plugins.IAlarmProcessing;
 import org.openspcoop2.pdd.config.UrlInvocazioneAPI;
 import org.openspcoop2.protocol.engine.ProtocolFactoryManager;
@@ -85,7 +88,8 @@ import org.openspcoop2.web.ctrlstat.driver.DriverControlStationNotFound;
 import org.openspcoop2.web.lib.audit.AuditException;
 import org.openspcoop2.web.lib.audit.DriverAudit;
 import org.openspcoop2.web.lib.audit.dao.Filtro;
-import org.openspcoop2.web.monitor.allarmi.dao.AllarmiService;
+import org.openspcoop2.web.lib.mvc.dynamic.DynamicComponentUtils;
+import org.openspcoop2.web.lib.mvc.dynamic.components.BaseComponent;
 
 /**
  * ConfigurazioneCore
@@ -465,6 +469,25 @@ public class ConfigurazioneCore extends ControlStationCore {
 			}
 			
 			return pluginsClassiList;
+		} catch (Exception e) {
+			ControlStationCore.log.error("[ControlStationCore::" + nomeMetodo + "] Exception :" + e.getMessage(), e);
+			throw new DriverConfigurazioneException("[ControlStationCore::" + nomeMetodo + "] Error :" + e.getMessage(),e);
+		} finally {
+			ControlStationCore.dbM.releaseConnection(con);
+		}
+	}
+	
+	public RegistroPlugins getRegistroPlugins() throws DriverConfigurazioneException {
+		Connection con = null;
+		String nomeMetodo = "getRegistroPlugins";
+		DriverControlStationDB driver = null;
+
+		try {
+			// prendo una connessione
+			con = ControlStationCore.dbM.getConnection();
+			// istanzio il driver
+			driver = new DriverControlStationDB(con, null, this.tipoDB);
+			return driver.getDriverConfigurazioneDB().getRegistroPlugins();
 		} catch (Exception e) {
 			ControlStationCore.log.error("[ControlStationCore::" + nomeMetodo + "] Exception :" + e.getMessage(), e);
 			throw new DriverConfigurazioneException("[ControlStationCore::" + nomeMetodo + "] Error :" + e.getMessage(),e);
@@ -1589,8 +1612,16 @@ public class ConfigurazioneCore extends ControlStationCore {
 		}
 	}
 	
-	public boolean isUsableFilter(Allarme configurazioneAllarme) throws Exception{
-		String nomeMetodo = "isUsableFilter";
+	public boolean isUsableFilter(ConfigurazioneAllarmeBean configurazioneAllarme) throws Exception{
+		return this._isUsable(configurazioneAllarme, true);
+	}
+	
+	public boolean isUsableGroupBy(ConfigurazioneAllarmeBean configurazioneAllarme) throws Exception{
+		return this._isUsable(configurazioneAllarme, false);
+	}
+	
+	public boolean _isUsable(ConfigurazioneAllarmeBean configurazioneAllarme, boolean filter) throws Exception{
+		String nomeMetodo = "_isUsable";
 		Connection con = null;
 		DriverControlStationDB driver = null;
 		try {
@@ -1600,7 +1631,11 @@ public class ConfigurazioneCore extends ControlStationCore {
 			// istanzio il driver
 			driver = new DriverControlStationDB(con, null, this.tipoDB);
 			
-			return driver.isUsableFilter(configurazioneAllarme);
+			Plugin plugin = driver.getPlugin(TipoPlugin.ALLARME.getValue(), configurazioneAllarme.getPlugin().getTipo());
+			
+			IDynamicLoader bl = DynamicFactory.getInstance().newDynamicLoader(TipoPlugin.ALLARME, configurazioneAllarme.getPlugin().getTipo(), plugin.getClassName(), ControlStationCore.log);
+			IAlarmProcessing alarmProcessing = (IAlarmProcessing) bl.newInstance();
+			return filter ? alarmProcessing.isUsableFilter() : alarmProcessing.isUsableGroupBy();
 		} catch (Exception e) {
 			ControlStationCore.log.error("[ControlStationCore::" + nomeMetodo + "] Exception :" + e.getMessage(), e);
 			throw new DriverControlStationException("[ControlStationCore::" + nomeMetodo + "] Error :" + e.getMessage(),e);
@@ -1609,8 +1644,8 @@ public class ConfigurazioneCore extends ControlStationCore {
 		}
 	}
 	
-	public boolean isUsableGroupBy(Allarme configurazioneAllarme) throws Exception{
-		String nomeMetodo = "isUsableGroupBy";
+	public List<Parameter<?>> instanceParameters(ConfigurazioneAllarmeBean configurazioneAllarme, Context context) throws Exception{
+		String nomeMetodo = "instanceParameters";
 		Connection con = null;
 		DriverControlStationDB driver = null;
 		try {
@@ -1620,7 +1655,25 @@ public class ConfigurazioneCore extends ControlStationCore {
 			// istanzio il driver
 			driver = new DriverControlStationDB(con, null, this.tipoDB);
 			
-			return driver.isUsableGroupBy(configurazioneAllarme);
+			Plugin plugin = driver.getPlugin(TipoPlugin.ALLARME.getValue(), configurazioneAllarme.getPlugin().getTipo());
+			
+			List<Parameter<?>> res = null;
+			
+			IDynamicLoader bl = DynamicFactory.getInstance().newDynamicLoader(TipoPlugin.ALLARME, plugin.getTipo(), plugin.getClassName(), ControlStationCore.log);
+			List<Parameter<?>> sdkParameters = bl.getParameters(context);
+			
+			if(sdkParameters!=null && sdkParameters.size()>0){
+				
+				res = new ArrayList<Parameter<?>>();
+				
+				for (Parameter<?> sdkParameter : sdkParameters) {
+					Parameter<?> par = DynamicComponentUtils.createDynamicComponentParameter(sdkParameter, bl);
+					((BaseComponent<?>)par).setContext(context);
+					res.add(par);
+				}
+			}
+
+			return res;
 		} catch (Exception e) {
 			ControlStationCore.log.error("[ControlStationCore::" + nomeMetodo + "] Exception :" + e.getMessage(), e);
 			throw new DriverControlStationException("[ControlStationCore::" + nomeMetodo + "] Error :" + e.getMessage(),e);
@@ -1629,4 +1682,19 @@ public class ConfigurazioneCore extends ControlStationCore {
 		}
 	}
 	
+	public List<Parameter<?>> getParameters(ConfigurazioneAllarmeBean configurazioneAllarme, Context context) throws Exception{
+		List<Parameter<?>> parameters = this.instanceParameters(configurazioneAllarme, context);
+		if(parameters!=null && parameters.size()>0){
+			for (AllarmeParametro parDB : configurazioneAllarme.getAllarmeParametroList()) {
+				for (Parameter<?> par : parameters) {
+					if(parDB.getIdParametro().equals(par.getId())){
+						par.setValueAsString(parDB.getValore());
+						break;
+					}
+				}
+			}
+		}
+		
+		return parameters;
+	}
 }

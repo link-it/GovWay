@@ -129,7 +129,7 @@ public final class ConfigurazionePluginsArchiviChange extends Action {
 					classiPlugin = oldRegistro.getCompatibilitaList() == null || oldRegistro.getCompatibilitaList().isEmpty() ?
 							ConfigurazioneCostanti.DEFAULT_VALUE_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_CLASSI_PLUGIN_QUALSIASI: 
 								ConfigurazioneCostanti.DEFAULT_VALUE_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_CLASSI_PLUGIN_SELEZIONATE;
-					if(classiPlugin.equals(ConfigurazioneCostanti.DEFAULT_VALUE_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_CLASSI_PLUGIN_QUALSIASI)) {
+					if(classiPlugin.equals(ConfigurazioneCostanti.DEFAULT_VALUE_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_CLASSI_PLUGIN_SELEZIONATE)) {
 						tipoPlugin =  oldRegistro.getCompatibilitaList().toArray(new String[oldRegistro.sizeCompatibilitaList()]);
 					} else {
 						tipoPlugin = null;
@@ -187,9 +187,9 @@ public final class ConfigurazionePluginsArchiviChange extends Action {
 			else 
 				registro.setStato(StatoFunzionalita.DISABILITATO);
 			registro.setData(new Date());
-			if(classiPlugin.equals(ConfigurazioneCostanti.DEFAULT_VALUE_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_CLASSI_PLUGIN_QUALSIASI)) {
-				registro.setCompatibilitaList(null);
-			} else {
+			
+			registro.getCompatibilitaList().clear();
+			if(!classiPlugin.equals(ConfigurazioneCostanti.DEFAULT_VALUE_PARAMETRO_CONFIGURAZIONE_PLUGINS_ARCHIVI_CLASSI_PLUGIN_QUALSIASI)) {
 				for (String tipo : tipoPlugin) {
 					registro.getCompatibilitaList().add(tipo);
 				}

@@ -35,6 +35,7 @@ import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.apache.commons.lang.StringUtils;
 import org.openspcoop2.core.mvc.properties.utils.PropertiesSourceConfiguration;
 import org.openspcoop2.pdd.config.ConfigurazionePriorita;
 import org.openspcoop2.pdd.config.OpenSPCoop2ConfigurationException;
@@ -1131,6 +1132,17 @@ public class ConsoleProperties {
 		return this.readBooleanProperty(true, "plugins.enabled");
 	}
 	
+	public Integer getPluginsSeconds() throws Exception{
+		String cacheV = this.readProperty(true, "plugins.seconds");
+		if(cacheV!=null && StringUtils.isNotEmpty(cacheV)) {
+			Integer i = Integer.valueOf(cacheV);
+			if(i.intValue()>0) {
+				return i;
+			}
+		}
+		return 300;
+	}
+	
 	/* ---------------- Gestione Allarmi ----------------------- */
 	
 	public Boolean isConfigurazioneAllarmiEnabled() throws UtilsException{
@@ -1186,7 +1198,7 @@ public class ConsoleProperties {
 	}
 	
 	public Boolean isAllarmiNotificaMailVisualizzazioneCompleta() throws Exception{
-		return this.readBooleanProperty(true, "allarmi.notificaMai)oneCompleta");
+		return this.readBooleanProperty(true, "allarmi.notificaMail.visualizzazioneCompleta");
 	}
 	
 	public Boolean isAllarmiMonitoraggioEsternoVisualizzazioneCompleta() throws Exception{

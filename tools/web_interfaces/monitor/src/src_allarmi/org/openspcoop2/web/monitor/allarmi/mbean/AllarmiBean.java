@@ -165,105 +165,14 @@ DynamicPdDBean<ConfigurazioneAllarmeBean, Integer, IService<ConfigurazioneAllarm
 	private String nomeSuggerito;
 	
 	public String getNomeSuggerito(){
-		if(this.nomeSuggerito==null){
-			if(this.allarme.getId()!=null && this.allarme.getId()>0) {
-				// siamo in modifica, il nome non si cambia
-				return this.allarme.getNome();
-			}
-			if(this.allarme.getPlugin()!=null){
-				String name = _buildName();
-				this.allarme.setNome(name);
-				
-			}
-			return this.nomeSuggerito;
-		}
-		else{
-			if(this.allarme!=null && this.allarme.getNome()!=null){
-				if(this.allarme.getNome().equals(this.nomeSuggerito)){
-					// rilcalcolo
-					String name = _buildName();
-					this.allarme.setNome(name);
-				}
-				return this.allarme.getNome();
-			}
-		}
-		return null;
+		this.nomeSuggerito = AllarmiUtils.getNomeSuggerito(this.nomeSuggerito, this.allarme, log, new AllarmiContext(this));
+		return this.nomeSuggerito;
 	}
 	
 	public void setNomeSuggerito(String nome){
 		this.allarme.setNome(nome);
 	}
 	
-	private String _buildName(){
-		String nome = this.allarme.getPlugin().getLabel();
-		StringBuffer bf = new StringBuffer();
-		
-		String [] tmp = nome.split(" ");
-		for (int i = 0; i < tmp.length; i++) {
-			String t = tmp[i].trim();
-			if(t==null || t.length()<1){
-				continue;
-			}
-			if(Character.isDigit(t.charAt(0))){
-				bf.append(t);
-			}
-			else{
-				bf.append((t.charAt(0)+"").toUpperCase());
-				if(t.length()>1){
-					bf.append(t.substring(1, t.length()));
-				}
-			}
-		}
-		
-		// Ci viene Concatenato anche il Filtro
-		AllarmeFiltro configurazioneFiltro = this.allarme.getFiltro();
-		if(this._getTipoNomeMittente(configurazioneFiltro)!=null){
-			bf.append("_M-");
-			bf.append(this._getTipoNomeMittente(configurazioneFiltro));
-		}
-		if(this._getTipoNomeDestinatario(configurazioneFiltro)!=null){
-			bf.append("_D-");
-			bf.append(this._getTipoNomeDestinatario(configurazioneFiltro));
-		}
-		if(this._getTipoNomeServizio(configurazioneFiltro)!=null){
-			bf.append("_S-");
-			bf.append(this._getTipoNomeServizio(configurazioneFiltro));
-		}
-		if(this._getAzione(configurazioneFiltro)!=null){
-			bf.append("_A-");
-			bf.append(this._getAzione(configurazioneFiltro));
-		}
-		
-		nome = bf.toString();
-		
-		String p = "";
-		String s = "";
-		try{
-			if(this.allarme!=null && this.allarme.getPlugin()!=null && this.allarme.getPlugin().getClassName()!=null){
-				IDynamicLoader dl = DynamicFactory.getInstance().newDynamicLoader(TipoPlugin.ALLARME, this.allarme.getTipo(), this.allarme.getPlugin().getClassName(), log);
-				IAlarmProcessing alarm = (IAlarmProcessing) dl.newInstance();
-				Context context = new AllarmiContext(this);
-				p = alarm.getAutomaticPrefixName(context);
-				//System.out.println("P ["+p+"]");
-				s = alarm.getAutomaticSuffixName(context);
-				//System.out.println("S ["+s+"]");
-			}
-				
-		}catch(Exception e){
-			AllarmiBean.log.error(e.getMessage(), e);
-		}
-		
-		if(p==null){
-			p = "";
-		}
-		if(s==null){
-			s = "";
-		}
-		
-		this.nomeSuggerito = p+nome+s;
-		return this.nomeSuggerito;
-	}
-		
 	public void pluginSelected(ActionEvent ae){
 		this.pluginSelectedException =  null;
 		this.nomeSuggerito = null;
@@ -1095,20 +1004,8 @@ DynamicPdDBean<ConfigurazioneAllarmeBean, Integer, IService<ConfigurazioneAllarm
 		return v;
 	}
 	public String getTipoNomeMittente() {
-		return this._getTipoNomeMittente(this.allarme.getFiltro());
+		return AllarmiUtils.getTipoNomeMittente(this.allarme.getFiltro());
 	}
-	private String _getTipoNomeMittente(AllarmeFiltro configurazioneFiltro) {
-		if (configurazioneFiltro != null
-				&& StringUtils.isNotEmpty(configurazioneFiltro
-						.getNomeFruitore())
-						&& !"*".equals(configurazioneFiltro.getNomeFruitore())) {
-			String res = configurazioneFiltro.getTipoFruitore() + "/"
-					+ configurazioneFiltro.getNomeFruitore();
-			return res;
-		}
-		return null;
-	}
-
 
 	public String getTipoNomeDestinatarioForConverter() {
 		String v = this.getTipoNomeDestinatario();
@@ -1118,20 +1015,8 @@ DynamicPdDBean<ConfigurazioneAllarmeBean, Integer, IService<ConfigurazioneAllarm
 		return v;
 	}
 	public String getTipoNomeDestinatario() {
-		return this._getTipoNomeDestinatario(this.allarme.getFiltro());
+		return AllarmiUtils.getTipoNomeDestinatario(this.allarme.getFiltro());
 	}
-	private String _getTipoNomeDestinatario(AllarmeFiltro configurazioneFiltro) {
-		if (configurazioneFiltro != null
-				&& StringUtils.isNotEmpty(configurazioneFiltro
-						.getNomeErogatore())
-						&& !"*".equals(configurazioneFiltro.getNomeErogatore())) {
-			String res = configurazioneFiltro.getTipoErogatore() + "/"
-					+ configurazioneFiltro.getNomeErogatore();
-			return res;
-		}
-		return null;
-	}
-
 
 	public String getTipoNomeServizioForConverter() {
 		String v = this.getTipoNomeServizio();
@@ -1141,29 +1026,11 @@ DynamicPdDBean<ConfigurazioneAllarmeBean, Integer, IService<ConfigurazioneAllarm
 		return v;
 	}
 	public String getTipoNomeServizio() {
-		return this._getTipoNomeServizio(this.allarme.getFiltro());
-	}
-	private String _getTipoNomeServizio(AllarmeFiltro configurazioneFiltro) {
-		if (configurazioneFiltro != null
-				&& StringUtils.isNotEmpty(configurazioneFiltro.getNomeServizio())
-				&& !"*".equals(configurazioneFiltro.getNomeServizio())) {
-			String res = configurazioneFiltro.getTipoServizio() + "/" + configurazioneFiltro.getNomeServizio();
-			return res;
-		}
-		return null;
+		return AllarmiUtils.getTipoNomeServizio(this.allarme.getFiltro());
 	}
 	
 	public String getAzione() {
-		return this._getAzione(this.allarme.getFiltro());
+		return AllarmiUtils.getAzione(this.allarme.getFiltro());
 	}
-	private String _getAzione(AllarmeFiltro configurazioneFiltro) {
-		if (configurazioneFiltro != null && StringUtils.isNotEmpty(configurazioneFiltro.getAzione())
-				&& !"*".equals(configurazioneFiltro.getAzione())) {
-			String res = configurazioneFiltro.getAzione();
-			return res;
-		}
-		return null;
-	}
-	
 
 }

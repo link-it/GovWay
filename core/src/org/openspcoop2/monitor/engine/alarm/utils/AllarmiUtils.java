@@ -5,12 +5,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.openspcoop2.core.allarmi.Allarme;
 import org.openspcoop2.core.allarmi.AllarmeFiltro;
 import org.openspcoop2.core.allarmi.constants.StatoAllarme;
 import org.openspcoop2.core.allarmi.constants.TipoAllarme;
 import org.openspcoop2.core.allarmi.utils.AllarmiConverterUtils;
 import org.openspcoop2.monitor.engine.alarm.wrapper.ConfigurazioneAllarmeBean;
+import org.openspcoop2.monitor.engine.config.base.constants.TipoPlugin;
+import org.openspcoop2.monitor.engine.dynamic.DynamicFactory;
+import org.openspcoop2.monitor.engine.dynamic.IDynamicLoader;
+import org.openspcoop2.monitor.sdk.condition.Context;
+import org.openspcoop2.monitor.sdk.plugins.IAlarmProcessing;
 import org.openspcoop2.protocol.engine.ProtocolFactoryManager;
 import org.openspcoop2.protocol.sdk.IProtocolFactory;
 import org.openspcoop2.utils.beans.BeanUtils;
@@ -210,5 +216,130 @@ public class AllarmiUtils {
 			}
 		}
 		AllarmiUtils.sendToAllarmi(urls, log);
+	}
+	
+	public static String getTipoNomeMittente(AllarmeFiltro configurazioneFiltro) {
+		if (configurazioneFiltro != null && StringUtils.isNotEmpty(configurazioneFiltro.getNomeFruitore()) && !"*".equals(configurazioneFiltro.getNomeFruitore())) {
+			String res = configurazioneFiltro.getTipoFruitore() + "/" + configurazioneFiltro.getNomeFruitore();
+			return res;
+		}
+		return null;
+	}
+	
+	public static String getTipoNomeDestinatario(AllarmeFiltro configurazioneFiltro) {
+		if (configurazioneFiltro != null && StringUtils.isNotEmpty(configurazioneFiltro.getNomeErogatore())	&& !"*".equals(configurazioneFiltro.getNomeErogatore())) {
+			String res = configurazioneFiltro.getTipoErogatore() + "/" + configurazioneFiltro.getNomeErogatore();
+			return res;
+		}
+		return null;
+	}
+	
+	public static String getTipoNomeServizio(AllarmeFiltro configurazioneFiltro) {
+		if (configurazioneFiltro != null && StringUtils.isNotEmpty(configurazioneFiltro.getNomeServizio()) && !"*".equals(configurazioneFiltro.getNomeServizio())) {
+			String res = configurazioneFiltro.getTipoServizio() + "/" + configurazioneFiltro.getNomeServizio();
+			return res;
+		}
+		return null;
+	}
+	
+	public static String getAzione(AllarmeFiltro configurazioneFiltro) {
+		if (configurazioneFiltro != null && StringUtils.isNotEmpty(configurazioneFiltro.getAzione()) && !"*".equals(configurazioneFiltro.getAzione())) {
+			String res = configurazioneFiltro.getAzione();
+			return res;
+		}
+		return null;
+	}
+	
+	public static String costruisciNomeAllarme(ConfigurazioneAllarmeBean allarme, Logger log, Context context){
+		String nome = allarme.getPlugin().getLabel();
+		StringBuffer bf = new StringBuffer();
+		
+		String [] tmp = nome.split(" ");
+		for (int i = 0; i < tmp.length; i++) {
+			String t = tmp[i].trim();
+			if(t==null || t.length()<1){
+				continue;
+			}
+			if(Character.isDigit(t.charAt(0))){
+				bf.append(t);
+			}
+			else{
+				bf.append((t.charAt(0)+"").toUpperCase());
+				if(t.length()>1){
+					bf.append(t.substring(1, t.length()));
+				}
+			}
+		}
+		
+		// Ci viene Concatenato anche il Filtro
+		AllarmeFiltro configurazioneFiltro = allarme.getFiltro();
+		if(AllarmiUtils.getTipoNomeMittente(configurazioneFiltro)!=null){
+			bf.append("_M-");
+			bf.append(AllarmiUtils.getTipoNomeMittente(configurazioneFiltro));
+		}
+		if(AllarmiUtils.getTipoNomeDestinatario(configurazioneFiltro)!=null){
+			bf.append("_D-");
+			bf.append(AllarmiUtils.getTipoNomeDestinatario(configurazioneFiltro));
+		}
+		if(AllarmiUtils.getTipoNomeServizio(configurazioneFiltro)!=null){
+			bf.append("_S-");
+			bf.append(AllarmiUtils.getTipoNomeServizio(configurazioneFiltro));
+		}
+		if(AllarmiUtils.getAzione(configurazioneFiltro)!=null){
+			bf.append("_A-");
+			bf.append(AllarmiUtils.getAzione(configurazioneFiltro));
+		}
+		
+		nome = bf.toString();
+		
+		String p = "";
+		String s = "";
+		try{
+			if(allarme!=null && allarme.getPlugin()!=null && allarme.getPlugin().getClassName()!=null){
+				IDynamicLoader dl = DynamicFactory.getInstance().newDynamicLoader(TipoPlugin.ALLARME, allarme.getTipo(), allarme.getPlugin().getClassName(), log);
+				IAlarmProcessing alarm = (IAlarmProcessing) dl.newInstance();
+				p = alarm.getAutomaticPrefixName(context);
+				//System.out.println("P ["+p+"]");
+				s = alarm.getAutomaticSuffixName(context);
+				//System.out.println("S ["+s+"]");
+			}
+				
+		}catch(Exception e){
+			log.error(e.getMessage(), e);
+		}
+		
+		if(p==null){
+			p = "";
+		}
+		if(s==null){
+			s = "";
+		}
+		return p+nome+s;
+	}
+	
+	public static String getNomeSuggerito(String nomeSuggerito, ConfigurazioneAllarmeBean allarme, Logger log, Context context){
+		if(nomeSuggerito==null){
+			if(allarme.getId()!=null && allarme.getId()>0) {
+				// siamo in modifica, il nome non si cambia
+				return allarme.getNome();
+			}
+			if(allarme.getPlugin()!=null){
+				nomeSuggerito = AllarmiUtils.costruisciNomeAllarme(allarme, log, context);
+				allarme.setNome(nomeSuggerito);
+				
+			}
+			return nomeSuggerito;
+		}
+		else{
+			if(allarme!=null && allarme.getNome()!=null){
+				if(allarme.getNome().equals(nomeSuggerito)){
+					// rilcalcolo
+					nomeSuggerito = AllarmiUtils.costruisciNomeAllarme(allarme, log, context);
+					allarme.setNome(nomeSuggerito);
+				}
+				return allarme.getNome();
+			}
+		}
+		return null;
 	}
 }

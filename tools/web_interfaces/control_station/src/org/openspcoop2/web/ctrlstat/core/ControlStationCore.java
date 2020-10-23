@@ -917,6 +917,7 @@ public class ControlStationCore {
 	private Integer selectListSoggettiOperativi_numeroMassimoSoggetti = null;
 	private Integer selectListSoggettiOperativi_dimensioneMassimaLabel = null;
 	private boolean configurazionePluginsEnabled = false;
+	private Integer configurazionePluginsSeconds = null;
 	
 	public boolean isShowCorrelazioneAsincronaInAccordi() {
 		return this.showCorrelazioneAsincronaInAccordi;
@@ -2359,6 +2360,7 @@ public class ControlStationCore {
 		this.selectListSoggettiOperativi_numeroMassimoSoggetti = core.selectListSoggettiOperativi_numeroMassimoSoggetti;
 		this.selectListSoggettiOperativi_dimensioneMassimaLabel = core.selectListSoggettiOperativi_dimensioneMassimaLabel;
 		this.configurazionePluginsEnabled = core.configurazionePluginsEnabled;
+		this.configurazionePluginsSeconds = core.configurazionePluginsSeconds;
 		
 		/** Configurazione Allarmi */
 		this.configurazioneAllarmiEnabled = core.configurazioneAllarmiEnabled;
@@ -2733,6 +2735,7 @@ public class ControlStationCore {
 			this.selectListSoggettiOperativi_numeroMassimoSoggetti = consoleProperties.getNumeroMassimoSoggettiOperativiMenuUtente();
 			this.selectListSoggettiOperativi_dimensioneMassimaLabel = consoleProperties.getLunghezzaMassimaLabelSoggettiOperativiMenuUtente();
 			this.configurazionePluginsEnabled = consoleProperties.isConfigurazionePluginsEnabled();
+			this.configurazionePluginsSeconds = consoleProperties.getPluginsSeconds();
 			
 			/** Configurazione Allarmi */
 			this.configurazioneAllarmiEnabled = consoleProperties.isConfigurazioneAllarmiEnabled();

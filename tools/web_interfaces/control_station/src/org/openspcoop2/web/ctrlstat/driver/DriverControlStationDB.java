@@ -105,9 +105,6 @@ import org.openspcoop2.monitor.engine.config.base.constants.TipoPlugin;
 import org.openspcoop2.monitor.engine.config.base.dao.IPluginService;
 import org.openspcoop2.monitor.engine.config.base.dao.IPluginServiceSearch;
 import org.openspcoop2.monitor.engine.config.base.dao.jdbc.converter.PluginFieldConverter;
-import org.openspcoop2.monitor.engine.dynamic.DynamicFactory;
-import org.openspcoop2.monitor.engine.dynamic.IDynamicLoader;
-import org.openspcoop2.monitor.sdk.plugins.IAlarmProcessing;
 import org.openspcoop2.pdd.config.dynamic.PluginCostanti;
 import org.openspcoop2.protocol.engine.archive.UtilitiesMappingFruizioneErogazione;
 import org.openspcoop2.protocol.engine.utils.DBOggettiInUsoUtils;
@@ -4987,7 +4984,51 @@ public class DriverControlStationDB  {
 			}
 		}
 	}
+	
+	public Plugin getPlugin(String tipoPlugin, String tipo) throws DriverConfigurazioneException {
+		String nomeMetodo = "getPlugin";
+		Connection con = null;
 
+		if (this.atomica) {
+			try {
+				con = this.datasource.getConnection();
+			} catch (Exception e) {
+				throw new DriverConfigurazioneException("[DriverConfigurazioneDB::" + nomeMetodo + "] Exception accedendo al datasource :" + e.getMessage(),e);
+
+			}
+
+		} else {
+			con = this.globalConnection;
+		}
+
+		this.log.debug("operazione this.atomica = " + this.atomica);
+
+		try {
+			IdPlugin idPlugin = new IdPlugin();
+			idPlugin.setTipoPlugin(tipoPlugin);
+			idPlugin.setTipo(tipo);
+			
+			IPluginServiceSearch pluginServiceSearch = this.getJdbcServiceManagerMonitorEngineConfig().getPluginServiceSearch();
+			Plugin plugin = pluginServiceSearch.get(idPlugin);
+			
+			IdPlugin idPluginObj = pluginServiceSearch.convertToId(plugin);
+			plugin.setOldIdPlugin(idPluginObj);
+			
+			return plugin;
+		} catch (Exception qe) {
+			throw new DriverConfigurazioneException("[DriverConfigurazioneDB::" + nomeMetodo + "] Errore : " + qe.getMessage(),qe);
+		} finally {
+			try {
+				if (this.atomica) {
+					this.log.debug("rilascio connessioni al db...");
+					con.close();
+				}
+			} catch (Exception e) {
+				// ignore exception
+			}
+		}
+	}
+	
 	public List<ConfigurazioneAllarmeBean> allarmiList(Search ricerca) throws DriverConfigurazioneException {
 		String nomeMetodo = "allarmiList";
 		int idLista = Liste.CONFIGURAZIONE_ALLARMI;
@@ -5303,57 +5344,6 @@ public class DriverControlStationDB  {
 			idPlugin.setTipo(al.getTipo());
 			
 			return new ConfigurazioneAllarmeBean(al, pluginServiceSearch.get(idPlugin));
-		} catch (Exception qe) {
-			throw new DriverConfigurazioneException("[DriverConfigurazioneDB::" + nomeMetodo + "] Errore : " + qe.getMessage(),qe);
-		} finally {
-			try {
-				if (this.atomica) {
-					this.log.debug("rilascio connessioni al db...");
-					con.close();
-				}
-			} catch (Exception e) {
-				// ignore exception
-			}
-		}
-	}
-	
-	public boolean isUsableFilter(Allarme configurazioneAllarme) throws DriverConfigurazioneException{
-		return _isUsable(configurazioneAllarme, true);
-	}
-	public boolean isUsableGroupBy(Allarme configurazioneAllarme) throws DriverConfigurazioneException{
-		return _isUsable(configurazioneAllarme, false);
-	}
-	public boolean _isUsable(Allarme configurazioneAllarme, boolean filter) throws DriverConfigurazioneException{
-		String nomeMetodo = "_isUsable";
-		Connection con = null;
-
-		if (this.atomica) {
-			try {
-				con = this.datasource.getConnection();
-			} catch (Exception e) {
-				throw new DriverConfigurazioneException("[DriverConfigurazioneDB::" + nomeMetodo + "] Exception accedendo al datasource :" + e.getMessage(),e);
-
-			}
-
-		} else {
-			con = this.globalConnection;
-		}
-
-		this.log.debug("operazione this.atomica = " + this.atomica);
-		
-		try {
-			IdPlugin idPlugin = new IdPlugin();
-			idPlugin.setTipoPlugin(TipoPlugin.ALLARME.getValue());
-			idPlugin.setTipo(configurazioneAllarme.getTipo());
-			
-			IPluginServiceSearch pluginServiceSearch = this.getJdbcServiceManagerMonitorEngineConfig().getPluginServiceSearch();
-			
-			Plugin plugin = pluginServiceSearch.get(idPlugin);
-			
-			IDynamicLoader bl = DynamicFactory.getInstance().newDynamicLoader(TipoPlugin.ALLARME, configurazioneAllarme.getTipo(), plugin.getClassName(), this.log);
-			IAlarmProcessing alarmProcessing = (IAlarmProcessing) bl.newInstance();
-			return filter ? alarmProcessing.isUsableFilter() : alarmProcessing.isUsableGroupBy();
-
 		} catch (Exception qe) {
 			throw new DriverConfigurazioneException("[DriverConfigurazioneDB::" + nomeMetodo + "] Errore : " + qe.getMessage(),qe);
 		} finally {

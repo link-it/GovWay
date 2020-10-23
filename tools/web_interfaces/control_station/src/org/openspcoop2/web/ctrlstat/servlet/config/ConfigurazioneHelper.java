@@ -43,15 +43,18 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
-import org.openspcoop2.core.allarmi.AllarmeMail;
-import org.openspcoop2.core.allarmi.AllarmeScript;
+import org.openspcoop2.core.allarmi.AllarmeFiltro;
+import org.openspcoop2.core.allarmi.constants.RuoloPorta;
 import org.openspcoop2.core.allarmi.constants.TipoAllarme;
+import org.openspcoop2.core.allarmi.constants.TipoPeriodo;
+import org.openspcoop2.core.allarmi.utils.AllarmiConverterUtils;
 import org.openspcoop2.core.commons.Filtri;
 import org.openspcoop2.core.commons.ISearch;
 import org.openspcoop2.core.commons.Liste;
 import org.openspcoop2.core.commons.ModalitaIdentificazione;
 import org.openspcoop2.core.commons.SearchUtils;
 import org.openspcoop2.core.commons.dao.DAOFactory;
+import org.openspcoop2.core.commons.dao.DAOFactoryException;
 import org.openspcoop2.core.config.AccessoRegistro;
 import org.openspcoop2.core.config.AccessoRegistroRegistro;
 import org.openspcoop2.core.config.Configurazione;
@@ -135,7 +138,6 @@ import org.openspcoop2.generic_project.exception.NotImplementedException;
 import org.openspcoop2.message.constants.ServiceBinding;
 import org.openspcoop2.monitor.engine.alarm.AlarmContext;
 import org.openspcoop2.monitor.engine.alarm.AlarmEngineConfig;
-import org.openspcoop2.monitor.engine.alarm.utils.AllarmiUtils;
 import org.openspcoop2.monitor.engine.alarm.wrapper.ConfigurazioneAllarmeBean;
 import org.openspcoop2.monitor.engine.config.base.Plugin;
 import org.openspcoop2.monitor.engine.config.base.constants.TipoPlugin;
@@ -182,8 +184,8 @@ import org.openspcoop2.web.lib.mvc.PageData;
 import org.openspcoop2.web.lib.mvc.Parameter;
 import org.openspcoop2.web.lib.mvc.ServletUtils;
 import org.openspcoop2.web.lib.mvc.TipoOperazione;
+import org.openspcoop2.web.lib.mvc.dynamic.components.BaseComponent;
 import org.openspcoop2.web.lib.users.dao.User;
-import org.openspcoop2.web.monitor.allarmi.dao.IAllarmiService;
 
 /**
  * ConfigurazioneHelper
@@ -15947,7 +15949,6 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 			de.setLabels(ConfigurazionePluginsTipoPluginUtils.getLabelsTipoPlugin());
 			de.setValues(ConfigurazionePluginsTipoPluginUtils.getValuesTipoPlugin());
 			de.setSelected(classiPlugin);
-			de.setPostBack(true);
 			dati.addElement(de);
 		}
 		
@@ -16727,18 +16728,10 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 		}
 	}
 	
-	public boolean allarmeCheckData(TipoOperazione tipoOp, ConfigurazioneAllarmeBean oldAllarme, ConfigurazioneAllarmeBean allarme, int numeroPluginRegistrati) throws Exception {
+	public boolean allarmeCheckData(TipoOperazione tipoOp, ConfigurazioneAllarmeBean oldAllarme, ConfigurazioneAllarmeBean allarme, int numeroPluginRegistrati
+			, List<org.openspcoop2.monitor.sdk.parameters.Parameter<?>> parameters) throws Exception {
 		
 		try {
-			
-			/* ******** CONTROLLO SUL FILTRO *************** */
-			
-			boolean isFiltroValido = AllarmiUtils.controllaTipiIndicatiNelFiltro(allarme.getFiltro(), CostantiControlStation.VALORE_QUALSIASI_STAR);
-
-			if (!isFiltroValido) {
-				this.pd.setMessage(ConfigurazioneCostanti.MESSAGGIO_ERRORE_ALLARME_FILTRO_NON_COMPATIBILE);
-				return false;
-			}
 			
 			/* ******** CONTROLLO PLUGIN *************** */
 			
@@ -16785,27 +16778,43 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 					return false;
 				}
 			}
-			if(allarme.getMail()!=null && allarme.getMail().getInviaAlert()!=null && allarme.getMail().getInviaAlert()==1){
-				if(allarme.getMail().getDestinatari()==null || "".equals(allarme.getMail().getDestinatari())){
-					this.log.debug("Almeno un indirizzo e-mail è obbligatorio");
-					this.pd.setMessage(ConfigurazioneCostanti.MESSAGGIO_ERRORE_ALLARME_EMAIL_VUOTA);
+			
+			if(allarme.getFiltro().isEnabled()){
+				
+				if( (allarme.getFiltro().getRuoloPorta()==null || RuoloPorta.ENTRAMBI.equals(allarme.getFiltro().getRuoloPorta()))
+						&& 
+						allarme.getFiltro().getProtocollo()==null &&
+						allarme.getFiltro().getRuoloFruitore()==null &&
+						allarme.getFiltro().getTipoFruitore()==null &&
+						allarme.getFiltro().getNomeFruitore()==null &&
+						allarme.getFiltro().getServizioApplicativoFruitore()==null &&
+						allarme.getFiltro().getRuoloErogatore()==null &&
+						allarme.getFiltro().getTipoErogatore()==null &&
+						allarme.getFiltro().getNomeErogatore()==null &&
+						allarme.getFiltro().getTag()==null &&
+						allarme.getFiltro().getTipoServizio()==null &&
+						allarme.getFiltro().getNomeServizio()==null &&
+						allarme.getFiltro().getAzione()==null){
+					String messaggio = "Se si abilita il filtro deve essere selezionato almeno un criterio";
+					this.pd.setMessage(messaggio);
 					return false;
 				}
-				String [] tmp = allarme.getMail().getDestinatari().split(",");
-				for (int i = 0; i < tmp.length; i++) {
-					if(!this.checkEmail(tmp[i].trim(), ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_EMAIL)==false){
-						this.log.debug("L'indirizzo e-mail fornito ["+tmp[i].trim()+"] non risulta valido"); 
-						return false;
-					}
-				}
+				
 			}
 			
-			
-			boolean existsAllarme = this.confCore.existsAllarme(allarme.getNome());
-			// controllo esistenza allarme con lo stesso nome			
-			if (tipoOp.equals(TipoOperazione.ADD)) {
-				if (existsAllarme) {
-					this.pd.setMessage(ConfigurazioneCostanti.MESSAGGIO_ERRORE_ALLARME_DUPLICATO); 
+			if(allarme.getGroupBy().isEnabled()){
+				
+				if( !allarme.getGroupBy().isRuoloPorta() && 
+						!allarme.getGroupBy().getProtocollo() &&
+						!allarme.getGroupBy().getFruitore() &&
+						!allarme.getGroupBy().getServizioApplicativoFruitore() &&
+						!allarme.getGroupBy().getIdentificativoAutenticato() &&
+						(allarme.getGroupBy().getToken()==null || "".equals(allarme.getGroupBy().getToken())) &&
+						!allarme.getGroupBy().getErogatore() &&
+						!allarme.getGroupBy().getServizio() &&
+						!allarme.getGroupBy().getAzione()){
+					String messaggio = "Se si abilita il collezionamento dei dati deve essere selezionato almeno un criterio di raggruppamento";
+					this.pd.setMessage(messaggio);
 					return false;
 				}
 			}
@@ -16814,8 +16823,7 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 			
 			IDynamicValidator v = DynamicFactory.getInstance().newDynamicValidator(TipoPlugin.ALLARME, allarme.getTipo(), allarme.getPlugin().getClassName(),this.log);
 			
-			List<org.openspcoop2.monitor.sdk.parameters.Parameter<?>> parameters = null;
-			Context context = new AlarmContext(allarme, this.log, DAOFactory.getInstance(this.log), parameters );
+			Context context = this.createAlarmContext(allarme, parameters);
 			try {
 				// validazione parametri
 				v.validate(context);
@@ -16852,7 +16860,35 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 				return false;
 			}
 			
+			
+			/* ******** VALIDAZIONE NOTIFICA MAIL *************** */
+			
+			if(allarme.getMail()!=null && allarme.getMail().getInviaAlert()!=null && allarme.getMail().getInviaAlert()==1){
+				if(allarme.getMail().getDestinatari()==null || "".equals(allarme.getMail().getDestinatari())){
+					this.log.debug("Almeno un indirizzo e-mail è obbligatorio");
+					this.pd.setMessage(ConfigurazioneCostanti.MESSAGGIO_ERRORE_ALLARME_EMAIL_VUOTA);
+					return false;
+				}
+				String [] tmp = allarme.getMail().getDestinatari().split(",");
+				for (int i = 0; i < tmp.length; i++) {
+					if(!this.checkEmail(tmp[i].trim(), ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_EMAIL)==false){
+						this.log.debug("L'indirizzo e-mail fornito ["+tmp[i].trim()+"] non risulta valido"); 
+						return false;
+					}
+				}
+			}
+			
 			// altri parametri???
+			boolean existsAllarme = this.confCore.existsAllarme(allarme.getNome());
+			// controllo esistenza allarme con lo stesso nome			
+			if (tipoOp.equals(TipoOperazione.ADD)) {
+				if (existsAllarme) {
+					this.pd.setMessage(ConfigurazioneCostanti.MESSAGGIO_ERRORE_ALLARME_DUPLICATO); 
+					return false;
+				}
+			}
+			
+		
 			
 			
 			return true;
@@ -16860,6 +16896,12 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 			this.log.error("Exception: " + e.getMessage(), e);
 			throw new Exception(e);
 		}
+	} 
+	
+	public Context createAlarmContext(ConfigurazioneAllarmeBean allarme, List<org.openspcoop2.monitor.sdk.parameters.Parameter<?>> parameters) throws DAOFactoryException {
+		Context context = new AlarmContext(allarme, this.log, DAOFactory.getInstance(this.log), parameters );
+		
+		return context;
 	}
 	
 	public void sendToAllarmi(List<String> urls) throws Exception{
@@ -16880,65 +16922,2869 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 		}
 	}
 	
-	public String readAllarmeFromRequest(TipoOperazione tipoOp, boolean first, ConfigurazioneAllarmeBean allarme, AlarmEngineConfig alarmEngineConfig) {
+	public String readAllarmeFromRequest(TipoOperazione tipoOp, boolean first, 
+			ConfigurazioneAllarmeBean allarme, AlarmEngineConfig alarmEngineConfig, Plugin plugin, List<org.openspcoop2.monitor.sdk.parameters.Parameter<?>> parameters ) throws Exception {
 
 		StringBuilder sbParsingError = new StringBuilder();
 		
-		allarme.setEnabled(1);
-		
-		allarme.setTipoAllarme(null);
-
-		allarme.setMail(new AllarmeMail());
-		allarme.getMail().setInviaAlert(0);
-		allarme.getMail().setInviaWarning(0);
-		if(alarmEngineConfig.isMailAckMode()){
-			allarme.getMail().setAckMode(1);
-		}else{
-			allarme.getMail().setAckMode(0);
+		if(first) {
+			if(tipoOp.equals(TipoOperazione.ADD)) {
+//				allarme.setEnabled(1);
+//				allarme.setTipoAllarme(null);
+//				allarme.setMail(new AllarmeMail());
+//				allarme.getMail().setInviaAlert(0);
+//				allarme.getMail().setInviaWarning(0);
+//				if(alarmEngineConfig.isMailAckMode()){
+//					allarme.getMail().setAckMode(1);
+//				}else{
+//					allarme.getMail().setAckMode(0);
+//				}
+//				allarme.setScript(new AllarmeScript());
+//				allarme.getScript().setInvocaAlert(0);
+//				allarme.getScript().setInvocaWarning(0);
+//				if(alarmEngineConfig.isScriptAckMode()){
+//					allarme.getScript().setAckMode(1);
+//				}else{
+//					allarme.getScript().setAckMode(0);
+//				}
+			}
+		} else {
+			// ricostruisco lo stato a partire dai parametri
+			String idAllarmeS = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_ID_ALLARME);
+			if(tipoOp.equals(TipoOperazione.ADD)) {
+				allarme.setId(null);
+			} else {
+				allarme.setId(Long.parseLong(idAllarmeS));
+			}
+			
+			String nome = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_NOME);
+			allarme.setNome(nome);
+			
+			String modalitaS = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_MODALITA);
+			TipoAllarme tipoAllarme = null;
+			if(StringUtils.isNotBlank(modalitaS)) {
+				tipoAllarme = TipoAllarme.toEnumConstant(modalitaS);
+			}
+			allarme.setTipoAllarme(tipoAllarme);
+			
+//			String descrizione = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_DESCRIZIONE);
+			
+			if(allarme.getTipoAllarme() != null && (allarme.getTipoAllarme().equals(TipoAllarme.ATTIVO))) {
+				String periodoS = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_PERIODO);
+				String tipoPeriodoS = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO_PERIODO);
+				
+				if(StringUtils.isNotBlank(periodoS)) {
+					allarme.setPeriodo(Integer.parseInt(periodoS));
+				}
+				
+				if(StringUtils.isNotBlank(tipoPeriodoS)) {
+					if(ConfigurazioneCostanti.VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO_PERIODO_MINUTI.equals(tipoPeriodoS)){
+						allarme.setTipoPeriodo(AllarmiConverterUtils.toValue(TipoPeriodo.M));
+					}
+					else if(ConfigurazioneCostanti.VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO_PERIODO_GIORNI.equals(tipoPeriodoS)){
+						allarme.setTipoPeriodo(AllarmiConverterUtils.toValue(TipoPeriodo.G));
+					}
+					else{
+						allarme.setTipoPeriodo(AllarmiConverterUtils.toValue(TipoPeriodo.H));
+					}
+				}
+			}
+			
+			String abilitatoS = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO);
+			if(StringUtils.isNotBlank(abilitatoS)) {
+				allarme.setEnabled(Integer.parseInt(abilitatoS));
+			}
+			
+			
+			// Sezione filtro/ groupby
+			this.readDatiAllarmeFiltroFromHttpParameters(allarme, first);
+			
+			// sezione parametri
+			if(plugin != null) {
+				if(parameters != null&& parameters.size() > 0) {
+					for (org.openspcoop2.monitor.sdk.parameters.Parameter<?> par : parameters) {
+						par.setValueAsString(this.getParameter(par.getId()));
+//						
+//						boolean found = false;
+//						for (AllarmeParametro parDB : allarme.getAllarmeParametroList()) {
+//							if(parDB.getIdParametro().equals(par.getId())){
+//								parDB.setValore(par.getValueAsString());
+//								found = true;
+//								break;
+//							}
+//						}
+//						if(!found){
+//							AllarmeParametro parDB = new AllarmeParametro();
+//							parDB.setIdParametro(par.getId());
+//							parDB.setValore(par.getValueAsString());
+//							allarme.addAllarmeParametro(parDB);
+//						}
+					}
+				}
+			}
+			
+			// sezione mail
+			String inviaEmailAlertS = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_INVIA_EMAIL_ALERT);
+			if(StringUtils.isNotBlank(inviaEmailAlertS)) {
+				allarme.getMail().setInviaAlert(Integer.parseInt(inviaEmailAlertS));
+			}
+			
+			if(allarme.getMail().getInviaAlert() == 1) {
+				String destinatariEmail = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_DESTINATARI_EMAIL);
+				allarme.getMail().setDestinatari(destinatariEmail);
+				
+				// notifica warning
+				String notificaWarningEmailS = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_NOTIFICA_WARNING);
+				if(StringUtils.isNotBlank(notificaWarningEmailS)) {
+					allarme.getMail().setInviaWarning(Integer.parseInt(notificaWarningEmailS));
+				}
+				
+				if(this.confCore.getAllarmiConfig().isAllarmiNotificaMailVisualizzazioneCompleta()) {
+					//Acknowledge
+					String ackModeEmailS = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_INVIA_EMAIL_MAIL_ACK_MODE);
+					if(StringUtils.isNotBlank(ackModeEmailS)) {
+						allarme.getMail().setAckMode(Integer.parseInt(ackModeEmailS));
+					}
+					
+					// Subject
+					String subject = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_INVIA_EMAIL_SUBJECT);
+					allarme.getMail().setSubject(subject);
+					
+					// Body
+					String body = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_INVIA_EMAIL_BODY);
+					allarme.getMail().setBody(body);
+				}
+			}
+			
+			// sezione script
+			String invocaScriptAlertS = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_INVOCA_SCRIPT_ALERT);
+			if(StringUtils.isNotBlank(invocaScriptAlertS)) {
+				allarme.getScript().setInvocaAlert(Integer.parseInt(invocaScriptAlertS));
+			}
+			
+			if(allarme.getScript().getInvocaAlert() == 1) {
+				// notifica warning
+				String notificaWarningScriptS = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_NOTIFICA_WARNING_SCRIPT);
+				if(StringUtils.isNotBlank(notificaWarningScriptS)) {
+					allarme.getScript().setInvocaWarning(Integer.parseInt(notificaWarningScriptS));
+				}
+				
+				if(this.confCore.getAllarmiConfig().isAllarmiMonitoraggioEsternoVisualizzazioneCompleta()) {
+					//Acknowledge
+					String ackModeEmailS = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_NOTIFICA_SCRIPT_ACK_MODE);
+					if(StringUtils.isNotBlank(ackModeEmailS)) {
+						allarme.getScript().setAckMode(Integer.parseInt(ackModeEmailS));
+					}
+					
+					// Subject
+					String path = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_NOTIFICA_SCRIPT_PATH);
+					allarme.getScript().setCommand(path);
+					
+					// Body
+					String args = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_NOTIFICA_SCRIPT_ARGUMENTS);
+					allarme.getScript().setArgs(args);
+				}
+			}
 		}
-
-		allarme.setScript(new AllarmeScript());
-		allarme.getScript().setInvocaAlert(0);
-		allarme.getScript().setInvocaWarning(0);
-		if(alarmEngineConfig.isScriptAckMode()){
-			allarme.getScript().setAckMode(1);
-		}else{
-			allarme.getScript().setAckMode(0);
+		
+		if(sbParsingError.length() > 0){
+			return sbParsingError.toString();
 		}
 			
 		return null;
 	}
 	
-	public void addAllarmeToDati(Vector<DataElement> dati, TipoOperazione tipoOperazione, ConfigurazioneAllarmeBean allarme, AlarmEngineConfig alarmEngineConfig, List<Plugin> listaPlugin) throws Exception { 
+	
+	public String readDatiAllarmeFiltroFromHttpParameters(ConfigurazioneAllarmeBean policy, boolean first) throws Exception {
 		
-		// Sezione filtro
-		if(this.isShowFilter(allarme)) {
+		StringBuilder sbParsingError = new StringBuilder();
+		
+		// Filtro - stato
+		String stato = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_ENABLED);
+		if(stato!=null && !"".equals(stato)){
+			policy.getFiltro().setEnabled(ServletUtils.isCheckBoxEnabled(stato));
+		}
+		
+		// Filtro
+		if(policy.getFiltro().isEnabled()){
 			
+			// ruolo della PdD
+			String ruoloPdD = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_RUOLO_PDD);
+			if(ruoloPdD!=null && !"".equals(ruoloPdD)){
+				try{
+					policy.getFiltro().setRuoloPorta(RuoloPorta.toEnumConstant(ruoloPdD, true));
+				}catch(Exception e){
+					String messaggio = "Il valore ("+ruoloPdD+") indicato in '"+ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_RUOLO_PDD+"' non è tra i ruoli gestiti";
+					this.log.error(messaggio,e);
+					this.addParsingError(sbParsingError,messaggio);
+				}
+			}
+			
+			// protocollo
+			String protocollo = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_PROTOCOLLO);
+			if(protocollo!=null && !"".equals(protocollo) && !ConfigurazioneCostanti.VALUE_CONFIGURAZIONE_RATE_LIMITING_QUALSIASI.equals(protocollo)){
+				policy.getFiltro().setProtocollo(protocollo);
+			}
+			else{
+				if(!first){
+					policy.getFiltro().setProtocollo(null);
+				}
+			}
+			
+			// ruolo erogatore
+			String ruoloErogatore = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_RUOLO_EROGATORE);
+			if(ruoloErogatore!=null && !"".equals(ruoloErogatore) && !ConfigurazioneCostanti.VALUE_CONFIGURAZIONE_RATE_LIMITING_QUALSIASI.equals(ruoloErogatore) ){
+				policy.getFiltro().setRuoloErogatore(ruoloErogatore);
+			}
+			else{
+				if(!first){
+					policy.getFiltro().setRuoloErogatore(null);
+				}
+			}
+			
+			// erogatore
+			String erogatore = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_EROGATORE);
+			boolean erogatoreSelected = false;
+			if(erogatore!=null && !"".equals(erogatore) && !ConfigurazioneCostanti.VALUE_CONFIGURAZIONE_RATE_LIMITING_QUALSIASI.equals(erogatore) && erogatore.contains("/") ){
+				String [] tmp = erogatore.split("/");
+				policy.getFiltro().setTipoErogatore(tmp[0]);
+				policy.getFiltro().setNomeErogatore(tmp[1]);
+				erogatoreSelected = true;
+			}
+			else{
+				if(!first){
+					policy.getFiltro().setTipoErogatore(null);
+					policy.getFiltro().setNomeErogatore(null);
+				}
+			}
+			
+			// servizio applicativo erogatore
+//			String servizioApplicativoErogatore = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_SA_EROGATORE);
+//			if(servizioApplicativoErogatore!=null && !"".equals(servizioApplicativoErogatore) && !ConfigurazioneCostanti.VALUE_CONFIGURAZIONE_RATE_LIMITING_QUALSIASI.equals(servizioApplicativoErogatore) ){
+//				policy.getFiltro().setServizioApplicativoErogatore(servizioApplicativoErogatore);
+//			}
+//			else{
+//				if(!first){
+//					policy.getFiltro().setServizioApplicativoErogatore(null);
+//				}
+//			}
+			
+			// tag
+			String tag = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_TAG);
+			if(tag!=null && !"".equals(tag) && !ConfigurazioneCostanti.VALUE_CONFIGURAZIONE_RATE_LIMITING_QUALSIASI.equals(tag)){
+				policy.getFiltro().setTag(tag);
+			}
+			else{
+				if(!first){
+					policy.getFiltro().setTag(null);
+				}
+			}
+			
+			// servizio
+			String servizio = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_SERVIZIO);
+			if(servizio!=null && !"".equals(servizio) && !ConfigurazioneCostanti.VALUE_CONFIGURAZIONE_RATE_LIMITING_QUALSIASI.equals(servizio) && servizio.contains("/") ){
+				String [] tmp = servizio.split("/");
+				policy.getFiltro().setTipoServizio(tmp[0]);
+				policy.getFiltro().setNomeServizio(tmp[1]);
+				policy.getFiltro().setVersioneServizio(Integer.parseInt(tmp[2]));
+				if(this.core.isControlloTrafficoPolicyGlobaleFiltroApiSoggettoErogatore()) {
+					policy.getFiltro().setTipoErogatore(tmp[3]);
+					policy.getFiltro().setNomeErogatore(tmp[4]);
+				}
+			}
+			else{
+				if(!first){
+					policy.getFiltro().setTipoServizio(null);
+					policy.getFiltro().setNomeServizio(null);
+					policy.getFiltro().setVersioneServizio(null);
+					if(this.core.isControlloTrafficoPolicyGlobaleFiltroApiSoggettoErogatore()&& !erogatoreSelected) {
+						policy.getFiltro().setTipoErogatore(null);
+						policy.getFiltro().setNomeErogatore(null);
+					}
+				}
+			}
+			
+			// azione
+			String [] azione = this.getParameterValues(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE);
+			if(azione!=null && azione.length>0) {
+				StringBuilder bf = new StringBuilder();
+				for (String az : azione) {
+					if(bf.length()>0) {
+						bf.append(",");
+					}
+					bf.append(az);
+				}
+				policy.getFiltro().setAzione(bf.toString());
+			}
+			else{
+				if(!first){
+					policy.getFiltro().setAzione(null);
+				}
+			}
+			
+			// ruolo fruitore
+			String ruoloFruitore = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_RUOLO_FRUITORE);
+			if(ruoloFruitore!=null && !"".equals(ruoloFruitore) && !ConfigurazioneCostanti.VALUE_CONFIGURAZIONE_RATE_LIMITING_QUALSIASI.equals(ruoloFruitore) ){
+				policy.getFiltro().setRuoloFruitore(ruoloFruitore);
+			}
+			else{
+				if(!first){
+					policy.getFiltro().setRuoloFruitore(null);
+				}
+			}
+			
+			// fruitore
+			String fruitore = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_FRUITORE);
+			if(fruitore!=null && !"".equals(fruitore) && !ConfigurazioneCostanti.VALUE_CONFIGURAZIONE_RATE_LIMITING_QUALSIASI.equals(fruitore) && fruitore.contains("/") ){
+				String [] tmp = fruitore.split("/");
+				policy.getFiltro().setTipoFruitore(tmp[0]);
+				policy.getFiltro().setNomeFruitore(tmp[1]);
+			}
+			else{
+				if(!first){
+					policy.getFiltro().setTipoFruitore(null);
+					policy.getFiltro().setNomeFruitore(null);
+				}
+			}
+			
+			// servizio applicativo fruitore
+			String servizioApplicativoFruitore = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_SA_FRUITORE);
+			if(servizioApplicativoFruitore!=null && !"".equals(servizioApplicativoFruitore) && !ConfigurazioneCostanti.VALUE_CONFIGURAZIONE_RATE_LIMITING_QUALSIASI.equals(servizioApplicativoFruitore) ){
+				policy.getFiltro().setServizioApplicativoFruitore(servizioApplicativoFruitore);
+			}
+			else{
+				if(!first){
+					policy.getFiltro().setServizioApplicativoFruitore(null);
+				}
+			}
+			
+			// per Chiave
+//			String perChiave = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_PER_CHIAVE_ENABLED);
+//			if(first==false){
+//				policy.getFiltro().setInformazioneApplicativaEnabled(ServletUtils.isCheckBoxEnabled(perChiave));
+//			}
+			
+//			if(policy.getFiltro().isInformazioneApplicativaEnabled()){
+//				
+//				// Per Chiave - Tipo
+//				String perChiaveTipo = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_PER_CHIAVE_TIPO);
+//				if(perChiaveTipo!=null && !"".equals(perChiaveTipo) ){
+//					policy.getFiltro().setInformazioneApplicativaTipo(perChiaveTipo);
+//				}
+//				else{
+//					if(!first){
+//						policy.getFiltro().setInformazioneApplicativaTipo(ConfigurazioneCostanti.ALLARMI_FILTRO_PER_CHIAVE_TIPO_DEFAULT); // default
+//					}
+//				}
+//				
+//				// Per Chiave - Nome
+//				String perChiaveNome = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_PER_CHIAVE_NOME);
+//				if(perChiaveNome!=null && !"".equals(perChiaveNome) ){
+//					policy.getFiltro().setInformazioneApplicativaNome(perChiaveNome);
+//				}
+//				else{
+//					if(!first){
+//						policy.getFiltro().setInformazioneApplicativaNome(null);
+//					}
+//				}
+//				
+//				// Per Chiave - Valore
+//				String perChiaveValore = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_PER_CHIAVE_VALORE);
+//				if(perChiaveValore!=null && !"".equals(perChiaveValore) ){
+//					policy.getFiltro().setInformazioneApplicativaValore(StringEscapeUtils.unescapeHtml(perChiaveValore)); // il valore viene "escaped" perchè può conteenere ""
+//				}
+//				else{
+//					if(!first){
+//						policy.getFiltro().setInformazioneApplicativaValore(null);
+//					}
+//				}
+//				
+//			}
+//			else{
+//				policy.getFiltro().setInformazioneApplicativaTipo(null);
+//				policy.getFiltro().setInformazioneApplicativaNome(null);
+//				policy.getFiltro().setInformazioneApplicativaValore(null);
+//			}
+		}
+		else{
+			policy.getFiltro().setRuoloPorta(RuoloPorta.ENTRAMBI);
+			policy.getFiltro().setTipoFruitore(null);
+			policy.getFiltro().setNomeFruitore(null);
+			policy.getFiltro().setServizioApplicativoFruitore(null);
+			policy.getFiltro().setTipoErogatore(null);
+			policy.getFiltro().setNomeErogatore(null);
+//			policy.getFiltro().setServizioApplicativoErogatore(null);
+			policy.getFiltro().setTipoServizio(null);
+			policy.getFiltro().setNomeServizio(null);
+			policy.getFiltro().setAzione(null);
+//			policy.getFiltro().setInformazioneApplicativaEnabled(false);
+//			policy.getFiltro().setInformazioneApplicativaTipo(null);
+//			policy.getFiltro().setInformazioneApplicativaNome(null);
+//			policy.getFiltro().setInformazioneApplicativaValore(null);
+		}
+		
+		// GroupBy - stato
+		String statoGroupBy = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_ENABLED);
+		if(statoGroupBy!=null && !"".equals(statoGroupBy)){
+			policy.getGroupBy().setEnabled(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_STATO_COLLEZIONAMENTO_ABILITATO.equals(statoGroupBy) ||
+					ConfigurazioneCostanti.DEFAULT_VALUE_ABILITATO.equals(statoGroupBy));
+		}
+		
+		// GroupBy
+		if(policy.getGroupBy().isEnabled()){
+			
+			// ruolo della PdD
+			String ruoloPdD = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_RUOLO_PDD);
+			if(first==false){
+				policy.getGroupBy().setRuoloPorta(ServletUtils.isCheckBoxEnabled(ruoloPdD));
+			}
+			
+			// protocollo
+			String protocollo = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_PROTOCOLLO);
+			if(first==false){
+				policy.getGroupBy().setProtocollo(ServletUtils.isCheckBoxEnabled(protocollo));
+			}
+			
+			// erogatore
+			String erogatore = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_EROGATORE);
+			if(first==false){
+				policy.getGroupBy().setErogatore(ServletUtils.isCheckBoxEnabled(erogatore));
+			}
+			
+			// servizio applicativo erogatore
+//			String servizioApplicativoErogatore = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_SA_EROGATORE);
+//			if(first==false){
+//				policy.getGroupBy().setServizioApplicativoErogatore(ServletUtils.isCheckBoxEnabled(servizioApplicativoErogatore));
+//			}
+			
+			// servizio
+			String servizio = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_SERVIZIO);
+			if(first==false){
+				policy.getGroupBy().setServizio(ServletUtils.isCheckBoxEnabled(servizio));
+				policy.getGroupBy().setErogatore(ServletUtils.isCheckBoxEnabled(servizio)); // imposto anche l'erogatore poiche' identifica API differenti
+			}
+			
+			// azione
+			String azione = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_AZIONE);
+			if(first==false){
+				policy.getGroupBy().setAzione(ServletUtils.isCheckBoxEnabled(azione));
+			}
+			
+			// fruitore
+			String fruitore = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_FRUITORE);
+			if(first==false){
+				policy.getGroupBy().setFruitore(ServletUtils.isCheckBoxEnabled(fruitore));
+			}
+			
+			// servizio applicativo fruitore
+			String servizioApplicativoFruitore = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_SA_FRUITORE);
+			if(first==false){
+				policy.getGroupBy().setServizioApplicativoFruitore(ServletUtils.isCheckBoxEnabled(servizioApplicativoFruitore));
+			}
+			
+			// richiedente
+			String richiedente = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_RICHIEDENTE);
+			if(first==false){
+				policy.getGroupBy().setServizioApplicativoFruitore(ServletUtils.isCheckBoxEnabled(richiedente));
+				policy.getGroupBy().setFruitore(ServletUtils.isCheckBoxEnabled(richiedente));
+				policy.getGroupBy().setIdentificativoAutenticato(ServletUtils.isCheckBoxEnabled(richiedente));
+			}
+			
+			// token
+			String token = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_TOKEN);
+			if(first==false){
+				if(ServletUtils.isCheckBoxEnabled(token)) {
+					String [] tokenSelezionati = this.getParameterValues(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_TOKEN_CLAIMS);
+					if(tokenSelezionati!=null && tokenSelezionati.length>0) {
+						StringBuilder bf = new StringBuilder();
+						for (int i = 0; i < tokenSelezionati.length; i++) {
+							TipoCredenzialeMittente tipo = TipoCredenzialeMittente.valueOf(tokenSelezionati[i]);
+							if(TipoCredenzialeMittente.token_issuer.equals(tipo)) {
+								continue;
+							}
+							else if(TipoCredenzialeMittente.token_subject.equals(tipo)) {
+								if(!bf.toString().endsWith(",") && bf.length()>0) {
+									bf.append(",");
+								}
+								bf.append(TipoCredenzialeMittente.token_issuer.name());
+								if(i==0) {
+									bf.append(",");
+								}
+							}
+							if(i>0) {
+								bf.append(",");
+							}
+							bf.append(tokenSelezionati[i]);
+						}
+						if(bf.length()>0) {
+							policy.getGroupBy().setToken(bf.toString());
+						}
+						else {
+							policy.getGroupBy().setToken(null);
+						}
+					}
+					else {
+						policy.getGroupBy().setToken(null);
+					}
+				}
+				else {
+					policy.getGroupBy().setToken(null);
+				}
+			}
+
+			// per Chiave
+//			String perChiave = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_PER_CHIAVE_ENABLED);
+//			if(first==false){
+//				policy.getGroupBy().setInformazioneApplicativaEnabled(ServletUtils.isCheckBoxEnabled(perChiave));
+//			}
+//			
+//			if(policy.getGroupBy().isInformazioneApplicativaEnabled()){
+//				
+//				// Per Chiave - Tipo
+//				String perChiaveTipo = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_PER_CHIAVE_TIPO);
+//				if(perChiaveTipo!=null && !"".equals(perChiaveTipo) ){
+//					policy.getGroupBy().setInformazioneApplicativaTipo(perChiaveTipo);
+//				}
+//				else{
+//					if(!first){
+//						policy.getGroupBy().setInformazioneApplicativaTipo(ConfigurazioneCostanti.ALLARMI_GROUPBY_PER_CHIAVE_TIPO_DEFAULT); // default
+//					}
+//				}
+//				
+//				// Per Chiave - Nome
+//				String perChiaveNome = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_PER_CHIAVE_NOME);
+//				if(perChiaveNome!=null && !"".equals(perChiaveNome) ){
+//					policy.getGroupBy().setInformazioneApplicativaNome(perChiaveNome);
+//				}
+//				else{
+//					if(!first){
+//						policy.getGroupBy().setInformazioneApplicativaNome(null);
+//					}
+//				}
+//				
+//				
+//			}
+//			else{
+//				policy.getGroupBy().setInformazioneApplicativaTipo(null);
+//				policy.getGroupBy().setInformazioneApplicativaNome(null);
+//			}
+		}
+		else{
+			policy.getGroupBy().setRuoloPorta(false);
+			policy.getGroupBy().setFruitore(false);
+			policy.getGroupBy().setServizioApplicativoFruitore(false);
+			policy.getGroupBy().setIdentificativoAutenticato(false);
+			policy.getGroupBy().setToken(null);
+			policy.getGroupBy().setErogatore(false);
+//			policy.getGroupBy().setServizioApplicativoErogatore(false);
+			policy.getGroupBy().setServizio(false);
+			policy.getGroupBy().setAzione(false);
+//			policy.getGroupBy().setInformazioneApplicativaEnabled(false);
+//			policy.getGroupBy().setInformazioneApplicativaTipo(null);
+//			policy.getGroupBy().setInformazioneApplicativaNome(null);
+		}
+		
+		
+		if(sbParsingError.length() > 0){
+			return sbParsingError.toString();
+		}
+		return null;
+	}
+	
+	public void addAllarmeToDati(Vector<DataElement> dati, TipoOperazione tipoOperazione, ConfigurazioneAllarmeBean allarme, AlarmEngineConfig alarmEngineConfig, List<Plugin> listaPlugin,
+			List<org.openspcoop2.monitor.sdk.parameters.Parameter<?>> parameters, RuoloPorta ruoloPorta, String nomePorta, ServiceBinding serviceBinding
+			) throws Exception { 
+		
+		boolean first = this.isFirstTimeFromHttpParameters(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FIRST_TIME);
+		DataElement de;
+		
+		Parameter pIdAllarme = new Parameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_ID_ALLARME, allarme.getId()+""); 
+		// id
+		de = new DataElement();
+		de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_ID_ALLARME);
+		de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_ID_ALLARME);
+		de.setType(DataElementType.HIDDEN);
+		if(tipoOperazione.equals(TipoOperazione.ADD)) {
+			de.setValue("");
+		} else {
+			de.setValue(allarme.getId()+"");
+		}
+		dati.addElement(de);
+		
+		de = new DataElement();
+		de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_RUOLO_PORTA);
+		de.setValue(ruoloPorta!=null ? ruoloPorta.getValue() : null);
+		de.setType(DataElementType.HIDDEN);
+		dati.addElement(de);
+		
+		de = new DataElement();
+		de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_NOME_PORTA);
+		de.setValue(nomePorta);
+		de.setType(DataElementType.HIDDEN);
+		dati.addElement(de);
+		
+		if(serviceBinding!=null) {
+			de = new DataElement();
+			de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_SERVICE_BINDING);
+			de.setValue(serviceBinding.name());
+			de.setType(DataElementType.HIDDEN);
+			dati.addElement(de);
 		}
 		
 		// Informazioni Generali
+		de = new DataElement();
+		de.setType(DataElementType.TITLE);
+		de.setLabel(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_ALLARMI_INFORMAZIONI_GENERALI);
+		dati.add(de);
 		
+		// plugin select
+		de = new DataElement();
+		de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_PLUGIN);
+		de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_PLUGIN);
+		if(tipoOperazione.equals(TipoOperazione.ADD)){
+			de.setType(DataElementType.SELECT);
+			List<String> pluginValues = new ArrayList<String>();
+			List<String> pluginLabels = new ArrayList<String>();
+			
+			for (Plugin pluginBean : listaPlugin) {
+				String key = pluginBean.getLabel() + ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_PLUGIN_NOME_SEP + pluginBean.getClassName();
+				
+				pluginValues.add(key);
+				pluginLabels.add(pluginBean.getLabel());
+			}
+			
+			pluginValues.add(0, ConfigurazioneCostanti.DEFAULT_VALUE_NESSUNO);
+			pluginLabels.add(0, ConfigurazioneCostanti.LABEL_DEFAULT_VALUE_NESSUNO);
+			
+			de.setValues(pluginValues);
+			de.setLabels(pluginLabels);
+			if(first) {
+				de.setSelected(ConfigurazioneCostanti.DEFAULT_VALUE_NESSUNO);
+			} else {
+				if(allarme.getPlugin() != null)
+					de.setSelected(allarme.getPlugin().getLabel() + ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_PLUGIN_NOME_SEP + allarme.getPlugin().getClassName());	
+			}
+			
+			de.setPostBack_viaPOST(true);
+			de.setRequired(true);
+		}
+		else{
+			de.setType(DataElementType.TEXT);
+			de.setSelected(allarme.getPlugin().getLabel() + ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_PLUGIN_NOME_SEP + allarme.getPlugin().getClassName());	
+		}
+		dati.addElement(de);
+		
+		// nome
+		de = new DataElement();
+		de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_NOME);
+		de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_NOME);
+		if(tipoOperazione.equals(TipoOperazione.ADD)){
+			de.setType(DataElementType.TEXT_EDIT);
+			if(first) {
+				de.setValue("");
+			} else {
+				de.setValue(allarme.getNome());
+			}
+			de.setRequired(true);
+		}
+		else{
+			de.setType(DataElementType.TEXT);
+			de.setValue(allarme.getNome());
+		}
+		dati.addElement(de);
+		
+		// descrizione solo output
+		if(StringUtils.isNotEmpty(allarme.getDescrizione())) {
+			de = new DataElement();
+			de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_DESCRIZIONE);
+			de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_DESCRIZIONE);
+			de.setType(DataElementType.TEXT);
+			de.setValue(allarme.getDescrizione());
+			dati.addElement(de);
+		}
+		
+		// modalita
+		de = new DataElement();
+		de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_MODALITA);
+		de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_MODALITA);
+		de.setValue(allarme.getTipoAllarme() != null ? allarme.getTipoAllarme().getValue() : "");
+		de.setType(DataElementType.HIDDEN);
+		dati.addElement(de);
+		
+		de = new DataElement();
+		de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_MODALITA);
+		de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_MODALITA_LABEL);
+		if(allarme.getTipoAllarme() != null && 
+				(allarme.getTipoAllarme().equals(TipoAllarme.ATTIVO) || allarme.getTipoAllarme().equals(TipoAllarme.PASSIVO))) {
+			de.setType(DataElementType.TEXT);
+			de.setValue(allarme.getTipoAllarme().equals(TipoAllarme.ATTIVO) ? ConfigurazioneCostanti.VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_MODALITA_ATTIVA : ConfigurazioneCostanti.VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_MODALITA_PASSIVA );
+		} else {
+			de.setType(DataElementType.HIDDEN);
+			de.setValue("");
+		}
+		dati.addElement(de);
+		
+		// abilitato
+		de = new DataElement();
+		de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO); 
+		de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO);
+		de.setType(DataElementType.SELECT);
+		String [] abilitatoValues = ConfigurazioneCostanti.VALUES_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO;
+		String [] abilitatoLabels = ConfigurazioneCostanti.LABELS_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO;
+		
+		de.setValues(abilitatoValues);
+		de.setLabels(abilitatoLabels);
+		if(tipoOperazione.equals(TipoOperazione.ADD)){
+			if(first) {
+				de.setValue(ConfigurazioneCostanti.VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO_SI);
+			} else {
+				de.setSelected(allarme.getEnabled()+"");
+			}
+		}else{
+			de.setSelected(allarme.getEnabled()+"");
+		}
+		dati.addElement(de);
+		
+		// frequenza
+		if(allarme.getTipoAllarme() != null && (allarme.getTipoAllarme().equals(TipoAllarme.ATTIVO))) {
+			de = new DataElement();
+			de.setType(DataElementType.SUBTITLE);
+			de.setLabel(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_ALLARMI_INFORMAZIONI_GENERALI_FREQUENZA);
+			dati.add(de);
+			
+			// number periodo
+			de = new DataElement();
+			de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_PERIODO);
+			de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_PERIODO);
+			de.setType(DataElementType.NUMBER);
+			if(tipoOperazione.equals(TipoOperazione.ADD)){
+				if(first) {
+					de.setValue("");
+				} else {
+					de.setValue(allarme.getPeriodo()+"");
+				}
+			}else{
+				de.setValue(allarme.getPeriodo()+"");
+			}
+			dati.addElement(de);
+			
+			// select tipo periodo
+			de = new DataElement();
+			de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO_PERIODO); 
+			de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO_PERIODO);
+			de.setType(DataElementType.SELECT);
+			String [] tipoPeriodoValues = ConfigurazioneCostanti.VALUES_PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO_PERIODO;
+			String [] tipoPeriodoLabels = ConfigurazioneCostanti.LABELS_PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO_PERIODO;
+			
+			de.setValues(tipoPeriodoValues);
+			de.setLabels(tipoPeriodoLabels);
+			if(tipoOperazione.equals(TipoOperazione.ADD)){
+				if(first) {
+					de.setValue(ConfigurazioneCostanti.VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO_PERIODO_ORE);
+				} else {
+					de.setSelected(allarme.getTipoPeriodo());
+				}
+			}else{
+				de.setSelected(allarme.getTipoPeriodo());
+			}
+			dati.addElement(de);
+			
+		}
+		
+		// field da visualizzare in modifica
+		if(tipoOperazione.equals(TipoOperazione.CHANGE)) {
+			// stato
+			de = new DataElement();
+			de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_STATO);
+			de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_STATO);
+			de.setType(DataElementType.TEXT);
+			if(allarme.getEnabled() == 1) { // allarme abilitato
+				de.setValue(ConfigurazioneCostanti.getLabelStato(AllarmiConverterUtils.toStatoAllarme(allarme.getStato())));
+			}
+			
+			if(allarme.getEnabled() == 0) { // allarme disabilitato
+				de.setValue(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_STATO_DISABILITATO); 
+			}
+			dati.addElement(de);	
+			
+			// Acknowledge
+			if(this.confCore.getAllarmiConfig().isAllarmiAssociazioneAcknowledgedStatoAllarme() || 
+					( allarme.getMail().getInviaAlert() == 1 && allarme.getMail().getAckMode() == 1) ||
+					( allarme.getScript().getInvocaAlert() == 1 && allarme.getScript().getAckMode() == 1) ) {
+				
+				de = new DataElement();
+				de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_ACKNOWLEDGED);
+				de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_ACKNOWLEDGED);
+				de.setType(DataElementType.TEXT);
+				if(allarme.getAcknowledged() == 1) { 
+					de.setValue(ConfigurazioneCostanti.LABEL_VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_ACKNOWLEDGE_SI); 
+				}
+				
+				if(allarme.getAcknowledged() == 0) { 
+					de.setValue(ConfigurazioneCostanti.LABEL_VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_ACKNOWLEDGE_NO); 
+				}
+				dati.addElement(de);
+			}
+			
+			// Archivio Stati
+			de = new DataElement();
+//			de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_ARCHIVIO_STATI);
+			de.setType(DataElementType.LINK);
+			de.setUrl(ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_ALLARMI_HISTORY_LIST, pIdAllarme);
+			de.setValue(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_ARCHIVIO_STATI); 
+			dati.addElement(de);
+		}
+		
+		boolean tokenAbilitato = false;
+		IDSoggetto idSoggettoProprietario = null;
+		CredenzialeTipo tipoAutenticazione = null;
+		Boolean appId = null;
+		PddTipologia pddTipologiaSoggettoAutenticati = null;
+		boolean gestioneErogatori_soggettiAutenticati_escludiSoggettoErogatore = false;
+		
+		// Sezione filtro
+		if(this.isShowFilter(allarme)) {
+			this.addToDatiAllarmeFiltro(dati, tipoOperazione, allarme, ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO,
+					ruoloPorta, nomePorta, serviceBinding, idSoggettoProprietario, tokenAbilitato , tipoAutenticazione, 
+					appId, pddTipologiaSoggettoAutenticati, gestioneErogatori_soggettiAutenticati_escludiSoggettoErogatore);
+		}
+		
+		// sezione group by
+		if(this.isShowGroupBy(allarme)) {
+			this.addToDatiAllarmeGroupBy(dati, tipoOperazione, allarme, ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_RAGGRUPPAMENTO,
+					ruoloPorta, nomePorta, serviceBinding, tokenAbilitato);
+		}
 		
 		// sezione dinamica parametri
-		
+		if(parameters != null && parameters.size() > 0) {
+			de = new DataElement();
+			de.setType(DataElementType.TITLE);
+			de.setLabel(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_ALLARMI_PARAMETRI);
+			dati.add(de);
+			
+			for (org.openspcoop2.monitor.sdk.parameters.Parameter<?> parameter : parameters) {
+				BaseComponent<?> component = (BaseComponent<?>) parameter;
+				if(component.getRendered()) { // nella versione originale non sono consentiti gli hidden
+					dati.add(component.toDataElement());
+				}
+			}
+		}
 		
 		// Notifiche Email
+		de = new DataElement();
+		de.setType(DataElementType.TITLE);
+		de.setLabel(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_ALLARMI_NOTIFICA_EMAIL); 
+		dati.add(de);
+		
+		// abilitato inviaEmailAlert
+		de = new DataElement();
+		de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_INVIA_EMAIL_ALERT_ABILITATO); 
+		de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_INVIA_EMAIL_ALERT);
+		de.setType(DataElementType.SELECT);
+		String [] inviaEmailAlertValues = ConfigurazioneCostanti.VALUES_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO;
+		String [] inviaEmailAlertLabels = ConfigurazioneCostanti.LABELS_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO;
+		de.setValues(inviaEmailAlertValues);
+		de.setLabels(inviaEmailAlertLabels);
+		de.setSelected(allarme.getMail().getInviaAlert()+"");
+		de.setPostBack_viaPOST(true);
+		dati.addElement(de);
+		
+		if(allarme.getMail().getInviaAlert() == 1) {
+			// destinatari
+			de = new DataElement();
+			de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_DESTINATARI_EMAIL);
+			de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_DESTINATARI_EMAIL);
+			de.setType(DataElementType.TEXT_EDIT);
+			de.setValue(allarme.getMail().getDestinatari());
+			de.setNote(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_DESTINATARI_EMAIL_NOTE);
+			dati.addElement(de);
+			
+			// notifica warning
+			de = new DataElement();
+			de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_NOTIFICA_WARNING); 
+			de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_NOTIFICA_WARNING);
+			de.setType(DataElementType.SELECT);
+			String [] notificaWarningValues = ConfigurazioneCostanti.VALUES_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO;
+			String [] notificaWarinigLabels = ConfigurazioneCostanti.LABELS_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO;
+			de.setValues(notificaWarningValues);
+			de.setLabels(notificaWarinigLabels);
+			de.setSelected(allarme.getMail().getInviaWarning()+"");
+			dati.addElement(de);
+			
+			if(this.confCore.getAllarmiConfig().isAllarmiNotificaMailVisualizzazioneCompleta()) {
+				//Acknowledge
+				de = new DataElement();
+				de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_INVIA_EMAIL_MAIL_ACK_MODE); 
+				de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_INVIA_EMAIL_MAIL_ACK_MODE);
+				de.setType(DataElementType.SELECT);
+				String [] mailAckModeValues = ConfigurazioneCostanti.VALUES_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO;
+				String [] mailAckModeLabels = ConfigurazioneCostanti.LABELS_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO;
+				de.setValues(mailAckModeValues);
+				de.setLabels(mailAckModeLabels);
+				de.setSelected(allarme.getMail().getAckMode()+"");
+				de.setNote(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_INVIA_EMAIL_MAIL_ACK_MODE_NOTE);
+				dati.addElement(de);
+				
+				// Subject
+				de = new DataElement();
+				de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_INVIA_EMAIL_SUBJECT);
+				de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_INVIA_EMAIL_SUBJECT);
+				de.setType(DataElementType.TEXT_EDIT);
+				de.setValue(allarme.getMail().getSubject());
+				dati.addElement(de);
+				
+				// Body
+				de = new DataElement();
+				de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_INVIA_EMAIL_BODY);
+				de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_INVIA_EMAIL_BODY);
+				de.setType(DataElementType.TEXT_AREA);
+				de.setValue(allarme.getMail().getBody());
+				dati.addElement(de);
+			}
+		}
 		
 		
 		// Notifiche monitoraggio esterno
+		de = new DataElement();
+		de.setType(DataElementType.TITLE);
+		de.setLabel(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_ALLARMI_NOTIFICA_MONITORAGGIO_ESTERNO); 
+		dati.add(de);
 		
+		// abilitato invocaScriptAlert
+		de = new DataElement();
+		de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_INVOCA_SCRIPT_ALERT_ABILITATO); 
+		de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_INVOCA_SCRIPT_ALERT);
+		de.setType(DataElementType.SELECT);
+		String [] invocaScriptAlertValues = ConfigurazioneCostanti.VALUES_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO;
+		String [] invocaScriptAlertLabels = ConfigurazioneCostanti.LABELS_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO;
+		de.setValues(invocaScriptAlertValues);
+		de.setLabels(invocaScriptAlertLabels);
+		de.setSelected(allarme.getScript().getInvocaAlert()+"");
+		de.setPostBack_viaPOST(true);
+		dati.addElement(de);
 		
-		
-		
+		if(allarme.getScript().getInvocaAlert() == 1) {
+			// notifica warning
+			de = new DataElement();
+			de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_NOTIFICA_WARNING_SCRIPT); 
+			de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_NOTIFICA_WARNING_SCRIPT);
+			de.setType(DataElementType.SELECT);
+			String [] notificaWarningValues = ConfigurazioneCostanti.VALUES_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO;
+			String [] notificaWarinigLabels = ConfigurazioneCostanti.LABELS_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO;
+			de.setValues(notificaWarningValues);
+			de.setLabels(notificaWarinigLabels);
+			de.setSelected(allarme.getScript().getInvocaWarning()+"");
+			dati.addElement(de);
+			
+			if(this.confCore.getAllarmiConfig().isAllarmiMonitoraggioEsternoVisualizzazioneCompleta()) {
+				//Acknowledge
+				de = new DataElement();
+				de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_NOTIFICA_SCRIPT_ACK_MODE); 
+				de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_NOTIFICA_SCRIPT_ACK_MODE);
+				de.setType(DataElementType.SELECT);
+				String [] scriptAckModeValues = ConfigurazioneCostanti.VALUES_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO;
+				String [] scriptAckModeLabels = ConfigurazioneCostanti.LABELS_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO;
+				de.setValues(scriptAckModeValues);
+				de.setLabels(scriptAckModeLabels);
+				de.setSelected(allarme.getScript().getAckMode()+"");
+				de.setNote(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_NOTIFICA_SCRIPT_ACK_MODE_NOTE);
+				dati.addElement(de);
+				
+				// Subject
+				de = new DataElement();
+				de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_NOTIFICA_SCRIPT_PATH);
+				de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_NOTIFICA_SCRIPT_PATH);
+				de.setType(DataElementType.TEXT_EDIT);
+				de.setValue(allarme.getScript().getCommand());
+				dati.addElement(de);
+				
+				// Body
+				de = new DataElement();
+				de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_NOTIFICA_SCRIPT_ARGUMENTS);
+				de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_NOTIFICA_SCRIPT_ARGUMENTS);
+				de.setType(DataElementType.TEXT_EDIT);
+				de.setValue(allarme.getScript().getArgs());
+				dati.addElement(de);
+			}
+		}
 		
 	}
 	
 	public boolean isShowFilter(ConfigurazioneAllarmeBean allarme) throws Exception {
-		if(allarme==null || allarme.getTipo()==null){
+		if(allarme==null || allarme.getPlugin() == null){
 			return false; // all'inizio deve prima essere scelto il plugin
 		}
 		
 		return this.confCore.isUsableFilter(allarme);
 	}
 	
+	
+	public boolean isShowGroupBy(ConfigurazioneAllarmeBean allarme) throws Exception {
+		if(allarme==null || allarme.getPlugin() == null){
+			return false; // all'inizio deve prima essere scelto il plugin
+		}
+		
+		return this.confCore.isUsableGroupBy(allarme);
+	}
+	
+	private void addToDatiAllarmeFiltro(Vector<DataElement> dati, TipoOperazione tipoOperazione, ConfigurazioneAllarmeBean allarme, String nomeSezione,
+			RuoloPorta ruoloPorta, String nomePorta, ServiceBinding serviceBinding,
+			IDSoggetto idSoggettoProprietario, boolean tokenAbilitato, 
+			CredenzialeTipo tipoAutenticazione, Boolean appId, 
+			PddTipologia pddTipologiaSoggettoAutenticati, boolean gestioneErogatori_soggettiAutenticati_escludiSoggettoErogatore) throws Exception {
+	
+		boolean delegata = false;
+		boolean applicativa = false;
+		boolean configurazione = false;
+		if(ruoloPorta!=null) {
+			if(RuoloPorta.DELEGATA.equals(ruoloPorta)) {
+				delegata = (nomePorta!=null);
+			}
+			else if(RuoloPorta.APPLICATIVA.equals(ruoloPorta)) {
+				applicativa = (nomePorta!=null);
+			}
+		}
+		configurazione = !delegata && !applicativa;
+		
+		org.openspcoop2.core.config.constants.CredenzialeTipo tipoAutenticazioneConfig = null;
+		if(tipoAutenticazione!=null) {
+			tipoAutenticazioneConfig = org.openspcoop2.core.config.constants.CredenzialeTipo.toEnumConstant(tipoAutenticazione.getValue(), true);
+		}
+		
+		boolean multitenant = this.confCore.isMultitenant();
+		
+		
+		// Elaboro valori con dipendenze
+		
+		List<String> protocolliLabel = null;
+		List<String> protocolliValue = null;
+		String protocolloSelezionatoLabel = null;
+		String protocolloSelezionatoValue = null;
+		
+		List<String> ruoliErogatoreLabel = null;
+		List<String> ruoliErogatoreValue = null;
+		String ruoloErogatoreSelezionatoLabel = null;
+		String ruoloErogatoreSelezionatoValue = null;
+		
+		List<String> erogatoriLabel = null;
+		List<String> erogatoriValue = null;
+		String datiIdentificativiErogatoreSelezionatoLabel = null;
+		String datiIdentificativiErogatoreSelezionatoValue = null;
+		
+		List<String> tagLabel = null;
+		List<String> tagValue = null;
+		@SuppressWarnings("unused")
+		String datiIdentificativiTagSelezionatoLabel = null;
+		String datiIdentificativiTagSelezionatoValue = null;
+		
+		List<String> serviziLabel = null;
+		List<String> serviziValue = null;
+		String datiIdentificativiServizioSelezionatoLabel = null;
+		String datiIdentificativiServizioSelezionatoValue = null;
+		
+		List<String> azioniLabel = null;
+		List<String> azioniValue = null;
+		List<String> azioniSelezionataLabel = null;
+		List<String> azioniSelezionataValue = null;
+		
+//		List<String> serviziApplicativiErogatoreLabel = null;
+//		List<String> serviziApplicativiErogatoreValue = null;
+//		String servizioApplicativoErogatoreSelezionatoLabel = null;
+//		String servizioApplicativoErogatoreSelezionatoValue = null;
+		
+		List<String> ruoliFruitoreLabel = null;
+		List<String> ruoliFruitoreValue = null;
+		String ruoloFruitoreSelezionatoLabel = null;
+		String ruoloFruitoreSelezionatoValue = null;
+		
+		List<String> fruitoriLabel = null;
+		List<String> fruitoriValue = null;
+		String datiIdentificativiFruitoreSelezionatoLabel = null;
+		String datiIdentificativiFruitoreSelezionatoValue = null;
+		
+		List<String> serviziApplicativiFruitoreLabel = null;
+		List<String> serviziApplicativiFruitoreValue = null;
+		String servizioApplicativoFruitoreSelezionatoLabel = null;
+		String servizioApplicativoFruitoreSelezionatoValue = null;
+		
+		// Cerco Ruoli con queste caratteristiche
+		FiltroRicercaRuoli filtroRuoli = new FiltroRicercaRuoli();
+		filtroRuoli.setTipologia(RuoloTipologia.INTERNO);
+		
+		boolean protocolloAssociatoFiltroNonSelezionatoUtente = false;
+		if(allarme.getFiltro().isEnabled()){
+			protocolliValue = this.confCore.getProtocolli(this.session);
+			if(allarme.getFiltro().getProtocollo()!=null) {
+				// sara' sempre impostato, a meno della prima volta (create policy)
+				if(protocolliValue.contains(allarme.getFiltro().getProtocollo())==false) {
+					protocolloAssociatoFiltroNonSelezionatoUtente = true;
+				}
+			}
+		}
+		
+		if(allarme.getFiltro().isEnabled()){
+			
+			// protocollo
+			if(configurazione) {
+				if(protocolloAssociatoFiltroNonSelezionatoUtente) {
+					protocolloSelezionatoValue = allarme.getFiltro().getProtocollo();
+				}
+				else {
+					if(!protocolliValue.contains(allarme.getFiltro().getProtocollo())){
+						allarme.getFiltro().setProtocollo(null);
+					}
+					protocolloSelezionatoValue = allarme.getFiltro().getProtocollo();
+					if(protocolloSelezionatoValue==null || protocolloSelezionatoValue.equals("")) {
+						if(protocolliValue.size()==1) {
+							protocolloSelezionatoValue = protocolliValue.get(0);
+						}
+						else {
+							protocolloSelezionatoValue = this.confCore.getProtocolloDefault(this.session, protocolliValue);
+						}
+					}
+					//protocolli = enrichListConQualsiasi(protocolli); NOTA: In questa versione un protocollo deve essere per forza selezionato.
+					protocolliLabel = new ArrayList<>();
+					for (String protocollo : protocolliValue) {
+						protocolliLabel.add(this.getLabelProtocollo(protocollo));
+					}
+				}
+				protocolloSelezionatoLabel = this.getLabelProtocollo(protocolloSelezionatoValue); 
+			}
+			else {
+				protocolloSelezionatoValue = allarme.getFiltro().getProtocollo();
+				if(protocolloSelezionatoValue==null) {
+					protocolloSelezionatoValue = this.soggettiCore.getProtocolloAssociatoTipoSoggetto(idSoggettoProprietario.getTipo());
+				}
+			}
+			
+			// ruolo erogatore
+			if(configurazione) {
+				if(protocolloAssociatoFiltroNonSelezionatoUtente) {
+					ruoloErogatoreSelezionatoValue = allarme.getFiltro().getRuoloErogatore();
+					ruoloErogatoreSelezionatoLabel = ruoloErogatoreSelezionatoValue!=null ? ruoloErogatoreSelezionatoValue :  ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_RATE_LIMITING_QUALSIASI;
+				}
+				else {
+					List<String> ruoliErogatore = this.core.getAllRuoli(filtroRuoli);
+					
+					if(allarme.getFiltro().getRuoloErogatore()!=null) {
+						ruoloErogatoreSelezionatoValue = allarme.getFiltro().getRuoloErogatore();
+					}
+					if(!ruoliErogatore.contains(ruoloErogatoreSelezionatoValue)){
+						allarme.getFiltro().setRuoloErogatore(null);
+						ruoloErogatoreSelezionatoValue = null;
+					}
+					ruoliErogatoreLabel = enrichListConLabelQualsiasi(ruoliErogatore);
+					ruoliErogatoreValue = enrichListConValueQualsiasi(ruoliErogatore);
+				}
+			}
+			
+			// erogatore
+			if(configurazione) {
+				if(protocolloAssociatoFiltroNonSelezionatoUtente) {
+					IDSoggetto idSoggetto = null;
+					if(allarme.getFiltro().getTipoErogatore()!=null && allarme.getFiltro().getNomeErogatore()!=null){
+						datiIdentificativiErogatoreSelezionatoValue = allarme.getFiltro().getTipoErogatore() + "/" + allarme.getFiltro().getNomeErogatore();
+						idSoggetto = new IDSoggetto(allarme.getFiltro().getTipoErogatore() , allarme.getFiltro().getNomeErogatore());
+					}
+					datiIdentificativiErogatoreSelezionatoLabel = idSoggetto!=null ? this.getLabelNomeSoggetto(idSoggetto) :  ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_RATE_LIMITING_QUALSIASI;
+				}
+				else {
+					List<IDSoggetto> listErogatori = new ArrayList<>();
+
+					List<IDSoggetto> listSoggettiPreFilterMultitenant = this.confCore.getSoggettiErogatori(protocolloSelezionatoValue, protocolliValue);
+					if(allarme.getFiltro().getRuoloPorta()!=null && !RuoloPorta.ENTRAMBI.equals(allarme.getFiltro().getRuoloPorta())) {
+						for (IDSoggetto idSoggetto : listSoggettiPreFilterMultitenant) {
+							Soggetto s = this.soggettiCore.getSoggettoRegistro(idSoggetto);
+							boolean isPddEsterna = this.pddCore.isPddEsterna(s.getPortaDominio());
+							if(RuoloPorta.DELEGATA.equals(allarme.getFiltro().getRuoloPorta())) {
+								if(isPddEsterna) {
+									listErogatori.add(idSoggetto);
+								}	
+								else {
+									if(!PddTipologia.ESTERNO.equals(pddTipologiaSoggettoAutenticati)) {
+										// multitenant abilitato
+										listErogatori.add(idSoggetto);
+									}
+								}
+							}
+							else {
+								if(!isPddEsterna) {
+									listErogatori.add(idSoggetto);
+								}
+							}
+						}
+					}
+					else {
+						listErogatori.addAll(listSoggettiPreFilterMultitenant);
+					}
+					
+					erogatoriLabel = new ArrayList<>();
+					erogatoriValue = new ArrayList<>();
+					for (IDSoggetto idSoggetto : listErogatori) {
+						erogatoriLabel.add(this.getLabelNomeSoggetto(idSoggetto));
+						erogatoriValue.add(idSoggetto.getTipo()+"/"+idSoggetto.getNome());
+					}
+					if(allarme.getFiltro().getTipoErogatore()!=null && allarme.getFiltro().getNomeErogatore()!=null){
+						datiIdentificativiErogatoreSelezionatoValue = allarme.getFiltro().getTipoErogatore() + "/" + allarme.getFiltro().getNomeErogatore();
+					}
+					if(!erogatoriValue.contains(datiIdentificativiErogatoreSelezionatoValue)){
+						allarme.getFiltro().setTipoErogatore(null);
+						allarme.getFiltro().setNomeErogatore(null);
+						datiIdentificativiErogatoreSelezionatoValue = null;
+					}
+					erogatoriLabel = enrichListConLabelQualsiasi(erogatoriLabel);
+					erogatoriValue = enrichListConValueQualsiasi(erogatoriValue);
+				}
+			}
+					
+			// tag
+			if(configurazione) {
+				FiltroRicercaGruppi filtroRicerca = new FiltroRicercaGruppi();
+				List<String> elencoGruppi = this.gruppiCore.getAllGruppi(filtroRicerca);
+				tagLabel = enrichListConLabelQualsiasi(elencoGruppi);
+				tagValue = enrichListConValueQualsiasi(elencoGruppi);
+				datiIdentificativiTagSelezionatoValue=allarme.getFiltro().getTag();
+				datiIdentificativiTagSelezionatoLabel=allarme.getFiltro().getTag();
+			}
+			
+			// servizio
+			if(configurazione) {
+				if(protocolloAssociatoFiltroNonSelezionatoUtente) {
+					IDServizio idServizio = null;
+					if(allarme.getFiltro().getTipoServizio()!=null && allarme.getFiltro().getNomeServizio()!=null && allarme.getFiltro().getVersioneServizio()!=null &&
+							allarme.getFiltro().getTipoErogatore()!=null && allarme.getFiltro().getNomeErogatore()!=null
+							){
+						datiIdentificativiServizioSelezionatoValue = allarme.getFiltro().getTipoServizio()+"/"+allarme.getFiltro().getNomeServizio()+"/"+allarme.getFiltro().getVersioneServizio().intValue();
+						if(this.core.isControlloTrafficoPolicyGlobaleFiltroApiSoggettoErogatore()) {
+							datiIdentificativiServizioSelezionatoValue = datiIdentificativiServizioSelezionatoValue+"/"+allarme.getFiltro().getTipoErogatore()+"/"+allarme.getFiltro().getNomeErogatore();
+							idServizio = IDServizioFactory.getInstance().getIDServizioFromValues(allarme.getFiltro().getTipoServizio(), 
+									allarme.getFiltro().getNomeServizio(), 
+									allarme.getFiltro().getTipoErogatore(), 
+									allarme.getFiltro().getNomeErogatore(), 
+									allarme.getFiltro().getVersioneServizio());
+						}
+						else {
+							idServizio = IDServizioFactory.getInstance().getIDServizioFromValuesWithoutCheck(allarme.getFiltro().getTipoServizio(), 
+									allarme.getFiltro().getNomeServizio(), 
+									null, 
+									null, 
+									allarme.getFiltro().getVersioneServizio());
+						}
+					}
+					if(this.core.isControlloTrafficoPolicyGlobaleFiltroApiSoggettoErogatore()) {
+						datiIdentificativiServizioSelezionatoLabel = idServizio!=null ? this.getLabelIdServizio(idServizio) :  ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_RATE_LIMITING_QUALSIASI;
+					}
+					else {
+						datiIdentificativiServizioSelezionatoLabel = idServizio!=null ? this.getLabelIdServizioSenzaErogatore(idServizio) :  ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_RATE_LIMITING_QUALSIASI;
+					}
+				}
+				else {
+					List<IDServizio> listServizi = this.confCore.getServizi(protocolloSelezionatoValue, protocolliValue,
+							allarme.getFiltro().getTipoErogatore(), allarme.getFiltro().getNomeErogatore(), allarme.getFiltro().getTag());
+					serviziLabel = new ArrayList<>();
+					serviziValue = new ArrayList<>();
+					for (IDServizio idServizio : listServizi) {
+						
+						String valueAPI = idServizio.getTipo()+"/"+idServizio.getNome()+"/"+idServizio.getVersione().intValue();
+						if(this.core.isControlloTrafficoPolicyGlobaleFiltroApiSoggettoErogatore()) {
+							valueAPI = valueAPI +"/"+ idServizio.getSoggettoErogatore().getTipo()+"/"+idServizio.getSoggettoErogatore().getNome();
+						}
+						if(serviziValue.contains(valueAPI)) {
+							continue;
+						}
+						serviziValue.add(valueAPI);
+						
+						String labelAPI = null;
+						if(this.core.isControlloTrafficoPolicyGlobaleFiltroApiSoggettoErogatore()) {
+							labelAPI = this.getLabelIdServizio(idServizio);
+						}
+						else {
+							labelAPI = this.getLabelIdServizioSenzaErogatore(idServizio);
+						}
+						serviziLabel.add(labelAPI);
+					}
+					boolean definedApi = allarme.getFiltro().getTipoServizio()!=null && allarme.getFiltro().getNomeServizio()!=null && allarme.getFiltro().getVersioneServizio()!=null;
+					if(this.core.isControlloTrafficoPolicyGlobaleFiltroApiSoggettoErogatore()) {
+						definedApi = definedApi && allarme.getFiltro().getTipoErogatore()!=null && allarme.getFiltro().getNomeErogatore()!=null;
+					}
+					if( definedApi ){
+						datiIdentificativiServizioSelezionatoValue = allarme.getFiltro().getTipoServizio()+"/"+allarme.getFiltro().getNomeServizio()+"/"+allarme.getFiltro().getVersioneServizio().intValue();
+						if(this.core.isControlloTrafficoPolicyGlobaleFiltroApiSoggettoErogatore()) {
+							datiIdentificativiServizioSelezionatoValue = datiIdentificativiServizioSelezionatoValue +"/"+allarme.getFiltro().getTipoErogatore()+"/"+allarme.getFiltro().getNomeErogatore();
+						}
+					}
+					if(!serviziValue.contains(datiIdentificativiServizioSelezionatoValue)){
+						allarme.getFiltro().setTipoServizio(null);
+						allarme.getFiltro().setNomeServizio(null);
+						allarme.getFiltro().setVersioneServizio(null);
+						datiIdentificativiServizioSelezionatoValue = null;
+					}
+					serviziLabel = enrichListConLabelQualsiasi(serviziLabel);
+					serviziValue = enrichListConValueQualsiasi(serviziValue);
+				}
+			}
+			
+			// azioni
+			if(protocolloAssociatoFiltroNonSelezionatoUtente) {
+				if(allarme.getFiltro().getAzione()!=null && !"".equals(allarme.getFiltro().getAzione())){
+					azioniSelezionataValue = new ArrayList<>();
+					if(allarme.getFiltro().getAzione().contains(",")) {
+						String [] tmp = allarme.getFiltro().getAzione().split(",");
+						for (String az : tmp) {
+							azioniSelezionataValue.add(az);
+						}
+					}
+					else {
+						azioniSelezionataValue.add(allarme.getFiltro().getAzione());
+					}
+					if(!azioniSelezionataValue.isEmpty()) {
+						azioniSelezionataLabel = new ArrayList<>();
+						for (String az : azioniSelezionataValue) {
+							azioniSelezionataLabel.add(az);
+						}
+					}
+				}
+				if(azioniSelezionataLabel==null) {
+					azioniSelezionataLabel = new ArrayList<>();
+					azioniSelezionataLabel.add(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_RATE_LIMITING_QUALSIASI);
+				}
+			}
+			else {
+				List<String> azioni = null;
+				Map<String,String> azioniConLabel = null;
+				if(configurazione && datiIdentificativiServizioSelezionatoValue!=null) {
+					azioni = this.confCore.getAzioni(protocolloSelezionatoValue, protocolliValue,
+							allarme.getFiltro().getTipoErogatore(), allarme.getFiltro().getNomeErogatore(), 
+							allarme.getFiltro().getTipoServizio(), allarme.getFiltro().getNomeServizio(), allarme.getFiltro().getVersioneServizio());
+				}
+				else if(delegata) {
+					IDPortaDelegata idPD = new IDPortaDelegata();
+					idPD.setNome(allarme.getFiltro().getNomePorta());
+					PortaDelegata pd = this.porteDelegateCore.getPortaDelegata(idPD);
+					
+					MappingFruizionePortaDelegata mappingPD = this.porteDelegateCore.getMappingFruizionePortaDelegata(pd);
+					IDServizio idServizio = mappingPD.getIdServizio();
+					AccordoServizioParteSpecifica asps = this.apsCore.getServizio(idServizio,false);
+					AccordoServizioParteComuneSintetico aspc = this.apcCore.getAccordoServizioSintetico(this.idAccordoFactory.getIDAccordoFromUri(asps.getAccordoServizioParteComune()));
+					
+					if(pd.getAzione()!=null && pd.getAzione().sizeAzioneDelegataList()>0) {
+						azioni = pd.getAzione().getAzioneDelegataList();
+					}
+					else {
+						List<String> azioniAll = this.confCore.getAzioni(protocolloSelezionatoValue, protocolliValue,
+								pd.getSoggettoErogatore().getTipo(), pd.getSoggettoErogatore().getNome(), 
+								pd.getServizio().getTipo(), pd.getServizio().getNome(), pd.getServizio().getVersione());
+						
+						IDSoggetto idSoggettoFruitore = mappingPD.getIdFruitore();
+						List<MappingFruizionePortaDelegata> listaMappingFruizione = this.apsCore.serviziFruitoriMappingList(idSoggettoFruitore, idServizio, null);
+						List<String> azioniOccupate = new ArrayList<>();
+						int listaMappingFruizioneSize = listaMappingFruizione != null ? listaMappingFruizione.size() : 0;
+						if(listaMappingFruizioneSize > 0) {
+							for (int i = 0; i < listaMappingFruizione.size(); i++) {
+								MappingFruizionePortaDelegata mappingFruizionePortaDelegata = listaMappingFruizione.get(i);
+								// colleziono le azioni gia' configurate
+								PortaDelegata portaDelegataTmp = this.porteDelegateCore.getPortaDelegata(mappingFruizionePortaDelegata.getIdPortaDelegata());
+								if(portaDelegataTmp.getAzione() != null && portaDelegataTmp.getAzione().getAzioneDelegataList() != null)
+									azioniOccupate.addAll(portaDelegataTmp.getAzione().getAzioneDelegataList());
+							}
+						}
+						
+						azioni = new ArrayList<>();
+						for (int i = 0; i < azioniAll.size(); i++) {
+							String az = azioniAll.get(i);
+							if(azioniOccupate.contains(az)==false) {
+								azioni.add(az);
+							}
+						}
+					}
+					
+					azioniConLabel = this.porteDelegateCore.getAzioniConLabel(asps, aspc, false, true, null);
+				}
+				else if(applicativa) {
+					IDPortaApplicativa idPA = new IDPortaApplicativa();
+					idPA.setNome(allarme.getFiltro().getNomePorta());
+					PortaApplicativa pa = this.porteApplicativeCore.getPortaApplicativa(idPA);
+					MappingErogazionePortaApplicativa mappingPA = this.porteApplicativeCore.getMappingErogazionePortaApplicativa(pa);
+					IDServizio idServizio = mappingPA.getIdServizio();
+					AccordoServizioParteSpecifica asps = this.apsCore.getServizio(idServizio,false);
+					AccordoServizioParteComuneSintetico aspc = this.apcCore.getAccordoServizioSintetico(this.idAccordoFactory.getIDAccordoFromUri(asps.getAccordoServizioParteComune()));
+					
+					if(pa.getAzione()!=null && pa.getAzione().sizeAzioneDelegataList()>0) {
+						azioni = pa.getAzione().getAzioneDelegataList();
+					}
+					else {
+						List<String> azioniAll = this.confCore.getAzioni(protocolloSelezionatoValue, protocolliValue,
+								pa.getTipoSoggettoProprietario(), pa.getNomeSoggettoProprietario(), 
+								pa.getServizio().getTipo(), pa.getServizio().getNome(), pa.getServizio().getVersione());
+						
+						List<MappingErogazionePortaApplicativa> listaMappingErogazione = this.apsCore.mappingServiziPorteAppList(idServizio, null);
+						List<String> azioniOccupate = new ArrayList<>();
+						int listaMappingErogazioneSize = listaMappingErogazione != null ? listaMappingErogazione.size() : 0;
+						if(listaMappingErogazioneSize > 0) {
+							for (int i = 0; i < listaMappingErogazione.size(); i++) {
+								MappingErogazionePortaApplicativa mappingErogazionePortaApplicativa = listaMappingErogazione.get(i);
+								// colleziono le azioni gia' configurate
+								PortaApplicativa portaApplicativaTmp = this.porteApplicativeCore.getPortaApplicativa(mappingErogazionePortaApplicativa.getIdPortaApplicativa());
+								if(portaApplicativaTmp.getAzione() != null && portaApplicativaTmp.getAzione().getAzioneDelegataList() != null)
+									azioniOccupate.addAll(portaApplicativaTmp.getAzione().getAzioneDelegataList());
+							}
+						}
+						
+						azioni = new ArrayList<>();
+						for (int i = 0; i < azioniAll.size(); i++) {
+							String az = azioniAll.get(i);
+							if(azioniOccupate.contains(az)==false) {
+								azioni.add(az);
+							}
+						}
+					}
+					
+					azioniConLabel = this.porteApplicativeCore.getAzioniConLabel(asps, aspc, false, true, null);
+				}
+				else {
+					azioni = new ArrayList<>();
+				}
+				if(allarme.getFiltro().getAzione()!=null && !"".equals(allarme.getFiltro().getAzione())){
+					azioniSelezionataValue = new ArrayList<>();
+					if(allarme.getFiltro().getAzione().contains(",")) {
+						String [] tmp = allarme.getFiltro().getAzione().split(",");
+						for (String az : tmp) {
+							if(azioni.contains(az)){
+								azioniSelezionataValue.add(az);
+							}
+						}
+					}
+					else {
+						if(azioni.contains(allarme.getFiltro().getAzione())){
+							azioniSelezionataValue.add(allarme.getFiltro().getAzione());
+						}
+					}
+				}
+				if(azioniSelezionataValue==null || azioniSelezionataValue.isEmpty()) {
+					azioniSelezionataValue = null;
+				}
+				if(azioniConLabel!=null && azioniConLabel.size()>0) {
+					azioniLabel = new ArrayList<>();
+					azioniValue = new ArrayList<>();
+
+					for (String idAzione : azioniConLabel.keySet()) {
+						if(azioni.contains(idAzione)) {
+							azioniValue.add(idAzione);
+							azioniLabel.add(azioniConLabel.get(idAzione));
+						}
+					}
+					
+//					azioniLabel = enrichListConLabelQualsiasi(azioniLabel);
+//					azioniValue = enrichListConValueQualsiasi(azioniValue);
+				}
+				else {
+//					azioniLabel = enrichListConLabelQualsiasi(azioni);
+//					azioniValue = enrichListConValueQualsiasi(azioni);
+					azioniLabel = azioni;
+					azioniValue = azioni;
+				}
+			}
+				
+//			// servizi applicativi erogatore
+//			if(configurazione) {
+//				if(allarme.getFiltro().getRuoloPorta()==null ||
+//						RuoloPorta.ENTRAMBI.equals(allarme.getFiltro().getRuoloPorta()) || 
+//						RuoloPorta.APPLICATIVA.equals(allarme.getFiltro().getRuoloPorta())){
+//					if(protocolloAssociatoFiltroNonSelezionatoUtente) {
+//						if(allarme.getFiltro().getServizioApplicativoErogatore()!=null){
+//							servizioApplicativoErogatoreSelezionatoValue = allarme.getFiltro().getServizioApplicativoErogatore();
+//						}
+//						servizioApplicativoErogatoreSelezionatoLabel = servizioApplicativoErogatoreSelezionatoValue!=null ? servizioApplicativoErogatoreSelezionatoValue :  ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_RATE_LIMITING_QUALSIASI;
+//					}
+//					else {
+//						serviziApplicativiErogatoreLabel = new ArrayList<>();
+//						serviziApplicativiErogatoreValue = new ArrayList<>();
+//						if(datiIdentificativiErogatoreSelezionatoValue!=null) {
+//							List<IDServizioApplicativo> listSA = this.confCore.getServiziApplicativiErogatori(protocolloSelezionatoValue, protocolliValue,
+//									allarme.getFiltro().getTipoErogatore(), allarme.getFiltro().getNomeErogatore(),
+//									allarme.getFiltro().getTipoServizio(), allarme.getFiltro().getNomeServizio(), allarme.getFiltro().getVersioneServizio(),
+//									null);
+//							for (IDServizioApplicativo idServizioApplicativo : listSA) {
+//								serviziApplicativiErogatoreLabel.add(idServizioApplicativo.getNome());
+//								serviziApplicativiErogatoreValue.add(idServizioApplicativo.getNome());
+//							}
+//						}
+//						
+//						if(allarme.getFiltro().getServizioApplicativoErogatore()!=null){
+//							servizioApplicativoErogatoreSelezionatoValue = allarme.getFiltro().getServizioApplicativoErogatore();
+//						}
+//						if(!serviziApplicativiErogatoreValue.contains(servizioApplicativoErogatoreSelezionatoValue)){
+//							allarme.getFiltro().setServizioApplicativoErogatore(null);
+//							servizioApplicativoErogatoreSelezionatoValue = null;
+//						}
+//						serviziApplicativiErogatoreLabel = enrichListConLabelQualsiasi(serviziApplicativiErogatoreLabel);
+//						serviziApplicativiErogatoreValue = enrichListConValueQualsiasi(serviziApplicativiErogatoreValue);
+//					}
+//				}
+//			}
+			
+			// ruolo fruitore (diventa ruolo richiedente nel caso di porta)
+			if(protocolloAssociatoFiltroNonSelezionatoUtente) {
+				if(allarme.getFiltro().getRuoloFruitore()!=null) {
+					ruoloFruitoreSelezionatoValue = allarme.getFiltro().getRuoloFruitore();
+				}
+				ruoloFruitoreSelezionatoLabel = ruoloFruitoreSelezionatoValue!=null ? ruoloFruitoreSelezionatoValue :  ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_RATE_LIMITING_QUALSIASI;
+			}
+			else {
+				List<String> ruoliFruitore = this.core.getAllRuoli(filtroRuoli);
+				if(allarme.getFiltro().getRuoloFruitore()!=null) {
+					ruoloFruitoreSelezionatoValue = allarme.getFiltro().getRuoloFruitore();
+				}
+				if(!ruoliFruitore.contains(ruoloFruitoreSelezionatoValue)){
+					allarme.getFiltro().setRuoloFruitore(null);
+					ruoloFruitoreSelezionatoValue = null;
+				}
+				ruoliFruitoreLabel = enrichListConLabelQualsiasi(ruoliFruitore);
+				ruoliFruitoreValue = enrichListConValueQualsiasi(ruoliFruitore);
+			}
+			
+			// fruitore
+			if(configurazione || applicativa) {
+				if(protocolloAssociatoFiltroNonSelezionatoUtente) {
+					IDSoggetto idSoggetto = null;
+					if(allarme.getFiltro().getTipoFruitore()!=null && allarme.getFiltro().getNomeFruitore()!=null){
+						datiIdentificativiFruitoreSelezionatoValue = allarme.getFiltro().getTipoFruitore() + "/" + allarme.getFiltro().getNomeFruitore();
+						idSoggetto = new IDSoggetto(allarme.getFiltro().getTipoFruitore() , allarme.getFiltro().getNomeFruitore());
+					}
+					datiIdentificativiFruitoreSelezionatoLabel = idSoggetto!=null ? this.getLabelNomeSoggetto(idSoggetto) :  ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_RATE_LIMITING_QUALSIASI;
+				}
+				else {
+//					List<IDSoggetto> listFruitori = this.confCore.getSoggettiFruitori(protocolloSelezionatoValue, protocolliValue,
+//							policy.getFiltro().getTipoErogatore(), policy.getFiltro().getNomeErogatore(), 
+//							policy.getFiltro().getTipoServizio(), policy.getFiltro().getNomeServizio(), policy.getFiltro().getVersioneServizio());
+					
+					List<IDSoggetto> listSoggetti = new ArrayList<>();
+					if(configurazione) {
+						List<IDSoggetto> listSoggettiPreFilterMultitenant = this.confCore.getSoggetti(protocolloSelezionatoValue, protocolliValue);
+						if(allarme.getFiltro().getRuoloPorta()!=null && !RuoloPorta.ENTRAMBI.equals(allarme.getFiltro().getRuoloPorta())) {
+							for (IDSoggetto idSoggetto : listSoggettiPreFilterMultitenant) {
+								Soggetto s = this.soggettiCore.getSoggettoRegistro(idSoggetto);
+								boolean isPddEsterna = this.pddCore.isPddEsterna(s.getPortaDominio());
+								if(RuoloPorta.APPLICATIVA.equals(allarme.getFiltro().getRuoloPorta())) {
+									if(isPddEsterna) {
+										listSoggetti.add(idSoggetto);
+									}	
+									else {
+										if(!PddTipologia.ESTERNO.equals(pddTipologiaSoggettoAutenticati)) {
+											// multitenant abilitato
+											listSoggetti.add(idSoggetto);
+										}
+									}
+								}
+								else {
+									if(!isPddEsterna) {
+										listSoggetti.add(idSoggetto);
+									}
+								}
+							}
+						}
+						else {
+							listSoggetti.addAll(listSoggettiPreFilterMultitenant);
+						}
+					}
+					else {
+					
+						User user = ServletUtils.getUserFromSession(this.session);
+						String userLogin = user.getLogin();
+						
+						List<String> tipiSoggettiGestitiProtocollo = this.soggettiCore.getTipiSoggettiGestitiProtocollo(protocolloSelezionatoValue);
+						
+						List<IDSoggettoDB> list = null;
+						if(this.core.isVisioneOggettiGlobale(userLogin)){
+							list = this.soggettiCore.getSoggettiFromTipoAutenticazione(tipiSoggettiGestitiProtocollo, null, tipoAutenticazione, appId, pddTipologiaSoggettoAutenticati);
+						}else{
+							list = this.soggettiCore.getSoggettiFromTipoAutenticazione(tipiSoggettiGestitiProtocollo, userLogin, tipoAutenticazione, appId, pddTipologiaSoggettoAutenticati);
+						}
+						if(list!=null && !list.isEmpty() && gestioneErogatori_soggettiAutenticati_escludiSoggettoErogatore) {
+							for (int i = 0; i < list.size(); i++) {
+								IDSoggettoDB soggettoCheck = list.get(i);
+								if(soggettoCheck.getTipo().equals(idSoggettoProprietario.getTipo()) && soggettoCheck.getNome().equals(idSoggettoProprietario.getNome())) {
+									list.remove(i);
+									break;
+								}
+							}
+						}
+						
+						if(list==null) {
+							list = new ArrayList<>();
+						}
+						
+						// aggiungo soggetti operativi per poi poter selezionare un applicativo
+						if(multitenant) {
+							List<IDSoggetto> listSoggettiPreFilterMultitenant = this.confCore.getSoggetti(protocolloSelezionatoValue, protocolliValue);
+							for (IDSoggetto idSoggetto : listSoggettiPreFilterMultitenant) {
+								Soggetto s = this.soggettiCore.getSoggettoRegistro(idSoggetto);
+								boolean isPddEsterna = this.pddCore.isPddEsterna(s.getPortaDominio());
+								if(!isPddEsterna) {
+									boolean found = false;
+									for (IDSoggettoDB sogg : list) {
+										if(sogg.getTipo().equals(s.getTipo()) && sogg.getNome().equals(s.getNome())) {
+											found = true;
+											break;
+										}
+									}
+									if(!found) {
+										List<IDServizioApplicativoDB> listServiziApplicativiTmp = this.saCore.soggettiServizioApplicativoList(idSoggetto,userLogin,tipoAutenticazioneConfig, appId);
+										if(listServiziApplicativiTmp!=null && !listServiziApplicativiTmp.isEmpty()) {
+											IDSoggettoDB idSoggettoDB = new IDSoggettoDB();
+											idSoggettoDB.setTipo(s.getTipo());
+											idSoggettoDB.setNome(s.getNome());
+											idSoggettoDB.setCodicePorta(s.getIdentificativoPorta());
+											idSoggettoDB.setId(s.getId());
+											list.add(idSoggettoDB);
+										}
+									}
+								}
+							}
+						}
+						
+						if(!list.isEmpty()) {
+							for (IDSoggettoDB soggetto : list) {
+								listSoggetti.add(new IDSoggetto(soggetto.getTipo(), soggetto.getNome()));
+							}
+						}
+						
+					}
+					
+					fruitoriLabel = new ArrayList<>();
+					fruitoriValue = new ArrayList<>();
+					for (IDSoggetto idSoggetto : listSoggetti) {
+						fruitoriLabel.add(this.getLabelNomeSoggetto(idSoggetto));
+						fruitoriValue.add(idSoggetto.getTipo()+"/"+idSoggetto.getNome());
+					}
+					if(allarme.getFiltro().getTipoFruitore()!=null && allarme.getFiltro().getNomeFruitore()!=null){
+						datiIdentificativiFruitoreSelezionatoValue = allarme.getFiltro().getTipoFruitore() + "/" + allarme.getFiltro().getNomeFruitore();
+					}
+					if(!fruitoriValue.contains(datiIdentificativiFruitoreSelezionatoValue)){
+						allarme.getFiltro().setTipoFruitore(null);
+						allarme.getFiltro().setNomeFruitore(null);
+						datiIdentificativiFruitoreSelezionatoValue = null;
+					}
+					fruitoriLabel = enrichListConLabelQualsiasi(fruitoriLabel);
+					fruitoriValue = enrichListConValueQualsiasi(fruitoriValue);
+				}
+			}
+			else {
+				if(delegata) {
+					if(allarme.getFiltro().getTipoFruitore()!=null && allarme.getFiltro().getNomeFruitore()!=null){
+						datiIdentificativiFruitoreSelezionatoValue = allarme.getFiltro().getTipoFruitore() + "/" + allarme.getFiltro().getNomeFruitore();
+					}
+				}
+			}
+			
+			// servizi applicativi fruitore
+			if(protocolloAssociatoFiltroNonSelezionatoUtente) {
+				if(allarme.getFiltro().getServizioApplicativoFruitore()!=null){
+					servizioApplicativoFruitoreSelezionatoValue = allarme.getFiltro().getServizioApplicativoFruitore();
+				}
+				servizioApplicativoFruitoreSelezionatoLabel = servizioApplicativoFruitoreSelezionatoValue!=null ? servizioApplicativoFruitoreSelezionatoValue :  ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_RATE_LIMITING_QUALSIASI;
+			}
+			else {
+				
+				IDSoggetto soggettoProprietarioServiziApplicativi = null;
+				if(datiIdentificativiFruitoreSelezionatoValue!=null || !configurazione) {
+					String tipoFruitore = null;
+					String nomeFruitore = null;
+					if(datiIdentificativiFruitoreSelezionatoValue!=null) {
+						tipoFruitore = allarme.getFiltro().getTipoFruitore();
+						nomeFruitore = allarme.getFiltro().getNomeFruitore();
+					}
+					else {
+						tipoFruitore = idSoggettoProprietario.getTipo();
+						nomeFruitore = idSoggettoProprietario.getNome();
+					}
+					soggettoProprietarioServiziApplicativi = new IDSoggetto(tipoFruitore, nomeFruitore);
+				}
+				
+				if(soggettoProprietarioServiziApplicativi!=null) {
+					serviziApplicativiFruitoreLabel = new ArrayList<>();
+					serviziApplicativiFruitoreValue = new ArrayList<>();
+
+					List<IDServizioApplicativo> listSA =null;
+					if(configurazione) {
+						listSA = this.confCore.getServiziApplicativiFruitore(protocolloSelezionatoValue, protocolliValue,
+								soggettoProprietarioServiziApplicativi.getTipo(), soggettoProprietarioServiziApplicativi.getNome());
+					}
+					else {
+						
+						listSA = new ArrayList<>();
+						
+						User user = ServletUtils.getUserFromSession(this.session);
+						String userLogin = user.getLogin();
+						
+						List<IDServizioApplicativoDB> listServiziApplicativiTmp = null;
+						if(delegata || !multitenant) {
+							listServiziApplicativiTmp = this.saCore.soggettiServizioApplicativoList(idSoggettoProprietario,userLogin,tipoAutenticazioneConfig,appId);
+						}
+						else {
+							// sull'applicativa con multitenant deve essere stata selezionato un soggetto operativo.
+							if(allarme.getFiltro().getTipoFruitore()!=null && allarme.getFiltro().getNomeFruitore()!=null) {
+								IDSoggetto idSoggettoSelezionato = new IDSoggetto(allarme.getFiltro().getTipoFruitore(), allarme.getFiltro().getNomeFruitore());
+								Soggetto s = this.soggettiCore.getSoggettoRegistro(idSoggettoSelezionato);
+								boolean isPddEsterna = this.pddCore.isPddEsterna(s.getPortaDominio());
+								if(!isPddEsterna) {
+									listServiziApplicativiTmp = this.saCore.soggettiServizioApplicativoList(idSoggettoSelezionato,userLogin,tipoAutenticazioneConfig,appId);
+								}									
+							}
+						}
+						
+						if(listServiziApplicativiTmp!=null && !listServiziApplicativiTmp.isEmpty()) {
+							for (IDServizioApplicativoDB servizioApplicativo : listServiziApplicativiTmp) {
+								IDServizioApplicativo idSA = new IDServizioApplicativo();
+								idSA.setIdSoggettoProprietario(idSoggettoProprietario);
+								idSA.setNome(servizioApplicativo.getNome());
+								listSA.add(idSA);
+							}
+						}
+						
+					}
+					for (IDServizioApplicativo idServizioApplicativo : listSA) {
+						serviziApplicativiFruitoreLabel.add(idServizioApplicativo.getNome());
+						serviziApplicativiFruitoreValue.add(idServizioApplicativo.getNome());
+					}
+					
+					if(allarme.getFiltro().getServizioApplicativoFruitore()!=null){
+						servizioApplicativoFruitoreSelezionatoValue = allarme.getFiltro().getServizioApplicativoFruitore();
+					}
+					if(!serviziApplicativiFruitoreValue.contains(servizioApplicativoFruitoreSelezionatoValue)){
+						allarme.getFiltro().setServizioApplicativoFruitore(null);
+						servizioApplicativoFruitoreSelezionatoValue = null;
+					}
+					serviziApplicativiFruitoreLabel = enrichListConLabelQualsiasi(serviziApplicativiFruitoreLabel);
+					serviziApplicativiFruitoreValue = enrichListConValueQualsiasi(serviziApplicativiFruitoreValue);
+				}
+			}
+			
+		}
+
+		
+		
+		
+		DataElement de = new DataElement();
+		de.setLabel(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_FILTRO);
+		de.setType(DataElementType.TITLE);
+		dati.addElement(de);
+		
+		boolean filtroAbilitatoAPI = false;
+		if(ruoloPorta!=null) {
+			boolean first = this.isFirstTimeFromHttpParameters(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FIRST_TIME);
+			if(first) {
+				String filtro = this.toStringCompactAllarmeFilter(allarme.getFiltro(),ruoloPorta,nomePorta,serviceBinding);
+				filtroAbilitatoAPI = filtro!=null && !"".equals(filtro) && !CostantiControlStation.LABEL_STATO_DISABILITATO.equals(filtro);
+			}
+			else {
+				String filtro = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_ENABLED_CONSOLE_ONLY);
+				filtroAbilitatoAPI = ServletUtils.isCheckBoxEnabled(filtro);
+			}
+		}
+		
+		// stato
+		if(protocolloAssociatoFiltroNonSelezionatoUtente) {
+			
+			addToDatiDataElementStatoReadOnly(dati, ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_ENABLED, 
+					ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_ENABLED, allarme.getFiltro().isEnabled(), true,
+					false, false);
+			 
+			if(allarme.getFiltro().isEnabled()){
+				de = new DataElement();
+				de.setType(DataElementType.NOTE);
+				de.setValue("Filtro non modificabile poichè definito per un "+CostantiControlStation.LABEL_PARAMETRO_PROTOCOLLO_DI.toLowerCase()+" non attivo nella console");
+				dati.addElement(de);
+			}
+		}
+		else {
+			boolean hidden = ruoloPorta!=null;
+			addToDatiDataElementStato_postBackViaPOST(dati, ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_ENABLED, 
+					ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_ENABLED, allarme.getFiltro().isEnabled(), true,
+					false, false, hidden);
+			
+			if(ruoloPorta!=null) {
+				addToDatiDataElementStato_postBackViaPOST(dati, ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_ENABLED_CONSOLE_ONLY, 
+						ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_ENABLED, filtroAbilitatoAPI, true,
+						false, false, false);
+			}
+			
+		}
+		
+		boolean filtroEnabled = allarme.getFiltro().isEnabled();
+		if(ruoloPorta!=null) {
+			filtroEnabled = filtroAbilitatoAPI;
+		}
+		
+		if(filtroEnabled){ 
+		
+			// Ruolo PdD
+			de = new DataElement();
+			de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_RUOLO_PDD);
+			de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_RUOLO_PDD);
+			if(allarme.getFiltro().getRuoloPorta()!=null){
+				de.setValue(allarme.getFiltro().getRuoloPorta().getValue());
+			}
+			if(protocolloAssociatoFiltroNonSelezionatoUtente || !configurazione) {
+				de.setType(DataElementType.HIDDEN);
+				dati.addElement(de);
+				
+				if(configurazione) {
+					de = new DataElement();
+					de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_RUOLO_PDD+"___LABEL");
+					de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_RUOLO_PDD);
+					if(allarme.getFiltro().getRuoloPorta()!=null){
+						de.setValue(allarme.getFiltro().getRuoloPorta().getValue());
+					}
+					else {
+						de.setValue(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_RATE_LIMITING_QUALSIASI);
+					}
+					de.setType(DataElementType.TEXT);
+				}
+			}
+			else {
+				de.setValues(ConfigurazioneCostanti.TIPI_RUOLO_PDD);
+				de.setLabels(ConfigurazioneCostanti.LABEL_TIPI_RUOLO_PDD);
+				if(allarme.getFiltro().getRuoloPorta()!=null){
+					de.setSelected(allarme.getFiltro().getRuoloPorta().getValue());
+				}
+				de.setType(DataElementType.SELECT);
+				de.setPostBack_viaPOST(true);
+			}
+			dati.addElement(de);
+			
+	
+			// Protocollo
+			de = new DataElement();
+			de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_PROTOCOLLO);
+			de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_PROTOCOLLO);
+			de.setValue(protocolloSelezionatoValue); // un protocollo e' sempre selezionato 
+			if(protocolloAssociatoFiltroNonSelezionatoUtente || !configurazione) {
+				de.setType(DataElementType.HIDDEN);
+				dati.addElement(de);
+				
+				if(configurazione) {
+					de = new DataElement();
+					de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_PROTOCOLLO+"___LABEL");
+					de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_PROTOCOLLO);
+					de.setValue(protocolloSelezionatoLabel); // un protocollo e' sempre selezionato 
+					de.setType(DataElementType.TEXT);
+				}
+			}
+			else if(protocolliValue.size()>1){ 
+				de.setValues(protocolliValue);
+				de.setLabels(protocolliLabel);
+				de.setSelected(protocolloSelezionatoValue);
+				de.setType(DataElementType.SELECT);
+				de.setPostBack_viaPOST(true);
+			}
+			else{
+				de.setType(DataElementType.HIDDEN);
+				if(protocolliValue!=null && protocolliValue.size()>0) {
+					dati.addElement(de);
+					
+					// Si è deciso cmq di farlo vedere
+					de = new DataElement();
+					de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_PROTOCOLLO+"___LABEL");
+					de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_PROTOCOLLO);
+					de.setValue(this.getLabelProtocollo(protocolliValue.get(0))); // un protocollo e' sempre selezionato 
+					de.setType(DataElementType.TEXT);
+				}
+			}
+			dati.addElement(de);
+			
+			// Ruolo Erogatore
+			de = new DataElement();
+			de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_RUOLO_EROGATORE);
+			de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_RUOLO_EROGATORE);
+			if(datiIdentificativiErogatoreSelezionatoValue!=null) {
+				de.setType(DataElementType.HIDDEN);
+			}
+			else {
+				de.setValue(ruoloErogatoreSelezionatoValue);
+				if(protocolloAssociatoFiltroNonSelezionatoUtente || !configurazione) {
+					de.setType(DataElementType.HIDDEN);
+					dati.addElement(de);
+					
+					if(configurazione) {
+						de = new DataElement();
+						de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_RUOLO_EROGATORE+"___LABEL");
+						de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_RUOLO_EROGATORE);
+						de.setValue(ruoloErogatoreSelezionatoLabel);
+						de.setType(DataElementType.TEXT);
+					}
+				}
+				else {
+					de.setLabels(ruoliErogatoreLabel);
+					de.setValues(ruoliErogatoreValue);
+					de.setSelected(ruoloErogatoreSelezionatoValue);
+					de.setType(DataElementType.SELECT);
+					de.setPostBack_viaPOST(true);
+				}
+			}
+			dati.addElement(de);
+			
+			// Erogatore
+			de = new DataElement();
+			de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_EROGATORE);
+			de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_EROGATORE);
+			if(ruoloErogatoreSelezionatoValue!=null) {
+				de.setType(DataElementType.HIDDEN);
+			}
+			else {
+				de.setValue(datiIdentificativiErogatoreSelezionatoValue);
+				if(protocolloAssociatoFiltroNonSelezionatoUtente || !configurazione) {
+					de.setType(DataElementType.HIDDEN);
+					dati.addElement(de);
+					
+					if(configurazione) {
+						de = new DataElement();
+						de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_EROGATORE+"___LABEL");
+						de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_EROGATORE);
+						de.setValue(datiIdentificativiErogatoreSelezionatoLabel);
+						de.setType(DataElementType.TEXT);
+					}
+				}
+				else {
+					de.setLabels(erogatoriLabel);
+					de.setValues(erogatoriValue);
+					de.setSelected(datiIdentificativiErogatoreSelezionatoValue);
+					de.setType(DataElementType.SELECT);
+					de.setPostBack_viaPOST(true);
+				}
+			}
+			dati.addElement(de);
+			
+			// Tag
+			de = new DataElement();
+			de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_TAG);
+			de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_TAG);
+			de.setValue(datiIdentificativiTagSelezionatoValue);
+			if(!configurazione) {
+				de.setType(DataElementType.HIDDEN);
+				dati.addElement(de);
+			}
+			else {
+				de.setValue(datiIdentificativiTagSelezionatoValue);
+				if(this.core.isControlloTrafficoPolicyGlobaleFiltroApi() && datiIdentificativiServizioSelezionatoValue==null ) {
+					de.setLabels(tagLabel);
+					de.setValues(tagValue);
+					de.setSelected(datiIdentificativiTagSelezionatoValue);
+					de.setType(DataElementType.SELECT);
+					de.setPostBack_viaPOST(true);
+				}
+				else {
+					de.setType(DataElementType.HIDDEN);
+				}
+			}
+			dati.addElement(de);
+			
+			// Servizio
+			de = new DataElement();
+			de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_SERVIZIO);
+			de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_SERVIZIO);
+			de.setValue(datiIdentificativiServizioSelezionatoValue);
+			if(protocolloAssociatoFiltroNonSelezionatoUtente || !configurazione) {
+				de.setType(DataElementType.HIDDEN);
+				dati.addElement(de);
+				
+				if(configurazione) {
+					de = new DataElement();
+					de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_SERVIZIO+"___LABEL");
+					de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_SERVIZIO);
+					de.setValue(datiIdentificativiServizioSelezionatoLabel);
+					if(this.core.isControlloTrafficoPolicyGlobaleFiltroApi()) {
+						de.setType(DataElementType.TEXT);
+					}
+					else {
+						de.setType(DataElementType.HIDDEN);
+					}
+				}
+			}
+			else {
+				de.setValue(datiIdentificativiServizioSelezionatoValue);
+				if(this.core.isControlloTrafficoPolicyGlobaleFiltroApi()) {
+					de.setLabels(serviziLabel);
+					de.setValues(serviziValue);
+					de.setSelected(datiIdentificativiServizioSelezionatoValue);
+					de.setType(DataElementType.SELECT);
+					de.setPostBack_viaPOST(true);
+				}
+				else {
+					de.setType(DataElementType.HIDDEN);
+				}
+			}
+			dati.addElement(de);
+			
+			// Azione
+			boolean showAzione = true;
+			if(configurazione) {
+				if(datiIdentificativiServizioSelezionatoValue==null) {
+					showAzione = false;
+				}
+			}
+			if(showAzione) {
+				
+				boolean azioniAll = false;
+				boolean first = this.isFirstTimeFromHttpParameters(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FIRST_TIME);
+				if(first) {
+					azioniAll = azioniSelezionataValue==null || azioniSelezionataValue.isEmpty();
+				}
+				else if(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_SERVIZIO.equals(this.getPostBackElementName()) ||
+						ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_ENABLED_CONSOLE_ONLY.equals(this.getPostBackElementName())) {
+					azioniAll = true;
+				}
+				else {
+					String azioniAllPart = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE_PUNTUALE);
+					azioniAll = ServletUtils.isCheckBoxEnabled(azioniAllPart);
+				}
+				
+				if(!protocolloAssociatoFiltroNonSelezionatoUtente) {
+					de = new DataElement();
+					de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE_PUNTUALE);
+					de.setPostBack_viaPOST(true);
+					de.setValues(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE_PUNTUALE_ALL_VALUES);
+					if(ServiceBinding.REST.equals(serviceBinding)) {
+						de.setLabels(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE_PUNTUALE_RISORSE_ALL_VALUES);
+					}
+					else {
+						de.setLabels(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE_PUNTUALE_ALL_VALUES);
+					}
+					if(azioniAll) {
+						de.setSelected(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE_PUNTUALE_ALL_VALUE_TRUE);
+					}
+					else {
+						de.setSelected(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE_PUNTUALE_ALL_VALUE_FALSE);
+					}
+					if(serviceBinding!=null) {
+						de.setLabel(this.getLabelAzioni(serviceBinding)); 
+					}
+					else {
+						de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE);
+					}
+					de.setType(DataElementType.SELECT);
+					dati.addElement(de);
+				}
+				
+				de = new DataElement();
+				de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE);
+				if(protocolloAssociatoFiltroNonSelezionatoUtente) {
+					if(serviceBinding!=null) {
+						de.setLabel(this.getLabelAzioni(serviceBinding));
+					}
+					else {
+						de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE);
+					}
+				}
+				else {
+					de.setLabel("");
+				}
+				if(protocolloAssociatoFiltroNonSelezionatoUtente) {
+					de.setValue(allarme.getFiltro().getAzione());
+					de.setType(DataElementType.HIDDEN);
+					dati.addElement(de);
+					
+					de = new DataElement();
+					de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE+"___LABEL");
+					if(serviceBinding!=null) {
+						de.setLabel(this.getLabelAzioni(serviceBinding));
+					}
+					else {
+						de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_AZIONE);
+					}
+					if(azioniSelezionataLabel!=null && !azioniSelezionataLabel.isEmpty()) {
+						if(azioniSelezionataLabel.size()==1) {
+							de.setValue(azioniSelezionataLabel.get(0));
+						}
+						else {
+							de.setValue(azioniSelezionataLabel.toString());
+						}
+					}
+					de.setType(DataElementType.TEXT);
+				}
+				else {
+					if(!azioniAll) {
+						de.setLabels(azioniLabel);
+						de.setValues(azioniValue);
+						de.setSelezionati(azioniSelezionataValue);
+						de.setType(DataElementType.MULTI_SELECT);
+						if(azioniValue!=null && azioniValue.size()<=10) {
+							if(azioniValue.size()<=3) {
+								de.setRows(3);
+							}
+							else {
+								de.setRows(azioniValue.size());
+							}
+						}
+						else {
+							de.setRows(10);
+						}
+						de.setPostBack_viaPOST(true);
+					}
+					else {
+						de.setType(DataElementType.HIDDEN);
+					}
+				}
+				dati.addElement(de);
+			}
+			
+//			// Servizio Applicativo Erogatore
+//			if(serviziApplicativiErogatoreValue!=null){
+//				de = new DataElement();
+//				de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_SA_EROGATORE);
+//				de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_SA_EROGATORE);
+//				de.setValue(servizioApplicativoErogatoreSelezionatoValue);
+//				if(protocolloAssociatoFiltroNonSelezionatoUtente || !configurazione) {
+//					de.setType(DataElementType.HIDDEN);
+//					dati.addElement(de);
+//					
+//					if(configurazione) {
+//						de = new DataElement();
+//						de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_SA_EROGATORE+"___LABEL");
+//						de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_SA_EROGATORE);
+//						de.setValue(servizioApplicativoErogatoreSelezionatoLabel);
+//						//de.setType(DataElementType.TEXT);
+//						de.setType(DataElementType.HIDDEN);
+//					}
+//				}
+//				else {
+//					de.setLabels(serviziApplicativiErogatoreLabel);
+//					de.setValues(serviziApplicativiErogatoreValue);
+//					de.setSelected(servizioApplicativoErogatoreSelezionatoValue);
+//					de.setValue(servizioApplicativoErogatoreSelezionatoValue);
+//					//de.setType(DataElementType.SELECT);
+//					de.setType(DataElementType.HIDDEN);
+//					de.setPostBack_viaPOST(true);
+//				}
+//				dati.addElement(de);
+//			}
+			
+			// Ruolo Fruitore
+			boolean showRuoloRichiedente = false;
+			if(configurazione) {
+				showRuoloRichiedente = true;
+			}
+			else {
+				if(serviziApplicativiFruitoreValue!=null && serviziApplicativiFruitoreValue.size()>1){
+					showRuoloRichiedente = true;
+				}
+				else if(fruitoriValue!=null && fruitoriValue.size()>1){
+					showRuoloRichiedente = true;
+				}
+			}
+			de = new DataElement();
+			de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_RUOLO_FRUITORE);
+//			if(configurazione) {
+//				de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_RUOLO_FRUITORE);
+//			}
+//			else {
+			de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_RUOLO_RICHIEDENTE);
+			//}
+			if(datiIdentificativiFruitoreSelezionatoValue!=null || servizioApplicativoFruitoreSelezionatoValue!=null || !showRuoloRichiedente) {
+				de.setType(DataElementType.HIDDEN);
+			}
+			else {
+				de.setValue(ruoloFruitoreSelezionatoValue);
+				if(protocolloAssociatoFiltroNonSelezionatoUtente) {
+					de.setType(DataElementType.HIDDEN);
+					dati.addElement(de);
+					
+					if(configurazione) {
+						de = new DataElement();
+						de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_RUOLO_FRUITORE+"___LABEL");
+//						if(configurazione) {
+//							de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_RUOLO_FRUITORE);
+//						}
+//						else {
+						de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_RUOLO_RICHIEDENTE);
+						//}
+						de.setValue(ruoloFruitoreSelezionatoLabel);
+						de.setType(DataElementType.TEXT);
+					}
+				}
+				else {
+					de.setLabels(ruoliFruitoreLabel);
+					de.setValues(ruoliFruitoreValue);
+					de.setSelected(ruoloFruitoreSelezionatoValue);
+					de.setType(DataElementType.SELECT);
+					de.setPostBack_viaPOST(true);
+				}
+			}
+			dati.addElement(de);
+			
+			// Fruitore
+			if(fruitoriValue!=null && fruitoriValue.size()>1){
+				de = new DataElement();
+				de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_FRUITORE);
+				de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_FRUITORE);
+				if(ruoloFruitoreSelezionatoValue!=null) {
+					de.setType(DataElementType.HIDDEN);
+				}
+				else {
+					de.setValue(datiIdentificativiFruitoreSelezionatoValue);
+					if(protocolloAssociatoFiltroNonSelezionatoUtente || delegata) {
+						de.setType(DataElementType.HIDDEN);
+						dati.addElement(de);
+						
+						if(configurazione) {
+							de = new DataElement();
+							de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_FRUITORE+"___LABEL");
+							de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_FRUITORE);
+							de.setValue(datiIdentificativiFruitoreSelezionatoLabel);
+							de.setType(DataElementType.TEXT);
+						}
+					}
+					else {
+						de.setLabels(fruitoriLabel);
+						de.setValues(fruitoriValue);
+						de.setSelected(datiIdentificativiFruitoreSelezionatoValue);
+						de.setType(DataElementType.SELECT);
+						de.setPostBack_viaPOST(true);
+					}
+				}
+				dati.addElement(de);
+			}
+			
+			// Servizio Applicativo Fruitore
+			if(serviziApplicativiFruitoreValue!=null && serviziApplicativiFruitoreValue.size()>1){
+				de = new DataElement();
+				de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_SA_FRUITORE);
+				de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_SA_FRUITORE);
+				if(ruoloFruitoreSelezionatoValue!=null) {
+					de.setType(DataElementType.HIDDEN);
+				}
+				else {
+					de.setValue(servizioApplicativoFruitoreSelezionatoValue);
+					if(protocolloAssociatoFiltroNonSelezionatoUtente) {
+						de.setType(DataElementType.HIDDEN);
+						dati.addElement(de);
+						
+						if(configurazione) {
+							de = new DataElement();
+							de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_SA_FRUITORE+"___LABEL");
+							de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_SA_FRUITORE);
+							de.setValue(servizioApplicativoFruitoreSelezionatoLabel);
+							de.setType(DataElementType.TEXT);
+						}
+					}
+					else {
+						de.setLabels(serviziApplicativiFruitoreLabel);
+						de.setValues(serviziApplicativiFruitoreValue);
+						de.setSelected(servizioApplicativoFruitoreSelezionatoValue);
+						de.setType(DataElementType.SELECT);
+						de.setPostBack_viaPOST(true);
+					}
+				}
+				dati.addElement(de);
+			}
+		}
+	}
+	
+	private void addToDatiAllarmeGroupBy(Vector<DataElement> dati, TipoOperazione tipoOperazione,ConfigurazioneAllarmeBean allarme, String nomeSezione,	
+			RuoloPorta ruoloPorta, String nomePorta, ServiceBinding serviceBinding,
+			boolean tokenAbilitato) throws Exception {
+	
+		boolean delegata = false;
+		boolean applicativa = false;
+		boolean configurazione = false;
+		if(ruoloPorta!=null) {
+			if(RuoloPorta.DELEGATA.equals(ruoloPorta)) {
+				delegata = (nomePorta!=null);
+			}
+			else if(RuoloPorta.APPLICATIVA.equals(ruoloPorta)) {
+				applicativa = (nomePorta!=null);
+			}
+		}
+		configurazione = !delegata && !applicativa;
+		
+		
+				
+		List<String> protocolli = null;
+//		boolean groupByKey = false;
+		
+		if(allarme.getGroupBy().isEnabled()){
+			
+			// protocollo
+			protocolli = this.confCore.getProtocolli();
+			
+			// group by by key se non sono richiesti campionamenti statistici
+//			if(infoPolicy!=null && infoPolicy.isIntervalloUtilizzaRisorseStatistiche()==false && 
+//					infoPolicy.isDegradoPrestazionaleUtilizzaRisorseStatistiche()==false){
+//				groupByKey = true;
+//			}
+		}
+
+//
+		DataElement de = new DataElement();
+		de.setLabel(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_RAGGRUPPAMENTO);
+		de.setType(DataElementType.TITLE);
+		dati.addElement(de);
+		
+		de = new DataElement();
+		de.setValue(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_RAGGRUPPAMENTO_NOTE);
+		de.setType(DataElementType.NOTE);
+		dati.addElement(de);
+		
+		// stato
+		addToDatiDataElementStato_postBackViaPOST(dati, ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_ENABLED, 
+				ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_ENABLED_STATO, allarme.getGroupBy().isEnabled(), true, false, false, false);
+		
+		/*
+		de = new DataElement();
+		de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_ENABLED);
+		de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_ENABLED);
+		de.setType(DataElementType.SELECT);
+		de.setValues(ConfigurazioneCostanti.CONFIGURAZIONE_STATI_COLLEZIONAMENTO);
+		if(policy.getGroupBy().isEnabled()){
+			de.setSelected(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_STATO_COLLEZIONAMENTO_ABILITATO);
+			de.setValue(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_STATO_COLLEZIONAMENTO_ABILITATO);
+		}
+		else{
+			de.setSelected(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_STATO_COLLEZIONAMENTO_DISABILITATO);
+			de.setValue(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_STATO_COLLEZIONAMENTO_DISABILITATO);
+		}
+		de.setPostBack_viaPOST(true);
+		dati.addElement(de);
+		*/
+		
+		if(allarme.getGroupBy().isEnabled()){
+		
+			
+			// --- GENERALI ---
+			
+			if(configurazione) {
+				
+				boolean showRuoloPdD = allarme.getFiltro()==null || 
+						allarme.getFiltro().isEnabled()==false || 
+						allarme.getFiltro().getRuoloPorta()==null ||
+						RuoloPorta.ENTRAMBI.equals(allarme.getFiltro().getRuoloPorta());
+				
+				boolean showProtocollo = protocolli.size()>1 && (allarme.getFiltro()==null || 
+						allarme.getFiltro().isEnabled()==false || 
+						allarme.getFiltro().getProtocollo()==null);
+				
+				boolean showErogatore = allarme.getFiltro()==null || 
+						allarme.getFiltro().isEnabled()==false || 
+						allarme.getFiltro().getTipoErogatore()==null ||
+						allarme.getFiltro().getNomeErogatore()==null;
+				
+				if(showRuoloPdD || showProtocollo || showErogatore) {
+//					de = new DataElement();
+//					de.setValue(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_ALLARMI_GROUPBY_DATI_GENERALI);
+//					de.setType(DataElementType.NOTE);
+//					dati.addElement(de);
+				}
+				
+				// Ruolo PdD
+				if( showRuoloPdD ){
+					de = new DataElement();
+					de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_RUOLO_PDD);
+					de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_RUOLO_PDD_LABEL);
+					//de.setLabelRight(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_RUOLO_PDD_NOTE);
+					de.setType(DataElementType.CHECKBOX);
+					de.setSelected(allarme.getGroupBy().isRuoloPorta());
+					de.setValue(allarme.getGroupBy().isRuoloPorta()+"");
+					dati.addElement(de);
+				}
+			
+				// Protocollo
+				de = new DataElement();
+				de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_PROTOCOLLO);
+				de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_PROTOCOLLO);
+				if(showProtocollo){
+					de.setType(DataElementType.CHECKBOX);
+					de.setSelected(allarme.getGroupBy().isProtocollo());
+					de.setValue(allarme.getGroupBy().isProtocollo()+"");
+				}
+				else{
+					de.setType(DataElementType.HIDDEN);
+					if(protocolli.size()==1){
+						de.setValue("false");
+					}
+				}
+				dati.addElement(de);
+				
+				// Erogatore
+				if( showErogatore ){
+					de = new DataElement();
+					de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_EROGATORE);
+					de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_EROGATORE);
+					de.setType(DataElementType.CHECKBOX);
+					de.setSelected(allarme.getGroupBy().isErogatore());
+					de.setValue(allarme.getGroupBy().isErogatore()+"");
+					dati.addElement(de);
+				}
+								
+			}
+
+			
+			// --- API ---
+			
+			boolean showServizio = false;
+			
+			boolean showAzione = allarme.getFiltro()==null || 
+					allarme.getFiltro().isEnabled()==false || 
+					allarme.getFiltro().getAzione()==null;
+			
+//			boolean showSAErogatore = false;
+			
+			if(configurazione) {
+			
+				if(this.core.isControlloTrafficoPolicyGlobaleGroupByApi()) {
+					showServizio = allarme.getFiltro()==null || 
+							allarme.getFiltro().isEnabled()==false || 
+							allarme.getFiltro().getTipoServizio()==null ||
+							allarme.getFiltro().getNomeServizio()==null;
+				}
+
+				if(showAzione) {
+					showAzione = showServizio && allarme.getGroupBy().isServizio(); // l'azione la scelgo se ho prima selezionato una API
+				}
+				
+//				showSAErogatore = allarme.getFiltro()==null || 
+//						allarme.getFiltro().isEnabled()==false || 
+//						allarme.getFiltro().getRuoloPorta()==null ||
+//						RuoloPorta.ENTRAMBI.equals(allarme.getFiltro().getRuoloPorta()) ||
+//						RuoloPorta.APPLICATIVA.equals(allarme.getFiltro().getRuoloPorta());
+//				if(showSAErogatore) {
+//					showSAErogatore = allarme.getFiltro()==null || 
+//							allarme.getFiltro().isEnabled()==false || 
+//							allarme.getFiltro().getServizioApplicativoErogatore()==null;
+//				}
+				
+				if(showServizio || showAzione) { // || showSAErogatore
+					if(configurazione) {
+//						de = new DataElement();
+//						de.setValue(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_ALLARMI_GROUPBY_API);
+//						de.setType(DataElementType.NOTE);
+//						dati.addElement(de);
+					}
+				}
+						
+				// Servizio
+				if( showServizio ){
+					de = new DataElement();
+					de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_SERVIZIO);
+					de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_SERVIZIO);
+					de.setType(DataElementType.CHECKBOX);
+					de.setSelected(allarme.getGroupBy().isServizio());
+					de.setValue(allarme.getGroupBy().isServizio()+"");
+					de.setPostBack_viaPOST(true);
+					dati.addElement(de);
+				}
+			}
+				
+			// Azione
+			if( showAzione ){
+				de = new DataElement();
+				de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_AZIONE);
+				if(serviceBinding!=null) {
+					de.setLabel(getLabelAzione(serviceBinding));
+				}
+				else {
+					de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_AZIONE);
+				}
+				de.setType(DataElementType.CHECKBOX);
+				de.setSelected(allarme.getGroupBy().isAzione());
+				de.setValue(allarme.getGroupBy().isAzione()+"");
+				dati.addElement(de);
+			}
+				
+			// Servizio Applicativo Erogatore
+//			if(configurazione) {
+//				if( showSAErogatore	){
+//					de = new DataElement();
+//					de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_SA_EROGATORE);
+//					de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_SA_EROGATORE);
+//					//de.setType(DataElementType.CHECKBOX);
+//					de.setType(DataElementType.HIDDEN);
+//					de.setSelected(allarme.getGroupBy().isServizioApplicativoErogatore());
+//					de.setValue(allarme.getGroupBy().isServizioApplicativoErogatore()+"");
+//					dati.addElement(de);
+//				}
+//			}
+				
+
+			
+			// --- RICHIEDENTI ---
+			
+			if(configurazione) {
+//				de = new DataElement();
+//				de.setValue(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_ALLARMI_GROUPBY_MITTENTE);
+//				de.setType(DataElementType.NOTE);
+//				dati.addElement(de);
+			}
+			
+			// Fruitore
+			
+			if(configurazione) {
+				
+				boolean showFruitore = allarme.getFiltro()==null || 
+						allarme.getFiltro().isEnabled()==false || 
+						allarme.getFiltro().getTipoFruitore()==null ||
+						allarme.getFiltro().getNomeFruitore()==null;
+				
+				// Fruitore
+				if( showFruitore ){
+					de = new DataElement();
+					de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_FRUITORE);
+					de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_FRUITORE);
+					de.setType(DataElementType.CHECKBOX);
+					de.setSelected(allarme.getGroupBy().isFruitore());
+					de.setValue(allarme.getGroupBy().isFruitore()+"");
+					dati.addElement(de);
+				}
+				
+				
+				boolean showRichiedenteApplicativo = allarme.getFiltro()==null || 
+						allarme.getFiltro().isEnabled()==false || 
+						allarme.getFiltro().getRuoloPorta()==null ||
+						allarme.getFiltro().getServizioApplicativoFruitore()==null;
+				
+				// Applicativo Fruitore
+				if( showRichiedenteApplicativo ){
+					de = new DataElement();
+					de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_SA_FRUITORE);
+					de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_SA_FRUITORE);
+					de.setType(DataElementType.CHECKBOX);
+					de.setSelected(allarme.getGroupBy().isServizioApplicativoFruitore());
+					de.setValue(allarme.getGroupBy().isServizioApplicativoFruitore()+"");
+					dati.addElement(de);
+				}
+				
+			}
+			else {
+			
+				// Richiedente API (Significa SoggettoMittente per le erogazioni, Applicativo e Identificativo Autenticato sia per le erogazioni che per le fruizioni)
+				de = new DataElement();
+				de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_RICHIEDENTE);
+				de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_RICHIEDENTE);
+				de.setType(DataElementType.CHECKBOX);
+				de.setSelected(allarme.getGroupBy().isIdentificativoAutenticato()); // uso isIdentificativoAutenticato come informazione equivalente a isServizioApplicativoFruitore e isSoggettoFruitore
+				de.setValue(allarme.getGroupBy().isIdentificativoAutenticato()+"");
+				dati.addElement(de);
+			
+			}
+			
+
+			// Token
+			
+			if(tokenAbilitato) {
+			
+				boolean first = this.isFirstTimeFromHttpParameters(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FIRST_TIME);
+				String token = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_TOKEN);
+				
+				String [] tokenSelezionatiDB = null;
+				if(allarme.getGroupBy().getToken()!=null && !"".equals(allarme.getGroupBy().getToken())) {
+					tokenSelezionatiDB = allarme.getGroupBy().getToken().split(",");
+				}
+				String [] tokenSelezionatiSenzaIssuer = null;
+				if(tokenSelezionatiDB!=null && tokenSelezionatiDB.length>0) {
+					List<String> l = new ArrayList<>();
+					for (int i = 0; i < tokenSelezionatiDB.length; i++) {
+						TipoCredenzialeMittente tipo = TipoCredenzialeMittente.valueOf(tokenSelezionatiDB[i]);
+						if(!TipoCredenzialeMittente.token_issuer.equals(tipo)) {
+							l.add(tokenSelezionatiDB[i]);
+						}
+					}
+					if(!l.isEmpty()) {
+						tokenSelezionatiSenzaIssuer = l.toArray(new String[1]);
+					}
+				}
+				boolean groupByToken = false;
+				if(first) {
+					groupByToken = (tokenSelezionatiDB!=null && tokenSelezionatiDB.length>0);
+				}
+				else {
+					groupByToken = ServletUtils.isCheckBoxEnabled(token);
+				}
+				
+				de = new DataElement();
+				de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_TOKEN);
+				de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_TOKEN);
+				de.setType(DataElementType.CHECKBOX);
+				de.setSelected(groupByToken); // uso isIdentificativoAutenticato come informazione equivalente a isServizioApplicativoFruitore e isSoggettoFruitore
+				de.setValue(groupByToken+"");
+				de.setPostBack_viaPOST(true);
+				dati.addElement(de);
+				
+				if(groupByToken) {
+					de = new DataElement();
+					de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_TOKEN_CLAIMS);
+					de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_TOKEN_CLAIMS);
+					de.setValues(CostantiControlStation.TOKEN_VALUES_WITHOUT_ISSUER);
+					de.setLabels(CostantiControlStation.LABEL_TOKEN_VALUES_WITHOUT_ISSUER);
+					de.setSelezionati(tokenSelezionatiSenzaIssuer);
+					de.setType(DataElementType.MULTI_SELECT);
+					de.setRows(4); 
+					de.setRequired(true);
+					dati.addElement(de);
+				}
+				
+			}
+			
+//			if(groupByKey){
+//			
+//				// per chiave
+//				
+//				if(allarme.getGroupBy().isInformazioneApplicativaEnabled()){
+//					de = new DataElement();
+//					de.setValue(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_PER_CHIAVE_ENABLED_NOTE);
+//					de.setType(DataElementType.NOTE);
+//					dati.addElement(de);
+//				}
+//				
+//				de = new DataElement();
+//				de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_PER_CHIAVE_ENABLED);
+//				if(allarme.getGroupBy().isInformazioneApplicativaEnabled()){
+//					de.setLabel(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_STATO);
+//				}
+//				else{
+//					//de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_PER_CHIAVE_ENABLED_LABEL);
+//					de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_PER_CHIAVE_ENABLED_LABEL);
+//					//de.setLabelRight(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_PER_CHIAVE_ENABLED_NOTE);
+//				}
+//				de.setType(DataElementType.CHECKBOX);
+//				de.setSelected(allarme.getGroupBy().isInformazioneApplicativaEnabled());
+//				de.setValue(allarme.getGroupBy().isInformazioneApplicativaEnabled()+"");
+//				de.setPostBack_viaPOST(true);
+//				dati.addElement(de);
+//				
+//				if(allarme.getGroupBy().isInformazioneApplicativaEnabled()){
+//					
+//					TipoFiltroApplicativo tipoChiaveGroupBy = null;
+//					if(allarme.getGroupBy().getInformazioneApplicativaTipo()!=null && !"".equals(allarme.getGroupBy().getInformazioneApplicativaTipo())){
+//						tipoChiaveGroupBy = TipoFiltroApplicativo.toEnumConstant(allarme.getGroupBy().getInformazioneApplicativaTipo());
+//					}
+//					if(tipoChiaveGroupBy==null){
+//						tipoChiaveGroupBy = TipoFiltroApplicativo.toEnumConstant(ConfigurazioneCostanti.ALLARMI_GROUPBY_PER_CHIAVE_TIPO_DEFAULT);
+//					}
+//					
+//					de = new DataElement();
+//					de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_PER_CHIAVE_TIPO);
+//					de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_PER_CHIAVE_TIPO);
+//					de.setValues(TipoFiltroApplicativo.toStringArray());
+//					de.setLabels(ConfigurazioneCostanti.LABEL_RATE_LIMITING_FILTRO_APPLICATIVO);
+//					de.setSelected(allarme.getGroupBy().getInformazioneApplicativaTipo());
+//					de.setValue(allarme.getGroupBy().getInformazioneApplicativaTipo());
+//					de.setType(DataElementType.SELECT);
+//					de.setPostBack_viaPOST(true);
+//					dati.addElement(de);
+//					
+//					de = new DataElement();
+//					de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_GROUPBY_PER_CHIAVE_NOME);
+//					de.setLabel(this.getLabelTipoInformazioneApplicativaGroupBy(allarme.getGroupBy().getInformazioneApplicativaTipo()));
+//					de.setValue(allarme.getGroupBy().getInformazioneApplicativaNome());
+//					if(tipoChiaveGroupBy==null || 
+//							TipoFiltroApplicativo.SOAPACTION_BASED.equals(tipoChiaveGroupBy)  || 
+//							TipoFiltroApplicativo.INDIRIZZO_IP.equals(tipoChiaveGroupBy) || 
+//							TipoFiltroApplicativo.INDIRIZZO_IP_FORWARDED.equals(tipoChiaveGroupBy)){
+//						de.setType(DataElementType.HIDDEN);
+//					}
+//					else if(TipoFiltroApplicativo.URLBASED.equals(tipoChiaveGroupBy) ||
+//							TipoFiltroApplicativo.CONTENT_BASED.equals(tipoChiaveGroupBy)) {
+//						de.setRequired(true);
+//						de.setType(DataElementType.TEXT_AREA);
+//					}
+//					else{
+//						de.setRequired(true);
+//						de.setType(DataElementType.TEXT_EDIT);
+//					}
+//					dati.addElement(de);
+//				}
+//				
+//			}
+		}
+	}
+	
+	public String toStringCompactAllarmeFilter(AllarmeFiltro filtro, RuoloPorta ruoloPorta, String nomePorta, ServiceBinding serviceBinding) throws Exception {
+		
+		boolean delegata = false;
+		boolean applicativa = false;
+		boolean configurazione = false;
+		if(ruoloPorta!=null) {
+			if(RuoloPorta.DELEGATA.equals(ruoloPorta)) {
+				delegata = (nomePorta!=null);
+			}
+			else if(RuoloPorta.APPLICATIVA.equals(ruoloPorta)) {
+				applicativa = (nomePorta!=null);
+			}
+		}
+		configurazione = !delegata && !applicativa;
+		
+		StringBuilder bf = new StringBuilder("");
+		if(filtro.isEnabled()){
+
+			if(configurazione) {
+				if( (filtro.getRuoloPorta()!=null && !RuoloPorta.ENTRAMBI.equals(filtro.getRuoloPorta())) ){
+					if(bf.length()>0){
+						bf.append(", ");
+					}
+					if(RuoloPorta.DELEGATA.equals(filtro.getRuoloPorta())){
+						bf.append(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_RUOLO_PDD).append(": ");
+						bf.append(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_RUOLO_PORTA_DELEGATA);
+					}
+					else if(RuoloPorta.APPLICATIVA.equals(filtro.getRuoloPorta())){
+						bf.append(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_RUOLO_PDD).append(": ");
+						bf.append(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_RUOLO_PORTA_APPLICATIVA);
+					}
+				}
+			}
+
+			if(configurazione) {
+				if( !(filtro.getProtocollo()==null || "".equals(filtro.getProtocollo())) ){
+					if(bf.length()>0){
+						bf.append(", ");
+					}
+					bf.append(CostantiControlStation.LABEL_PARAMETRO_PROTOCOLLO_COMPACT+": ");
+					bf.append(this.getLabelProtocollo(filtro.getProtocollo()));
+				}
+			}
+				
+			if(configurazione) {
+				if( !(filtro.getNomePorta()==null || "".equals(filtro.getNomePorta())) ){
+					if(bf.length()>0){
+						bf.append(", ");
+					}
+					bf.append(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_PORTA).append(": ");
+					bf.append(filtro.getNomePorta());
+				}
+			}
+						
+			if(configurazione) {
+				if(filtro.getRuoloErogatore()!=null) {
+					if(bf.length()>0){
+						bf.append(", ");
+					}
+					bf.append(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_RUOLO_EROGATORE).append(": ");
+					bf.append(filtro.getRuoloErogatore());
+				}
+				else if( !( (filtro.getTipoErogatore()==null || "".equals(filtro.getTipoErogatore())) 
+						||
+						(filtro.getNomeErogatore()==null || "".equals(filtro.getNomeErogatore())) ) ){
+					if(bf.length()>0){
+						bf.append(", ");
+					}
+					bf.append(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_EROGATORE_COMPACT).append(": ");
+					IDSoggetto idSoggetto = new IDSoggetto(filtro.getTipoErogatore(), filtro.getNomeErogatore());
+					bf.append(this.getLabelNomeSoggetto(idSoggetto));
+				}
+			}
+
+			if(configurazione) {
+				if( !(filtro.getTag()==null || "".equals(filtro.getTag())) ){
+					if(bf.length()>0){
+						bf.append(", ");
+					}
+					bf.append(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_TAG).append(": ");
+					bf.append(filtro.getTag());
+				}
+			}
+			
+			if(configurazione) {
+				if( !( (filtro.getTipoServizio()==null || "".equals(filtro.getTipoServizio())) 
+						||
+						(filtro.getNomeServizio()==null || "".equals(filtro.getNomeServizio()))
+						||
+						(filtro.getVersioneServizio()==null)
+						||
+						(filtro.getTipoErogatore()==null || "".equals(filtro.getTipoErogatore())) 
+						||
+						(filtro.getNomeErogatore()==null || "".equals(filtro.getNomeErogatore()))
+						) ){
+					if(bf.length()>0){
+						bf.append(", ");
+					}
+					bf.append(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_SERVIZIO).append(": ");
+					IDServizio idServizio = IDServizioFactory.getInstance().getIDServizioFromValues(filtro.getTipoServizio(), filtro.getNomeServizio(), 
+							filtro.getTipoErogatore(), filtro.getNomeErogatore(), 
+							filtro.getVersioneServizio());
+					bf.append(this.getLabelIdServizio(idServizio));
+				}
+			}
+			
+			if( !(filtro.getAzione()==null || "".equals(filtro.getAzione())) ){
+				if(bf.length()>0){
+					bf.append(", ");
+				}
+				bf.append(this.getLabelAzione(serviceBinding)).append(": ");
+				bf.append(filtro.getAzione());
+			}
+			
+			if(configurazione || applicativa) {
+				if(filtro.getRuoloFruitore()!=null) {
+					if(bf.length()>0){
+						bf.append(", ");
+					}
+					bf.append(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_RUOLO_FRUITORE).append(": ");
+					bf.append(filtro.getRuoloFruitore());
+				}
+				else if( !( (filtro.getTipoFruitore()==null || "".equals(filtro.getTipoFruitore())) 
+						||
+						(filtro.getNomeFruitore()==null || "".equals(filtro.getNomeFruitore())) ) ){
+					if(bf.length()>0){
+						bf.append(", ");
+					}
+					bf.append(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_FRUITORE_COMPACT).append(": ");
+					IDSoggetto idSoggetto = new IDSoggetto(filtro.getTipoFruitore(), filtro.getNomeFruitore());
+					bf.append(this.getLabelNomeSoggetto(idSoggetto));
+				}
+			}
+
+			if(configurazione || delegata) {
+				if( !(filtro.getServizioApplicativoFruitore()==null || "".equals(filtro.getServizioApplicativoFruitore())) ){
+					if(bf.length()>0){
+						bf.append(", ");
+					}
+					bf.append(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_SA_FRUITORE_COMPACT).append(": ");
+					bf.append(filtro.getServizioApplicativoFruitore());
+				}
+			}
+			
+		}
+		else{
+			bf.append(CostantiControlStation.LABEL_STATO_DISABILITATO);
+		}
+
+		if(bf.length()<=0 && (delegata || applicativa)) {
+			bf.append(CostantiControlStation.LABEL_STATO_DISABILITATO);
+		}
+		
+		return bf.toString();
+	}
+	
+	public void savePluginIntoSession(HttpSession session, Plugin plugin){
+		session.setAttribute(ConfigurazioneCostanti.SESSION_PARAMETRO_OLD_PLUGIN , plugin);
+	}
+	
+	public void removePluginFromSession(HttpSession session){
+		session.removeAttribute(ConfigurazioneCostanti.SESSION_PARAMETRO_OLD_PLUGIN);
+	}
+
+	public Plugin readPluginFromSession(HttpSession session){
+		Object obj = session.getAttribute(ConfigurazioneCostanti.SESSION_PARAMETRO_OLD_PLUGIN);
+
+		if(obj == null)
+			return null;
+
+		return (Plugin) obj;
+	}
+	
+	public void saveParametriIntoSession(HttpSession session, List<org.openspcoop2.monitor.sdk.parameters.Parameter<?>> parameters){
+		session.setAttribute(ConfigurazioneCostanti.SESSION_PARAMETRO_OLD_PARAMETRI , parameters);
+	}
+	
+	public void removeParametriFromSession(HttpSession session){
+		session.removeAttribute(ConfigurazioneCostanti.SESSION_PARAMETRO_OLD_PARAMETRI);
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<org.openspcoop2.monitor.sdk.parameters.Parameter<?>> readParametriFromSession(HttpSession session){
+		Object obj = session.getAttribute(ConfigurazioneCostanti.SESSION_PARAMETRO_OLD_PARAMETRI);
+
+		if(obj == null)
+			return null;
+
+		return (List<org.openspcoop2.monitor.sdk.parameters.Parameter<?>>) obj;
+	}
 }
