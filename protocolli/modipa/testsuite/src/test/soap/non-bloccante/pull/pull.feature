@@ -1,4 +1,4 @@
-Feature: Test Profilo Non Bloccante Pull
+Feature: Test Profilo Non Bloccante Pull Soap
 
 Background:
 

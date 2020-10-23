@@ -35,8 +35,8 @@ Then status 200
 And match response == read('client-request-response.xml')
 And match header GovWay-Conversation-ID == task_id
 
-* call check_traccia_richiesta ({tid: responseHeaders['GovWay-Transaction-ID'][0], reply_to: updated_reply_to })
-* call check_traccia_richiesta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], reply_to: updated_reply_to })
+* call check_traccia_richiesta ({tid: responseHeaders['GovWay-Transaction-ID'][0], reply_to: updated_reply_to, cid: task_id })
+* call check_traccia_richiesta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], reply_to: updated_reply_to, cid: task_id })
 
 * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_id })
 * call check_id_collaborazione ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], id_collaborazione: task_id })
@@ -72,8 +72,9 @@ Then status 200
 And match /Envelope/Header/X-Correlation-ID == responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]
 
 
-* call check_traccia_richiesta ({tid: responseHeaders['GovWay-Transaction-ID'][0], reply_to: updated_reply_to })
-* call check_traccia_richiesta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], reply_to: updated_reply_to })
+* def task_id = responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]
+* call check_traccia_richiesta ({tid: responseHeaders['GovWay-Transaction-ID'][0], reply_to: updated_reply_to, cid: task_id })
+* call check_traccia_richiesta ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], reply_to: updated_reply_to, cid: task_id })
 
 * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0] })
 * call check_id_collaborazione ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], id_collaborazione: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0] })
@@ -173,7 +174,21 @@ When method post
 Then status 500
 And match response == read('error-bodies/no-correlation-id-in-client-request-response.xml')
 
-* call check_traccia_richiesta ({tid: responseHeaders['GovWay-Transaction-ID'][0], reply_to: updated_reply_to })
+* def get_traccia = read('classpath:utils/get_traccia.js')
+* def traccia_to_match = 
+"""
+([
+    { name: 'ProfiloInterazione', value: 'nonBloccante' },
+    { name: 'ProfiloSicurezzaCanale', value: 'IDAC01' },
+    { name: 'ProfiloInterazioneAsincrona-Tipo', value: 'PUSH' },
+    { name: 'ProfiloInterazioneAsincrona-Ruolo', value: 'Richiesta' },
+    { name: 'ProfiloInterazioneAsincrona-ReplyTo', value: updated_reply_to }
+])
+"""
+* def tid = responseHeaders['GovWay-Transaction-ID'][0]
+* def result = get_traccia(tid, 'Richiesta') 
+* match result contains deep traccia_to_match
+
 * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: null })
 
 
