@@ -56,8 +56,8 @@ public class AllarmeHistoryFetch extends AbstractJDBCFetch {
 					jdbcParameterUtilities.readParameter(rs, "id", Long.class));
 				setParameter(object, "setEnabled", AllarmeHistory.model().ENABLED.getFieldType(),
 					jdbcParameterUtilities.readParameter(rs, "enabled", AllarmeHistory.model().ENABLED.getFieldType()));
-				setParameter(object, "set_value_stato", String.class,
-					jdbcParameterUtilities.readParameter(rs, "stato", AllarmeHistory.model().STATO.getFieldType())+"");
+				setParameter(object, "setStato", AllarmeHistory.model().STATO.getFieldType(),
+					jdbcParameterUtilities.readParameter(rs, "stato", AllarmeHistory.model().STATO.getFieldType()));
 				setParameter(object, "setDettaglioStato", AllarmeHistory.model().DETTAGLIO_STATO.getFieldType(),
 					jdbcParameterUtilities.readParameter(rs, "stato_dettaglio", AllarmeHistory.model().DETTAGLIO_STATO.getFieldType()));
 				setParameter(object, "setAcknowledged", AllarmeHistory.model().ACKNOWLEDGED.getFieldType(),
@@ -90,7 +90,7 @@ public class AllarmeHistoryFetch extends AbstractJDBCFetch {
 					this.getObjectFromMap(map,"id"));
 				setParameter(object, "setEnabled", AllarmeHistory.model().ENABLED.getFieldType(),
 					this.getObjectFromMap(map,"enabled"));
-				setParameter(object, "set_value_stato", String.class,
+				setParameter(object, "setStato", AllarmeHistory.model().STATO.getFieldType(),
 					this.getObjectFromMap(map,"stato"));
 				setParameter(object, "setDettaglioStato", AllarmeHistory.model().DETTAGLIO_STATO.getFieldType(),
 					this.getObjectFromMap(map,"dettaglio-stato"));

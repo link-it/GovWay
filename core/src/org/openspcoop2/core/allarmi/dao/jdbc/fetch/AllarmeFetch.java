@@ -89,10 +89,10 @@ public class AllarmeFetch extends AbstractJDBCFetch {
 					jdbcParameterUtilities.readParameter(rs, "script_command", Allarme.model().SCRIPT.COMMAND.getFieldType()));
 				setParameter(object.getScript(), "setArgs", Allarme.model().SCRIPT.ARGS.getFieldType(),
 					jdbcParameterUtilities.readParameter(rs, "script_args", Allarme.model().SCRIPT.ARGS.getFieldType()));
-				setParameter(object, "set_value_statoPrecedente", String.class,
-					jdbcParameterUtilities.readParameter(rs, "stato_precedente", Allarme.model().STATO_PRECEDENTE.getFieldType())+"");
-				setParameter(object, "set_value_stato", String.class,
-					jdbcParameterUtilities.readParameter(rs, "stato", Allarme.model().STATO.getFieldType())+"");
+				setParameter(object, "setStatoPrecedente", Allarme.model().STATO_PRECEDENTE.getFieldType(),
+					jdbcParameterUtilities.readParameter(rs, "stato_precedente", Allarme.model().STATO_PRECEDENTE.getFieldType()));
+				setParameter(object, "setStato", Allarme.model().STATO.getFieldType(),
+					jdbcParameterUtilities.readParameter(rs, "stato", Allarme.model().STATO.getFieldType()));
 				setParameter(object, "setDettaglioStato", Allarme.model().DETTAGLIO_STATO.getFieldType(),
 					jdbcParameterUtilities.readParameter(rs, "stato_dettaglio", Allarme.model().DETTAGLIO_STATO.getFieldType()));
 				setParameter(object, "setLasttimestampCreate", Allarme.model().LASTTIMESTAMP_CREATE.getFieldType(),
@@ -103,8 +103,8 @@ public class AllarmeFetch extends AbstractJDBCFetch {
 					jdbcParameterUtilities.readParameter(rs, "enabled", Allarme.model().ENABLED.getFieldType()));
 				setParameter(object, "setAcknowledged", Allarme.model().ACKNOWLEDGED.getFieldType(),
 					jdbcParameterUtilities.readParameter(rs, "acknowledged", Allarme.model().ACKNOWLEDGED.getFieldType()));
-				setParameter(object, "set_value_tipoPeriodo", String.class,
-					jdbcParameterUtilities.readParameter(rs, "periodo_tipo", Allarme.model().TIPO_PERIODO.getFieldType())+"");
+				setParameter(object, "setTipoPeriodo", Allarme.model().TIPO_PERIODO.getFieldType(),
+					jdbcParameterUtilities.readParameter(rs, "periodo_tipo", Allarme.model().TIPO_PERIODO.getFieldType()));
 				setParameter(object, "setPeriodo", Allarme.model().PERIODO.getFieldType(),
 					jdbcParameterUtilities.readParameter(rs, "periodo", Allarme.model().PERIODO.getFieldType()));
 				object.setFiltro(new AllarmeFiltro());
@@ -223,9 +223,9 @@ public class AllarmeFetch extends AbstractJDBCFetch {
 					this.getObjectFromMap(map,"script.command"));
 				setParameter(object.getScript(), "setArgs", Allarme.model().SCRIPT.ARGS.getFieldType(),
 					this.getObjectFromMap(map,"script.args"));
-				setParameter(object, "set_value_statoPrecedente", String.class,
+				setParameter(object, "setStatoPrecedente", Allarme.model().STATO_PRECEDENTE.getFieldType(),
 					this.getObjectFromMap(map,"stato-precedente"));
-				setParameter(object, "set_value_stato", String.class,
+				setParameter(object, "setStato", Allarme.model().STATO.getFieldType(),
 					this.getObjectFromMap(map,"stato"));
 				setParameter(object, "setDettaglioStato", Allarme.model().DETTAGLIO_STATO.getFieldType(),
 					this.getObjectFromMap(map,"dettaglio-stato"));
@@ -237,7 +237,7 @@ public class AllarmeFetch extends AbstractJDBCFetch {
 					this.getObjectFromMap(map,"enabled"));
 				setParameter(object, "setAcknowledged", Allarme.model().ACKNOWLEDGED.getFieldType(),
 					this.getObjectFromMap(map,"acknowledged"));
-				setParameter(object, "set_value_tipoPeriodo", String.class,
+				setParameter(object, "setTipoPeriodo", Allarme.model().TIPO_PERIODO.getFieldType(),
 					this.getObjectFromMap(map,"tipo-periodo"));
 				setParameter(object, "setPeriodo", Allarme.model().PERIODO.getFieldType(),
 					this.getObjectFromMap(map,"periodo"));
