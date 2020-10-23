@@ -42,5 +42,15 @@ Then status 401
     { name: 'ProfiloSicurezzaCanale', value: 'IDAC02' }
 ]
 """
-* def result = get_traccia(responseHeaders['GovWay-Transaction-ID'][0]) 
+* def result = get_traccia(responseHeaders['GovWay-Transaction-ID'][0], 'Richiesta') 
+* match result contains deep traccia_to_match
+
+* def traccia_to_match = 
+"""
+[
+    { name: 'ProfiloInterazione', value: 'bloccante' },
+    { name: 'ProfiloSicurezzaCanale', value: 'IDAC02' }
+]
+"""
+* def result = get_traccia(responseHeaders['GovWay-Transaction-ID'][0], 'Risposta') 
 * match result contains deep traccia_to_match

@@ -15,5 +15,8 @@ Scenario: Controllo traccia risposta IDAC01 su fruizione ed erogazione per profi
 ])
 """
 
- * def result = get_traccia(tid)
- * match result contains deep traccia_to_match
+* def result = get_traccia(tid, 'Richiesta')
+* match result contains deep traccia_to_match
+
+* def result = get_traccia(tid, 'Risposta')
+* match result contains deep traccia_to_match

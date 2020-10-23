@@ -4,14 +4,7 @@ Background:
 
 * url govway_base_path + '/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/ApiDemoBlockingRestHttpProxy/v1'
 * def check_traccia = read('classpath:utils/check-traccia-idac01.feature')
-* def get_traccia = read('classpath:utils/get_traccia.js')
-* def traccia_to_match = 
-"""
-[
-    { name: 'ProfiloInterazione', value: 'bloccante' },
-    { name: 'ProfiloSicurezzaCanale', value: 'IDAC01' }
-]
-"""
+
 
 Scenario: Test Demo con mock proxy
 

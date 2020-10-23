@@ -11,5 +11,5 @@ Scenario: Controllo id_collaborazione per profilo Non Bloccante Rest
 ])
 """
 
- * def result = get_id_collaborazione(tid) 
- * match result contains deep traccia_to_match
+* def result = get_id_collaborazione(tid) 
+* match result contains deep traccia_to_match

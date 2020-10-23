@@ -14,8 +14,14 @@ Scenario: Controllo traccia IDAC02 su fruizione ed erogazione
 ]
 """
 
- * def result = get_traccia(fruizione_tid) 
- * match result contains deep traccia_to_match
- 
- * def result = get_traccia(erogazione_tid) 
- * match result contains deep traccia_to_match
+* def result = get_traccia(fruizione_tid, 'Richiesta') 
+* match result contains deep traccia_to_match
+
+* def result = get_traccia(fruizione_tid, 'Risposta') 
+* match result contains deep traccia_to_match
+
+* def result = get_traccia(erogazione_tid, 'Richiesta') 
+* match result contains deep traccia_to_match
+
+* def result = get_traccia(erogazione_tid, 'Risposta') 
+* match result contains deep traccia_to_match
