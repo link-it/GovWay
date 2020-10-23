@@ -141,15 +141,15 @@ public class PddMonitorProperties {
 			return false; // default
 		}
 	}
-	public boolean isAttivoModuloAllarmi() throws Exception{
-		String tmp = this.appProperties.getProperty("modules.allarmi", false, true);
-		if(tmp!=null && !"".equals(tmp)) {
-			return "true".equalsIgnoreCase(tmp);
-		}
-		else {
-			return false; // default
-		}
-	}
+//	public boolean isAttivoModuloAllarmi() throws Exception{
+//		String tmp = this.appProperties.getProperty("modules.allarmi", false, true);
+//		if(tmp!=null && !"".equals(tmp)) {
+//			return "true".equalsIgnoreCase(tmp);
+//		}
+//		else {
+//			return false; // default
+//		}
+//	}
 	public boolean isAttivoModuloProcessi() throws Exception{
 		String tmp = this.appProperties.getProperty("modules.processi", false, true);
 		if(tmp!=null && !"".equals(tmp)) {
@@ -1005,6 +1005,10 @@ public class PddMonitorProperties {
 	}
 	
 	// allarmi
+	
+	public boolean isAllarmiEnabled() throws Exception{
+		return "true".equalsIgnoreCase(this.appProperties.getProperty("allarmi.enabled", true, true));
+	}
 	
 	public String getAllarmiConfigurazione() throws Exception{
 		return this.appProperties.getProperty("allarmi.configurazione", true, true);
