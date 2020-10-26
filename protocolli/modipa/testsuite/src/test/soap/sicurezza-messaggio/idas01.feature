@@ -446,3 +446,19 @@ When method post
 Then status 500
 And match response == read('error-bodies/ttl-scaduto-in-response.xml')
 And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidResponse'
+
+
+@applicativo-non-autorizzato
+Scenario: Viene utilizzato l'identificativo di un applicativo non autorizzato dalla erogazione
+
+* def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS01TrustStoreCA/v1'
+
+Given url soap_url
+And request read("request.xml")
+And header Content-Type = 'application/soap+xml'
+And header action = soap_url
+And header GovWay-TestSuite-Test-ID = 'applicativo-non-autorizzato'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01ExampleClient2', password: 'ApplicativoBlockingIDA01ExampleClient2' })
+When method post
+Then status 500
+And match response == read('error-bodies/applicativo-non-autorizzato.xml')

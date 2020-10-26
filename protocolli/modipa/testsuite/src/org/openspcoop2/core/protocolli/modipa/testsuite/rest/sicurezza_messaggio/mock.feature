@@ -25,6 +25,12 @@ Scenario: isTest('connettivita-base') || isTest('connettivita-base-default-trust
     * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
 
 
+Scenario: isTest('applicativo-non-autorizzato')
+
+    * def responseStatus = 200
+    * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
+
+
 
 Scenario: isTest('connettivita-base-no-sbustamento')
     # Controllo che al backend siano arrivate le informazioni di sicurezza

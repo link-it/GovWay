@@ -279,6 +279,15 @@ Scenario: isTest('low-ttl-erogazione')
     * match responseStatus == 200
 
     * java.lang.Thread.sleep(2000)
+
+
+Scenario: isTest('applicativo-non-autorizzato')
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01TrustStoreCA/v1')
+    * match responseStatus == 500
+    * match response == read('classpath:test/soap/sicurezza-messaggio/error-bodies/applicativo-non-autorizzato.xml')
+    * match header GovWay-Transaction-ErrorType == 'Authorization'
+
     
     
 ######################

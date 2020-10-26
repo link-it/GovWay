@@ -488,6 +488,10 @@ Scenario: isTest('manomissione-token-risposta')
 Scenario: isTest('applicativo-non-autorizzato')
 
     * karate.proceed(govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01AutenticazionePuntuale/v1')
+    * match responseStatus == 403
+    * match response == read('classpath:test/rest/sicurezza-messaggio/error-bodies/applicativo-example-client2-non-autorizzato.json')
+    * match header GovWay-Transaction-ErrorType == 'Authorization'
+
 
 
 ##############################
