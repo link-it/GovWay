@@ -56,6 +56,7 @@ Scenario: methodIs('post') && pathMatches('/tasks/queue') && karate.get('request
     * karate.proceed(url_invocazione_erogazione)
     * match responseStatus == 502
     * match response == problem
+    * match header GovWay-Transaction-ErrorType == 'InteroperabilityResponseManagementFailed'
 
 
 Scenario: methodIs('post') && pathMatches('/tasks/queue') && match_task('Test-Erogazione-Status-Not-202')
@@ -65,6 +66,8 @@ Scenario: methodIs('post') && pathMatches('/tasks/queue') && match_task('Test-Er
     * karate.proceed(url_invocazione_erogazione)
     * match responseStatus == 502
     * match response == problem
+    * match header GovWay-Transaction-ErrorType == 'InteroperabilityResponseManagementFailed'
+
 
 Scenario: methodIs('get') && pathMatches('/tasks/queue/{tid}') && karate.get('pathParams.tid') == 'Test-Erogazione-Invalid-Status-Request'
     
@@ -73,6 +76,7 @@ Scenario: methodIs('get') && pathMatches('/tasks/queue/{tid}') && karate.get('pa
     * karate.proceed(url_invocazione_erogazione)
     * match responseStatus == 502
     * match response == problem
+    * match header GovWay-Transaction-ErrorType == 'InteroperabilityResponseManagementFailed'
 
 Scenario: methodIs('get') && pathMatches('/tasks/queue/{tid}') && karate.get('pathParams.tid') == 'Test-Erogazione-Location-Removed-From-Status'
     * def problem = read('classpath:test/rest/non-bloccante/pull/error-bodies/no-location-from-status-erogazione.json')
@@ -80,6 +84,7 @@ Scenario: methodIs('get') && pathMatches('/tasks/queue/{tid}') && karate.get('pa
     * karate.proceed(url_invocazione_erogazione)
     * match responseStatus == 502
     * match response == problem
+    * match header GovWay-Transaction-ErrorType == 'InteroperabilityResponseManagementFailed'
 
 Scenario: methodIs('get') && pathMatches('/tasks/result/{tid}') && karate.get('pathParams.tid') == 'Test-Erogazione-Response-Not-200'
     * def problem = read('classpath:test/rest/non-bloccante/pull/error-bodies/task-response-not-200-erogazione.json')
@@ -87,43 +92,46 @@ Scenario: methodIs('get') && pathMatches('/tasks/result/{tid}') && karate.get('p
     * karate.proceed(url_invocazione_erogazione)
     * match responseStatus == 502
     * match response == problem
+    * match header GovWay-Transaction-ErrorType == 'InteroperabilityResponseManagementFailed'
 
 
 # TEST LATO EROGAZIONE SENZA LA DISCLOSURE DEGLI ERRORI DI INTEROPERABILITÀ
 
 Scenario: methodIs('post') && pathMatches('/tasks/queue') && karate.get('requestParams.testType[0]') == "Test-Erogazione-Request-Task-No-Location"
     # Qui viene testato lo stato 202 senza lo header location
-    
-    * def problem = read('classpath:test/rest/non-bloccante/pull/error-bodies/request-task-no-location-erogazione.json')
 
     * karate.proceed(url_invocazione_erogazione)
     * match responseStatus == 502
     * match response == problem_no_disclosure
-
+    * match header GovWay-Transaction-ErrorType == 'InvalidResponse'
 
 Scenario: methodIs('post') && pathMatches('/tasks/queue') && match_task('Test-Erogazione-Status-Not-202-No-Disclosure')
         
     * karate.proceed(url_invocazione_erogazione)
     * match responseStatus == 502
     * match response == problem_no_disclosure
+    * match header GovWay-Transaction-ErrorType == 'InvalidResponse'
 
 Scenario: methodIs('get') && pathMatches('/tasks/queue/{tid}') && karate.get('pathParams.tid') == 'Test-Erogazione-Invalid-Status-Request-No-Disclosure'
     
     * karate.proceed(url_invocazione_erogazione)
     * match responseStatus == 502
     * match response == problem_no_disclosure
+    * match header GovWay-Transaction-ErrorType == 'InvalidResponse'
 
 Scenario: methodIs('get') && pathMatches('/tasks/queue/{tid}') && karate.get('pathParams.tid') == 'Test-Erogazione-Location-Removed-From-Status-No-Disclosure'
 
     * karate.proceed(url_invocazione_erogazione)
     * match responseStatus == 502
     * match response == problem_no_disclosure
+    * match header GovWay-Transaction-ErrorType == 'InvalidResponse'
 
 Scenario: methodIs('get') && pathMatches('/tasks/result/{tid}') && karate.get('pathParams.tid') == 'Test-Erogazione-Response-Not-200-No-Disclosure'
 
     * karate.proceed(url_invocazione_erogazione)
     * match responseStatus == 502
     * match response == problem_no_disclosure
+    * match header GovWay-Transaction-ErrorType == 'InvalidResponse'
 
 Scenario:
     * karate.log('Scenario non matchato')

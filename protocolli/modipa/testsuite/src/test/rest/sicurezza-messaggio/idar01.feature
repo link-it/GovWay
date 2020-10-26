@@ -338,6 +338,7 @@ And request read('request.json')
 When method post
 Then status 400
 And match response == read('error-bodies/no-header-authorization.json')
+And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
 
 
 @no-token-fruizione
@@ -351,6 +352,8 @@ And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', p
 When method post
 Then status 502
 And match response == read('error-bodies/no-header-authorization-in-response.json')
+And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidResponse'
+
 
 
 @manomissione-token-richiesta
@@ -377,6 +380,8 @@ And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', p
 When method post
 Then status 502
 And match response == read('error-bodies/invalid-token-signature-in-response.json')
+And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidResponse'
+
 
 # TODO: NON FUNZIONA, La fruizione invece di arrabbiarsi lascia passare il payload modificato
 # USARE MODALITA' IDA03
@@ -430,6 +435,7 @@ And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', p
 When method post
 Then status 502
 And match response == read('error-bodies/ttl-scaduto-in-response.json')
+And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidResponse'
 
 
 # TODO: Non funziona, infatti all'erogazione viene identificato l'ApplicativoBlockingIDA01

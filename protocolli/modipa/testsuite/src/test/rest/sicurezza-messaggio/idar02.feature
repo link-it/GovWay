@@ -61,6 +61,8 @@ And header Authorization = client_token_header
 When method post
 Then status 409
 And match response == read('error-bodies/identificativo-token-riutilizzato.json')
+And match header GovWay-Transaction-ErrorType == 'Conflict'
+
 
 # Contattiamo la fruizione e le facciamo rispondere dal proxy con lo stesso token dell'erogazione
 
@@ -73,3 +75,4 @@ And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', p
 When method post
 Then status 502
 And match response == read('error-bodies/identificativo-token-riutilizzato-in-risposta.json')
+And match header GovWay-Transaction-ErrorType == 'ConflictResponse'

@@ -14,6 +14,7 @@ And request read('request.json')
 When method post
 Then status 400
 And match response == read('error-bodies/interoperability-invalid-request.json')
+And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
 
 
 @no-token-fruizione
@@ -27,6 +28,7 @@ And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', p
 When method post
 Then status 502
 And match response == read('error-bodies/invalid-response.json')
+And match header GovWay-Transaction-ErrorType == 'InvalidResponse'
 
 
 @manomissione-token-richiesta
@@ -53,6 +55,8 @@ And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', p
 When method post
 Then status 502
 And match response == read('error-bodies/invalid-response.json')
+And match header GovWay-Transaction-ErrorType == 'InvalidResponse'
+
 
 
 @low-ttl-fruizione
@@ -78,4 +82,6 @@ And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', p
 When method post
 Then status 502
 And match response == read('error-bodies/invalid-response.json')
+And match header GovWay-Transaction-ErrorType == 'InvalidResponse'
+
 

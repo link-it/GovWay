@@ -17,6 +17,7 @@ And request read('client-request.json')
 When method post
 Then status 502
 And match response == read('error-bodies/invalid-response-from-api-implementation.json')
+And match header GovWay-Transaction-ErrorType == 'InvalidResponse'
 
 
 
@@ -32,7 +33,7 @@ And request read('server-response.json')
 When method post
 Then status 400
 And match response == read('error-bodies/interop-invalid-request.json')
-
+And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
 
 * def url_fruizione_server_no_validazione = govway_base_path + "/rest/out/DemoSoggettoErogatore/DemoSoggettoFruitore/RestNonBlockingPushClientNoValidazione/v1"
 
@@ -43,6 +44,8 @@ And request read('server-response.json')
 When method post
 Then status 400
 And match response == read('error-bodies/bad-request.json')
+And match header GovWay-Transaction-ErrorType == 'BadRequest'
+
 
 
 @no-x-reply-to-in-client-request
@@ -56,3 +59,5 @@ And request read('client-request.json')
 When method post
 Then status 400
 And match response == read('error-bodies/interop-invalid-request.json')
+And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
+

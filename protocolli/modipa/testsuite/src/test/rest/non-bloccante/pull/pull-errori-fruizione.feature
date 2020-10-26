@@ -51,8 +51,8 @@ Scenario: Header Location che non corrisponde ad una URI
     Then status 502
     And match response == problem
     And match header GovWay-Conversation-ID == task_id
+    And match header GovWay-Transaction-ErrorType == 'InvalidResponseContent'
 
-    # * call check_traccia_richiesta ({tid: responseHeaders['GovWay-Transaction-ID'][0]}) CONTROLLA QUESTO
     * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_id })
 
 
@@ -69,6 +69,8 @@ Scenario: Test Fruizione con header location rimosso dal proxy
     When method post
     Then status 502
     And match response == problem
+    And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidResponse'
+
 
     * call check_traccia_richiesta ({tid: responseHeaders['GovWay-Transaction-ID'][0]})
 
@@ -87,6 +89,8 @@ Scenario: Richiesta processamento con stato diverso da 202
     Then status 502
     And match response == problem
     And match header GovWay-Conversation-ID == task_id
+    And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidResponse'
+
 
     * call check_traccia_richiesta ({tid: responseHeaders['GovWay-Transaction-ID'][0]})
     
@@ -106,6 +110,7 @@ Scenario: Richiesta stato operazione con stato http diverso da 200 e 303
     Then status 502
     And match response == problem
     And match header GovWay-Conversation-ID == task_id
+    And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidResponse'
 
     * call check_traccia_richiesta_stato ({tid: responseHeaders['GovWay-Transaction-ID'][0]})
 
@@ -134,6 +139,8 @@ Scenario: Richiesta stato operazione completata senza header location
     Then status 502
     And match response == problem
     And match header GovWay-Conversation-ID == task_id
+    And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidResponse'
+
 
     * call check_traccia_richiesta_stato ({tid: responseHeaders['GovWay-Transaction-ID'][0]})
     
@@ -153,6 +160,8 @@ Scenario: Ottenimento risorsa processata con stato diverso da 200 OK
     Then status 502
     And match response == problem
     And match header GovWay-Conversation-ID == task_id
+    And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidResponse'
+
 
     * call check_traccia_risposta ({tid: responseHeaders['GovWay-Transaction-ID'][0]})
 
