@@ -44,7 +44,9 @@ import com.intuit.karate.netty.FeatureServer;
 @RunWith(Karate.class)
 @KarateOptions( features = { 
     "classpath:test/rest/non-bloccante/push/push.feature",
+    "classpath:test/rest/non-bloccante/push/push-no-disclosure.feature",
     })
+
 public class NonBloccanteRestPushTest extends ConfigLoader { 
     
     private static FeatureServer server;
