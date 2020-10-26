@@ -232,6 +232,7 @@ Scenario: isTest('manomissione-token-richiesta')
     * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01/v1')
     * match responseStatus == 500
     * match response == read('classpath:test/soap/sicurezza-messaggio/error-bodies/manomissione-token-richiesta.xml')
+    * match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
 
 
 Scenario: isTest('manomissione-token-richiesta-no-disclosure')
@@ -242,6 +243,7 @@ Scenario: isTest('manomissione-token-richiesta-no-disclosure')
     * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01/v1')
     * match responseStatus == 500
     * match response == read('classpath:test/soap/sicurezza-messaggio/error-bodies/interoperability-invalid-request.xml')
+    * match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
 
 Scenario: isTest('manomissione-token-risposta')
 
@@ -258,6 +260,7 @@ Scenario: isTest('low-ttl-fruizione')
     * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01/v1')
     * match responseStatus == 500
     * match response == read('classpath:test/soap/sicurezza-messaggio/error-bodies/ttl-scaduto-in-request.xml')
+    * match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
 
 
 Scenario: isTest('low-ttl-fruizione-no-disclosure')
@@ -267,6 +270,7 @@ Scenario: isTest('low-ttl-fruizione-no-disclosure')
     * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01/v1')
     * match responseStatus == 500
     * match response == read('classpath:test/soap/sicurezza-messaggio/error-bodies/interoperability-invalid-request.xml')
+    * match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
     
 
 Scenario: isTest('low-ttl-erogazione')

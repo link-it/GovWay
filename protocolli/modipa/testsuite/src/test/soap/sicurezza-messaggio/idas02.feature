@@ -71,8 +71,12 @@ And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', p
 When method post
 Then status 500
 And match response == read("error-bodies/identificativo-token-riutilizzato-in-richiesta.xml")
+And match header GovWay-Transaction-ErrorType == 'Conflict'
 
 # Faccio in modo che il proxy risponda alla fruizione con la precedente risposta dell'erogazione
+# NOTA: Questo test non controlla in realtà che la fruizione si arrabbi perchè il token è stato riutilizzato,
+#   infatti si arrabbia perchè "IdentificativoBusta presente nel RiferimentoMessaggio non è valido", infatti
+# inviando nuovamente la stessa risposta, l'identificativo busta appartiene a quello della richiesta precedente.
 
 * def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS02/v1'
 
@@ -89,3 +93,4 @@ And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', p
 When method post
 Then status 500
 And match response == read("error-bodies/identificativo-token-riutilizzato-in-risposta.xml")
+And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidResponse'

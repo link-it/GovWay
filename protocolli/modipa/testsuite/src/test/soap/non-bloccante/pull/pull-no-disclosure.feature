@@ -30,6 +30,8 @@ Scenario: Richiesta applicativa senza X-Correlation-ID nella risposta
     When method post
     Then status 500
     And match response == problem
+    And match header GovWay-Transaction-ErrorType == 'InvalidResponse'
+
 
     * call check_traccia_richiesta ({tid: responseHeaders['GovWay-Transaction-ID'][0]})
     * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: null })
@@ -45,6 +47,7 @@ Scenario: Richiesta applicativa senza X-Correlation-ID nella risposta con valida
     When method post
     Then status 500
     And match response == problem
+    And match header GovWay-Transaction-ErrorType == 'InvalidResponse'
 
     * call check_traccia_richiesta ({tid: responseHeaders['GovWay-Transaction-ID'][0]})
     * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: null })
@@ -58,6 +61,7 @@ Scenario: Testa che la fruizione si arrabbi se nelle richieste non è presente l
     When method post
     Then status 500
     And match response == read('error-bodies/no-correlation-id-in-request-status-no-disclosure.xml')
+    And match header GovWay-Transaction-ErrorType == 'BadRequest'
     
 
     Given url url_no_validazione
@@ -65,6 +69,7 @@ Scenario: Testa che la fruizione si arrabbi se nelle richieste non è presente l
     When method post
     Then status 500
     And match response == read('error-bodies/no-correlation-id-in-request-status-no-disclosure.xml')
+    And match header GovWay-Transaction-ErrorType == 'BadRequest'
 
 
 @no-correlation-in-soap-header-erogazione
@@ -78,6 +83,8 @@ Scenario: Testa che l'erogazione si arrabbi se non è presente lo header soap X-
     When method post
     Then status 500
     And match response == read('error-bodies/no-correlation-id-in-request-status-erogazione-no-disclosure.xml')
+    And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
+
     
     # Invece l'erogazione segna la transazione ma non scrive il correlation ID
     * call check_traccia_richiesta_stato_no_cid ({tid: responseHeaders['GovWay-Transaction-ID'][0] })
@@ -89,6 +96,8 @@ Scenario: Testa che l'erogazione si arrabbi se non è presente lo header soap X-
     When method post
     Then status 500
     And match response == read('error-bodies/no-correlation-id-in-request-status-erogazione-no-disclosure.xml')
+    And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
+
     
     * call check_traccia_risposta_no_cid ({tid: responseHeaders['GovWay-Transaction-ID'][0]  })
     * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: null })

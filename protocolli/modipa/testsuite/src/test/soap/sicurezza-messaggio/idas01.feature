@@ -363,6 +363,7 @@ And header action = soap_url
 When method post
 Then status 500
 And match response == read('error-bodies/no-token-in-richiesta.xml')
+And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
 
 
 @no-token-to-fruizione
@@ -379,6 +380,7 @@ And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', p
 When method post
 Then status 500
 And match response == read('error-bodies/no-token-in-risposta.xml')
+And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidResponse'
 
 @manomissione-token-richiesta
 Scenario: Il payload del token di richiesta viene manomesso in modo da non far corrispondere più la firma e far arrabbiare l'erogazione
@@ -397,7 +399,7 @@ And match response == read('error-bodies/manomissione-token-richiesta.xml')
 
 
 @manomissione-token-risposta
-Scenario: Il payload del token di richiesta viene manomesso in modo da non far corrispondere più la firma e far arrabbiare l'erogazione
+Scenario: Il payload del token di risposta viene manomesso in modo da non far corrispondere più la firma e far arrabbiare la fruizione
 
 * def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS01/v1'
 
@@ -410,6 +412,7 @@ And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', p
 When method post
 Then status 500
 And match response == read('error-bodies/manomissione-token-risposta.xml')
+And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidResponse'
 
 
 @low-ttl-fruizione
@@ -442,3 +445,4 @@ And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', p
 When method post
 Then status 500
 And match response == read('error-bodies/ttl-scaduto-in-response.xml')
+And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidResponse'

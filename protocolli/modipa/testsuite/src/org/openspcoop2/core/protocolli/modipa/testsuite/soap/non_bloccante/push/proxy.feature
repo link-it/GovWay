@@ -101,9 +101,11 @@ Scenario: isTest('no-correlation-id-in-client-request-response')
 #
 #
 
-Scenario: isTest('no-correlation-id-in-server-response-request')
+Scenario: isTest('no-correlation-id-in-server-response-request-no-disclosure')
 
 * karate.proceed(url_erogazione_client_no_validazione)
+* match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
+
 
 # Catch all
 #

@@ -173,6 +173,8 @@ And request read('client-request.xml')
 When method post
 Then status 500
 And match response == read('error-bodies/no-correlation-id-in-client-request-response.xml')
+And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidResponse'
+
 
 * def get_traccia = read('classpath:utils/get_traccia.js')
 * def traccia_to_match = 
@@ -205,6 +207,8 @@ And request read('server-response-no-correlation-id.xml')
 When method post
 Then status 500
 And match response == read('error-bodies/no-correlation-id-in-server-response-request.xml')
+And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
+
 
 * call check_traccia_risposta_no_cid ({tid: responseHeaders['GovWay-Transaction-ID'][0], api_correlata: 'SoapNonBlockingPushServerNoValidazione v1' })
 * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: null })
@@ -235,6 +239,8 @@ And header action = url_erogazione_server_no_validazione
 When method post
 Then status 500
 And match response == read('error-bodies/no-x-reply-to-in-client-request.xml')
+And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
+
 
 * call check_traccia_richiesta_no_reply_to ({tid: responseHeaders['GovWay-Transaction-ID'][0] })
 * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: null })
