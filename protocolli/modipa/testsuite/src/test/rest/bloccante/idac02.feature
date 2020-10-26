@@ -5,7 +5,7 @@ Background:
 * def check_traccia = read('classpath:utils/check-traccia-idac02.feature')
 
 
-
+@autenticazione-client
 Scenario: IDAC02 Autenticazione Client
 
 * def body = read("classpath:bodies/modipa-blocking-sample-request.json")
@@ -21,6 +21,7 @@ And match response == resp
 * call check_traccia ({ fruizione_tid: responseHeaders['GovWay-Transaction-ID'][0], erogazione_tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0] })
 
 
+@autenticazione-client-assente
 Scenario: IDAC02 Autenticazione Client Assente
 
 * def body = read("classpath:bodies/modipa-blocking-sample-request.json")
