@@ -76,6 +76,10 @@ And match response == read("error-bodies/identificativo-token-riutilizzato-in-ri
 
 * def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS02/v1'
 
+# La richiesta normale fa generare un nuovo indentificativo, devo riusare la stessa richiesta
+# e la stessa risposta. Ma non è possibile perchè ad ogni richiesta la fruizione imposta nello header
+# un nuovo valore per il campo ReleaseTo che riferisce l'identificativo della precedente richiesta.
+
 Given url soap_url
 And request read("request.xml")
 And header Content-Type = 'application/soap+xml'
@@ -85,8 +89,3 @@ And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', p
 When method post
 Then status 500
 And match response == read("error-bodies/identificativo-token-riutilizzato-in-risposta.xml")
-
-# TODO: Chiedi ad andrea se il messaggio di errore è proprio quello di sopra, che mi dice infatti
-# "IdentificativoBusta presente nel RiferimentoMessaggio non è valido", però io mi aspetto che mi dica
-#  "La busta presenta un identificativo già processato in precedenza"
-# Non dovrebbe darmi invece un 502?

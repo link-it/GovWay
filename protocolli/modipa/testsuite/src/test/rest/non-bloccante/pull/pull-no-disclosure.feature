@@ -130,15 +130,19 @@ Scenario: Ottenimento risorsa processata con stato diverso da 200 OK
         destFileContentType: 'application/json' 
         })
     """
+    * def expected_location = url_erogazione_no_validazione + "/tasks/result/" + task_uid
+
     Given url url_invocazione
     And path 'tasks', 'queue', task_uid
     And params completed_params
     When method get
     Then status 303
-    And match header Location == url_erogazione_no_validazione + "/tasks/result/" + task_uid
+    And match header Location == expected_location
 
-    * call check_traccia_richiesta_stato ({tid: responseHeaders['GovWay-Transaction-ID'][0]})
-    * call check_traccia_richiesta_stato ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]})
+    * def additional_check = ([ { name: 'ProfiloInterazioneAsincrona-Location', value: expected_location } ])
+
+    * call check_traccia_richiesta_stato ({tid: responseHeaders['GovWay-Transaction-ID'][0], additional_check: additional_check})
+    * call check_traccia_richiesta_stato ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], additional_check: additional_check})
 
     * call check_id_collaborazione ({tid: responseHeaders['GovWay-Transaction-ID'][0], id_collaborazione: task_uid })
     * call check_id_collaborazione ({tid: responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0], id_collaborazione: task_uid })
