@@ -2,7 +2,6 @@ Feature: Server di mock contattato dalla erogazione, svolge il ruolo del TestSer
 
 Background: 
 
-    # TODO: Mettici una funzione in configure responseHeaders
     * configure responseHeaders = { 'Content-type': "application/soap+xml" }
 
 

@@ -3,6 +3,7 @@ Feature: Controllo traccia risposta IDAC01 su fruizione ed erogazione per profil
 Scenario: Controllo traccia risposta IDAC01 su fruizione ed erogazione per profilo Non Bloccante Rest
 
 
+# TODO: Ci manca ProfiloInterazioneAsincrona-ApiCorrelata
 * def get_traccia = read('classpath:utils/get_traccia.js')
 * def traccia_to_match = 
 """
@@ -12,9 +13,11 @@ Scenario: Controllo traccia risposta IDAC01 su fruizione ed erogazione per profi
     { name: 'ProfiloInterazioneAsincrona-Tipo', value: 'PUSH' },
     { name: 'ProfiloInterazioneAsincrona-Ruolo', value: 'Risposta' },
     { name: 'ProfiloInterazioneAsincrona-RisorsaCorrelata', value: 'POST /resources/{id_resource}/M' },
-    { name: 'ProfiloInterazioneAsincrona-CorrelationID', value: cid }
+    { name: 'ProfiloInterazioneAsincrona-CorrelationID', value: cid },
+    { name: 'ProfiloInterazioneAsincrona-ApiCorrelata', value: api_correlata }
 ])
 """
+
 
 * def result = get_traccia(tid, 'Richiesta')
 * match result contains deep traccia_to_match
