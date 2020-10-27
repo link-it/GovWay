@@ -508,6 +508,14 @@ Scenario: isTest('certificato-client-revocato')
     * match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
 
 
+Scenario: isTest('certificato-server-scaduto') 
+
+    * karate.proceed (govway_base_path + "/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01TrustStoreCACertificatoScaduto/v1")
+
+
+Scenario: isTest('certificato-server-revocato')
+
+    * karate.proceed (govway_base_path + "/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01TrustStoreCACertificatoRevocato/v1")
 
 ##############################
 #           IDAR02

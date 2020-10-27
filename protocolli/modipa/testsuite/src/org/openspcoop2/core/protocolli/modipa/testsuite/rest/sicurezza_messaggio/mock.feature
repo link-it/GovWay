@@ -70,6 +70,11 @@ Scenario: isTest('request-response-without-payload')
     * def responseStatus = 204
     * def response = {}
 
+
+Scenario: isTest('certificato-server-scaduto') || isTest('certificato-server-revocato')
+    * def responseStatus = 200
+    * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
+
 # catch all
 #
 #

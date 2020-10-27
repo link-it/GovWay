@@ -472,3 +472,31 @@ And header GovWay-TestSuite-Test-ID = 'certificato-client-revocato'
 And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01CertificatoRevocato', password: 'ApplicativoBlockingIDA01CertificatoRevocato' })
 When method post
 Then status 502
+
+
+@certificato-server-scaduto
+Scenario: Per l'erogazione viene utilizzato un certificato scaduto, facendo arrabbiare la fruizione
+
+Given url govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01TrustStoreCA/v1"
+And path 'resources', 1, 'M'
+And request read('request.json')
+And header GovWay-TestSuite-Test-ID = 'certificato-server-scaduto'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method post
+Then status 502
+And match response == read('error-bodies/certificato-server-scaduto.json')
+And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidResponse'
+
+
+@certificato-server-revocato
+Scenario: Per l'erogazione viene utilizzato un certificato scaduto, facendo arrabbiare la fruizione
+
+Given url govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01TrustStoreCA/v1"
+And path 'resources', 1, 'M'
+And request read('request.json')
+And header GovWay-TestSuite-Test-ID = 'certificato-server-revocato'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method post
+Then status 502
+And match response == read('error-bodies/certificato-server-revocato.json')
+And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidResponse'
