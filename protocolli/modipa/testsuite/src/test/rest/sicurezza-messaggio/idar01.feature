@@ -453,7 +453,7 @@ Then status 502
 @certificato-client-scaduto
 Scenario: Viene utilizzato un applicativo con il certificato scaduto, con l'erogazione che si arrabbia
 
-Given url govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01/v1"
+Given url govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01TrustStoreCA/v1"
 And path 'resources', 1, 'M'
 And request read('request.json')
 And header GovWay-TestSuite-Test-ID = 'certificato-client-scaduto'
@@ -465,7 +465,7 @@ Then status 502
 @certificato-client-revocato
 Scenario: Viene utilizzato un applicativo con il certificato revocato, facendo arrabbiare l'erogazione
 
-Given url govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01/v1"
+Given url govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01TrustStoreCA/v1"
 And path 'resources', 1, 'M'
 And request read('request.json')
 And header GovWay-TestSuite-Test-ID = 'certificato-client-revocato'

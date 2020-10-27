@@ -465,7 +465,7 @@ And match response == read('error-bodies/applicativo-non-autorizzato.xml')
 @certificato-client-scaduto
 Scenario: Viene utilizzato un applicativo con il certificato scaduto, con l'erogazione che si arrabbia
 
-* def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS01/v1'
+* def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS01TrustStoreCA/v1'
 
 Given url soap_url
 And request read("request.xml")
@@ -481,7 +481,7 @@ And match response == read("error-bodies/certificato-client-scaduto.xml")
 @certificato-client-revocato
 Scenario: Viene utilizzato un applicativo con il certificato revocato, facendo arrabbiare l'erogazione
 
-* def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS01/v1'
+* def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS01TrustStoreCA/v1'
 
 Given url soap_url
 And request read("request.xml")

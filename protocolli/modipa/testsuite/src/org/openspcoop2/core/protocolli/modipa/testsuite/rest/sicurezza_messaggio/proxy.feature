@@ -494,7 +494,7 @@ Scenario: isTest('applicativo-non-autorizzato')
 
 Scenario: isTest('certificato-client-scaduto')
 
-    * karate.proceed (govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01/v1')
+    * karate.proceed (govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01TrustStoreCA/v1')
     * match responseStatus == 400
     * match response == read('classpath:test/rest/sicurezza-messaggio/error-bodies/certificato-client-scaduto.json')
     * match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
@@ -502,9 +502,10 @@ Scenario: isTest('certificato-client-scaduto')
 
 Scenario: isTest('certificato-client-revocato')
 
-    * karate.proceed (govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01/v1')
-    * match responseStatus == 401
-    * match response == "asda"
+    * karate.proceed (govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01TrustStoreCA/v1')
+    * match responseStatus == 400
+    * match response == read('classpath:test/rest/sicurezza-messaggio/error-bodies/certificato-client-revocato.json')
+    * match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
 
 
 
