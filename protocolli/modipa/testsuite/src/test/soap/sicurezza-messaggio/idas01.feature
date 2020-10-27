@@ -12,19 +12,17 @@ Background:
 @connettivita-base
 Scenario: Test connettività base
 
-* def body = read("request.xml")
-* def resp = read("response.xml")
 * def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS01/v1'
 
 Given url soap_url
-And request body
+And request read("request.xml")
 And header Content-Type = 'application/soap+xml'
 And header action = soap_url
 And header GovWay-TestSuite-Test-ID = 'connettivita-base'
 And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
 When method post
 Then status 200
-And match response == resp
+And match response == read("response.xml")
 
 * def karateCache = Java.type('org.openspcoop2.core.protocolli.modipa.testsuite.KarateCache')
 * xml client_request = karateCache.get("Client-Request")
@@ -462,3 +460,35 @@ And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01Exam
 When method post
 Then status 500
 And match response == read('error-bodies/applicativo-non-autorizzato.xml')
+
+
+@certificato-client-scaduto
+Scenario: Viene utilizzato un applicativo con il certificato scaduto, con l'erogazione che si arrabbia
+
+* def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS01/v1'
+
+Given url soap_url
+And request read("request.xml")
+And header Content-Type = 'application/soap+xml'
+And header action = soap_url
+And header GovWay-TestSuite-Test-ID = 'certificato-client-scaduto'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01CertificatoScaduto', password: 'ApplicativoBlockingIDA01CertificatoScaduto' })
+When method post
+Then status 500
+And match response == read("error-bodies/certificato-client-scaduto.xml")
+
+
+@certificato-client-revocato
+Scenario: Viene utilizzato un applicativo con il certificato revocato, facendo arrabbiare l'erogazione
+
+* def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS01/v1'
+
+Given url soap_url
+And request read("request.xml")
+And header Content-Type = 'application/soap+xml'
+And header action = soap_url
+And header GovWay-TestSuite-Test-ID = 'certificato-client-revocato'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01CertificatoRevocato', password: 'ApplicativoBlockingIDA01CertificatoRevocato' })
+When method post
+Then status 500
+And match response == read("error-bodies/certificato-client-revocato.xml")

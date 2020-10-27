@@ -33,8 +33,7 @@ Scenario: isTest('connettivita-base')
 
     * call checkToken ({token: requestHeaders.Authorization[0], match_to: client_token_match })
 
-    * def url_invocazione_erogazione = govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01/v1'
-    * karate.proceed (url_invocazione_erogazione)
+    * karate.proceed (govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01/v1')
     
 
     * def server_token_match =
@@ -491,6 +490,21 @@ Scenario: isTest('applicativo-non-autorizzato')
     * match responseStatus == 403
     * match response == read('classpath:test/rest/sicurezza-messaggio/error-bodies/applicativo-example-client2-non-autorizzato.json')
     * match header GovWay-Transaction-ErrorType == 'Authorization'
+
+
+Scenario: isTest('certificato-client-scaduto')
+
+    * karate.proceed (govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01/v1')
+    * match responseStatus == 400
+    * match response == read('classpath:test/rest/sicurezza-messaggio/error-bodies/certificato-client-scaduto.json')
+    * match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
+
+
+Scenario: isTest('certificato-client-revocato')
+
+    * karate.proceed (govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01/v1')
+    * match responseStatus == 401
+    * match response == "asda"
 
 
 

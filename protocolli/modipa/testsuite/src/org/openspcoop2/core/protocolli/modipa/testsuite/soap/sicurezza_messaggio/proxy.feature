@@ -288,6 +288,20 @@ Scenario: isTest('applicativo-non-autorizzato')
     * match response == read('classpath:test/soap/sicurezza-messaggio/error-bodies/applicativo-non-autorizzato.xml')
     * match header GovWay-Transaction-ErrorType == 'Authorization'
 
+Scenario: isTest('certificato-client-scaduto')
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01/v1')
+    * match responseStatus == 500
+    * match response == read('classpath:test/soap/sicurezza-messaggio/error-bodies/certificato-client-scaduto.xml')
+    * match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
+
+Scenario: isTest('certificato-client-revocato')
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01/v1')
+    * match responseStatus == 500
+    * match response == read('classpath:test/soap/sicurezza-messaggio/error-bodies/certificato-client-scaduto.xml')
+    * match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
+
     
     
 ######################

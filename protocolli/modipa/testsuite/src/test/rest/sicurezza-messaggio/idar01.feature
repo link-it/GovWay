@@ -448,3 +448,27 @@ And header GovWay-TestSuite-Test-ID = 'applicativo-non-autorizzato'
 And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01ExampleClient2', password: 'ApplicativoBlockingIDA01ExampleClient2' })
 When method post
 Then status 502
+
+
+@certificato-client-scaduto
+Scenario: Viene utilizzato un applicativo con il certificato scaduto, con l'erogazione che si arrabbia
+
+Given url govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01/v1"
+And path 'resources', 1, 'M'
+And request read('request.json')
+And header GovWay-TestSuite-Test-ID = 'certificato-client-scaduto'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01CertificatoScaduto', password: 'ApplicativoBlockingIDA01CertificatoScaduto' })
+When method post
+Then status 502
+
+
+@certificato-client-revocato
+Scenario: Viene utilizzato un applicativo con il certificato revocato, facendo arrabbiare l'erogazione
+
+Given url govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01/v1"
+And path 'resources', 1, 'M'
+And request read('request.json')
+And header GovWay-TestSuite-Test-ID = 'certificato-client-revocato'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01CertificatoRevocato', password: 'ApplicativoBlockingIDA01CertificatoRevocato' })
+When method post
+Then status 502
