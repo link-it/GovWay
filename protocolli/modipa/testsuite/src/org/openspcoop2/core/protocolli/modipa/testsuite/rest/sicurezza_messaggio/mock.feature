@@ -17,7 +17,7 @@ Background:
     * configure responseHeaders = confHeaders
 
 
-Scenario: isTest('connettivita-base') || isTest('connettivita-base-default-trustore') || isTest('connettivita-base-truststore-ca') || isTest('disabled-security-on-action') || isTest('enabled-security-on-action') || isTest('riferimento-x509-x5u-x5t') || isTest('riferimento-x509-x5t-x5u') || isTest('riferimento-x509-x5cx5t-x5cx5t') || isTest('manomissione-payload-risposta') || isTest('low-ttl-erogazione') || isTest('manomissione-token-risposta') || isTest('connettivita-base-idar02') || isTest('riutilizzo-token')
+Scenario: isTest('connettivita-base') || isTest('connettivita-base-default-trustore') || isTest('connettivita-base-truststore-ca') || isTest('disabled-security-on-action') || isTest('enabled-security-on-action') || isTest('riferimento-x509-x5u-x5t') || isTest('riferimento-x509-x5t-x5u') || isTest('riferimento-x509-x5cx5t-x5cx5t') || isTest('manomissione-payload-risposta') || isTest('low-ttl-erogazione') || isTest('manomissione-token-risposta') || isTest('connettivita-base-idar02') || isTest('riutilizzo-token') || isTest('manomissione-token-risposta-idar03')
     
     # Controllo che al server non siano arrivate le informazioni di sicurezza
     * match requestHeaders['Authorization'] == '#notpresent'
@@ -74,6 +74,19 @@ Scenario: isTest('request-response-without-payload')
 Scenario: isTest('certificato-server-scaduto') || isTest('certificato-server-revocato')
     * def responseStatus = 200
     * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
+
+
+##########################################
+#                IDAR03                  #
+##########################################
+
+Scenario: isTest('connettivita-base-idar03') || isTest('manomissione-header-http-firmati-risposta')
+
+    * match requestHeaders['Authorization'] == '#notpresent'
+    * def responseStatus = 200
+    * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
+    * def responseHeaders = { IDAR03TestHeader: "TestHeaderResponse" }
+
 
 # catch all
 #

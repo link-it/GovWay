@@ -383,35 +383,6 @@ And match response == read('error-bodies/invalid-token-signature-in-response.jso
 And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidResponse'
 
 
-# TODO: NON FUNZIONA, La fruizione invece di arrabbiarsi lascia passare il payload modificato
-# USARE MODALITA' IDA03
-# @manomissione-payload-risposta
-# Scenario: Il payload della risposta viene modificato in modo da non far coincidere la firma e fare arrabbiare la fruizione
-
-# Given url govway_base_path + '/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01/v1'
-# And path 'resources', 1, 'M'
-# And request read('request.json')
-# And header GovWay-TestSuite-Test-ID = 'manomissione-payload-risposta'
-# And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
-# When method post
-# Then status 502
-# And match response == read('error-bodies/no-header-authorization-in-response.json')
-
-
-# # TODO: Anche questo non funziona, sto modificando il payload e tutto continua a funzionare.
-# @manomissione-payload-richiesta
-# Scenario: Il payload della richiesta viene modificato in modo da non far coincidere la firma e fare arrabbiare l'erogazione
-
-# Given url govway_base_path + '/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01/v1'
-# And path 'resources', 1, 'M'
-# And request read('request.json')
-# And header GovWay-TestSuite-Test-ID = 'manomissione-payload-richiesta'
-# And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
-# When method post
-# Then status 502
-# And match response == read('error-bodies/no-header-authorization-in-response.json')
-
-
 @low-ttl-fruizione
 Scenario: Il TTL del token della fruizione (richiesta) viene superato e l'erogazione si arrabbia
 
