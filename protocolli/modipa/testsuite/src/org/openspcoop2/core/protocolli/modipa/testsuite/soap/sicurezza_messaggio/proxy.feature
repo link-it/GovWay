@@ -302,6 +302,16 @@ Scenario: isTest('certificato-client-revocato')
     * match response == read('classpath:test/soap/sicurezza-messaggio/error-bodies/certificato-client-revocato.xml')
     * match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
 
+
+Scenario: isTest('certificato-server-scaduto')
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01TrustStoreCACertificatoScaduto/v1')
+
+
+Scenario: isTest('certificato-server-revocato')
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS01TrustStoreCACertificatoRevocato/v1')
+
     
     
 ######################

@@ -492,3 +492,37 @@ And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01Cert
 When method post
 Then status 500
 And match response == read("error-bodies/certificato-client-revocato.xml")
+
+
+@certificato-server-scaduto
+Scenario: Per l'erogazione viene utilizzato un certificato scaduto, facendo arrabbiare la fruizione
+
+* def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS01TrustStoreCA/v1'
+
+Given url soap_url
+And request read("request.xml")
+And header Content-Type = 'application/soap+xml'
+And header action = soap_url
+And header GovWay-TestSuite-Test-ID = 'certificato-server-scaduto'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method post
+Then status 500
+And match response == read("error-bodies/certificato-server-scaduto.xml")
+And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidResponse'
+
+
+@certificato-server-revocato
+Scenario: Per l'erogazione viene utilizzato un certificato revocato, facendo arrabbiare la fruizione
+
+* def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS01TrustStoreCA/v1'
+
+Given url soap_url
+And request read("request.xml")
+And header Content-Type = 'application/soap+xml'
+And header action = soap_url
+And header GovWay-TestSuite-Test-ID = 'certificato-server-revocato'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method post
+Then status 500
+And match response == read("error-bodies/certificato-server-revocato.xml")
+And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidResponse'

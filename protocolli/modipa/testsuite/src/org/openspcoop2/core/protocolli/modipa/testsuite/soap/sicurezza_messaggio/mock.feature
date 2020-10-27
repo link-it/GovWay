@@ -62,6 +62,10 @@ Scenario: isTest('enabled-security-on-action') && bodyPath('/Envelope/Body/MRequ
     * def responseStatus = 200
     * def response = read('classpath:test/soap/sicurezza-messaggio/response-op.xml')
 
+Scenario: isTest('certificato-server-scaduto') || isTest('certificato-server-revocato')
+    * def responseStatus = 200
+    * def response = read('classpath:test/soap/sicurezza-messaggio/response.xml')
+
 # catch all
 #
 #
