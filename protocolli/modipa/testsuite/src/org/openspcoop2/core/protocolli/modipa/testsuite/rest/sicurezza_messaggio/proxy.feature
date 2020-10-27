@@ -688,6 +688,125 @@ Scenario: isTest('manomissione-header-http-firmati-risposta')
     * match responseStatus == 200
     * set responseHeaders['IDAR03TestHeader'][0] = 'tampered_content'
 
+
+
+##########################
+#       IDAR0302         #
+##########################
+
+Scenario: isTest('connettivita-base-idar0302')
+
+    * def client_token_match = 
+    """
+    ({
+        header: { kid: 'ExampleClient1' },
+        payload: { 
+            aud: 'testsuite',
+            client_id: 'DemoSoggettoFruitore/ApplicativoBlockingIDA01',
+            iss: 'DemoSoggettoFruitore',
+            sub: 'ApplicativoBlockingIDA01',
+            signed_headers: [
+                { digest: '#string' },
+                { 'content-type': 'application\/json; charset=UTF-8' },
+                { idar03testheader: 'TestHeaderRequest' }
+            ]
+        }
+    })
+    """
+    * call checkToken ({token: requestHeaders.Authorization[0], match_to: client_token_match })
+
+    * karate.proceed (govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR0302/v1')
+    
+    * def request_token = decodeToken(requestHeaders.Authorization[0])
+    * def request_digest = get request_token $.payload.signed_headers..digest
+
+    * match requestHeaders['Digest'][0] == request_digest[0]
+
+    * def server_token_match =
+    """
+    ({
+        header: { kid: 'ExampleServer'},
+        payload: {
+            aud: 'DemoSoggettoFruitore/ApplicativoBlockingIDA01',
+            client_id: 'RestBlockingIDAR0302/v1',
+            iss: 'DemoSoggettoErogatore',
+            sub: 'RestBlockingIDAR0302/v1',
+            signed_headers: [
+                { digest: '#string' },
+                { 'content-type': 'application\/json' },
+                { idar03testheader: 'TestHeaderResponse' }
+            ],
+            request_digest: request_digest[0]
+        }
+    })
+    """
+    * call checkToken ({token: responseHeaders.Authorization[0], match_to: server_token_match  })
+
+    * def response_token = decodeToken(responseHeaders.Authorization[0])
+    * def response_digest = get response_token $.payload.signed_headers..digest
+    
+    * match responseHeaders['Digest'][0] == response_digest[0]
+
+    * def newHeaders = 
+    """
+    ({
+        'GovWay-TestSuite-GovWay-Client-Token': requestHeaders.Authorization[0],
+        'GovWay-TestSuite-GovWay-Server-Token': responseHeaders.Authorization[0],
+    })
+    """
+    * def responseHeaders = karate.merge(responseHeaders,newHeaders)
+
+
+Scenario: isTest('manomissione-token-richiesta-idar0302')
+
+    * set requestHeaders['Authorization'][0] = tamper_token(requestHeaders['Authorization'][0])
+    * karate.proceed(govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR0302/v1')
+    * match responseStatus == 400
+    * match response == read('classpath:test/rest/sicurezza-messaggio/error-bodies/invalid-token-signature-in-request.json')
+    * match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
+
+
+Scenario: isTest('manomissione-token-risposta-idar0302')
+
+    * karate.proceed(govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR0302/v1')
+    
+    * set responseHeaders['Authorization'][0] = tamper_token(responseHeaders['Authorization'][0])
+
+
+Scenario: isTest('manomissione-payload-richiesta-idar0302')
+
+    * def c = request
+    * set c.nuovo_campo = "pippa"
+
+    * karate.proceed(govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR0302/v1')
+    * match responseStatus == 400
+    * match response == read('classpath:test/rest/sicurezza-messaggio/error-bodies/manomissione-payload-richiesta.json')
+    * match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
+
+
+Scenario: isTest('manomissione-payload-risposta-idar0302')
+
+    * karate.proceed (govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR0302/v1')
+    * match responseStatus == 200
+
+    * set response.nuovo_campo = "pippa"
+
+
+Scenario: isTest('manomissione-header-http-firmati-richiesta-idar0302')
+
+    * set requestHeaders['IDAR03TestHeader'][0] = 'tampered_content'
+    * karate.proceed (govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR0302/v1')
+    * match responseStatus == 400
+    * match response == read('classpath:test/rest/sicurezza-messaggio/error-bodies/manomissione-header-http-firmati-richiesta.json')
+    * match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
+
+
+Scenario: isTest('manomissione-header-http-firmati-risposta-idar0302')
+
+    * karate.proceed (govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR0302/v1')
+    * match responseStatus == 200
+    * set responseHeaders['IDAR03TestHeader'][0] = 'tampered_content'
+
 # catch all
 #
 #
