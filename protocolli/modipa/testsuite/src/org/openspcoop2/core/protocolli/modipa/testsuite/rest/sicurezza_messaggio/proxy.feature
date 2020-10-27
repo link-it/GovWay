@@ -689,6 +689,22 @@ Scenario: isTest('manomissione-header-http-firmati-risposta')
     * set responseHeaders['IDAR03TestHeader'][0] = 'tampered_content'
 
 
+Scenario: isTest('assenza-header-digest-richiesta')
+
+    * remove requestHeaders['Digest']
+    * karate.proceed (govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR03/v1')
+    
+    * match responseStatus == 400
+    * match response == read('classpath:test/rest/sicurezza-messaggio/error-bodies/assenza-header-digest-richiesta.json')
+    * match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
+
+
+Scenario: isTest('assenza-header-digest-risposta')
+    
+    * karate.proceed (govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR03/v1')
+    * remove responseHeaders['Digest']
+
+
 
 ##########################
 #       IDAR0302         #
@@ -806,6 +822,41 @@ Scenario: isTest('manomissione-header-http-firmati-risposta-idar0302')
     * karate.proceed (govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR0302/v1')
     * match responseStatus == 200
     * set responseHeaders['IDAR03TestHeader'][0] = 'tampered_content'
+
+
+Scenario: isTest('assenza-header-digest-richiesta-idar0302')
+
+    * remove requestHeaders['Digest']
+    * karate.proceed (govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR0302/v1')
+    
+    * match responseStatus == 400
+    * match response == read('classpath:test/rest/sicurezza-messaggio/error-bodies/assenza-header-digest-richiesta.json')
+    * match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
+
+
+Scenario: isTest('assenza-header-digest-risposta-idar0302')
+    
+    * karate.proceed (govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR0302/v1')
+    * remove responseHeaders['Digest']
+
+Scenario: isTest('riutilizzo-token-idar0302')
+
+    * karate.proceed (govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR0302/v1')
+    
+    * def newHeaders = 
+    """
+    ({
+        'GovWay-TestSuite-GovWay-Client-Token': requestHeaders.Authorization[0],
+        'GovWay-TestSuite-GovWay-Server-Token': responseHeaders.Authorization[0],
+    })
+    """
+    * def responseHeaders = karate.merge(responseHeaders,newHeaders)
+
+Scenario: isTest('riutilizzo-token-risposta-idar0302')
+
+    * def responseHeaders =  ({ 'Authorization': requestHeaders['GovWay-TestSuite-Server-Token'][0] })
+    * def responseStatus = 200
+    * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
 
 # catch all
 #

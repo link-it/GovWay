@@ -88,6 +88,12 @@ Scenario: isTest('connettivita-base-idar03') || isTest('manomissione-header-http
     * def responseHeaders = { IDAR03TestHeader: "TestHeaderResponse" }
 
 
+Scenario: isTest('assenza-header-digest-risposta')
+    
+    * def responseStatus = 200
+    * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
+
+
 ##########################################
 #                IDAR0302                #
 ##########################################
@@ -99,6 +105,12 @@ Scenario: isTest('connettivita-base-idar0302') || isTest('manomissione-header-ht
     * def responseStatus = 200
     * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
     * def responseHeaders = { IDAR03TestHeader: "TestHeaderResponse" }
+
+
+Scenario: isTest('assenza-header-digest-risposta-idar0302') || isTest('riutilizzo-token-idar0302')
+    
+    * def responseStatus = 200
+    * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
 
 
 # catch all

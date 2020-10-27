@@ -4,6 +4,7 @@ Scenario: Controllo traccia IDAR01
 
 
 * def profilo_sicurezza = karate.get('profilo_sicurezza', 'IDAR01')
+* def other_checks = karate.get('other_checks', [])
 
 * def get_traccia = read('classpath:utils/get_traccia.js')
 * def traccia_to_match = 
@@ -24,6 +25,8 @@ Scenario: Controllo traccia IDAR01
     { name: 'ProfiloSicurezzaMessaggio-X509-Issuer', value: 'CN=ExampleCA, O=Example, L=Pisa, ST=Italy, C=IT' }
 ])
 """
+
+* def traccia_to_match = karate.append(traccia_to_match, other_checks)
 
  * def result = get_traccia(tid,tipo) 
  * match result contains deep traccia_to_match
