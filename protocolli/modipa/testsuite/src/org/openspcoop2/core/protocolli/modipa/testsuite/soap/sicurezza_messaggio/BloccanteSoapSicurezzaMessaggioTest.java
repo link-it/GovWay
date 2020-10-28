@@ -48,6 +48,8 @@ import com.intuit.karate.netty.FeatureServer;
     "classpath:test/soap/sicurezza-messaggio/idas01.feature",
     "classpath:test/soap/sicurezza-messaggio/idas01-no-disclosure.feature",
     "classpath:test/soap/sicurezza-messaggio/idas02.feature",
+    "classpath:test/soap/sicurezza-messaggio/idas03.feature",
+    "classpath:test/soap/sicurezza-messaggio/idas0302.feature",
     })
 
 public class BloccanteSoapSicurezzaMessaggioTest extends ConfigLoader {

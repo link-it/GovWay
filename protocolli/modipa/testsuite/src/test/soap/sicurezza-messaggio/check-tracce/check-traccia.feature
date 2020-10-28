@@ -7,6 +7,8 @@ Scenario: Controllo traccia IDAS01
 
 * def profilo_sicurezza = karate.get('profilo_sicurezza', 'IDAS01')
 
+* def other_checks = karate.get('other_checks', [])
+
 * def traccia_to_match = 
 """
 ([
@@ -22,6 +24,8 @@ Scenario: Controllo traccia IDAS01
     { name: 'ProfiloSicurezzaMessaggio-MessageId', value: karate.xmlPath(body, '/Envelope/Header/MessageID') },
 ])
 """
+
+* def traccia_to_match = karate.append(traccia_to_match, other_checks)
 
  * def result = get_traccia(tid,tipo) 
  * match result contains deep traccia_to_match

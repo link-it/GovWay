@@ -340,6 +340,42 @@ Scenario: isTest('riutilizzo-token')
     * def responseHeaders = { 'Content-type': "application/soap+xml" }
 
 
+
+#####################################################
+#                       IDAS03                      #
+#####################################################
+
+Scenario: isTest('connettivita-base-idas03')
+    # Salvo la richiesta e la risposta per far controllare la traccia del token
+    # alla feature chiamante
+    * xmlstring client_request = bodyPath('/')
+    * eval karateCache.add("Client-Request", client_request)
+
+    * call check_client_token ({ address: "DemoSoggettoFruitore/ApplicativoBlockingIDA01", to: "testsuite" })
+
+    # Siccome abbiamo un Riferimento X509 DirectReference, controllo che KeyInfo riferisca il BinarySecurityToken
+    * def keyRef = bodyPath('/Envelope/Header/Security/Signature/KeyInfo/SecurityTokenReference/Reference/@URI')
+    * def key = bodyPath('/Envelope/Header/Security/BinarySecurityToken/@Id')
+    * match keyRef == '#' + key
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS03/v1')
+
+    * call check_server_token ({ from: "SoapBlockingIDAS03/v1", to: "DemoSoggettoFruitore/ApplicativoBlockingIDA01" })
+
+    * def keyRef = /Envelope/Header/Security/Signature/KeyInfo/SecurityTokenReference/Reference/@URI
+    * def key = /Envelope/Header/Security/BinarySecurityToken/@Id
+    * match keyRef == '#' + key
+
+    # Nella risposta troverò l'elemento X-RequestDigest, che contiene le firme dei vari campi della richiesta
+    # Devo verificare che ciascun elemento di X-RequestDigest sia presente nella richiesta
+    
+    # TODO: Che test-errore ci posso fare?
+
+    * xmlstring server_response = response
+    * eval karateCache.add("Server-Response", server_response)
+
+
+
 # catch all
 #
 #

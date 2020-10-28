@@ -66,6 +66,16 @@ Scenario: isTest('certificato-server-scaduto') || isTest('certificato-server-rev
     * def responseStatus = 200
     * def response = read('classpath:test/soap/sicurezza-messaggio/response.xml')
 
+
+#####################################################
+#                       IDAS03                      #
+#####################################################
+
+Scenario: isTest('connettivita-base-idas03')
+
+    * def responseStatus = 200
+    * def response = read('classpath:test/soap/sicurezza-messaggio/response.xml')
+
 # catch all
 #
 #
