@@ -163,4 +163,3 @@ Then status 502
 And match response == read('error-bodies/assenza-header-digest-risposta.json')
 And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidResponse'
 
-

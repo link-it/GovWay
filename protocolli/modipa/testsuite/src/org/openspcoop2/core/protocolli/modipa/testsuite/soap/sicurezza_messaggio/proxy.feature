@@ -415,6 +415,103 @@ Scenario: isTest('manomissione-payload-risposta')
     * set c /Envelope/Body/MRequestResponse/return/c = "tampered_content"
 
 
+Scenario: isTest('connettivita-base-idas03-no-digest-richiesta')
+
+    # Salvo la richiesta e la risposta per far controllare la traccia del token
+    # alla feature chiamante
+    * xmlstring client_request = bodyPath('/')
+    * eval karateCache.add("Client-Request", client_request)
+
+    * call check_client_token ({ address: "DemoSoggettoFruitore/ApplicativoBlockingIDA01", to: "testsuite" })
+
+    # Siccome abbiamo un Riferimento X509 DirectReference, controllo che KeyInfo riferisca il BinarySecurityToken
+    * def keyRef = bodyPath('/Envelope/Header/Security/Signature/KeyInfo/SecurityTokenReference/Reference/@URI')
+    * def key = bodyPath('/Envelope/Header/Security/BinarySecurityToken/@Id')
+    * match keyRef == '#' + key
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS03MultipleOp/v1')
+    
+    # Controllo nella risposta che non ci sia il digest della richiesta
+    * match /Envelope/Header/X-RequestDigest/Reference/DigestValue == '#notpresent'
+
+    * call check_server_token ({ from: "SoapBlockingIDAS03MultipleOp/v1", to: "DemoSoggettoFruitore/ApplicativoBlockingIDA01" })
+
+    * def keyRef = /Envelope/Header/Security/Signature/KeyInfo/SecurityTokenReference/Reference/@URI
+    * def key = /Envelope/Header/Security/BinarySecurityToken/@Id
+    * match keyRef == '#' + key
+    
+    * xmlstring server_response = response
+    * eval karateCache.add("Server-Response", server_response)
+
+
+Scenario: isTest('response-without-payload-idas03')
+    
+    * xmlstring client_request = bodyPath('/')
+    * eval karateCache.add("Client-Request", client_request)
+
+    * call check_client_token ({ address: "DemoSoggettoFruitore/ApplicativoBlockingIDA01", to: "testsuite" })
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS03MultipleOp/v1')
+
+    # La signature non viene fatta su di una risposta vuota quindi non la controllo
+    # Controllo qui la traccia della erogazione perchè non posso far viaggiare header
+    # opzionali indietro visto che l'azione è one-way
+    
+    * def check_traccia = read("classpath:test/soap/sicurezza-messaggio/check-tracce/check-traccia.feature")
+    * xml client_request = client_request
+
+    * def body_reference = get client_request/Envelope/Body/@Id
+    * def request_signature = karate.xmlPath(client_request, "/Envelope/Header/Security/Signature/SignedInfo/Reference[@URI='#"+body_reference+"']/DigestValue")
+
+    * def checks_richiesta = 
+    """
+    ([
+        { name: 'ProfiloSicurezzaMessaggio-Digest', value: 'SHA256='+request_signature}
+    ])
+    """
+
+    * def x509sub_client1 = 'CN=ExampleClient1, O=Example, L=Pisa, ST=Italy, C=IT'
+    * def tid = responseHeaders['GovWay-Transaction-ID'][0]
+    * call check_traccia ({tid: tid, tipo: 'Richiesta', body: client_request, x509sub: x509sub_client1, profilo_sicurezza: "IDAS0301", other_checks: checks_richiesta })
+
+
+Scenario: isTest('response-without-payload-idas03-digest-richiesta')
+    
+    * xmlstring client_request = bodyPath('/')
+    * eval karateCache.add("Client-Request", client_request)
+
+    * call check_client_token ({ address: "DemoSoggettoFruitore/ApplicativoBlockingIDA01", to: "testsuite" })
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS03MultipleOpDigestRichiesta/v1')
+
+    # TODO: BUG? Siccome la risposta è vuota, non viene inviata neanche la risposta con i digest della richiesta
+    * def digests = bodyPath('/Envelope/Header/Security/Signature/SignedInfo/Reference/DigestValue')
+    * def x_request_digests = /Envelope/Header/X-RequestDigest/Reference/DigestValue
+
+    # La signature non viene fatta su di una risposta vuota quindi non la controllo
+    # Controllo qui la traccia della erogazione perchè non posso far viaggiare header
+    # opzionali indietro visto che l'azione è one-way
+    
+    * def check_traccia = read("classpath:test/soap/sicurezza-messaggio/check-tracce/check-traccia.feature")
+    * xml client_request = client_request
+
+    * def body_reference = get client_request/Envelope/Body/@Id
+    * def request_signature = karate.xmlPath(client_request, "/Envelope/Header/Security/Signature/SignedInfo/Reference[@URI='#"+body_reference+"']/DigestValue")
+
+    * def checks_richiesta = 
+    """
+    ([
+        { name: 'ProfiloSicurezzaMessaggio-Digest', value: 'SHA256='+request_signature}
+    ])
+    """
+
+    * def x509sub_client1 = 'CN=ExampleClient1, O=Example, L=Pisa, ST=Italy, C=IT'
+    * def tid = responseHeaders['GovWay-Transaction-ID'][0]
+    * call check_traccia ({tid: tid, tipo: 'Richiesta', body: client_request, x509sub: x509sub_client1, profilo_sicurezza: "IDAS0301", other_checks: checks_richiesta })
+
+    * match digests contains only x_request_digests
+
+
 #####################################################
 #                     IDAS0302                      #
 #####################################################
@@ -444,8 +541,6 @@ Scenario: isTest('connettivita-base-idas0302')
     * def x_request_digests = /Envelope/Header/X-RequestDigest/Reference/DigestValue
 
     * match digests contains only x_request_digests
-    
-    # TODO: Che test-errore ci posso fare?
 
     * xmlstring server_response = response
     * eval karateCache.add("Server-Response", server_response)

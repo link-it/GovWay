@@ -71,10 +71,11 @@ Scenario: isTest('certificato-server-scaduto') || isTest('certificato-server-rev
 #                       IDAS03                      #
 #####################################################
 
-Scenario: isTest('connettivita-base-idas03')
+Scenario: isTest('connettivita-base-idas03') 
 
     * def responseStatus = 200
     * def response = read('classpath:test/soap/sicurezza-messaggio/response.xml')
+
 
 Scenario: isTest('manomissione-token-risposta-idas03')
     
@@ -89,6 +90,16 @@ Scenario: isTest('manomissione-payload-risposta')
     * def response = read('classpath:test/soap/sicurezza-messaggio/response.xml')
 
 
+Scenario: isTest('connettivita-base-idas03-no-digest-richiesta')
+    * def responseStatus = 200
+    * def response = read('classpath:test/soap/sicurezza-messaggio/response-op.xml')
+
+
+Scenario: isTest('response-without-payload-idas03') || isTest('response-without-payload-idas03-digest-richiesta')
+    
+    * match bodyPath('/Envelope/Header') == ''
+    * def responseStatus = 200
+    * def response = ''
 
 #####################################################
 #                     IDAS0302                      #
