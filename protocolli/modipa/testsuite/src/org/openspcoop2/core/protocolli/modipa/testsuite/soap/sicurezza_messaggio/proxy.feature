@@ -366,8 +366,10 @@ Scenario: isTest('connettivita-base-idas03')
     * def key = /Envelope/Header/Security/BinarySecurityToken/@Id
     * match keyRef == '#' + key
 
-    # Nella risposta troverò l'elemento X-RequestDigest, che contiene le firme dei vari campi della richiesta
-    # Devo verificare che ciascun elemento di X-RequestDigest sia presente nella richiesta
+    * def digests = bodyPath('/Envelope/Header/Security/Signature/SignedInfo/Reference/DigestValue')
+    * def x_request_digests = /Envelope/Header/X-RequestDigest/Reference/DigestValue
+
+    * match digests contains only x_request_digests
     
     # TODO: Che test-errore ci posso fare?
 
@@ -375,7 +377,124 @@ Scenario: isTest('connettivita-base-idas03')
     * eval karateCache.add("Server-Response", server_response)
 
 
+Scenario: isTest('manomissione-token-richiesta-idas03')
 
+    * def c = request
+    * set c /Envelope/Header/To = "tampered_content"
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS03/v1')
+    * match responseStatus == 500
+    * match response == read('classpath:test/soap/sicurezza-messaggio/error-bodies/manomissione-token-richiesta.xml')
+    * match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
+
+
+Scenario: isTest('manomissione-token-risposta-idas03')
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS03/v1')
+    * match responseStatus == 200
+    
+    * def c = response
+    * set c /Envelope/Header/To = "tampered_content"
+
+
+Scenario: isTest('manomissione-payload-richiesta')
+
+    * def c = request
+    * set c /Envelope/Body/MRequest/M/oId = "tampered_content"
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS03/v1')
+    * match responseStatus == 500
+    * match response == read('classpath:test/soap/sicurezza-messaggio/error-bodies/manomissione-payload-richiesta.xml')
+    * match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
+
+
+Scenario: isTest('manomissione-payload-risposta')
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS03/v1')
+    * def c = response
+    * set c /Envelope/Body/MRequestResponse/return/c = "tampered_content"
+
+
+#####################################################
+#                     IDAS0302                      #
+#####################################################
+
+Scenario: isTest('connettivita-base-idas0302')
+    # Salvo la richiesta e la risposta per far controllare la traccia del token
+    # alla feature chiamante
+    * xmlstring client_request = bodyPath('/')
+    * eval karateCache.add("Client-Request", client_request)
+
+    * call check_client_token ({ address: "DemoSoggettoFruitore/ApplicativoBlockingIDA01", to: "testsuite" })
+
+    # Siccome abbiamo un Riferimento X509 DirectReference, controllo che KeyInfo riferisca il BinarySecurityToken
+    * def keyRef = bodyPath('/Envelope/Header/Security/Signature/KeyInfo/SecurityTokenReference/Reference/@URI')
+    * def key = bodyPath('/Envelope/Header/Security/BinarySecurityToken/@Id')
+    * match keyRef == '#' + key
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS0302/v1')
+
+    * call check_server_token ({ from: "SoapBlockingIDAS0302/v1", to: "DemoSoggettoFruitore/ApplicativoBlockingIDA01" })
+
+    * def keyRef = /Envelope/Header/Security/Signature/KeyInfo/SecurityTokenReference/Reference/@URI
+    * def key = /Envelope/Header/Security/BinarySecurityToken/@Id
+    * match keyRef == '#' + key
+
+    * def digests = bodyPath('/Envelope/Header/Security/Signature/SignedInfo/Reference/DigestValue')
+    * def x_request_digests = /Envelope/Header/X-RequestDigest/Reference/DigestValue
+
+    * match digests contains only x_request_digests
+    
+    # TODO: Che test-errore ci posso fare?
+
+    * xmlstring server_response = response
+    * eval karateCache.add("Server-Response", server_response)
+
+
+Scenario: isTest('manomissione-token-richiesta-idas0302')
+
+    * def c = request
+    * set c /Envelope/Header/To = "tampered_content"
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS0302/v1')
+    * match responseStatus == 500
+    * match response == read('classpath:test/soap/sicurezza-messaggio/error-bodies/manomissione-token-richiesta.xml')
+    * match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
+
+
+Scenario: isTest('manomissione-token-risposta-idas0302')
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS0302/v1')
+    * match responseStatus == 200
+    
+    * def c = response
+    * set c /Envelope/Header/To = "tampered_content"
+
+
+Scenario: isTest('manomissione-payload-richiesta-idas0302')
+
+    * def c = request
+    * set c /Envelope/Body/MRequest/M/oId = "tampered_content"
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS0302/v1')
+    * match responseStatus == 500
+    * match response == read('classpath:test/soap/sicurezza-messaggio/error-bodies/manomissione-payload-richiesta.xml')
+    * match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
+
+
+Scenario: isTest('manomissione-payload-risposta-idas0302')
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS0302/v1')
+    * def c = response
+    * set c /Envelope/Body/MRequestResponse/return/c = "tampered_content"
+
+
+Scenario: isTest('riutilizzo-token-idas0302')
+
+    * xml server_response = karateCache.get("Server-Response")
+    * def response = server_response
+    * def responseStatus = 200
+    * def responseHeaders = { 'Content-type': "application/soap+xml" }
 # catch all
 #
 #

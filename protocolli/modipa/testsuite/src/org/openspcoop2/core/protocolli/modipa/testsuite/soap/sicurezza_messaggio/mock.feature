@@ -76,6 +76,43 @@ Scenario: isTest('connettivita-base-idas03')
     * def responseStatus = 200
     * def response = read('classpath:test/soap/sicurezza-messaggio/response.xml')
 
+Scenario: isTest('manomissione-token-risposta-idas03')
+    
+    * match bodyPath('/Envelope/Header') == ''
+    * def responseStatus = 200
+    * def response = read('classpath:test/soap/sicurezza-messaggio/response.xml')
+
+Scenario: isTest('manomissione-payload-risposta')
+    
+    * match bodyPath('/Envelope/Header') == ''
+    * def responseStatus = 200
+    * def response = read('classpath:test/soap/sicurezza-messaggio/response.xml')
+
+
+
+#####################################################
+#                     IDAS0302                      #
+#####################################################
+
+Scenario: isTest('connettivita-base-idas0302')
+
+    * def responseStatus = 200
+    * def response = read('classpath:test/soap/sicurezza-messaggio/response.xml')
+
+
+Scenario: isTest('manomissione-token-risposta-idas0302')
+    
+    * match bodyPath('/Envelope/Header') == ''
+    * def responseStatus = 200
+    * def response = read('classpath:test/soap/sicurezza-messaggio/response.xml')
+
+Scenario: isTest('manomissione-payload-risposta-idas0302')
+    
+    * match bodyPath('/Envelope/Header') == ''
+    * def responseStatus = 200
+    * def response = read('classpath:test/soap/sicurezza-messaggio/response.xml')
+
+
 # catch all
 #
 #
