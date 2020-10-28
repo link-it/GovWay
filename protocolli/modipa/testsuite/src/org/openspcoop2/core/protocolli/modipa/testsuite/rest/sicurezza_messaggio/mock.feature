@@ -94,6 +94,24 @@ Scenario: isTest('assenza-header-digest-risposta')
     * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
 
 
+Scenario: isTest('response-without-payload-idar03') || isTest('response-without-payload-idar03-digest-richiesta')
+    * match requestHeaders['Authorization'] == '#notpresent'
+    * def responseStatus = 201
+    * def response = {}
+
+
+Scenario: isTest('request-without-payload-idar03') || isTest('request-without-payload-idar03-digest-richiesta')
+    * match requestHeaders['Authorization'] == '#notpresent'
+    * def responseStatus = 200
+    * def response = read('classpath:test/rest/sicurezza-messaggio/request.json')
+
+
+Scenario: isTest('request-response-without-payload-idar03') || isTest('request-response-without-payload-idar03-digest-richiesta')
+    * match requestHeaders['Authorization'] == '#notpresent'
+    * def responseStatus = 204
+    * def response = {}
+
+
 ##########################################
 #                IDAR0302                #
 ##########################################
