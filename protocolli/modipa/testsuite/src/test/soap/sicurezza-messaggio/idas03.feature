@@ -186,10 +186,6 @@ And match response == read('response-op.xml')
 
 @response-without-payload
 Scenario: Test di una azione che non ha il payload nella risposta
-
-# TODO: Chiedi ad andrea, devo verificare che il digest del body non ci sia, ma se non c'è body come faccio a sapere
-# quale è la signature del body tra le signature dello header?
-
 * def body = read("only-request.xml")
 * def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS03MultipleOp/v1'
 

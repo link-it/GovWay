@@ -143,7 +143,7 @@ Scenario: isTest('connettivita-base-truststore-ca')
     * def responseHeaders = karate.merge(responseHeaders,newHeaders)
 
 
-Scenario: isTest('response-without-payload') || isTest('request-without-payload')
+Scenario: isTest('response-without-payload')
 
     * call checkToken ({token: requestHeaders.Authorization[0], match_to: client_token_match })
 
@@ -169,9 +169,43 @@ Scenario: isTest('response-without-payload') || isTest('request-without-payload'
     ({
         'GovWay-TestSuite-GovWay-Client-Token': requestHeaders.Authorization[0],
         'GovWay-TestSuite-GovWay-Server-Token': responseHeaders.Authorization[0],
+        'Content-Type': null
     })
     """
     * def responseHeaders = karate.merge(responseHeaders,newHeaders)
+
+
+Scenario: isTest('request-without-payload')
+
+    * call checkToken ({token: requestHeaders.Authorization[0], match_to: client_token_match })
+
+    * def url_invocazione_erogazione = govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01CRUD/v1'
+    * karate.proceed(url_invocazione_erogazione)
+
+    * def server_token_match =
+    """
+    ({
+        header: { kid: 'ExampleServer'},
+        payload: {
+            aud: 'DemoSoggettoFruitore/ApplicativoBlockingIDA01',
+            client_id: 'RestBlockingIDAR01CRUD/v1',
+            iss: 'DemoSoggettoErogatore',
+            sub: 'RestBlockingIDAR01CRUD/v1'
+        }
+    })
+    """
+    * call checkToken ({token: responseHeaders.Authorization[0], match_to: server_token_match  })
+
+    * def newHeaders = 
+    """
+    ({
+        'GovWay-TestSuite-GovWay-Client-Token': requestHeaders.Authorization[0],
+        'GovWay-TestSuite-GovWay-Server-Token': responseHeaders.Authorization[0]
+    })
+    """
+    * def responseHeaders = karate.merge(responseHeaders,newHeaders)
+
+
 
 Scenario: isTest('request-response-without-payload')
     
@@ -199,6 +233,7 @@ Scenario: isTest('request-response-without-payload')
     ({
         'GovWay-TestSuite-GovWay-Client-Token': requestHeaders.Authorization[0],
         'GovWay-TestSuite-GovWay-Server-Token': responseHeaders.Authorization[0],
+        'Content-Type': null
     })
     """
     * def responseHeaders = karate.merge(responseHeaders,newHeaders)
@@ -468,7 +503,7 @@ Scenario: isTest('manomissione-token-risposta')
     
     * set responseHeaders['Authorization'][0] = tamper_token(responseHeaders['Authorization'][0])
 
-# TODO: Cambiare il nome dell'erogazione da autenticazionepuntuale a autorizzazionepuntuale
+
 Scenario: isTest('applicativo-non-autorizzato')
 
     * karate.proceed(govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01AutenticazionePuntuale/v1')
@@ -738,9 +773,7 @@ Scenario: isTest('response-without-payload-idar03')
             client_id: 'RestBlockingIDAR03CRUD/v1',
             iss: 'DemoSoggettoErogatore',
             sub: 'RestBlockingIDAR03CRUD/v1',
-            signed_headers: [
-                { 'content-type': 'application\/json' }
-            ],
+            signed_headers: '#notpresent'
         }
     })
     """
@@ -752,6 +785,7 @@ Scenario: isTest('response-without-payload-idar03')
     ({
         'GovWay-TestSuite-GovWay-Client-Token': requestHeaders.Authorization[0],
         'GovWay-TestSuite-GovWay-Server-Token': responseHeaders.Authorization[0],
+        'Content-Type': null
     })
     """
     * def responseHeaders = karate.merge(responseHeaders,newHeaders)
@@ -760,7 +794,6 @@ Scenario: isTest('response-without-payload-idar03')
 
 Scenario: isTest('request-without-payload-idar03')
 
-    # TODO: Qui non abbiamo i signed_headers, chiedi ad andrea se va bene così
     * def client_token_match = 
     """
     ({
@@ -811,7 +844,8 @@ Scenario: isTest('request-without-payload-idar03')
 Scenario: isTest('request-response-without-payload-idar03')
 
     # TODO: Se è vero che non devono esserci i signed_headers, allora considera l'idea di aggiungercene un'altro
-    # a livello di API, come fatto con idar03testheader
+    # a livello di API, come fatto con idar03testheader e fare un test che mostra che tale header non viene inserito
+    # con un payload vuoto
     * def client_token_match = 
     """
     ({
@@ -820,7 +854,8 @@ Scenario: isTest('request-response-without-payload-idar03')
             aud: 'testsuite',
             client_id: 'DemoSoggettoFruitore/ApplicativoBlockingIDA01',
             iss: 'DemoSoggettoFruitore',
-            sub: 'ApplicativoBlockingIDA01'
+            sub: 'ApplicativoBlockingIDA01',
+            signed_headers: '#notpresent'
         }
     })
     """
@@ -830,7 +865,6 @@ Scenario: isTest('request-response-without-payload-idar03')
     * def url_invocazione_erogazione = govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR03CRUD/v1'
     * karate.proceed(url_invocazione_erogazione)
 
-    # TODO: Vedi cosa cambia se nel mock invece di far restituire {}, fai restituire '' (Mettici application/json come ContentType)
     * def server_token_match =
     """
     ({
@@ -840,9 +874,7 @@ Scenario: isTest('request-response-without-payload-idar03')
             client_id: 'RestBlockingIDAR03CRUD/v1',
             iss: 'DemoSoggettoErogatore',
             sub: 'RestBlockingIDAR03CRUD/v1',
-            signed_headers: [
-                { 'content-type': 'application\/json' }
-            ],
+            signed_headers: '#notpresent'
         }
     })
     """
@@ -854,6 +886,7 @@ Scenario: isTest('request-response-without-payload-idar03')
     ({
         'GovWay-TestSuite-GovWay-Client-Token': requestHeaders.Authorization[0],
         'GovWay-TestSuite-GovWay-Server-Token': responseHeaders.Authorization[0],
+        'Content-Type': null
     })
     """
     * def responseHeaders = karate.merge(responseHeaders,newHeaders)
@@ -895,16 +928,12 @@ Scenario: isTest('response-without-payload-idar03-digest-richiesta')
             client_id: 'RestBlockingIDAR03CRUDDigestRichiesta/v1',
             iss: 'DemoSoggettoErogatore',
             sub: 'RestBlockingIDAR03CRUDDigestRichiesta/v1',
-            signed_headers: [
-                { digest: '#string' },
-                { 'content-type': 'application\/json' }
-            ],
+            signed_headers: '#notpresent',
             request_digest: request_digest[0]
         }
     })
     """
 
-    # TODO: Come mai abbiamo il digest nella risposta senza payload e non ce lo abbiamo nella richiesta senza payload?
     * call checkToken ({token: responseHeaders.Authorization[0], match_to: server_token_match  })
 
     * def newHeaders = 
@@ -912,6 +941,7 @@ Scenario: isTest('response-without-payload-idar03-digest-richiesta')
     ({
         'GovWay-TestSuite-GovWay-Client-Token': requestHeaders.Authorization[0],
         'GovWay-TestSuite-GovWay-Server-Token': responseHeaders.Authorization[0],
+        'Content-Type': null
     })
     """
     * def responseHeaders = karate.merge(responseHeaders,newHeaders)
@@ -920,7 +950,6 @@ Scenario: isTest('response-without-payload-idar03-digest-richiesta')
 
 Scenario: isTest('request-without-payload-idar03-digest-richiesta')
 
-    # TODO: Qui non abbiamo i signed_headers, chiedi ad andrea se va bene così
     * def client_token_match = 
     """
     ({
@@ -970,8 +999,7 @@ Scenario: isTest('request-without-payload-idar03-digest-richiesta')
 
 Scenario: isTest('request-response-without-payload-idar03-digest-richiesta')
 
-    # TODO: Se è vero che non devono esserci i signed_headers, allora considera l'idea di aggiungercene un'altro
-    # a livello di API, come fatto con idar03testheader
+
     * def client_token_match = 
     """
     ({
@@ -980,7 +1008,8 @@ Scenario: isTest('request-response-without-payload-idar03-digest-richiesta')
             aud: 'testsuite',
             client_id: 'DemoSoggettoFruitore/ApplicativoBlockingIDA01',
             iss: 'DemoSoggettoFruitore',
-            sub: 'ApplicativoBlockingIDA01'
+            sub: 'ApplicativoBlockingIDA01',
+            signed_headers: '#notpresent'
         }
     })
     """
@@ -990,7 +1019,6 @@ Scenario: isTest('request-response-without-payload-idar03-digest-richiesta')
     * def url_invocazione_erogazione = govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR03CRUDDigestRichiesta/v1'
     * karate.proceed(url_invocazione_erogazione)
 
-    # TODO: Vedi cosa cambia se nel mock invece di far restituire {}, fai restituire '' (Mettici application/json come ContentType)
     * def server_token_match =
     """
     ({
@@ -1000,9 +1028,7 @@ Scenario: isTest('request-response-without-payload-idar03-digest-richiesta')
             client_id: 'RestBlockingIDAR03CRUDDigestRichiesta/v1',
             iss: 'DemoSoggettoErogatore',
             sub: 'RestBlockingIDAR03CRUDDigestRichiesta/v1',
-            signed_headers: [
-                { 'content-type': 'application\/json' }
-            ],
+            signed_headers: '#notpresent'
         }
     })
     """
@@ -1014,6 +1040,7 @@ Scenario: isTest('request-response-without-payload-idar03-digest-richiesta')
     ({
         'GovWay-TestSuite-GovWay-Client-Token': requestHeaders.Authorization[0],
         'GovWay-TestSuite-GovWay-Server-Token': responseHeaders.Authorization[0],
+        'Content-Type': null
     })
     """
     * def responseHeaders = karate.merge(responseHeaders,newHeaders)

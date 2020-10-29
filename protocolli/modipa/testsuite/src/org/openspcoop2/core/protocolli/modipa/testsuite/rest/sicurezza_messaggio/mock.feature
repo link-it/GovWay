@@ -56,7 +56,8 @@ Scenario: isTest('connettivita-base-no-sbustamento')
 Scenario: isTest('response-without-payload')
     * match requestHeaders['Authorization'] == '#notpresent'
     * def responseStatus = 201
-    * def response = {}
+    * def response = ''
+    * def responseHeaders = ({ 'Content-Type': null })
 
 
 Scenario: isTest('request-without-payload')
@@ -68,7 +69,8 @@ Scenario: isTest('request-without-payload')
 Scenario: isTest('request-response-without-payload')
     * match requestHeaders['Authorization'] == '#notpresent'
     * def responseStatus = 204
-    * def response = {}
+    * def response = ''
+    * def responseHeaders = ({ 'Content-Type': null })
 
 
 Scenario: isTest('certificato-server-scaduto') || isTest('certificato-server-revocato')
@@ -93,12 +95,12 @@ Scenario: isTest('assenza-header-digest-risposta')
     * def responseStatus = 200
     * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
 
-
+# TODO: Anche negli altri casi senza payload devo mettere response = ''
 Scenario: isTest('response-without-payload-idar03') || isTest('response-without-payload-idar03-digest-richiesta')
     * match requestHeaders['Authorization'] == '#notpresent'
     * def responseStatus = 201
     * def response = ''
-    * def responseHeaders = { 'Content-Type': 'application/json' }
+    * def responseHeaders = ({ 'Content-Type': null })
 
 
 Scenario: isTest('request-without-payload-idar03') || isTest('request-without-payload-idar03-digest-richiesta')
@@ -110,7 +112,8 @@ Scenario: isTest('request-without-payload-idar03') || isTest('request-without-pa
 Scenario: isTest('request-response-without-payload-idar03') || isTest('request-response-without-payload-idar03-digest-richiesta')
     * match requestHeaders['Authorization'] == '#notpresent'
     * def responseStatus = 204
-    * def response = {}
+    * def response = ''
+    * def responseHeaders = ({ 'Content-Type': null })
 
 
 ##########################################

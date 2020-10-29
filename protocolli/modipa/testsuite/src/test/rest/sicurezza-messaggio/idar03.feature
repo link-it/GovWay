@@ -182,7 +182,6 @@ And match header Authorization == '#notpresent'
 * def server_token = decode_token(responseHeaders['GovWay-TestSuite-GovWay-Server-Token'][0])
 
 * def request_digest = get client_token $.payload.signed_headers..digest
-* def response_digest = get server_token $.payload.signed_headers..digest
 
 * def other_checks_richiesta = 
 """
@@ -195,9 +194,7 @@ And match header Authorization == '#notpresent'
 
 * def other_checks_risposta = 
 """
-([
-    { name: 'ProfiloSicurezzaMessaggioSignedHeader-content-type', value: 'application/json' }
-])
+([])
 """
 
 * def tid = responseHeaders['GovWay-Transaction-ID'][0]
@@ -253,33 +250,14 @@ And match header Authorization == '#notpresent'
 * def client_token = decode_token(responseHeaders['GovWay-TestSuite-GovWay-Client-Token'][0])
 * def server_token = decode_token(responseHeaders['GovWay-TestSuite-GovWay-Server-Token'][0])
 
-* def response_digest = get server_token $.payload.signed_headers..digest
-
-# { name: 'ProfiloSicurezzaMessaggio-Digest', value: request_digest[0] },
-#     { name: 'ProfiloSicurezzaMessaggioSignedHeader-digest', value: request_digest[0] },
-#{ name: 'ProfiloSicurezzaMessaggioSignedHeader-content-type', value: 'application/json' }
-# TODO: Controlla a livello di tracce se davvero non ci scrive niente 
-* def other_checks_richiesta = 
-"""
-([
-    
-])
-"""
-
-* def other_checks_risposta = 
-"""
-([
-    { name: 'ProfiloSicurezzaMessaggioSignedHeader-content-type', value: 'application/json' }
-])
-"""
 
 * def tid = responseHeaders['GovWay-Transaction-ID'][0]
-* call check_traccia ({ tid: tid, tipo: 'Richiesta', token: client_token, x509sub: 'CN=ExampleClient1, O=Example, L=Pisa, ST=Italy, C=IT', profilo_sicurezza: 'IDAR0301', other_checks: other_checks_richiesta })
-* call check_traccia ({ tid: tid, tipo: 'Risposta', token: server_token, x509sub: 'CN=ExampleServer, O=Example, L=Pisa, ST=Italy, C=IT', profilo_sicurezza: 'IDAR0301', other_checks: other_checks_risposta })
+* call check_traccia ({ tid: tid, tipo: 'Richiesta', token: client_token, x509sub: 'CN=ExampleClient1, O=Example, L=Pisa, ST=Italy, C=IT', profilo_sicurezza: 'IDAR0301'})
+* call check_traccia ({ tid: tid, tipo: 'Risposta', token: server_token, x509sub: 'CN=ExampleServer, O=Example, L=Pisa, ST=Italy, C=IT', profilo_sicurezza: 'IDAR0301' })
 
 * def tid = responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]
-* call check_traccia ({ tid: tid, tipo: 'Richiesta', token: client_token, x509sub: 'CN=ExampleClient1, O=Example, L=Pisa, ST=Italy, C=IT', profilo_sicurezza: 'IDAR0301', other_checks: other_checks_richiesta })
-* call check_traccia ({ tid: tid, tipo: 'Risposta', token: server_token, x509sub: 'CN=ExampleServer, O=Example, L=Pisa, ST=Italy, C=IT', profilo_sicurezza: 'IDAR0301', other_checks: other_checks_risposta })
+* call check_traccia ({ tid: tid, tipo: 'Richiesta', token: client_token, x509sub: 'CN=ExampleClient1, O=Example, L=Pisa, ST=Italy, C=IT', profilo_sicurezza: 'IDAR0301' })
+* call check_traccia ({ tid: tid, tipo: 'Risposta', token: server_token, x509sub: 'CN=ExampleServer, O=Example, L=Pisa, ST=Italy, C=IT', profilo_sicurezza: 'IDAR0301'})
 
 
 @response-without-payload-digest-richiesta
@@ -300,7 +278,6 @@ And match header Authorization == '#notpresent'
 * def server_token = decode_token(responseHeaders['GovWay-TestSuite-GovWay-Server-Token'][0])
 
 * def request_digest = get client_token $.payload.signed_headers..digest
-* def response_digest = get server_token $.payload.signed_headers..digest
 
 * def other_checks_richiesta = 
 """
@@ -313,11 +290,7 @@ And match header Authorization == '#notpresent'
 
 * def other_checks_risposta = 
 """
-([
-    { name: 'ProfiloSicurezzaMessaggio-Digest', value: response_digest[0] },
-    { name: 'ProfiloSicurezzaMessaggioSignedHeader-digest', value: response_digest[0] },
-    { name: 'ProfiloSicurezzaMessaggioSignedHeader-content-type', value: 'application/json' }
-])
+([])
 """
 
 * def tid = responseHeaders['GovWay-Transaction-ID'][0]
@@ -373,30 +346,10 @@ And match header Authorization == '#notpresent'
 * def client_token = decode_token(responseHeaders['GovWay-TestSuite-GovWay-Client-Token'][0])
 * def server_token = decode_token(responseHeaders['GovWay-TestSuite-GovWay-Server-Token'][0])
 
-* def response_digest = get server_token $.payload.signed_headers..digest
-
-# { name: 'ProfiloSicurezzaMessaggio-Digest', value: request_digest[0] },
-#     { name: 'ProfiloSicurezzaMessaggioSignedHeader-digest', value: request_digest[0] },
-#{ name: 'ProfiloSicurezzaMessaggioSignedHeader-content-type', value: 'application/json' }
-# TODO: Controlla a livello di tracce se davvero non ci scrive niente 
-* def other_checks_richiesta = 
-"""
-([
-    
-])
-"""
-
-* def other_checks_risposta = 
-"""
-([
-    { name: 'ProfiloSicurezzaMessaggioSignedHeader-content-type', value: 'application/json' }
-])
-"""
-
 * def tid = responseHeaders['GovWay-Transaction-ID'][0]
-* call check_traccia ({ tid: tid, tipo: 'Richiesta', token: client_token, x509sub: 'CN=ExampleClient1, O=Example, L=Pisa, ST=Italy, C=IT', profilo_sicurezza: 'IDAR0301', other_checks: other_checks_richiesta })
-* call check_traccia ({ tid: tid, tipo: 'Risposta', token: server_token, x509sub: 'CN=ExampleServer, O=Example, L=Pisa, ST=Italy, C=IT', profilo_sicurezza: 'IDAR0301', other_checks: other_checks_risposta })
+* call check_traccia ({ tid: tid, tipo: 'Richiesta', token: client_token, x509sub: 'CN=ExampleClient1, O=Example, L=Pisa, ST=Italy, C=IT', profilo_sicurezza: 'IDAR0301' })
+* call check_traccia ({ tid: tid, tipo: 'Risposta', token: server_token, x509sub: 'CN=ExampleServer, O=Example, L=Pisa, ST=Italy, C=IT', profilo_sicurezza: 'IDAR0301' })
 
 * def tid = responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]
-* call check_traccia ({ tid: tid, tipo: 'Richiesta', token: client_token, x509sub: 'CN=ExampleClient1, O=Example, L=Pisa, ST=Italy, C=IT', profilo_sicurezza: 'IDAR0301', other_checks: other_checks_richiesta })
-* call check_traccia ({ tid: tid, tipo: 'Risposta', token: server_token, x509sub: 'CN=ExampleServer, O=Example, L=Pisa, ST=Italy, C=IT', profilo_sicurezza: 'IDAR0301', other_checks: other_checks_risposta })
+* call check_traccia ({ tid: tid, tipo: 'Richiesta', token: client_token, x509sub: 'CN=ExampleClient1, O=Example, L=Pisa, ST=Italy, C=IT', profilo_sicurezza: 'IDAR0301' })
+* call check_traccia ({ tid: tid, tipo: 'Risposta', token: server_token, x509sub: 'CN=ExampleServer, O=Example, L=Pisa, ST=Italy, C=IT', profilo_sicurezza: 'IDAR0301' })
