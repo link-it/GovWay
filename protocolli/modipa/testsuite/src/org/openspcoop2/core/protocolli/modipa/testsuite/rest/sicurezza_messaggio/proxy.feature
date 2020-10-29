@@ -739,13 +739,12 @@ Scenario: isTest('response-without-payload-idar03')
             iss: 'DemoSoggettoErogatore',
             sub: 'RestBlockingIDAR03CRUD/v1',
             signed_headers: [
-                { digest: '#string' },
                 { 'content-type': 'application\/json' }
             ],
         }
     })
     """
-    # TODO: Come mai abbiamo il digest nella risposta senza payload e non ce lo abbiamo nella richiesta senza payload?
+
     * call checkToken ({token: responseHeaders.Authorization[0], match_to: server_token_match  })
 
     * def newHeaders = 

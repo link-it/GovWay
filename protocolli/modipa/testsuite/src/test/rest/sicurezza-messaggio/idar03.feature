@@ -196,8 +196,6 @@ And match header Authorization == '#notpresent'
 * def other_checks_risposta = 
 """
 ([
-    { name: 'ProfiloSicurezzaMessaggio-Digest', value: response_digest[0] },
-    { name: 'ProfiloSicurezzaMessaggioSignedHeader-digest', value: response_digest[0] },
     { name: 'ProfiloSicurezzaMessaggioSignedHeader-content-type', value: 'application/json' }
 ])
 """

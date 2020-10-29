@@ -97,7 +97,8 @@ Scenario: isTest('assenza-header-digest-risposta')
 Scenario: isTest('response-without-payload-idar03') || isTest('response-without-payload-idar03-digest-richiesta')
     * match requestHeaders['Authorization'] == '#notpresent'
     * def responseStatus = 201
-    * def response = {}
+    * def response = ''
+    * def responseHeaders = { 'Content-Type': 'application/json' }
 
 
 Scenario: isTest('request-without-payload-idar03') || isTest('request-without-payload-idar03-digest-richiesta')
