@@ -53,6 +53,8 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
+import org.openspcoop2.core.allarmi.constants.StatoAllarme;
+import org.openspcoop2.core.allarmi.utils.AllarmiConverterUtils;
 import org.openspcoop2.core.commons.Filtri;
 import org.openspcoop2.core.commons.ISearch;
 import org.openspcoop2.core.commons.Liste;
@@ -158,6 +160,7 @@ import org.openspcoop2.core.transazioni.utils.PropertiesSerializator;
 import org.openspcoop2.generic_project.exception.NotFoundException;
 import org.openspcoop2.message.constants.MessageType;
 import org.openspcoop2.message.constants.ServiceBinding;
+import org.openspcoop2.monitor.engine.alarm.wrapper.ConfigurazioneAllarmeBean;
 import org.openspcoop2.monitor.engine.condition.EsitoUtils;
 import org.openspcoop2.pdd.core.autenticazione.ParametriAutenticazioneApiKey;
 import org.openspcoop2.pdd.core.autenticazione.ParametriAutenticazionePrincipal;
@@ -7500,6 +7503,83 @@ public class ConsoleHelper implements IConsoleHelper {
 		de.setStatusType(statusType);
 		de.setStatusValue(statusValue);
 		de.setStatusToolTip(statusTooltip);
+	}
+	
+	public void setStatoAllarmi(DataElement de, List<ConfigurazioneAllarmeBean> listaAllarmi) throws DriverControlStationException, DriverControlStationNotFound {
+		de.setType(DataElementType.CHECKBOX);
+		if(listaAllarmi!=null && listaAllarmi.size()>0) {
+			Integer countOk = 0;
+			Integer countError = 0;
+			Integer countWarn = 0;
+			
+			for (ConfigurazioneAllarmeBean allarme : listaAllarmi) {
+				if(allarme.getEnabled() == 0) {// skip dei disabilitati
+					continue;
+				}
+				
+				StatoAllarme statoAllarme = AllarmiConverterUtils.toStatoAllarme(allarme.getStato());
+				switch (statoAllarme) {
+				case OK:
+					countOk ++;
+					break;
+				case WARNING:
+					countWarn ++;
+					break;
+				case ERROR:
+					countError ++;
+					break;
+				}
+			}
+			
+			int multi = 0;
+			
+			if(countOk > 0)
+				multi++;
+			
+			if(countError > 0)
+				multi++;
+			
+			if(countWarn > 0)
+				multi++;
+			
+			if(multi > 1) {
+				de.setType(DataElementType.MULTI_SELECT);
+			}
+			
+			if(countOk > 0 || countError > 0 || countWarn > 0) {
+				
+				if(countOk > 0) {
+					StringBuilder bf = new StringBuilder();
+					bf.append(ConfigurazioneCostanti.CONFIGURAZIONE_ALLARME_LABEL_STATO_OK);
+					bf.append(" (").append(countOk).append(")");
+					de.addStatus(bf.toString(), CheckboxStatusType.CONFIG_ENABLE);
+				}
+				
+				if(countWarn > 0) {
+					StringBuilder bf = new StringBuilder();
+					bf.append(ConfigurazioneCostanti.CONFIGURAZIONE_ALLARME_LABEL_STATO_WARNING);
+					bf.append(" (").append(countWarn).append(")");
+					de.addStatus(bf.toString(), CheckboxStatusType.CONFIG_WARNING);
+				}
+				
+				if(countError > 0) {
+					StringBuilder bf = new StringBuilder();
+					bf.append(ConfigurazioneCostanti.CONFIGURAZIONE_ALLARME_LABEL_STATO_ERROR);
+					bf.append(" (").append(countError).append(")");
+					de.addStatus(bf.toString(), CheckboxStatusType.CONFIG_ERROR);
+				}
+			}
+			else {
+				de.setStatusType(CheckboxStatusType.CONFIG_DISABLE);
+				de.setStatusValue(this.getUpperFirstChar(CostantiControlStation.DEFAULT_VALUE_DISABILITATO));
+				de.setStatusToolTip("Sull'API sono registrati "+listaAllarmi.size()+" allarmi tutti con stato disabilitato");
+			}
+			
+		}
+		else {
+			de.setStatusType(CheckboxStatusType.CONFIG_DISABLE);
+			de.setStatusValue(this.getUpperFirstChar(CostantiControlStation.DEFAULT_VALUE_DISABILITATO));
+		}
 	}
 	
 	

@@ -72,7 +72,7 @@ public class AllarmiContext implements Context{
 	
 	@Override
 	public String getTipoSoggettoMittente() {
-		String tipoNome = this.allarmiBean.getTipoNomeMittente();
+		String tipoNome = this.allarmiBean.getTipoNomeMittenteFiltro();
 		if(tipoNome!=null && tipoNome.contains("/")){
 			return tipoNome.split("/")[0];
 		}
@@ -81,7 +81,7 @@ public class AllarmiContext implements Context{
 
 	@Override
 	public String getSoggettoMittente() {
-		String tipoNome = this.allarmiBean.getTipoNomeMittente();
+		String tipoNome = this.allarmiBean.getTipoNomeMittenteFiltro();
 		if(tipoNome!=null && tipoNome.contains("/")){
 			return tipoNome.split("/")[1];
 		}
@@ -90,7 +90,7 @@ public class AllarmiContext implements Context{
 
 	@Override
 	public String getTipoSoggettoDestinatario() {
-		String tipoNome = this.allarmiBean.getTipoNomeDestinatario();
+		String tipoNome = this.allarmiBean.getTipoNomeDestinatarioFiltro();
 		if(tipoNome!=null && tipoNome.contains("/")){
 			return tipoNome.split("/")[0];
 		}
@@ -99,7 +99,7 @@ public class AllarmiContext implements Context{
 	
 	@Override
 	public String getSoggettoDestinatario() {
-		String tipoNome = this.allarmiBean.getTipoNomeDestinatario();
+		String tipoNome = this.allarmiBean.getTipoNomeDestinatarioFiltro();
 		if(tipoNome!=null && tipoNome.contains("/")){
 			return tipoNome.split("/")[1];
 		}
@@ -108,7 +108,7 @@ public class AllarmiContext implements Context{
 
 	@Override
 	public String getTipoServizio() {
-		String tipoNome = this.allarmiBean.getTipoNomeServizio();
+		String tipoNome = this.allarmiBean.getTipoNomeServizioFiltro();
 		if(tipoNome!=null && tipoNome.contains("/")){
 			return tipoNome.split("/")[0];
 		}
@@ -117,7 +117,7 @@ public class AllarmiContext implements Context{
 	
 	@Override
 	public String getServizio() {
-		String tipoNome = this.allarmiBean.getTipoNomeServizio();
+		String tipoNome = this.allarmiBean.getTipoNomeServizioFiltro();
 		if(tipoNome!=null && tipoNome.contains("/")){
 			return tipoNome.split("/")[1];
 		}
@@ -127,7 +127,7 @@ public class AllarmiContext implements Context{
 
 	@Override
 	public Integer getVersioneServizio() {
-		String tipoNome = this.allarmiBean.getTipoNomeServizio();
+		String tipoNome = this.allarmiBean.getTipoNomeServizioFiltro();
 		if(tipoNome!=null && tipoNome.contains("/")){
 			return Integer.valueOf(tipoNome.split("/")[2]);
 		}
@@ -136,7 +136,7 @@ public class AllarmiContext implements Context{
 	
 	@Override
 	public String getAzione() {
-		return this.allarmiBean.getAzione();
+		return this.allarmiBean.getAzioneFiltro();
 	}
 
 	@Override

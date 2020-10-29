@@ -35,6 +35,9 @@ import javax.servlet.ServletContextListener;
 import org.openspcoop2.core.config.driver.ExtendedInfoManager;
 import org.openspcoop2.message.OpenSPCoop2MessageFactory;
 import org.openspcoop2.message.xml.XMLDiff;
+import org.openspcoop2.monitor.engine.alarm.AlarmConfigProperties;
+import org.openspcoop2.monitor.engine.alarm.AlarmEngineConfig;
+import org.openspcoop2.monitor.engine.alarm.AlarmManager;
 import org.openspcoop2.monitor.engine.dynamic.CorePluginLoader;
 import org.openspcoop2.monitor.engine.dynamic.PluginLoader;
 import org.openspcoop2.utils.LoggerWrapperFactory;
@@ -42,6 +45,7 @@ import org.openspcoop2.utils.Utilities;
 import org.openspcoop2.utils.resources.Loader;
 import org.openspcoop2.utils.xml.XMLDiffImplType;
 import org.openspcoop2.utils.xml.XMLDiffOptions;
+import org.openspcoop2.web.ctrlstat.config.AllarmiConsoleConfig;
 import org.openspcoop2.web.ctrlstat.config.ConsoleProperties;
 import org.openspcoop2.web.ctrlstat.config.DatasourceProperties;
 import org.openspcoop2.web.ctrlstat.config.RegistroServiziRemotoProperties;
@@ -324,6 +328,12 @@ public class InitListener implements ServletContextListener {
 						PluginLoader.class,
 						new ConfigurazioneRegistroPluginsReader(new ControlStationCore()), 
 						consoleProperties.getPluginsSeconds());
+			}
+			
+			if(consoleProperties.isConfigurazioneAllarmiEnabled()) {
+				AllarmiConsoleConfig allarmiConsoleConfig = new AllarmiConsoleConfig(consoleProperties);
+				AlarmEngineConfig alarmEngineConfig = AlarmConfigProperties.getAlarmConfiguration(InitListener.log, allarmiConsoleConfig.getAllarmiConfigurazione());
+				AlarmManager.setAlarmEngineConfig(alarmEngineConfig);
 			}
 		} catch (Exception e) {
 			String msgErrore = "Errore durante l'inizializzazione del loader dei plugins: " + e.getMessage();

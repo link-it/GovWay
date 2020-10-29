@@ -38,10 +38,13 @@ import javax.sql.DataSource;
 import org.openspcoop2.core.allarmi.Allarme;
 import org.openspcoop2.core.allarmi.AllarmeHistory;
 import org.openspcoop2.core.allarmi.IdAllarme;
+import org.openspcoop2.core.allarmi.constants.RuoloPorta;
 import org.openspcoop2.core.allarmi.dao.IAllarmeHistoryService;
+import org.openspcoop2.core.allarmi.dao.IAllarmeHistoryServiceSearch;
 import org.openspcoop2.core.allarmi.dao.IAllarmeService;
 import org.openspcoop2.core.allarmi.dao.IAllarmeServiceSearch;
 import org.openspcoop2.core.allarmi.dao.jdbc.converter.AllarmeFieldConverter;
+import org.openspcoop2.core.allarmi.dao.jdbc.converter.AllarmeHistoryFieldConverter;
 import org.openspcoop2.core.commons.DBUtils;
 import org.openspcoop2.core.commons.ErrorsHandlerCostant;
 import org.openspcoop2.core.commons.Filtri;
@@ -99,6 +102,7 @@ import org.openspcoop2.generic_project.expression.LikeMode;
 import org.openspcoop2.generic_project.expression.SortOrder;
 import org.openspcoop2.generic_project.utils.ServiceManagerProperties;
 import org.openspcoop2.monitor.engine.alarm.wrapper.ConfigurazioneAllarmeBean;
+import org.openspcoop2.monitor.engine.alarm.wrapper.ConfigurazioneAllarmeHistoryBean;
 import org.openspcoop2.monitor.engine.config.base.IdPlugin;
 import org.openspcoop2.monitor.engine.config.base.Plugin;
 import org.openspcoop2.monitor.engine.config.base.constants.TipoPlugin;
@@ -5029,7 +5033,44 @@ public class DriverControlStationDB  {
 		}
 	}
 	
-	public List<ConfigurazioneAllarmeBean> allarmiList(Search ricerca) throws DriverConfigurazioneException {
+	public boolean isPluginInUso(String className, String label, String tipoPlugin, String tipo, Map<ErrorsHandlerCostant, List<String>> whereIsInUso, boolean normalizeObjectIds) throws DriverControlStationException {
+		String nomeMetodo = "isPluginInUso";
+
+		Connection con = null;
+		if (this.atomica) {
+			try {
+				con = this.datasource.getConnection();
+
+			} catch (SQLException e) {
+				throw new DriverControlStationException("[DriverControlStationDB::" + nomeMetodo + "] SQLException accedendo al datasource :" + e.getMessage());
+
+			}
+
+		} else {
+			con = this.globalConnection;
+		}
+
+		this.log.debug("operazione this.atomica = " + this.atomica);
+
+		try {
+
+			return DBOggettiInUsoUtils.isPluginInUso(con, this.tipoDB, className, label, tipoPlugin, tipo, whereIsInUso, normalizeObjectIds);
+			
+		} catch (Exception se) {
+			throw new DriverControlStationException("[DriverControlStationDB::" + nomeMetodo + "] Exception: " + se.getMessage(),se);
+		} finally {
+			try {
+				if (this.atomica) {
+					this.log.debug("rilascio connessioni al db...");
+					con.close();
+				}
+			} catch (Exception e) {
+				// ignore exception
+			}
+		}
+	}
+	
+	public List<ConfigurazioneAllarmeBean> allarmiList(Search ricerca, RuoloPorta ruoloPorta, String nomePorta) throws DriverConfigurazioneException {
 		String nomeMetodo = "allarmiList";
 		int idLista = Liste.CONFIGURAZIONE_ALLARMI;
 		int offset;
@@ -5066,12 +5107,24 @@ public class DriverControlStationDB  {
 			
 			IExpression expr = allarmiServiceSearch.newExpression();
 			
-//			boolean addAnd = false;
+			boolean addAnd = false;
+			
+			if(ruoloPorta!=null && nomePorta!=null) {
+				expr.equals(Allarme.model().FILTRO.RUOLO_PORTA, ruoloPorta.getValue()).and().equals(Allarme.model().FILTRO.NOME_PORTA, nomePorta);
+				addAnd = true;
+			}
+			else {
+				expr.isNull(Allarme.model().FILTRO.NOME_PORTA);
+				addAnd = true;
+			}
 			
 			if (!search.equals("")) {
+				if(addAnd)
+					expr.and();
+				
 				expr.ilike(Allarme.model().NOME, search, LikeMode.ANYWHERE);
 				
-//				addAnd = true;
+				addAnd = true;
 			}
 			
 			NonNegativeNumber count = allarmiServiceSearch.count(expr);
@@ -5344,6 +5397,91 @@ public class DriverControlStationDB  {
 			idPlugin.setTipo(al.getTipo());
 			
 			return new ConfigurazioneAllarmeBean(al, pluginServiceSearch.get(idPlugin));
+		} catch (Exception qe) {
+			throw new DriverConfigurazioneException("[DriverConfigurazioneDB::" + nomeMetodo + "] Errore : " + qe.getMessage(),qe);
+		} finally {
+			try {
+				if (this.atomica) {
+					this.log.debug("rilascio connessioni al db...");
+					con.close();
+				}
+			} catch (Exception e) {
+				// ignore exception
+			}
+		}
+	}
+
+	public List<ConfigurazioneAllarmeHistoryBean> allarmiHistoryList(Search ricerca, Long idAllarme) throws DriverConfigurazioneException {
+		String nomeMetodo = "allarmiHistoryList";
+		int idLista = Liste.CONFIGURAZIONE_ALLARMI_HISTORY;
+		int offset;
+		int limit;
+//		String search;
+
+		limit = ricerca.getPageSize(idLista);
+		offset = ricerca.getIndexIniziale(idLista);
+//		search = (org.openspcoop2.core.constants.Costanti.SESSION_ATTRIBUTE_VALUE_RICERCA_UNDEFINED.equals(ricerca.getSearchString(idLista)) ? "" : ricerca.getSearchString(idLista));
+
+//		String filterTipoPlugin = SearchUtils.getFilter(ricerca, idLista, Filtri.FILTRO_TIPO_PLUGIN_CLASSI);
+		
+//		this.log.debug("search : " + search);
+		
+		Connection con = null;
+		List<ConfigurazioneAllarmeHistoryBean> lista = new ArrayList<ConfigurazioneAllarmeHistoryBean>();
+
+		if (this.atomica) {
+			try {
+				con = this.datasource.getConnection();
+			} catch (Exception e) {
+				throw new DriverConfigurazioneException("[DriverConfigurazioneDB::" + nomeMetodo + "] Exception accedendo al datasource :" + e.getMessage(),e);
+
+			}
+
+		} else {
+			con = this.globalConnection;
+		}
+
+		this.log.debug("operazione this.atomica = " + this.atomica);
+		
+		try {
+			IAllarmeHistoryServiceSearch allarmiServiceSearch = this.getJdbcServiceManagerAllarmi().getAllarmeHistoryServiceSearch();
+			
+			IExpression expr = allarmiServiceSearch.newExpression();
+			
+			AllarmeHistoryFieldConverter converter = new AllarmeHistoryFieldConverter(this.tipoDB);
+			CustomField cf = new CustomField("id_allarme", Long.class, "id_allarme", converter.toTable(AllarmeHistory.model()));
+			expr.equals(cf, idAllarme);
+			
+//			boolean addAnd = false;
+			
+//			if (!search.equals("")) {
+//				expr.ilike(Allarme.model().NOME, search, LikeMode.ANYWHERE);
+				
+//				addAnd = true;
+//			}
+			
+			NonNegativeNumber count = allarmiServiceSearch.count(expr);
+			ricerca.setNumEntries(idLista,(int) count.longValue());
+			
+			// ricavo le entries
+			if (limit == 0) // con limit
+				limit = ISQLQueryObject.LIMIT_DEFAULT_VALUE;
+			
+			IPaginatedExpression pagExpr = allarmiServiceSearch.toPaginatedExpression(expr);
+			
+			pagExpr.limit(limit).offset(offset);
+			pagExpr.addOrder(AllarmeHistory.model().TIMESTAMP_UPDATE, SortOrder.DESC);
+
+			List<AllarmeHistory> findAll = allarmiServiceSearch.findAll(pagExpr);
+			
+			if(findAll != null && findAll.size() > 0){
+				for (AllarmeHistory al : findAll) {
+					lista.add(new ConfigurazioneAllarmeHistoryBean(al));
+				}
+			}
+
+			return lista;
+
 		} catch (Exception qe) {
 			throw new DriverConfigurazioneException("[DriverConfigurazioneDB::" + nomeMetodo + "] Errore : " + qe.getMessage(),qe);
 		} finally {

@@ -14,15 +14,11 @@ import org.apache.struts.action.Action;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
-import org.openspcoop2.core.allarmi.AllarmeFiltro;
-import org.openspcoop2.core.allarmi.AllarmeMail;
+import org.openspcoop2.core.allarmi.AllarmeHistory;
 import org.openspcoop2.core.allarmi.AllarmeParametro;
-import org.openspcoop2.core.allarmi.AllarmeRaggruppamento;
-import org.openspcoop2.core.allarmi.AllarmeScript;
+import org.openspcoop2.core.allarmi.IdAllarme;
 import org.openspcoop2.core.allarmi.constants.RuoloPorta;
-import org.openspcoop2.core.allarmi.constants.StatoAllarme;
 import org.openspcoop2.core.allarmi.constants.TipoAllarme;
-import org.openspcoop2.core.allarmi.utils.AllarmiConverterUtils;
 import org.openspcoop2.core.commons.Liste;
 import org.openspcoop2.core.config.PortaApplicativa;
 import org.openspcoop2.core.config.PortaDelegata;
@@ -46,7 +42,6 @@ import org.openspcoop2.web.ctrlstat.servlet.GeneralHelper;
 import org.openspcoop2.web.ctrlstat.servlet.pa.PorteApplicativeCore;
 import org.openspcoop2.web.ctrlstat.servlet.pd.PorteDelegateCore;
 import org.openspcoop2.web.ctrlstat.servlet.soggetti.SoggettiCore;
-import org.openspcoop2.web.lib.mvc.Costanti;
 import org.openspcoop2.web.lib.mvc.DataElement;
 import org.openspcoop2.web.lib.mvc.ForwardParams;
 import org.openspcoop2.web.lib.mvc.GeneralData;
@@ -56,13 +51,13 @@ import org.openspcoop2.web.lib.mvc.ServletUtils;
 import org.openspcoop2.web.lib.mvc.TipoOperazione;
 
 /**     
- * ConfigurazioneAllarmiAdd
+ * ConfigurazioneAllarmiChange
  *
  * @author Pintori Giuliano (pintori@link.it)
  * @author $Author$
  * @version $Rev$, $Date$
  */
-public class ConfigurazioneAllarmiAdd extends Action {
+public class ConfigurazioneAllarmiChange extends Action {
 
 	@Override
 	public ActionForward execute(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
@@ -79,7 +74,7 @@ public class ConfigurazioneAllarmiAdd extends Action {
 
 		String userLogin = ServletUtils.getUserLoginFromSession(session);	
 		
-		TipoOperazione tipoOperazione = TipoOperazione.ADD;
+		TipoOperazione tipoOperazione = TipoOperazione.CHANGE;
 		
 		String pluginSelectedExceptionMessage = null;
 
@@ -91,7 +86,7 @@ public class ConfigurazioneAllarmiAdd extends Action {
 			// controllo primo accesso
 			boolean first = confHelper.isFirstTimeFromHttpParameters(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FIRST_TIME);
 			
-		//	String idAllarmeS = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_ID_ALLARME);
+			String idAllarmeS = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_ID_ALLARME);
 			
 			String ruoloPortaParam = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_RUOLO_PORTA);
 			RuoloPorta ruoloPorta = null;
@@ -114,36 +109,18 @@ public class ConfigurazioneAllarmiAdd extends Action {
 			AllarmiConfig allarmiConfig = confCore.getAllarmiConfig();
 			AlarmEngineConfig alarmEngineConfig = AlarmConfigProperties.getAlarmConfiguration(ControlStationCore.getLog(), allarmiConfig.getAllarmiConfigurazione());
 			
-			ConfigurazioneAllarmeBean allarme = new ConfigurazioneAllarmeBean();
-			allarme.setEnabled(1);
-			allarme.setTipo(null);
-			allarme.setTipoAllarme(null);
-			allarme.setMail(new AllarmeMail());
-			allarme.getMail().setInviaAlert(0);
-			allarme.getMail().setInviaWarning(0);
-			if(alarmEngineConfig.isMailAckMode()){
-				allarme.getMail().setAckMode(1);
-			}else{
-				allarme.getMail().setAckMode(0);
+			Long idAllarme = Long.parseLong(idAllarmeS);
+			ConfigurazioneAllarmeBean allarme = confCore.getAllarme(idAllarme);
+			Integer oldEnabled = allarme.getEnabled();
+			List<org.openspcoop2.monitor.sdk.parameters.Parameter<?>> parameters = null;
+			if(first) {
+				confHelper.savePluginIntoSession(session, allarme.getPlugin());
+				Context context = confHelper.createAlarmContext(allarme, parameters);
+				parameters = confCore.getParameters(allarme, context);
+				confHelper.saveParametriIntoSession(session, parameters);
 			}
 
-			allarme.setScript(new AllarmeScript());
-			allarme.getScript().setInvocaAlert(0);
-			allarme.getScript().setInvocaWarning(0);
-			if(alarmEngineConfig.isScriptAckMode()){
-				allarme.getScript().setAckMode(1);
-			}else{
-				allarme.getScript().setAckMode(0);
-			}
-			allarme.setFiltro(new AllarmeFiltro());
-			allarme.setGroupBy(new AllarmeRaggruppamento());
-			
-			if(first) {
-				confHelper.savePluginIntoSession(session, null);
-				confHelper.saveParametriIntoSession(session, null);
-			}
-			
-			List<org.openspcoop2.monitor.sdk.parameters.Parameter<?>> parameters = confHelper.readParametriFromSession(session);
+			parameters = confHelper.readParametriFromSession(session);
 			
 			List<Plugin> listaPlugin = confCore.pluginsAllarmiList();
 			int numeroPluginRegistrati = listaPlugin.size();
@@ -279,7 +256,7 @@ public class ConfigurazioneAllarmiAdd extends Action {
 			
 			List<Parameter> lstParamPorta = null;
 			if(ruoloPorta!=null) {
-				lstParamPorta = confHelper.getTitleListAllarmi(ruoloPorta, nomePorta, serviceBinding, Costanti.PAGE_DATA_TITLE_LABEL_AGGIUNGI);
+				lstParamPorta = confHelper.getTitleListAllarmi(ruoloPorta, nomePorta, serviceBinding, allarme.getNome());
 			}
 			
 			// setto la barra del titolo
@@ -288,7 +265,7 @@ public class ConfigurazioneAllarmiAdd extends Action {
 				lstParam = lstParamPorta;
 			}
 			else {
-				lstParam = new ArrayList<Parameter>();
+				lstParam  = new ArrayList<Parameter>();
 				
 				if(lstParamSession.size() > 0) {
 					lstParam.add(new Parameter(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_ALLARMI, 
@@ -297,10 +274,9 @@ public class ConfigurazioneAllarmiAdd extends Action {
 					lstParam.add(new Parameter(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_ALLARMI, 
 						ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_ALLARMI_LIST));
 				}
-				
-//			lstParam.add(new Parameter(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_GENERALE, ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_GENERALE));
+//				lstParam.add(new Parameter(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_GENERALE, ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_GENERALE));
 //				lstParam.add(new Parameter(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_ALLARMI, ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_ALLARMI_LIST));
-				lstParam.add(ServletUtils.getParameterAggiungi());
+				lstParam.add(new Parameter(allarme.getNome(), null));
 			}
 			
 			// Se tipo = null, devo visualizzare la pagina per l'inserimento
@@ -325,11 +301,11 @@ public class ConfigurazioneAllarmiAdd extends Action {
 
 				ServletUtils.setGeneralAndPageDataIntoSession(session, gd, pd);
 
-				return ServletUtils.getStrutsForwardEditModeInProgress(mapping, ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_ALLARMI, ForwardParams.ADD());
+				return ServletUtils.getStrutsForwardEditModeInProgress(mapping, ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_ALLARMI, ForwardParams.CHANGE());
 			}
 				
 			// Controlli sui campi immessi
-			boolean isOk = confHelper.allarmeCheckData(TipoOperazione.ADD, null, allarme, numeroPluginRegistrati, parameters); 
+			boolean isOk = confHelper.allarmeCheckData(tipoOperazione, null, allarme, numeroPluginRegistrati, parameters); 
 			if (!isOk) {
 				ServletUtils.setPageDataTitle(pd, lstParam);
 				
@@ -348,7 +324,7 @@ public class ConfigurazioneAllarmiAdd extends Action {
 				
 				return ServletUtils.getStrutsForwardEditModeCheckError(mapping, 
 						ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_ALLARMI, 
-						ForwardParams.ADD());
+						ForwardParams.CHANGE());
 			}
 				
 			// salvataggio dei parametri
@@ -369,19 +345,40 @@ public class ConfigurazioneAllarmiAdd extends Action {
 				}
 			}
 			
-			// imposto lo stato di default per l'allarme:
-			allarme.setStato(AllarmiConverterUtils.toIntegerValue(StatoAllarme.OK));
-			allarme.setStatoPrecedente(AllarmiConverterUtils.toIntegerValue(StatoAllarme.OK));
-			allarme.setLasttimestampCreate(new Date());
-			allarme.setAcknowledged(Integer.valueOf(0));
+			// data modifica
+			allarme.setLasttimestampUpdate(new Date());
+			
+			boolean historyCreatoTramiteNotificaCambioStato = false;
+			boolean modificatoInformazioniHistory = false;
+			boolean modificatoStato = false;
+			boolean modificatoAckwoldegment = false;
+			ConfigurazioneAllarmeBean oldConfigurazioneAllarme = confCore.getAllarme(idAllarme);
+			// se ho modificato l'abilitato devo registrare la modifica nella tabella history
+			if(allarme.getEnabled().intValue() != oldEnabled.intValue()) {
+				modificatoInformazioniHistory = true;
+			}
 			
 			// insert sul db
-			confCore.performCreateOperation(userLogin, confHelper.smista(), allarme);
+			confCore.performUpdateOperation(userLogin, confHelper.smista(), allarme);
+			
+			if(modificatoInformazioniHistory && !historyCreatoTramiteNotificaCambioStato) {
+				// registro la modifica
+				AllarmeHistory history = new AllarmeHistory();
+				history.setEnabled(allarme.getEnabled());
+				history.setAcknowledged(allarme.getAcknowledged());
+				history.setDettaglioStato(allarme.getDettaglioStato());
+				IdAllarme idConfigurazioneAllarme = new IdAllarme();
+				idConfigurazioneAllarme.setNome(allarme.getNome());
+				history.setIdAllarme(idConfigurazioneAllarme);
+				history.setStato(allarme.getStato());
+				history.setTimestampUpdate(allarme.getLasttimestampUpdate());
+				history.setUtente(userLogin);
+				confCore.performCreateOperation(userLogin, confHelper.smista(), history);
+			}
 			
 			/* ******** GESTIONE AVVIO THREAD NEL CASO DI ATTIVO *************** */
-			
 			try {
-				AllarmiUtils.notifyStateActiveThread(true, false, false, null, allarme, ControlStationCore.getLog(), allarmiConfig);
+				AllarmiUtils.notifyStateActiveThread(false, modificatoStato, modificatoAckwoldegment, oldConfigurazioneAllarme, allarme, ControlStationCore.getLog(), allarmiConfig);
 			} catch(Exception e) {
 				pd.setMessage(MessageFormat.format(ConfigurazioneCostanti.MESSAGGIO_ERRORE_ALLARME_SALVATO_NOTIFICA_FALLITA, allarme.getNome(),e.getMessage()));
 			}
@@ -402,10 +399,10 @@ public class ConfigurazioneAllarmiAdd extends Action {
 			ServletUtils.setGeneralAndPageDataIntoSession(session, gd, pd);
 			
 			// Forward control to the specified success URI
-			return ServletUtils.getStrutsForwardEditModeFinished(mapping, ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_ALLARMI, ForwardParams.ADD());
+			return ServletUtils.getStrutsForwardEditModeFinished(mapping, ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_ALLARMI, ForwardParams.CHANGE());
 		} catch (Exception e) {
 			return ServletUtils.getStrutsForwardError(ControlStationCore.getLog(), e, pd, session, gd, mapping, 
-					ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_ALLARMI, ForwardParams.ADD());
+					ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_ALLARMI, ForwardParams.CHANGE());
 		}  
 	}
 }			

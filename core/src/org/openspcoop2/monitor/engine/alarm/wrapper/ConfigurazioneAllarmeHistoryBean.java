@@ -18,7 +18,7 @@
  *
  */
 
-package org.openspcoop2.web.monitor.allarmi.bean;
+package org.openspcoop2.monitor.engine.alarm.wrapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,9 +26,9 @@ import java.util.List;
 import org.openspcoop2.core.allarmi.AllarmeHistory;
 import org.openspcoop2.core.allarmi.constants.StatoAllarme;
 import org.openspcoop2.core.allarmi.utils.AllarmiConverterUtils;
+import org.openspcoop2.monitor.engine.alarm.utils.AllarmiUtils;
 import org.openspcoop2.utils.beans.BeanUtils;
 import org.openspcoop2.utils.beans.BlackListElement;
-import org.openspcoop2.web.monitor.allarmi.mbean.AllarmiBean;
 
 /**
  * ConfigurazioneAllarmeHistoryBean 
@@ -84,7 +84,7 @@ public class ConfigurazioneAllarmeHistoryBean extends AllarmeHistory{
 	
 	public String getLabelStato(){
 		StatoAllarme stato = AllarmiConverterUtils.toStatoAllarme(this.getStato());
-		return AllarmiBean.getLabelStato(stato);
+		return AllarmiUtils.getLabelStato(stato);
 	}
 
 }

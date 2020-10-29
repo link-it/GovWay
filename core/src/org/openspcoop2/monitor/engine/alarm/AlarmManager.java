@@ -288,7 +288,8 @@ public class AlarmManager {
 						IdAllarme idAllarme = new IdAllarme();
 						idAllarme.setNome(confAllarme.getNome());
 						history.setIdAllarme(idAllarme);
-						history.setUtente(username);				
+						history.setUtente(username);	
+						history.setTimestampUpdate(confAllarme.getLasttimestampUpdate());
 						allarmeHistoryDAO.create(history);
 						//System.out.println("REGISTRATO HISTORY ALLARME");
 					}

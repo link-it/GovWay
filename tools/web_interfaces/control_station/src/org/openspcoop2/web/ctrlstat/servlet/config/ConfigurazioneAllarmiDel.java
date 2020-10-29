@@ -21,6 +21,7 @@
 
 package org.openspcoop2.web.ctrlstat.servlet.config;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,8 +34,10 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.openspcoop2.core.allarmi.Allarme;
+import org.openspcoop2.core.allarmi.constants.RuoloPorta;
 import org.openspcoop2.core.allarmi.constants.TipoAllarme;
 import org.openspcoop2.core.commons.Liste;
+import org.openspcoop2.message.constants.ServiceBinding;
 import org.openspcoop2.monitor.engine.alarm.utils.AllarmiUtils;
 import org.openspcoop2.monitor.engine.alarm.wrapper.ConfigurazioneAllarmeBean;
 import org.openspcoop2.monitor.engine.config.base.Plugin;
@@ -78,6 +81,18 @@ public final class ConfigurazioneAllarmiDel extends Action {
 
 		try {
 			ConfigurazioneHelper confHelper = new ConfigurazioneHelper(request, pd, session);
+			
+			String ruoloPortaParam = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_RUOLO_PORTA);
+			RuoloPorta ruoloPorta = null;
+			if(ruoloPortaParam!=null) {
+				ruoloPorta = RuoloPorta.toEnumConstant(ruoloPortaParam);
+			}
+			String nomePorta = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_NOME_PORTA);
+			ServiceBinding serviceBinding = null;
+			String serviceBindingParam = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_SERVICE_BINDING);
+			if(serviceBindingParam!=null && !"".equals(serviceBindingParam)) {
+				serviceBinding = ServiceBinding.valueOf(serviceBindingParam);
+			}
 
 			String objToRemove =confHelper.getParameter(Costanti.PARAMETER_NAME_OBJECTS_FOR_REMOVE); 
 			ArrayList<String> idsToRemove = Utilities.parseIdsToRemove(objToRemove);
@@ -119,7 +134,14 @@ public final class ConfigurazioneAllarmiDel extends Action {
 					allarmiToRemove.add(allarmeToRemove);
 			}
 			
-			AllarmiUtils.sendToAllarmi(urls, ControlStationCore.getLog());
+			/* ******** INVIO NOTIFICHE *************** */
+			try {
+				AllarmiUtils.sendToAllarmi(urls, ControlStationCore.getLog());
+			} catch(Exception e) {
+				pd.setMessage(MessageFormat.format(ConfigurazioneCostanti.MESSAGGIO_ERRORE_ALLARME_ELIMINATO_NOTIFICA_FALLITA,e.getMessage()));
+			}
+			
+			
 
 			Object[] oggetti = allarmiToRemove.toArray(new Plugin[allarmiToRemove.size()]); 
 			confCore.performDeleteOperation(userLogin, confHelper.smista(), oggetti);
@@ -134,9 +156,9 @@ public final class ConfigurazioneAllarmiDel extends Action {
 
 			ricerca = confHelper.checkSearchParameters(idLista, ricerca);
 
-			List<ConfigurazioneAllarmeBean> lista = confCore.allarmiList(ricerca); 
+			List<ConfigurazioneAllarmeBean> lista = confCore.allarmiList(ricerca, ruoloPorta, nomePorta); 
 			
-			confHelper.prepareAllarmiList(ricerca, lista);
+			confHelper.prepareAllarmiList(ricerca, lista, ruoloPorta, nomePorta, serviceBinding);
 						
 			pd.setMessage(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_PROPRIETA_SISTEMA_MODIFICATA_CON_SUCCESSO, Costanti.MESSAGE_TYPE_INFO);
 			

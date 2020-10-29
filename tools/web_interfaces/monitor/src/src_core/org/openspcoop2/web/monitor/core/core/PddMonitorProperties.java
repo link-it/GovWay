@@ -32,7 +32,6 @@ import org.openspcoop2.core.commons.dao.DAOFactory;
 import org.openspcoop2.core.commons.dao.DAOFactoryProperties;
 import org.openspcoop2.generic_project.beans.IProjectInfo;
 import org.openspcoop2.generic_project.utils.ServiceManagerProperties;
-import org.openspcoop2.monitor.engine.alarm.utils.AllarmiConfig;
 import org.openspcoop2.monitor.sdk.constants.StatisticType;
 import org.openspcoop2.protocol.sdk.diagnostica.IDiagnosticDriver;
 import org.openspcoop2.protocol.sdk.tracciamento.ITracciaDriver;
@@ -1067,15 +1066,15 @@ public class PddMonitorProperties {
 		return "true".equalsIgnoreCase(this.appProperties.getProperty("allarmi.monitoraggioEsterno.visualizzazioneCompleta", true, false));
 	}
 
-	public boolean isAllarmiConsultazioneSezioneNotificaMailReadOnly() throws Exception{
-		return "true".equalsIgnoreCase(this.appProperties.getProperty("allarmi.consultazione.sezioneNotificaMail.readOnly", true, false));
+	public boolean isAllarmiGroupByApi() throws Exception {
+		return "true".equalsIgnoreCase(this.appProperties.getProperty("allarmi.groupBy.api", true, false));
 	}
 	
-	public boolean isAllarmiConsultazioneSezioneMonitoraggioEsternoReadOnly() throws Exception{
-		return "true".equalsIgnoreCase(this.appProperties.getProperty("allarmi.consultazione.sezioneMonitoraggioEsterno.readOnly", true, false));
+	public boolean isAllarmiFiltroApi() throws Exception {
+		return "true".equalsIgnoreCase(this.appProperties.getProperty("allarmi.filtro.api", true, false));
 	}
 	
-	public boolean isAllarmiConsultazioneParametriReadOnly() throws Exception{
-		return "true".equalsIgnoreCase(this.appProperties.getProperty("allarmi.consultazione.sezioneParametri.readOnly", true, false));
+	public boolean isAllarmiFiltroApiSoggettoErogatore() throws Exception {
+		return "true".equalsIgnoreCase(this.appProperties.getProperty("allarmi.filtro.api.soggettoErogatore", true, false));
 	}
 }

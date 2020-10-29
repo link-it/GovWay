@@ -1204,17 +1204,17 @@ public class ConsoleProperties {
 	public Boolean isAllarmiMonitoraggioEsternoVisualizzazioneCompleta() throws Exception{
 		return this.readBooleanProperty(true, "allarmi.monitoraggioEsterno.visualizzazioneCompleta");
 	}
-
-	public Boolean isAllarmiConsultazioneSezioneNotificaMailReadOnly() throws Exception{
-		return this.readBooleanProperty(true, "allarmi.consultazione.sezioneNotificaMail.readOnly");
+	
+	public boolean isAllarmiGroupByApi() throws Exception {
+		return this.readBooleanProperty(true, "allarmi.groupBy.api");
 	}
 	
-	public Boolean isAllarmiConsultazioneSezioneMonitoraggioEsternoReadOnly() throws Exception{
-		return this.readBooleanProperty(true, "allarmi.consultazione.sezioneMonitoraggioEsterno.readOnly");
+	public boolean isAllarmiFiltroApi() throws Exception {
+		return this.readBooleanProperty(true, "allarmi.filtro.api");
 	}
 	
-	public Boolean isAllarmiConsultazioneParametriReadOnly() throws Exception{
-		return this.readBooleanProperty(true, "allarmi.consultazione.sezioneParametri.readOnly");
+	public boolean isAllarmiFiltroApiSoggettoErogatore() throws Exception {
+		return this.readBooleanProperty(true, "allarmi.filtro.api.soggettoErogatore");
 	}
 	
 	/* ---------------- Gestione govwayConsole centralizzata ----------------------- */

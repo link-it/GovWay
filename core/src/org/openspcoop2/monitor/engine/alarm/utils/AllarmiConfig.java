@@ -30,9 +30,10 @@ public interface AllarmiConfig {
 	
 	public boolean isAllarmiMonitoraggioEsternoVisualizzazioneCompleta();
 
-	public boolean isAllarmiConsultazioneSezioneNotificaMailReadOnly();
-	
-	public boolean isAllarmiConsultazioneSezioneMonitoraggioEsternoReadOnly();
-	
-	public boolean isAllarmiConsultazioneParametriReadOnly();
+	public boolean isAllarmiGroupByApi();
+
+	public boolean isAllarmiFiltroApi();
+
+	public boolean isAllarmiFiltroApiSoggettoErogatore();
+
 }

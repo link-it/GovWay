@@ -17,15 +17,11 @@
 	<ui:define name="navbar">
 			<ul>
 				<li>
-					<h:commandLink action="allarmi" value="/Monitoraggio Allarmi" rendered="#{allarmiBean.sorgente == 'stato'}"/>
-					<h:commandLink action="configurazioneAllarmi" value="/Configurazione Allarmi" rendered="#{allarmiBean.sorgente == 'configurazione'}"/>
+					<h:commandLink action="allarmi" value="/Monitoraggio Allarmi" rendered="#{true}"/>
 				</li>
 				<li><h:graphicImage value="/images/tema_link/next_white.png" width="16" height="16"/></li>
 				<li>
-					<a4j:htmlCommandLink id="dettaglioAllarmeStato" action="#{allarmiBean.dettaglioHistoryAllarme}" value="Stato Allarme (#{allarmiBean.allarme.nome})" rendered="#{allarmiBean.sorgente == 'stato'}">
-						<f:setPropertyActionListener value="#{allarmiBean.allarme}" target="#{allarmiBean.allarme}"/>
-	                </a4j:htmlCommandLink>
-	                <a4j:htmlCommandLink id="dettaglioAllarmeConfigurazione" action="#{allarmiBean.dettaglioHistoryAllarme}" value="Modifica Allarme (#{allarmiBean.allarme.nome})" rendered="#{allarmiBean.sorgente == 'configurazione'}">
+					<a4j:htmlCommandLink id="dettaglioAllarmeStato" action="#{allarmiBean.dettaglioHistoryAllarme}" value="Stato Allarme (#{allarmiBean.allarme.nome})" rendered="#{true}">
 						<f:setPropertyActionListener value="#{allarmiBean.allarme}" target="#{allarmiBean.allarme}"/>
 	                </a4j:htmlCommandLink>
 				</li>

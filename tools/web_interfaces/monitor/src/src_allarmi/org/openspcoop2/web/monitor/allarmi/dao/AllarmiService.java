@@ -58,6 +58,7 @@ import org.openspcoop2.generic_project.expression.LikeMode;
 import org.openspcoop2.generic_project.expression.SortOrder;
 import org.openspcoop2.monitor.engine.alarm.AlarmManager;
 import org.openspcoop2.monitor.engine.alarm.wrapper.ConfigurazioneAllarmeBean;
+import org.openspcoop2.monitor.engine.alarm.wrapper.ConfigurazioneAllarmeHistoryBean;
 import org.openspcoop2.monitor.engine.config.base.IdPlugin;
 import org.openspcoop2.monitor.engine.config.base.Plugin;
 import org.openspcoop2.monitor.engine.config.base.constants.TipoPlugin;
@@ -70,7 +71,6 @@ import org.openspcoop2.monitor.sdk.exceptions.AlarmException;
 import org.openspcoop2.monitor.sdk.parameters.Parameter;
 import org.openspcoop2.monitor.sdk.plugins.IAlarmProcessing;
 import org.openspcoop2.web.monitor.allarmi.bean.AllarmiSearchForm;
-import org.openspcoop2.web.monitor.allarmi.bean.ConfigurazioneAllarmeHistoryBean;
 import org.openspcoop2.web.monitor.core.core.PddMonitorProperties;
 import org.openspcoop2.web.monitor.core.dynamic.DynamicComponentUtils;
 import org.openspcoop2.web.monitor.core.dynamic.components.BaseComponent;
@@ -770,7 +770,7 @@ public class AllarmiService implements IAllarmiService {
 	public List<AllarmeHistory> findAllHistory(long idAllarme,int start,int limit) throws ServiceException, NotImplementedException, ExpressionNotImplementedException, ExpressionException{
 		IPaginatedExpression pagExpr = this.allarmeHistorySearchDAO.newPaginatedExpression();
 		JDBCAllarmeHistoryServiceSearch jdbcInterfaceAudit = (JDBCAllarmeHistoryServiceSearch) this.allarmeHistorySearchDAO;
-		CustomField cf = new CustomField("idConfigurazione", Long.class, "id_configurazione", jdbcInterfaceAudit.getFieldConverter().toTable(AllarmeHistory.model()));
+		CustomField cf = new CustomField("id_allarme", Long.class, "id_allarme", jdbcInterfaceAudit.getFieldConverter().toTable(AllarmeHistory.model()));
 		pagExpr.equals(cf, idAllarme);
 		pagExpr.offset(start);
 		pagExpr.limit(limit);
@@ -798,7 +798,7 @@ public class AllarmiService implements IAllarmiService {
 		
 		IExpression expr = this.allarmeHistorySearchDAO.newExpression();
 		JDBCAllarmeHistoryServiceSearch jdbcInterfaceAudit = (JDBCAllarmeHistoryServiceSearch) this.allarmeHistorySearchDAO;
-		CustomField cf = new CustomField("idConfigurazione", Long.class, "id_configurazione", jdbcInterfaceAudit.getFieldConverter().toTable(AllarmeHistory.model()));
+		CustomField cf = new CustomField("id_allarme", Long.class, "id_allarme", jdbcInterfaceAudit.getFieldConverter().toTable(AllarmeHistory.model()));
 		expr.equals(cf, idAllarme);
 		return this.allarmeHistorySearchDAO.count(expr).longValue();
 		

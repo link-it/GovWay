@@ -342,4 +342,18 @@ public class AllarmiUtils {
 		}
 		return null;
 	}
+	
+	public static String getLabelStato(StatoAllarme stato){
+		if(stato!=null){
+			switch (stato) {
+			case OK:
+				return "Ok";
+			case WARNING:
+				return "Warning";
+			case ERROR:
+				return "Error";
+			}
+		}
+		return null;
+	}
 }

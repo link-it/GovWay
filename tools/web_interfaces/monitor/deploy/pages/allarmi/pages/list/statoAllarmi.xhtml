@@ -153,64 +153,65 @@
 							</rich:comboBox>
 						</link:prop>
 						
-						<c:if test="#{applicationBean.user}">
-							<c:if test="#{!applicationBean.amministratore}">
-									<link:prop label="Soggetto Locale" rendered="#{loginBean.loggedUser.sizeSoggetti>1}">
-										<rich:comboBox width="412" id="sogLocaleSuggestion" 
-												value="#{searchFormAllarmi.tipoNomeSoggettoLocale}" 
-												suggestionValues="#{loginBean.loggedUser.tipiNomiSoggettiAssociati}"
-												enableManualInput="false">
-											<f:selectItem itemValue="--"/>
-											<a4j:support status="mainStatus" event="onselect" actionListener="#{searchFormAllarmi.soggettoLocaleSelected}" reRender="searchPnl"/>
-										</rich:comboBox>
+						<a4j:outputPanel id="tmpPanelPnl" layout="block" rendered="#{false}">
+							<c:if test="#{applicationBean.user}">
+								<c:if test="#{!applicationBean.amministratore}">
+										<link:prop label="Soggetto Locale" rendered="#{loginBean.loggedUser.sizeSoggetti>1}">
+											<rich:comboBox width="412" id="sogLocaleSuggestion" 
+													value="#{searchFormAllarmi.tipoNomeSoggettoLocale}" 
+													suggestionValues="#{loginBean.loggedUser.tipiNomiSoggettiAssociati}"
+													enableManualInput="false">
+												<f:selectItem itemValue="--"/>
+												<a4j:support status="mainStatus" event="onselect" actionListener="#{searchFormAllarmi.soggettoLocaleSelected}" reRender="searchPnl"/>
+											</rich:comboBox>
+										</link:prop>
+									</c:if>
+							</c:if>
+							<c:if test="#{applicationBean.amministratore}">
+									<link:prop label="Soggetto Locale">
+											<h:inputText id="sogLocaleInput" value="#{searchFormAllarmi.tipoNomeSoggettoLocale}" styleClass="inputLinkLong"/>
+											<rich:suggestionbox 
+														id="sogLocaleSuggestion"
+														width="412" 
+														for="sogLocaleInput" 
+														suggestionAction="#{allarmiBean.soggettiAutoComplete}"
+														var="soggetto"
+														ajaxSingle="true"
+														nothingLabel="--"
+														param="sogLocaleInput">
+												<h:column>
+													<h:outputText value="#{soggetto.nomeSoggetto}" rendered="#{soggetto.nomeSoggetto=='--'}"/>
+													<h:outputText value="#{soggetto.tipoSoggetto}/#{soggetto.nomeSoggetto}" rendered="#{soggetto.nomeSoggetto!='--'}"/>
+												</h:column>
+												<a4j:support status="mainStatus" event="onselect" actionListener="#{searchFormAllarmi.soggettoLocaleSelected}" reRender="searchPnl"/>
+											</rich:suggestionbox>
+										
 									</link:prop>
-								</c:if>
-						</c:if>
-						<c:if test="#{applicationBean.amministratore}">
-								<link:prop label="Soggetto Locale">
-									
-										<h:inputText id="sogLocaleInput" value="#{searchFormAllarmi.tipoNomeSoggettoLocale}" styleClass="inputLinkLong"/>
-										<rich:suggestionbox 
-													id="sogLocaleSuggestion"
-													width="412" 
-													for="sogLocaleInput" 
-													suggestionAction="#{allarmiBean.soggettiAutoComplete}"
-													var="soggetto"
-													ajaxSingle="true"
-													nothingLabel="--"
-													param="sogLocaleInput">
-											<h:column>
-												<h:outputText value="#{soggetto.nomeSoggetto}" rendered="#{soggetto.nomeSoggetto=='--'}"/>
-												<h:outputText value="#{soggetto.tipoSoggetto}/#{soggetto.nomeSoggetto}" rendered="#{soggetto.nomeSoggetto!='--'}"/>
-											</h:column>
-											<a4j:support status="mainStatus" event="onselect" actionListener="#{searchFormAllarmi.soggettoLocaleSelected}" reRender="searchPnl"/>
-										</rich:suggestionbox>
-									
-								</link:prop>
-						</c:if>
-
-						<link:prop label="Servizio">
-							<rich:comboBox id="servizioCombo" value="#{searchFormAllarmi.nomeServizio}"  
-								defaultLabel="Selezione Servizio" directInputSuggestions="true" listWidth="#{allarmiBean.serviziSelectItemsWidth}"
-								width="412" enableManualInput="false">
-								<f:selectItem itemValue="--"/>
-								<f:selectItems value="#{allarmiBean.servizi}"  />
-								<a4j:support status="mainStatus" event="onselect" actionListener="#{searchFormAllarmi.servizioSelected}" reRender="searchPnl,azComboCtr"/>
-							</rich:comboBox>
-							<rich:toolTip rendered="#{not empty searchFormAllarmi.nomeServizio}" 
-								direction="top-right" for="servizioCombo" showDelay="200" styleClass="tooltip" layout="block" value="#{searchFormAllarmi.nomeServizio}"/>
-						</link:prop>
-
-						<a4j:outputPanel layout="block" id="azComboCtr">
-							<link:prop label="Azione" rendered="#{not empty searchFormAllarmi.nomeServizio}">
-								<rich:comboBox id="azCombo" value="#{searchFormAllarmi.nomeAzione}" defaultLabel="Selezione Azione" directInputSuggestions="true" width="412" enableManualInput="false" >
+							</c:if>
+	
+							<link:prop label="Servizio">
+								<rich:comboBox id="servizioCombo" value="#{searchFormAllarmi.nomeServizio}"  
+									defaultLabel="Selezione Servizio" directInputSuggestions="true" listWidth="#{allarmiBean.serviziSelectItemsWidth}"
+									width="412" enableManualInput="false">
 									<f:selectItem itemValue="--"/>
-									<f:selectItems value="#{allarmiBean.azioni}"/>
-									<a4j:support status="mainStatus" event="onselect" actionListener="#{searchFormAllarmi.azioneSelected}" reRender="searchPnl"/>
+									<f:selectItems value="#{allarmiBean.servizi}"  />
+									<a4j:support status="mainStatus" event="onselect" actionListener="#{searchFormAllarmi.servizioSelected}" reRender="searchPnl,azComboCtr"/>
 								</rich:comboBox>
-							</link:prop>	
-						</a4j:outputPanel>			
+								<rich:toolTip rendered="#{not empty searchFormAllarmi.nomeServizio}" 
+									direction="top-right" for="servizioCombo" showDelay="200" styleClass="tooltip" layout="block" value="#{searchFormAllarmi.nomeServizio}"/>
+							</link:prop>
+	
+							<a4j:outputPanel layout="block" id="azComboCtr">
+								<link:prop label="Azione" rendered="#{not empty searchFormAllarmi.nomeServizio}">
+									<rich:comboBox id="azCombo" value="#{searchFormAllarmi.nomeAzione}" defaultLabel="Selezione Azione" directInputSuggestions="true" width="412" enableManualInput="false" >
+										<f:selectItem itemValue="--"/>
+										<f:selectItems value="#{allarmiBean.azioni}"/>
+										<a4j:support status="mainStatus" event="onselect" actionListener="#{searchFormAllarmi.azioneSelected}" reRender="searchPnl"/>
+									</rich:comboBox>
+								</link:prop>	
+							</a4j:outputPanel>			
 
+						</a4j:outputPanel>	
 					</a4j:outputPanel>	
 					
 					<div class="buttonrow">
@@ -254,7 +255,7 @@
 									(item.invocaScriptAlert==1 and item.scriptAckMode==1)
 								) 
 							}">
-							<h:graphicImage value="/images/tema_link/verified_green.png" rendered="#{item._value_stato==0}" id="imgStatoOk">
+							<h:graphicImage value="/images/tema_link/verified_green.png" rendered="#{item.stato==0}" id="imgStatoOk">
 								<rich:toolTip mode="client" for="imgStatoOk">
 									<h:outputText value="Ok" />
 								</rich:toolTip>
@@ -266,20 +267,20 @@
 								<h:outputText value="Click to Un-Acknowledge." />
 							</rich:toolTip>
 							<a4j:commandLink id="ackLinkT" styleClass="link-plain"
-								rendered="#{item.acknowledged==0 and item._value_stato>0}"
+								rendered="#{item.acknowledged==0 and item.stato>0}"
 								 reRender="allarmiTbl,statusPnlWithAcknoledged">
 								<f:setPropertyActionListener value="#{item}" target="#{allarmiBean.allarme}" />
 								<a4j:actionparam name="ack" value="true" assignTo="#{allarmiBean.ack}" actionListener="#{allarmiBean.toggleAck}"/>
-								<h:graphicImage value="/images/tema_link/alert_red.png" rendered="#{item._value_stato==2}"/>
-								<h:graphicImage value="/images/tema_link/alert_yellow.png" rendered="#{item._value_stato==1}"/>
+								<h:graphicImage value="/images/tema_link/alert_red.png" rendered="#{item.stato==2}"/>
+								<h:graphicImage value="/images/tema_link/alert_yellow.png" rendered="#{item.stato==1}"/>
 							</a4j:commandLink>					
 							<a4j:commandLink id="ackLinkF" styleClass="link-plain"
-								rendered="#{(item.acknowledged==1) and (item._value_stato>0)}"
+								rendered="#{(item.acknowledged==1) and (item.stato>0)}"
 								 reRender="allarmiTbl,statusPnlWithAcknoledged">
 								<f:setPropertyActionListener value="#{item}" target="#{allarmiBean.allarme}" />
 								<a4j:actionparam name="ack" value="false" assignTo="#{allarmiBean.ack}" actionListener="#{allarmiBean.toggleAck}"/>
-								<h:graphicImage value="/images/tema_link/verified_red.png" rendered="#{item._value_stato==2}"/>
-								<h:graphicImage value="/images/tema_link/verified_yellow.png" rendered="#{item._value_stato==1}"/>
+								<h:graphicImage value="/images/tema_link/verified_red.png" rendered="#{item.stato==2}"/>
+								<h:graphicImage value="/images/tema_link/verified_yellow.png" rendered="#{item.stato==1}"/>
 							</a4j:commandLink>
 						</a4j:outputPanel> 
 						<a4j:outputPanel rendered="#{ 
@@ -293,9 +294,9 @@
 									(item.invocaScriptAlert==1 and item.scriptAckMode==1)
 								) 
 							}">
-							<h:graphicImage value="/images/tema_link/verified_green.png" rendered="#{item._value_stato==0}" title="Ok"/>
-							<h:graphicImage value="/images/tema_link/alert_red.png" rendered="#{item._value_stato==2}" title="Error"/>
-							<h:graphicImage value="/images/tema_link/alert_yellow.png" rendered="#{item._value_stato==1}" title="Warn"/>
+							<h:graphicImage value="/images/tema_link/verified_green.png" rendered="#{item.stato==0}" title="Ok"/>
+							<h:graphicImage value="/images/tema_link/alert_red.png" rendered="#{item.stato==2}" title="Error"/>
+							<h:graphicImage value="/images/tema_link/alert_yellow.png" rendered="#{item.stato==1}" title="Warn"/>
 						</a4j:outputPanel> 
 					</rich:column>
 					<rich:column id="colTipo" style="text-align: center;">

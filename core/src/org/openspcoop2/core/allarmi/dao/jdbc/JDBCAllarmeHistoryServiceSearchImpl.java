@@ -409,7 +409,7 @@ public class JDBCAllarmeHistoryServiceSearchImpl implements IJDBCServiceSearchWi
 		){
 			// Object _allarme (recupero id)
 			ISQLQueryObject sqlQueryObjectGet_allarme_readFkId = sqlQueryObjectGet.newSQLQueryObject();
-			sqlQueryObjectGet_allarme_readFkId.addFromTable(this.getAllarmeHistoryFieldConverter().toTable(org.openspcoop2.core.allarmi.AllarmeHistory.model().ID_ALLARME));
+			sqlQueryObjectGet_allarme_readFkId.addFromTable(this.getAllarmeHistoryFieldConverter().toTable(org.openspcoop2.core.allarmi.AllarmeHistory.model()));
 			sqlQueryObjectGet_allarme_readFkId.addSelectField("id_allarme");
 			sqlQueryObjectGet_allarme_readFkId.addWhereCondition("id=?");
 			sqlQueryObjectGet_allarme_readFkId.setANDLogicOperator(true);

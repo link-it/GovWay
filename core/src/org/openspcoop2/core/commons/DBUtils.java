@@ -1167,7 +1167,66 @@ public class DBUtils {
 	}
 	
 	
-	
+	public static long getIdPlugin(String className, String label, String tipoPlugin, String tipo, Connection con,String tipoDB) throws CoreException{
+		PreparedStatement stm = null;
+		ResultSet rs = null;
+		long idRP=-1;
+		try
+		{
+			if(className==null) {
+				throw new CoreException("ClassName non fornito");
+			}
+			if(label==null) {
+				throw new CoreException("Label non fornito");
+			}
+			if(tipoPlugin==null) {
+				throw new CoreException("TipoPlugin non fornito");
+			}
+			if(tipo==null) {
+				throw new CoreException("Tipo non fornito");
+			}
+			
+			
+			ISQLQueryObject sqlQueryObject = SQLObjectFactory.createSQLQueryObject(tipoDB);
+			sqlQueryObject.addFromTable(CostantiDB.REGISTRO_CLASSI);
+			sqlQueryObject.addSelectField("id");
+			sqlQueryObject.addWhereCondition("class_name=?");
+			sqlQueryObject.addWhereCondition("label=?");
+			sqlQueryObject.addWhereCondition("tipo_plugin=?");
+			sqlQueryObject.addWhereCondition("tipo=?");
+			sqlQueryObject.setANDLogicOperator(true);
+			String sqlQuery = sqlQueryObject.createSQLQuery();
+			stm = con.prepareStatement(sqlQuery);
+			stm.setString(1, className);
+			stm.setString(2, label);
+			stm.setString(3, tipoPlugin);
+			stm.setString(4, tipo);
+			rs = stm.executeQuery();
+			if(rs.next()) {
+				idRP = rs.getLong("id");
+			}
+			rs.close();
+			stm.close();
+			rs=null;
+			stm=null;
+			
+			return idRP;
+		}catch (SQLException e) {
+			throw new CoreException(e);
+		}catch (Exception e) {
+			throw new CoreException(e);
+		}finally
+		{
+			//Chiudo statement and resultset
+			try{
+				if(rs!=null) rs.close();
+				if(stm!=null) stm.close();
+			}catch (Exception e) {
+				//ignore
+			}
+
+		}
+	}
 	
 
 	/**

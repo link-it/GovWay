@@ -23,6 +23,8 @@ package org.openspcoop2.web.ctrlstat.driver;
 
 import java.util.Vector;
 
+import org.openspcoop2.core.allarmi.Allarme;
+import org.openspcoop2.core.allarmi.AllarmeHistory;
 import org.openspcoop2.core.config.AccessoConfigurazione;
 import org.openspcoop2.core.config.AccessoDatiAutenticazione;
 import org.openspcoop2.core.config.AccessoDatiAutorizzazione;
@@ -436,6 +438,28 @@ public class IDBuilder implements org.openspcoop2.utils.serialization.IDBuilder 
 				}
 			}
 			
+			// Allarme
+			else if(o instanceof Allarme) {
+				Allarme allarme = (Allarme) o;
+				String id = allarme.getNome()+"-"+allarme.getTipo();
+				if(this.prefix){
+					return "[Allarme] "+ id;
+				}else{
+					return id;
+				}
+			}
+			
+			// Allarme History
+			else if(o instanceof AllarmeHistory) {
+				AllarmeHistory history = (AllarmeHistory) o;
+				String id = history.getIdAllarme().getNome();
+				if(this.prefix){
+					return "[AllarmeHistory] "+ id;
+				}else{
+					return id;
+				}
+			}
+			
 			// IExtendedBean
 			else if(o instanceof IExtendedBean){
 				IExtendedBean w = (IExtendedBean) o;
@@ -800,6 +824,16 @@ public class IDBuilder implements org.openspcoop2.utils.serialization.IDBuilder 
 				}else{
 					return id;
 				}
+			}
+			
+			// Allarme
+			else if(o instanceof Allarme) {
+				return null; // oggetto non modificabile nei dati identificativi
+			}
+			
+			// Allarme History
+			else if(o instanceof AllarmeHistory) {
+				return null; // oggetto non modificabile nei dati identificativi
 			}
 			
 			// IExtendedBean

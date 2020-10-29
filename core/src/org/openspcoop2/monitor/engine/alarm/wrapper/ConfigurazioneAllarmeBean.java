@@ -21,19 +21,12 @@
 package org.openspcoop2.monitor.engine.alarm.wrapper;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.List;
 
 import org.openspcoop2.core.allarmi.Allarme;
 import org.openspcoop2.monitor.engine.config.base.Plugin;
-import org.openspcoop2.monitor.engine.config.base.constants.TipoPlugin;
-import org.openspcoop2.monitor.engine.dynamic.DynamicFactory;
-import org.openspcoop2.monitor.engine.dynamic.IDynamicLoader;
-import org.openspcoop2.monitor.sdk.plugins.IAlarmProcessing;
-import org.openspcoop2.utils.LoggerWrapperFactory;
 import org.openspcoop2.utils.beans.BeanUtils;
 import org.openspcoop2.utils.beans.BlackListElement;
-import org.slf4j.Logger;
 
 /**
  * ConfigurazioneAllarmeBean 
@@ -65,8 +58,8 @@ public class ConfigurazioneAllarmeBean extends Allarme{
 	public ConfigurazioneAllarmeBean(Allarme allarme, Plugin plugin){
 		List<BlackListElement> metodiEsclusi = new ArrayList<BlackListElement>(
 				0);
-		metodiEsclusi.add(new BlackListElement("setLatenzaTotale",
-				Long.class));
+		metodiEsclusi.add(new BlackListElement("setPlugin",
+				Plugin.class));
 		
 		BeanUtils.copy(this, allarme, metodiEsclusi);
 		
@@ -125,43 +118,43 @@ public class ConfigurazioneAllarmeBean extends Allarme{
 		return tmp;
 	}
 	
-	@Override
-	public String getTipo() {
-		if(this.plugin.getClassName()!=null){
-			return _getTipo(this.plugin);
-		}
-		return "Non Definito";
-	}
-
-	private static Hashtable<String, String> mapClassNameToTipo = new Hashtable<String, String>();
-	public static String _getTipo(Plugin plugin) {
-		String pluginClassName = plugin.getClassName();
-		if(mapClassNameToTipo.containsKey(pluginClassName)==false) {
-			_initTipo(plugin);
-		}
-		return mapClassNameToTipo.get(pluginClassName);
-	}
-	private static synchronized void _initTipo(Plugin plugin) {
-		String pluginClassName = plugin.getClassName();
-		if(mapClassNameToTipo.containsKey(pluginClassName)==false) {
-			String tipo = _getTipoFromInstance(plugin);
-			mapClassNameToTipo.put(pluginClassName, tipo);
-		}
-	}
-	private static String _getTipoFromInstance(Plugin plugin) {
-		Logger log = LoggerWrapperFactory.getLogger(ConfigurazioneAllarmeBean.class);
-		try {
-			IDynamicLoader dl = DynamicFactory.getInstance().newDynamicLoader(TipoPlugin.ALLARME, plugin.getTipo(),plugin.getClassName(), log);
-			IAlarmProcessing alarm = (IAlarmProcessing) dl.newInstance();
-			switch (alarm.getAlarmType()) {
-			case ACTIVE:
-				return "Attivo";
-			case PASSIVE:
-				return "Passivo";
-			}
-		}catch(Exception e) {
-			log.error(e.getMessage(),e);
-		}
-		return "Non Definito";
-	}
+//	@Override
+//	public String getTipo() {
+//		if(this.plugin.getClassName()!=null){
+//			return _getTipo(this.plugin);
+//		}
+//		return "Non Definito";
+//	}
+//
+//	private static Hashtable<String, String> mapClassNameToTipo = new Hashtable<String, String>();
+//	public static String _getTipo(Plugin plugin) {
+//		String pluginClassName = plugin.getClassName();
+//		if(mapClassNameToTipo.containsKey(pluginClassName)==false) {
+//			_initTipo(plugin);
+//		}
+//		return mapClassNameToTipo.get(pluginClassName);
+//	}
+//	private static synchronized void _initTipo(Plugin plugin) {
+//		String pluginClassName = plugin.getClassName();
+//		if(mapClassNameToTipo.containsKey(pluginClassName)==false) {
+//			String tipo = _getTipoFromInstance(plugin);
+//			mapClassNameToTipo.put(pluginClassName, tipo);
+//		}
+//	}
+//	private static String _getTipoFromInstance(Plugin plugin) {
+//		Logger log = LoggerWrapperFactory.getLogger(ConfigurazioneAllarmeBean.class);
+//		try {
+//			IDynamicLoader dl = DynamicFactory.getInstance().newDynamicLoader(TipoPlugin.ALLARME, plugin.getTipo(),plugin.getClassName(), log);
+//			IAlarmProcessing alarm = (IAlarmProcessing) dl.newInstance();
+//			switch (alarm.getAlarmType()) {
+//			case ACTIVE:
+//				return "Attivo";
+//			case PASSIVE:
+//				return "Passivo";
+//			}
+//		}catch(Exception e) {
+//			log.error(e.getMessage(),e);
+//		}
+//		return "Non Definito";
+//	}
  }

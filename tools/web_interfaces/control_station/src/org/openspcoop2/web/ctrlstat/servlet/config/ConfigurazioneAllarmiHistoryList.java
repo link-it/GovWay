@@ -27,7 +27,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.struts.action.Action;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
@@ -36,9 +35,9 @@ import org.openspcoop2.core.allarmi.constants.RuoloPorta;
 import org.openspcoop2.core.commons.Liste;
 import org.openspcoop2.message.constants.ServiceBinding;
 import org.openspcoop2.monitor.engine.alarm.wrapper.ConfigurazioneAllarmeBean;
+import org.openspcoop2.monitor.engine.alarm.wrapper.ConfigurazioneAllarmeHistoryBean;
 import org.openspcoop2.web.ctrlstat.core.ControlStationCore;
 import org.openspcoop2.web.ctrlstat.core.Search;
-import org.openspcoop2.web.ctrlstat.costanti.CostantiControlStation;
 import org.openspcoop2.web.ctrlstat.servlet.GeneralHelper;
 import org.openspcoop2.web.lib.mvc.ForwardParams;
 import org.openspcoop2.web.lib.mvc.GeneralData;
@@ -46,14 +45,14 @@ import org.openspcoop2.web.lib.mvc.PageData;
 import org.openspcoop2.web.lib.mvc.ServletUtils;
 
 /**
- * ConfigurazioneAllarmiList
+ * ConfigurazioneAllarmiHistoryList
  * 
  * @author Giuliano Pintori (pintori@link.it)
  * @author $Author$
  * @version $Rev$, $Date$
  * 
  */
-public final class ConfigurazioneAllarmiList extends Action {
+public final class ConfigurazioneAllarmiHistoryList extends Action {
 
 	@Override
 	public ActionForward execute(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
@@ -71,6 +70,8 @@ public final class ConfigurazioneAllarmiList extends Action {
 		try {
 			ConfigurazioneHelper confHelper = new ConfigurazioneHelper(request, pd, session);
 			
+			String idAllarmeS = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_ID_ALLARME);
+			
 			String ruoloPortaParam = confHelper.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_RUOLO_PORTA);
 			RuoloPorta ruoloPorta = null;
 			if(ruoloPortaParam!=null) {
@@ -82,27 +83,25 @@ public final class ConfigurazioneAllarmiList extends Action {
 			if(serviceBindingParam!=null && !"".equals(serviceBindingParam)) {
 				serviceBinding = ServiceBinding.valueOf(serviceBindingParam);
 			}
-			
-			String idTab = confHelper.getParameter(CostantiControlStation.PARAMETRO_ID_TAB);
-			if(!confHelper.isModalitaCompleta() && StringUtils.isNotEmpty(idTab)) {
-				ServletUtils.setObjectIntoSession(session, idTab, CostantiControlStation.PARAMETRO_ID_TAB);
-			}
 
 			ConfigurazioneCore confCore = new ConfigurazioneCore();
 
 			// Preparo il menu
 			confHelper.makeMenu();
 			
+			Long idAllarme = Long.parseLong(idAllarmeS);
+			ConfigurazioneAllarmeBean allarme = confCore.getAllarme(idAllarme);
+			
 			// Preparo la lista
 			Search ricerca = (Search) ServletUtils.getSearchObjectFromSession(session, Search.class);
 
-			int idLista = Liste.CONFIGURAZIONE_ALLARMI;
+			int idLista = Liste.CONFIGURAZIONE_ALLARMI_HISTORY;
 
 			ricerca = confHelper.checkSearchParameters(idLista, ricerca);
 
-			List<ConfigurazioneAllarmeBean> lista = confCore.allarmiList(ricerca, ruoloPorta, nomePorta); 
+			List<ConfigurazioneAllarmeHistoryBean> lista = confCore.allarmiHistoryList(ricerca, idAllarme);  
 			
-			confHelper.prepareAllarmiList(ricerca, lista, ruoloPorta, nomePorta, serviceBinding);
+			confHelper.prepareAllarmiHistoryList(ricerca, lista, allarme, ruoloPorta, nomePorta, serviceBinding);
 			
 			// salvo l'oggetto ricerca nella sessione
 			ServletUtils.setSearchObjectIntoSession(session, ricerca);
@@ -110,11 +109,11 @@ public final class ConfigurazioneAllarmiList extends Action {
 			ServletUtils.setGeneralAndPageDataIntoSession(session, gd, pd);
 			// Forward control to the specified success URI
 			return ServletUtils.getStrutsForward (mapping, 
-					ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_ALLARMI,
+					ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_ALLARMI_HISTORY,
 					ForwardParams.LIST());
 		} catch (Exception e) {
 			return ServletUtils.getStrutsForwardError(ControlStationCore.getLog(), e, pd, session, gd, mapping, 
-					ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_ALLARMI, ForwardParams.LIST());
+					ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_ALLARMI_HISTORY, ForwardParams.LIST());
 		}
 	}
 }

@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.openspcoop2.core.allarmi.constants.RuoloPorta;
 import org.openspcoop2.core.commons.DBUtils;
 import org.openspcoop2.core.commons.ErrorsHandlerCostant;
 import org.openspcoop2.core.config.constants.CostantiConfigurazione;
@@ -3758,6 +3759,220 @@ public class DBOggettiInUsoUtils  {
 				}
 				break;
 				
+			default:
+				msg += "utilizzato in oggetto non codificato ("+key+")"+separator;
+				break;
+			}
+
+		}// chiudo for
+
+		return msg;
+	}
+	
+	// ***** SERVIZI APPLICATIVI ******
+
+	public static boolean isPluginInUso(Connection con, String tipoDB, String className, String label, String tipoPlugin, String tipo, 
+			Map<ErrorsHandlerCostant, List<String>> whereIsInUso, boolean normalizeObjectIds) throws UtilsException {
+
+		String nomeMetodo = "isPluginInUso";
+
+		PreparedStatement stmt = null;
+		ResultSet risultato = null;
+		PreparedStatement stmt2 = null;
+		ResultSet risultato2 = null;
+		String queryString;
+		try {
+			boolean isInUso = false;
+
+			long idPluginLong = DBUtils.getIdPlugin(className, label, tipoPlugin, tipo,	con, tipoDB);
+			if(idPluginLong<=0){
+				throw new UtilsException("Plugin con Label ["+label+"] non trovato");
+			}
+
+			if("ALLARME".equals(tipoPlugin)) {
+				List<String> allarmiPD_mapping_list = whereIsInUso.get(ErrorsHandlerCostant.ALLARMI_MAPPING_PD);
+				List<String> allarmiPD_list = whereIsInUso.get(ErrorsHandlerCostant.ALLARMI_PD);
+				List<String> allarmiPA_mapping_list = whereIsInUso.get(ErrorsHandlerCostant.ALLARMI_MAPPING_PA);
+				List<String> allarmiPA_list = whereIsInUso.get(ErrorsHandlerCostant.ALLARMI_PA);
+				List<String> allarmi_list = whereIsInUso.get(ErrorsHandlerCostant.ALLARMI);
+				
+				if (allarmiPD_mapping_list == null) {
+					allarmiPD_mapping_list = new ArrayList<String>();
+					whereIsInUso.put(ErrorsHandlerCostant.ALLARMI_MAPPING_PD, allarmiPD_mapping_list);
+				}
+				if (allarmiPD_list == null) {
+					allarmiPD_list = new ArrayList<String>();
+					whereIsInUso.put(ErrorsHandlerCostant.ALLARMI_PD, allarmiPD_list);
+				}
+				if (allarmiPA_mapping_list == null) {
+					allarmiPA_mapping_list = new ArrayList<String>();
+					whereIsInUso.put(ErrorsHandlerCostant.ALLARMI_MAPPING_PA, allarmiPA_mapping_list);
+				}
+				if (allarmiPA_list == null) {
+					allarmiPA_list = new ArrayList<String>();
+					whereIsInUso.put(ErrorsHandlerCostant.ALLARMI_PA, allarmiPA_list);
+				}
+				if (allarmi_list == null) {
+					allarmi_list = new ArrayList<String>();
+					whereIsInUso.put(ErrorsHandlerCostant.ALLARMI, allarmi_list);
+				}
+				
+				// allarmi
+				ISQLQueryObject sqlQueryObject = SQLObjectFactory.createSQLQueryObject(tipoDB);
+				sqlQueryObject.addFromTable(CostantiDB.ALLARMI);
+				sqlQueryObject.addSelectField("nome");
+				sqlQueryObject.setANDLogicOperator(true);
+				sqlQueryObject.addWhereCondition("tipo=?");
+				sqlQueryObject.addWhereIsNullCondition("filtro_porta");
+				queryString = sqlQueryObject.createSQLQuery();
+				stmt = con.prepareStatement(queryString);
+				stmt.setString(1, tipo);
+				risultato = stmt.executeQuery();
+				while (risultato.next()){
+					String nome = risultato.getString("nome");
+					allarmi_list.add(nome);
+					isInUso = true;
+				}
+				risultato.close();
+				stmt.close();
+				
+				
+				// Porte applicative, allarmi
+				sqlQueryObject = SQLObjectFactory.createSQLQueryObject(tipoDB);
+				sqlQueryObject.addFromTable(CostantiDB.ALLARMI);
+				sqlQueryObject.addSelectField("nome");
+				sqlQueryObject.addSelectField("filtro_porta");
+				sqlQueryObject.setANDLogicOperator(true);
+				sqlQueryObject.addWhereCondition("tipo=?");
+				sqlQueryObject.addWhereCondition("filtro_ruolo=?");
+				sqlQueryObject.addWhereIsNotNullCondition("filtro_porta");
+				queryString = sqlQueryObject.createSQLQuery();
+				stmt = con.prepareStatement(queryString);
+				stmt.setString(1, tipo);
+				stmt.setString(2, RuoloPorta.APPLICATIVA.getValue());
+				risultato = stmt.executeQuery();
+				while (risultato.next()){
+					String nome = risultato.getString("filtro_porta");
+					ResultPorta resultPorta = formatPortaApplicativa(nome, tipoDB, con, normalizeObjectIds);
+					if(resultPorta.mapping) {
+						allarmiPA_mapping_list.add(resultPorta.label);
+					}
+					else {
+						allarmiPA_list.add(resultPorta.label);
+					}
+					isInUso = true;
+				}
+				risultato.close();
+				stmt.close();
+
+				// Porte delegate, allarmi
+				sqlQueryObject = SQLObjectFactory.createSQLQueryObject(tipoDB);
+				sqlQueryObject.addFromTable(CostantiDB.ALLARMI);
+				sqlQueryObject.addSelectField("nome");
+				sqlQueryObject.addSelectField("filtro_porta");
+				sqlQueryObject.setANDLogicOperator(true);
+				sqlQueryObject.addWhereCondition("tipo=?");
+				sqlQueryObject.addWhereCondition("filtro_ruolo=?");
+				sqlQueryObject.addWhereIsNotNullCondition("filtro_porta");
+				queryString = sqlQueryObject.createSQLQuery();
+				stmt = con.prepareStatement(queryString);
+				stmt.setString(1, tipo);
+				stmt.setString(2, RuoloPorta.DELEGATA.getValue());
+				risultato = stmt.executeQuery();
+				while (risultato.next()){
+					String nome = risultato.getString("filtro_porta");
+					ResultPorta resultPorta = formatPortaDelegata(nome, tipoDB, con, normalizeObjectIds);
+					if(resultPorta.mapping) {
+						allarmiPD_mapping_list.add(resultPorta.label);
+					}
+					else {
+						allarmiPD_list.add(resultPorta.label);
+					}
+					isInUso = true;
+				}
+				risultato.close();
+				stmt.close();
+				
+			}
+			
+			return isInUso;
+
+		} catch (Exception se) {
+			throw new UtilsException("[DBOggettiInUsoUtils::" + nomeMetodo + "] Exception: " + se.getMessage(),se);
+		} finally {
+			// Chiudo statement and resultset
+			try {
+				if (risultato2 != null) {
+					risultato2.close();
+				}
+				if (stmt2 != null) {
+					stmt2.close();
+				}
+			} catch (Exception e) {
+				// ignore
+			}
+			// Chiudo statement and resultset
+			try {
+				if (risultato != null) {
+					risultato.close();
+				}
+				if (stmt != null) {
+					stmt.close();
+				}
+			} catch (Exception e) {
+				// ignore
+			}
+		}
+	}
+
+	public static String toString(String className, String label, String tipoPlugin, String tipo, Map<ErrorsHandlerCostant, List<String>> whereIsInUso, boolean prefix, String separator){
+		
+		StringBuilder bf = new StringBuilder();
+	
+		bf.append(label);
+		
+		Set<ErrorsHandlerCostant> keys = whereIsInUso.keySet();
+		String msg = "Plugin '" +bf.toString() +"' non eliminabile perch&egrave; :"+separator;
+		if(prefix==false){
+			msg = "";
+		}
+		String separatorCategorie = "";
+		if(whereIsInUso.size()>1) {
+			separatorCategorie = separator;
+		}
+		for (ErrorsHandlerCostant key : keys) {
+			List<String> messages = whereIsInUso.get(key);
+
+			if ( messages!=null && messages.size() > 0) {
+				msg += separatorCategorie;
+			}
+			
+			switch (key) {
+			case ALLARMI_MAPPING_PA:
+				if ( messages!=null && messages.size() > 0) {
+					msg += "utilizzato negli Allarmi delle Erogazioni: " + formatList(messages,separator) + separator;
+				}
+				break;
+			case ALLARMI_PA:
+				if ( messages!=null && messages.size() > 0) {
+					msg += "utilizzato nelle Porte Inbound (Allarmi): " + formatList(messages,separator) + separator;
+				}
+				break;
+			case ALLARMI:
+				if ( messages!=null && messages.size() > 0 ) {
+					msg += "utilizzato negli Allarmi: " + formatList(messages,separator) + separator;
+				}
+				break;
+			case ALLARMI_MAPPING_PD:
+				if ( messages!=null && messages.size() > 0) {
+					msg += "utilizzato negli Allarmi delle Fruizioni: " + formatList(messages,separator) + separator;
+				}
+				break;
+			case ALLARMI_PD:
+				if ( messages!=null && messages.size() > 0) {
+					msg += "utilizzato nelle Porte Outbound (Allarmi): " + formatList(messages,separator) + separator;
+				}
+				break;
 			default:
 				msg += "utilizzato in oggetto non codificato ("+key+")"+separator;
 				break;

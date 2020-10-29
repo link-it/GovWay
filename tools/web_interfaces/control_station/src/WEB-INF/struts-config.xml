@@ -3444,6 +3444,13 @@
             <forward name="configurazioneAllarmiDel" path="/jsplib/listElement.jsp"/>
             <forward name="configurazioneAllarmiError" path="/jsplib/info.jsp"/>
         </action>
+        
+        <!-- Configurazione Allarmi History -->
+        <action path="/configurazioneAllarmiHistoryList" type="org.openspcoop2.web.ctrlstat.servlet.config.ConfigurazioneAllarmiHistoryList"
+            scope="request" validate="true">
+            <forward name="configurazioneAllarmiHistoryList" path="/jsplib/listElement.jsp"/>
+            <forward name="configurazioneAllarmiHistoryError" path="/jsplib/info.jsp"/>
+        </action>
     
      	<!-- Audit (Pagina Iniziale)  -->
     

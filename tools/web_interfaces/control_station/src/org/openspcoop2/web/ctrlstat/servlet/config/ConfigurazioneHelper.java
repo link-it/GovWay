@@ -139,6 +139,7 @@ import org.openspcoop2.message.constants.ServiceBinding;
 import org.openspcoop2.monitor.engine.alarm.AlarmContext;
 import org.openspcoop2.monitor.engine.alarm.AlarmEngineConfig;
 import org.openspcoop2.monitor.engine.alarm.wrapper.ConfigurazioneAllarmeBean;
+import org.openspcoop2.monitor.engine.alarm.wrapper.ConfigurazioneAllarmeHistoryBean;
 import org.openspcoop2.monitor.engine.config.base.Plugin;
 import org.openspcoop2.monitor.engine.config.base.constants.TipoPlugin;
 import org.openspcoop2.monitor.engine.dynamic.DynamicFactory;
@@ -16602,9 +16603,28 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 			throw new Exception(e);
 		}
 	}
-	public void prepareAllarmiList(Search ricerca, List<ConfigurazioneAllarmeBean> lista) throws Exception{
+	public void prepareAllarmiList(Search ricerca, List<ConfigurazioneAllarmeBean> lista,
+			RuoloPorta ruoloPorta, String nomePorta, ServiceBinding serviceBinding) throws Exception{
 		try {
-			ServletUtils.addListElementIntoSession(this.session, ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_ALLARMI);
+			List<Parameter> lstParamSession = new ArrayList<Parameter>();
+
+			Parameter parRuoloPorta = null;
+			if(ruoloPorta!=null) {
+				parRuoloPorta = new Parameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_RUOLO_PORTA, ruoloPorta.getValue());
+				lstParamSession.add(parRuoloPorta);
+			}
+			Parameter parNomePorta = null;
+			if(nomePorta!=null) {
+				parNomePorta = new Parameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_NOME_PORTA, nomePorta);
+				lstParamSession.add(parNomePorta);
+			}
+			Parameter parServiceBinding = null;
+			if(serviceBinding!=null) {
+				parServiceBinding = new Parameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_SERVICE_BINDING, serviceBinding.name());
+				lstParamSession.add(parServiceBinding);
+			}
+			
+			ServletUtils.addListElementIntoSession(this.session, ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_ALLARMI, lstParamSession);
 
 			int idLista = Liste.CONFIGURAZIONE_ALLARMI;
 			int limit = ricerca.getPageSize(idLista);
@@ -16615,21 +16635,39 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 			this.pd.setPageSize(limit);
 			this.pd.setNumEntries(ricerca.getNumEntries(idLista));
 			
-			// setto la barra del titolo
-			List<Parameter> lstParam = new ArrayList<Parameter>();
-
-			lstParam.add(new Parameter(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_GENERALE, ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_GENERALE));
+			
+			List<Parameter> lstParamPorta = null;
+			if(ruoloPorta!=null) {
+				lstParamPorta = getTitleListAllarmi(ruoloPorta, nomePorta, serviceBinding, null);
+			}
 			
 			
 			this.pd.setSearchLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_NOME);
+			
 			if(search.equals("")){
 				this.pd.setSearchDescription("");
-				lstParam.add(new Parameter(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_ALLARMI, null));
-			}else{
-				lstParam.add(new Parameter(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_ALLARMI, ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_ALLARMI_LIST));
-				lstParam.add(new Parameter(Costanti.PAGE_DATA_TITLE_LABEL_RISULTATI_RICERCA, null));
 			}
 
+			// setto la barra del titolo
+			List<Parameter> lstParam = null;
+			if(lstParamPorta!=null) {
+				lstParam = lstParamPorta;
+			} else {
+				lstParam = new ArrayList<Parameter>();
+				lstParam.add(new Parameter(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_ALLARMI, null));
+			}
+			
+			if(!search.equals("")){
+				if(lstParamSession.size() > 0) {
+					lstParam.set((lstParam.size() -1), new Parameter(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_ALLARMI, 
+						ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_ALLARMI_LIST, lstParamSession.toArray(new Parameter[lstParamSession.size()])));
+				} else {
+					lstParam.set((lstParam.size() -1), new Parameter(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_ALLARMI, 
+						ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_ALLARMI_LIST));
+				}
+				lstParam.add(new Parameter(Costanti.PAGE_DATA_TITLE_LABEL_RISULTATI_RICERCA, null));
+			}
+			
 			ServletUtils.setPageDataTitle(this.pd, lstParam);
 			
 			// controllo eventuali risultati ricerca
@@ -16655,6 +16693,11 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 					ConfigurazioneAllarmeBean allarme = it.next();
 					
 					Parameter pId = new Parameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_ID_ALLARME, allarme.getId() + "");
+					List<Parameter> lstParamEntry = new ArrayList<Parameter>();
+					lstParamEntry.add(pId);
+					if(lstParamSession.size() > 0) {
+						lstParamEntry.addAll(lstParamSession);
+					}
 					
 					Vector<DataElement> e = new Vector<DataElement>();
 					
@@ -16672,7 +16715,7 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 						de.setValue(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_STATO_DISABILITATO);
 						de.setSelected(CheckboxStatusType.CONFIG_DISABLE);
 					}
-					de.setUrl(ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_ALLARMI_CHANGE, pId);
+					de.setUrl(ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_ALLARMI_CHANGE, lstParamEntry.toArray(new Parameter[lstParamEntry.size()]));
 					e.addElement(de);
 					
 					// Stato
@@ -16694,7 +16737,6 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 						de.setValue(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_STATO_DISABILITATO);
 					}
 					
-					de.setValue(allarme.getTipo());
 					e.addElement(de);
 					
 					// Tipo
@@ -16704,7 +16746,7 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 					
 					// Nome 
 					de = new DataElement();
-					de.setUrl(ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_ALLARMI_CHANGE, pId);
+					de.setUrl(ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_ALLARMI_CHANGE, lstParamEntry.toArray(new Parameter[lstParamEntry.size()]));
 					de.setValue(allarme.getNome());
 					de.setIdToRemove(""+allarme.getId());
 					de.setToolTip(allarme.getNome()); 
@@ -16726,6 +16768,84 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 			this.log.error("Exception: " + e.getMessage(), e);
 			throw new Exception(e);
 		}
+	}
+	
+	public List<Parameter> getTitleListAllarmi(RuoloPorta ruoloPorta, String nomePorta, ServiceBinding serviceBinding, String nomeOggetto) throws Exception{
+		List<Parameter> lstParamPorta = null;
+		if(ruoloPorta!=null) {
+			String labelPerPorta = null;
+			if(RuoloPorta.DELEGATA.equals(ruoloPorta)) {
+				// prelevo il flag che mi dice da quale pagina ho acceduto la sezione delle porte delegate
+				Integer parentPD = ServletUtils.getIntegerAttributeFromSession(PorteDelegateCostanti.ATTRIBUTO_PORTE_DELEGATE_PARENT, this.session);
+				if(parentPD == null) parentPD = PorteDelegateCostanti.ATTRIBUTO_PORTE_DELEGATE_PARENT_NONE;
+				
+				IDPortaDelegata idPortaDelegata = new IDPortaDelegata();
+				idPortaDelegata.setNome(nomePorta);
+				PortaDelegata myPD = this.porteDelegateCore.getPortaDelegata(idPortaDelegata);
+				String idporta = myPD.getNome();
+				
+				MappingFruizionePortaDelegata mappingPD = this.porteDelegateCore.getMappingFruizionePortaDelegata(myPD);
+				long idSoggetto = myPD.getIdSoggetto().longValue();
+				long idAsps = this.apsCore.getIdAccordoServizioParteSpecifica(mappingPD.getIdServizio());
+				long idFruizione = this.apsCore.getIdFruizioneAccordoServizioParteSpecifica(mappingPD.getIdFruitore(),mappingPD.getIdServizio());
+				
+				PorteDelegateHelper porteDelegateHelper = new PorteDelegateHelper(this.request, this.pd, this.session);
+				lstParamPorta = porteDelegateHelper.getTitoloPD(parentPD,idSoggetto +"", idAsps+"", idFruizione+"");
+				
+				if(parentPD!=null && (parentPD.intValue() == PorteDelegateCostanti.ATTRIBUTO_PORTE_DELEGATE_PARENT_CONFIGURAZIONE)) {
+					labelPerPorta = this.porteDelegateCore.getLabelRegolaMappingFruizionePortaDelegata(
+							ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_ALLARMI_DI,
+							ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_ALLARMI,
+							myPD);
+				}
+				else {
+					labelPerPorta = ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_ALLARMI_DI+idporta;
+				}
+				
+			}
+			else {
+				Integer parentPA = ServletUtils.getIntegerAttributeFromSession(PorteApplicativeCostanti.ATTRIBUTO_PORTE_APPLICATIVE_PARENT, this.session);
+				
+				IDPortaApplicativa idPortaApplicativa = new IDPortaApplicativa();
+				idPortaApplicativa.setNome(nomePorta);
+				PortaApplicativa myPA = this.porteApplicativeCore.getPortaApplicativa(idPortaApplicativa);
+				String idporta = myPA.getNome();
+				
+				MappingErogazionePortaApplicativa mappingPA = this.porteApplicativeCore.getMappingErogazionePortaApplicativa(myPA);
+				long idSoggetto = myPA.getIdSoggetto().longValue();
+				long idAsps = this.apsCore.getIdAccordoServizioParteSpecifica(mappingPA.getIdServizio());
+				
+				PorteApplicativeHelper porteApplicativeHelper = new PorteApplicativeHelper(this.request, this.pd, this.session);
+				lstParamPorta = porteApplicativeHelper.getTitoloPA(parentPA, idSoggetto+"", idAsps+"");
+				
+				if(parentPA!=null && (parentPA.intValue() == PorteApplicativeCostanti.ATTRIBUTO_PORTE_APPLICATIVE_PARENT_CONFIGURAZIONE)) {
+					labelPerPorta = this.porteApplicativeCore.getLabelRegolaMappingErogazionePortaApplicativa(
+							ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_ALLARMI_DI,
+							ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_ALLARMI,
+							myPA);
+				}
+				else {
+					labelPerPorta = ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_ALLARMI_DI+idporta;
+				}
+				
+			}
+			
+			if(nomeOggetto==null) {
+				lstParamPorta.add(new Parameter(labelPerPorta,null));
+			}
+			else {
+				List<Parameter> list = new ArrayList<>();
+				list.add(new Parameter( ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_RUOLO_PORTA, ruoloPorta.getValue()));
+				list.add(new Parameter( ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_NOME_PORTA, nomePorta));
+				if(serviceBinding!=null) {
+					list.add(new Parameter( ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_SERVICE_BINDING,serviceBinding.name()));
+				}
+				lstParamPorta.add(new Parameter(labelPerPorta, ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_ALLARMI_LIST,	list));
+				lstParamPorta.add(new Parameter(nomeOggetto,null));
+			}
+		}
+		
+		return lstParamPorta;
 	}
 	
 	public boolean allarmeCheckData(TipoOperazione tipoOp, ConfigurazioneAllarmeBean oldAllarme, ConfigurazioneAllarmeBean allarme, int numeroPluginRegistrati
@@ -16871,7 +16991,7 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 				}
 				String [] tmp = allarme.getMail().getDestinatari().split(",");
 				for (int i = 0; i < tmp.length; i++) {
-					if(!this.checkEmail(tmp[i].trim(), ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_EMAIL)==false){
+					if(this.checkEmail(tmp[i].trim(), ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_EMAIL)==false){
 						this.log.debug("L'indirizzo e-mail fornito ["+tmp[i].trim()+"] non risulta valido"); 
 						return false;
 					}
@@ -16887,9 +17007,6 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 					return false;
 				}
 			}
-			
-		
-			
 			
 			return true;
 		} catch (Exception e) {
@@ -16959,6 +17076,9 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 			
 			String nome = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_NOME);
 			allarme.setNome(nome);
+			
+			String tipo = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO);
+			allarme.setTipo(tipo);
 			
 			String modalitaS = this.getParameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_MODALITA);
 			TipoAllarme tipoAllarme = null;
@@ -17570,7 +17690,7 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 		}
 		else{
 			de.setType(DataElementType.TEXT);
-			de.setSelected(allarme.getPlugin().getLabel() + ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_PLUGIN_NOME_SEP + allarme.getPlugin().getClassName());	
+			de.setValue(allarme.getPlugin().getLabel());	
 		}
 		dati.addElement(de);
 		
@@ -17602,6 +17722,14 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 			de.setValue(allarme.getDescrizione());
 			dati.addElement(de);
 		}
+		
+		// tipo
+		de = new DataElement();
+		de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_MODALITA);
+		de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO);
+		de.setValue(allarme.getTipo() != null ? allarme.getTipo() : "");
+		de.setType(DataElementType.HIDDEN);
+		dati.addElement(de);
 		
 		// modalita
 		de = new DataElement();
@@ -17657,6 +17785,7 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 			de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_PERIODO);
 			de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_PERIODO);
 			de.setType(DataElementType.NUMBER);
+			de.setRequired(true);
 			if(tipoOperazione.equals(TipoOperazione.ADD)){
 				if(first) {
 					de.setValue("");
@@ -17676,6 +17805,7 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 			String [] tipoPeriodoValues = ConfigurazioneCostanti.VALUES_PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO_PERIODO;
 			String [] tipoPeriodoLabels = ConfigurazioneCostanti.LABELS_PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO_PERIODO;
 			
+			de.setRequired(true);
 			de.setValues(tipoPeriodoValues);
 			de.setLabels(tipoPeriodoLabels);
 			if(tipoOperazione.equals(TipoOperazione.ADD)){
@@ -17735,12 +17865,95 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 			dati.addElement(de);
 		}
 		
-		boolean tokenAbilitato = false;
-		IDSoggetto idSoggettoProprietario = null;
-		CredenzialeTipo tipoAutenticazione = null;
-		Boolean appId = null;
+		
+		boolean delegata = false;
+		boolean applicativa = false;
+		@SuppressWarnings("unused")
+		boolean configurazione = false;
+		if(ruoloPorta!=null) {
+			if(RuoloPorta.DELEGATA.equals(ruoloPorta)) {
+				delegata = (nomePorta!=null);
+			}
+			else if(RuoloPorta.APPLICATIVA.equals(ruoloPorta)) {
+				applicativa = (nomePorta!=null);
+			}
+		}
+		configurazione = !delegata && !applicativa;
+		
+		boolean multitenant = this.confCore.isMultitenant();
+		
+		boolean tokenAbilitato = true;
+		
 		PddTipologia pddTipologiaSoggettoAutenticati = null;
 		boolean gestioneErogatori_soggettiAutenticati_escludiSoggettoErogatore = false;
+		PortaDelegata portaDelegata = null;
+		PortaApplicativa portaApplicativa = null;
+		CredenzialeTipo tipoAutenticazione = null;
+		Boolean appId = null;
+		IDSoggetto idSoggettoProprietario = null;
+		if(ruoloPorta!=null) {
+			if(applicativa) {
+				
+				if(multitenant && this.confCore.getMultitenantSoggettiErogazioni()!=null) {
+					switch (this.confCore.getMultitenantSoggettiErogazioni()) {
+					case SOLO_SOGGETTI_ESTERNI:
+						pddTipologiaSoggettoAutenticati = PddTipologia.ESTERNO;
+						break;
+					case ESCLUDI_SOGGETTO_EROGATORE:
+						gestioneErogatori_soggettiAutenticati_escludiSoggettoErogatore = true;
+						break;
+					case TUTTI:
+						break;
+					}
+				}
+				
+				IDPortaApplicativa idPA = new IDPortaApplicativa();
+				idPA.setNome(nomePorta);
+				portaApplicativa = this.porteApplicativeCore.getPortaApplicativa(idPA);
+				tipoAutenticazione = CredenzialeTipo.toEnumConstant(portaApplicativa.getAutenticazione());
+				if(CredenzialeTipo.APIKEY.equals(tipoAutenticazione)) {
+					ApiKeyState apiKeyState =  new ApiKeyState(this.porteApplicativeCore.getParametroAutenticazione(portaApplicativa.getAutenticazione(), portaApplicativa.getProprietaAutenticazioneList()));
+					appId = apiKeyState.appIdSelected;
+				}
+				idSoggettoProprietario = new IDSoggetto(portaApplicativa.getTipoSoggettoProprietario(), portaApplicativa.getNomeSoggettoProprietario());
+				
+				if(portaApplicativa.getGestioneToken()!=null) {
+					String gestioneTokenPolicy = portaApplicativa.getGestioneToken().getPolicy();
+					if(	gestioneTokenPolicy == null ||
+							gestioneTokenPolicy.equals("") ||
+							gestioneTokenPolicy.equals(CostantiControlStation.DEFAULT_VALUE_NON_SELEZIONATO)) {
+						tokenAbilitato = false;
+					}						
+				}
+				else {
+					tokenAbilitato = false;
+				}
+
+			}
+			if(delegata) {
+				IDPortaDelegata idPD = new IDPortaDelegata();
+				idPD.setNome(nomePorta);
+				portaDelegata = this.porteDelegateCore.getPortaDelegata(idPD);
+				tipoAutenticazione = CredenzialeTipo.toEnumConstant(portaDelegata.getAutenticazione());
+				if(CredenzialeTipo.APIKEY.equals(tipoAutenticazione)) {
+					ApiKeyState apiKeyState =  new ApiKeyState(this.porteDelegateCore.getParametroAutenticazione(portaDelegata.getAutenticazione(), portaDelegata.getProprietaAutenticazioneList()));
+					appId = apiKeyState.appIdSelected;
+				}
+				idSoggettoProprietario = new IDSoggetto(portaDelegata.getTipoSoggettoProprietario(), portaDelegata.getNomeSoggettoProprietario());
+				
+				if(portaDelegata.getGestioneToken()!=null) {
+					String gestioneTokenPolicy = portaDelegata.getGestioneToken().getPolicy();
+					if(	gestioneTokenPolicy == null ||
+							gestioneTokenPolicy.equals("") ||
+							gestioneTokenPolicy.equals(CostantiControlStation.DEFAULT_VALUE_NON_SELEZIONATO)) {
+						tokenAbilitato = false;
+					}						
+				}
+				else {
+					tokenAbilitato = false;
+				}
+			}
+		}
 		
 		// Sezione filtro
 		if(this.isShowFilter(allarme)) {
@@ -18149,13 +18362,14 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 			
 			// servizio
 			if(configurazione) {
+				boolean controlloAllarmiFiltroApiSoggettoErogatore = this.core.getAllarmiConfig().isAllarmiFiltroApiSoggettoErogatore();
 				if(protocolloAssociatoFiltroNonSelezionatoUtente) {
 					IDServizio idServizio = null;
 					if(allarme.getFiltro().getTipoServizio()!=null && allarme.getFiltro().getNomeServizio()!=null && allarme.getFiltro().getVersioneServizio()!=null &&
 							allarme.getFiltro().getTipoErogatore()!=null && allarme.getFiltro().getNomeErogatore()!=null
 							){
 						datiIdentificativiServizioSelezionatoValue = allarme.getFiltro().getTipoServizio()+"/"+allarme.getFiltro().getNomeServizio()+"/"+allarme.getFiltro().getVersioneServizio().intValue();
-						if(this.core.isControlloTrafficoPolicyGlobaleFiltroApiSoggettoErogatore()) {
+						if(controlloAllarmiFiltroApiSoggettoErogatore) {
 							datiIdentificativiServizioSelezionatoValue = datiIdentificativiServizioSelezionatoValue+"/"+allarme.getFiltro().getTipoErogatore()+"/"+allarme.getFiltro().getNomeErogatore();
 							idServizio = IDServizioFactory.getInstance().getIDServizioFromValues(allarme.getFiltro().getTipoServizio(), 
 									allarme.getFiltro().getNomeServizio(), 
@@ -18171,7 +18385,7 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 									allarme.getFiltro().getVersioneServizio());
 						}
 					}
-					if(this.core.isControlloTrafficoPolicyGlobaleFiltroApiSoggettoErogatore()) {
+					if(controlloAllarmiFiltroApiSoggettoErogatore) {
 						datiIdentificativiServizioSelezionatoLabel = idServizio!=null ? this.getLabelIdServizio(idServizio) :  ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_RATE_LIMITING_QUALSIASI;
 					}
 					else {
@@ -18186,7 +18400,7 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 					for (IDServizio idServizio : listServizi) {
 						
 						String valueAPI = idServizio.getTipo()+"/"+idServizio.getNome()+"/"+idServizio.getVersione().intValue();
-						if(this.core.isControlloTrafficoPolicyGlobaleFiltroApiSoggettoErogatore()) {
+						if(controlloAllarmiFiltroApiSoggettoErogatore) {
 							valueAPI = valueAPI +"/"+ idServizio.getSoggettoErogatore().getTipo()+"/"+idServizio.getSoggettoErogatore().getNome();
 						}
 						if(serviziValue.contains(valueAPI)) {
@@ -18195,7 +18409,7 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 						serviziValue.add(valueAPI);
 						
 						String labelAPI = null;
-						if(this.core.isControlloTrafficoPolicyGlobaleFiltroApiSoggettoErogatore()) {
+						if(controlloAllarmiFiltroApiSoggettoErogatore) {
 							labelAPI = this.getLabelIdServizio(idServizio);
 						}
 						else {
@@ -18204,12 +18418,12 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 						serviziLabel.add(labelAPI);
 					}
 					boolean definedApi = allarme.getFiltro().getTipoServizio()!=null && allarme.getFiltro().getNomeServizio()!=null && allarme.getFiltro().getVersioneServizio()!=null;
-					if(this.core.isControlloTrafficoPolicyGlobaleFiltroApiSoggettoErogatore()) {
+					if(controlloAllarmiFiltroApiSoggettoErogatore) {
 						definedApi = definedApi && allarme.getFiltro().getTipoErogatore()!=null && allarme.getFiltro().getNomeErogatore()!=null;
 					}
 					if( definedApi ){
 						datiIdentificativiServizioSelezionatoValue = allarme.getFiltro().getTipoServizio()+"/"+allarme.getFiltro().getNomeServizio()+"/"+allarme.getFiltro().getVersioneServizio().intValue();
-						if(this.core.isControlloTrafficoPolicyGlobaleFiltroApiSoggettoErogatore()) {
+						if(controlloAllarmiFiltroApiSoggettoErogatore) {
 							datiIdentificativiServizioSelezionatoValue = datiIdentificativiServizioSelezionatoValue +"/"+allarme.getFiltro().getTipoErogatore()+"/"+allarme.getFiltro().getNomeErogatore();
 						}
 					}
@@ -18860,13 +19074,14 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 			de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_TAG);
 			de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_TAG);
 			de.setValue(datiIdentificativiTagSelezionatoValue);
+			boolean allarmiFiltroApi = this.core.getAllarmiConfig().isAllarmiFiltroApi();
 			if(!configurazione) {
 				de.setType(DataElementType.HIDDEN);
 				dati.addElement(de);
 			}
 			else {
 				de.setValue(datiIdentificativiTagSelezionatoValue);
-				if(this.core.isControlloTrafficoPolicyGlobaleFiltroApi() && datiIdentificativiServizioSelezionatoValue==null ) {
+				if(allarmiFiltroApi && datiIdentificativiServizioSelezionatoValue==null ) {
 					de.setLabels(tagLabel);
 					de.setValues(tagValue);
 					de.setSelected(datiIdentificativiTagSelezionatoValue);
@@ -18893,7 +19108,7 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 					de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_SERVIZIO+"___LABEL");
 					de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_SERVIZIO);
 					de.setValue(datiIdentificativiServizioSelezionatoLabel);
-					if(this.core.isControlloTrafficoPolicyGlobaleFiltroApi()) {
+					if(allarmiFiltroApi) {
 						de.setType(DataElementType.TEXT);
 					}
 					else {
@@ -18903,7 +19118,7 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 			}
 			else {
 				de.setValue(datiIdentificativiServizioSelezionatoValue);
-				if(this.core.isControlloTrafficoPolicyGlobaleFiltroApi()) {
+				if(allarmiFiltroApi) {
 					de.setLabels(serviziLabel);
 					de.setValues(serviziValue);
 					de.setSelected(datiIdentificativiServizioSelezionatoValue);
@@ -19330,7 +19545,7 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 			
 			if(configurazione) {
 			
-				if(this.core.isControlloTrafficoPolicyGlobaleGroupByApi()) {
+				if(this.core.getAllarmiConfig().isAllarmiGroupByApi()) {
 					showServizio = allarme.getFiltro()==null || 
 							allarme.getFiltro().isEnabled()==false || 
 							allarme.getFiltro().getTipoServizio()==null ||
@@ -19786,5 +20001,169 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 			return null;
 
 		return (List<org.openspcoop2.monitor.sdk.parameters.Parameter<?>>) obj;
+	}
+	
+	
+	public void prepareAllarmiHistoryList(Search ricerca, List<ConfigurazioneAllarmeHistoryBean> lista, ConfigurazioneAllarmeBean allarme,
+			RuoloPorta ruoloPorta, String nomePorta, ServiceBinding serviceBinding) throws Exception{
+		try {
+			
+			List<Parameter> lstParAllarme = new ArrayList<Parameter>();
+			Parameter parRuoloPorta = null;
+			if(ruoloPorta!=null) {
+				parRuoloPorta = new Parameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_RUOLO_PORTA, ruoloPorta.getValue());
+				lstParAllarme.add(parRuoloPorta);
+			}
+			Parameter parNomePorta = null;
+			if(nomePorta!=null) {
+				parNomePorta = new Parameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_NOME_PORTA, nomePorta);
+				lstParAllarme.add(parNomePorta);
+			}
+			Parameter parServiceBinding = null;
+			if(serviceBinding!=null) {
+				parServiceBinding = new Parameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_SERVICE_BINDING, serviceBinding.name());
+				lstParAllarme.add(parServiceBinding);
+			}
+			
+			ServletUtils.addListElementIntoSession(this.session, ConfigurazioneCostanti.OBJECT_NAME_CONFIGURAZIONE_ALLARMI_HISTORY);
+
+			int idLista = Liste.CONFIGURAZIONE_ALLARMI_HISTORY;
+			int limit = ricerca.getPageSize(idLista);
+			int offset = ricerca.getIndexIniziale(idLista);
+			
+			Parameter pId = new Parameter(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_ALLARMI_ID_ALLARME, allarme.getId() + "");
+			lstParAllarme.add(pId);
+			
+			this.pd.setIndex(offset);
+			this.pd.setPageSize(limit);
+			this.pd.setNumEntries(ricerca.getNumEntries(idLista));
+			ServletUtils.disabledPageDataSearch(this.pd);
+			
+			List<Parameter> lstParamPorta = null;
+			if(ruoloPorta!=null) {
+				lstParamPorta = getTitleListAllarmi(ruoloPorta, nomePorta, serviceBinding, allarme.getNome());
+			}
+			
+			// setto la barra del titolo
+			List<Parameter> lstParam = null;
+			if(lstParamPorta!=null) {
+				lstParam = lstParamPorta;
+				lstParam.set((lstParam.size() -1), 
+						new Parameter(allarme.getNome(), ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_ALLARMI_CHANGE, lstParAllarme.toArray(new Parameter[lstParAllarme.size()])));
+				
+			} else {
+				lstParam = new ArrayList<Parameter>();
+				lstParam.add(new Parameter(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_ALLARMI, ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_ALLARMI_LIST));
+				lstParam.add(new Parameter(allarme.getNome(), ConfigurazioneCostanti.SERVLET_NAME_CONFIGURAZIONE_ALLARMI_CHANGE, lstParAllarme.toArray(new Parameter[lstParAllarme.size()])));
+			}
+
+			lstParam.add(new Parameter(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_ARCHIVIO_STATI, null));
+			
+			ServletUtils.setPageDataTitle(this.pd, lstParam);
+			
+			// setto le label delle colonne	
+			List<String> lstLabels = new ArrayList<>();
+			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_DATA_AGGIORNAMENTO);
+			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO);
+			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_STATO);
+			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_ACKNOWLEDGED);
+			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_DETTAGLIO);
+			lstLabels.add(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_UTENTE);
+			this.pd.setLabels(lstLabels.toArray(new String [lstLabels.size()]));
+
+			// preparo i dati
+			Vector<Vector<DataElement>> dati = new Vector<Vector<DataElement>>();
+			
+			
+
+			if (lista != null) {
+				Iterator<ConfigurazioneAllarmeHistoryBean> it = lista.iterator();
+				
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+				
+				while (it.hasNext()) {
+					ConfigurazioneAllarmeHistoryBean entry = it.next();
+					
+					Vector<DataElement> e = new Vector<DataElement>();
+					
+					// Data Aggiornamento
+					DataElement de = new DataElement();
+					Date timestampUpdate = entry.getTimestampUpdate();
+					LocalDateTime date = timestampUpdate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+					
+					String dataValue = date.format(formatter);
+					de.setToolTip(dataValue);
+					de.setValue(dataValue);
+					e.addElement(de);
+					
+					// Abilitato
+					de = new DataElement();
+					de.setWidthPx(10);
+					if(entry.getEnabled() == 1){
+						de.setValue(ConfigurazioneCostanti.LABEL_VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO_SI);
+					}
+					else{
+						de.setValue(ConfigurazioneCostanti.LABEL_VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO_NO);
+					}
+					e.addElement(de);
+					
+					// Stato
+					de = new DataElement();
+					
+					if(entry.getEnabled() == 1) {
+						if(entry.getStato() == ConfigurazioneCostanti.CONFIGURAZIONE_ALLARME_STATO_OK) {
+							de.setToolTip(ConfigurazioneCostanti.CONFIGURAZIONE_ALLARME_LABEL_STATO_OK);
+							de.setValue(ConfigurazioneCostanti.CONFIGURAZIONE_ALLARME_LABEL_STATO_OK);
+						} else if(entry.getStato() == ConfigurazioneCostanti.CONFIGURAZIONE_ALLARME_STATO_ERROR) {
+							de.setToolTip(ConfigurazioneCostanti.CONFIGURAZIONE_ALLARME_LABEL_STATO_ERROR);
+							de.setValue(ConfigurazioneCostanti.CONFIGURAZIONE_ALLARME_LABEL_STATO_ERROR);
+						} else if(entry.getStato() == ConfigurazioneCostanti.CONFIGURAZIONE_ALLARME_STATO_WARNING) {
+							de.setToolTip(ConfigurazioneCostanti.CONFIGURAZIONE_ALLARME_LABEL_STATO_WARNING);
+							de.setValue(ConfigurazioneCostanti.CONFIGURAZIONE_ALLARME_LABEL_STATO_WARNING);
+						}
+					} else {
+						de.setToolTip(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_STATO_DISABILITATO);
+						de.setValue(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_STATO_DISABILITATO);
+					}
+					
+					e.addElement(de);
+					
+					// ack
+					de = new DataElement();
+//					de.setWidthPx(10);
+					if(entry.getAcknowledged() == 1){
+						de.setToolTip(ConfigurazioneCostanti.LABEL_VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_ACKNOWLEDGE_SI);
+						de.setValue(ConfigurazioneCostanti.LABEL_VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_ACKNOWLEDGE_SI);
+					}
+					else{
+						de.setToolTip(ConfigurazioneCostanti.LABEL_VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_ACKNOWLEDGE_NO);
+						de.setValue(ConfigurazioneCostanti.LABEL_VALUE_PARAMETRO_CONFIGURAZIONE_ALLARMI_ACKNOWLEDGE_NO);
+					}
+					e.addElement(de);
+					
+					// dettaglio
+					de = new DataElement();
+					de.setValue(entry.getDettaglioStatoAbbr());
+					de.setToolTip(entry.getDettaglioStatoHtmlEscaped()); 
+					e.addElement(de);
+					
+					// utente
+					de = new DataElement();
+					de.setValue(entry.getUtente());
+					de.setToolTip(entry.getUtente()); 
+					e.addElement(de);
+					
+					dati.addElement(e);
+				}
+			}
+			
+			this.pd.setDati(dati);
+			this.pd.setAddButton(false);
+			this.pd.setRemoveButton(false);
+			this.pd.setSelect(false);
+		} catch (Exception e) {
+			this.log.error("Exception: " + e.getMessage(), e);
+			throw new Exception(e);
+		}
 	}
 }

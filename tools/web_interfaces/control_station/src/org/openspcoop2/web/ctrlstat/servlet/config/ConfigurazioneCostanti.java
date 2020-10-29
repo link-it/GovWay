@@ -687,6 +687,7 @@ public class ConfigurazioneCostanti {
 	
 	
 	public final static String LABEL_CONFIGURAZIONE_ALLARMI = "Allarmi";
+	public final static String LABEL_CONFIGURAZIONE_ALLARMI_DI = "Allarmi di ";
 	public final static String LABEL_CONFIGURAZIONE_ALLARMI_ALLARME = "Allarme";
 	public final static String LABEL_CONFIGURAZIONE_ALLARMI_FILTRO = "Filtro";
 	public final static String LABEL_CONFIGURAZIONE_ALLARMI_INFORMAZIONI_GENERALI = "Informazioni Generali";
@@ -1139,6 +1140,7 @@ public class ConfigurazioneCostanti {
 	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_ABILITATO = "allAbilitato";
 	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_STATO = "allStato";
 	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_NOME = "allNome";
+	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO = "allTipo";
 	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_DESCRIZIONE = "allDescr";
 	
 	public final static String PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_ENABLED = "allFiltroEnabled";
@@ -1700,6 +1702,9 @@ public class ConfigurazioneCostanti {
 	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_TIPO_PERIODO = "Tipo Periodo";
 	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO = "Filtro";
 	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_RAGGRUPPAMENTO = "Raggruppamento";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_DATA_AGGIORNAMENTO = "Data Aggiornamento";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_DETTAGLIO = "Dettaglio";
+	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_UTENTE = "Utente";
 	
 	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_ID_PDD_FRUITORE = "Fruitore (ID PdD)";
 	public final static String LABEL_PARAMETRO_CONFIGURAZIONE_ALLARMI_FILTRO_FRUITORE_SOGGETTO = "Fruitore (Soggetto)";
@@ -2165,8 +2170,10 @@ public class ConfigurazioneCostanti {
 	public final static String MESSAGGIO_ERRORE_ALLARME_FREQUENZA_NON_INDICATA = "Non è stata indicata la frequenza di attivazione per il controllo dello stato dell'allarme.";
 	public final static String MESSAGGIO_ERRORE_ALLARME_FREQUENZA_NON_VALIDA = "Indicare una frequenza di attivazione (maggiore di 0) per il controllo dello stato dell'allarme";
 	public final static String MESSAGGIO_ERRORE_ALLARME_EMAIL_VUOTA = "Almeno un indirizzo e-mail è obbligatorio";
+	public final static String MESSAGGIO_ERRORE_ALLARME_EMAIL_NON_VALIDO = "L''indirizzo e-mail fornito [{0}] non risulta valido";
 	public final static String MESSAGGIO_ERRORE_ALLARME_DUPLICATO = "Esiste gi&agrave; un allarme con questo nome.";
-	
+	public final static String MESSAGGIO_ERRORE_ALLARME_SALVATO_NOTIFICA_FALLITA = "Allarme {0} salvato correttamente, ma invio notifica terminato con errore: {1}";
+	public final static String MESSAGGIO_ERRORE_ALLARME_ELIMINATO_NOTIFICA_FALLITA = "Allarmi eliminati correttamente, ma invio notifica terminato con errore: {0}";
 }
 
 	

@@ -79,25 +79,23 @@ public final class ConfigurazionePluginsClassiDel extends Action {
 			ArrayList<String> idsToRemove = Utilities.parseIdsToRemove(objToRemove);
 			ConfigurazioneCore confCore = new ConfigurazioneCore();
 
+			StringBuilder inUsoMessage = new StringBuilder();
+			
 			Long id = null;
 
-			List<Object> pluginToRemove = new ArrayList<>();
-			
 			for (int i = 0; i < idsToRemove.size(); i++) {
 
 				id = Long.parseLong(idsToRemove.get(i));
 				
-				Plugin plugin = new Plugin();
-				plugin.setId(id);
-				
-				pluginToRemove.add(plugin);
+				ConfigurazionePluginsUtils.deletePlugin(id, userLogin, confCore, confHelper, inUsoMessage, org.openspcoop2.core.constants.Costanti.WEB_NEW_LINE);
+			}
+			
+			if (inUsoMessage.length()>0) {
+				pd.setMessage(inUsoMessage.toString());
 			}
 
-			Object[] oggetti = pluginToRemove.toArray(new Plugin[pluginToRemove.size()]); 
-			confCore.performDeleteOperation(userLogin, confHelper.smista(), oggetti);
 			// Preparo il menu
 			confHelper.makeMenu();
-
 			
 			// Preparo la lista
 			Search ricerca = (Search) ServletUtils.getSearchObjectFromSession(session, Search.class);
@@ -110,7 +108,9 @@ public final class ConfigurazionePluginsClassiDel extends Action {
 			
 			confHelper.preparePluginsClassiList(ricerca, lista);
 						
-			pd.setMessage(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_PROPRIETA_SISTEMA_MODIFICATA_CON_SUCCESSO, Costanti.MESSAGE_TYPE_INFO);
+			if (inUsoMessage.length() == 0) {
+				pd.setMessage(ConfigurazioneCostanti.LABEL_CONFIGURAZIONE_PROPRIETA_SISTEMA_MODIFICATA_CON_SUCCESSO, Costanti.MESSAGE_TYPE_INFO);
+			}
 			
 			ServletUtils.setGeneralAndPageDataIntoSession(session, gd, pd);
 			// Forward control to the specified success URI
