@@ -74,7 +74,6 @@ Scenario: isTest('iniezione-header-id-collaborazione-query')
 
 # ID Correlazione aggiunto dalla fruizione server sfruttando
 # il riferimento id richiesta
-# TODO: Collassare questi quattro scenari in uno solo
 
 Scenario: isTest('iniezione-header-riferimento-id-richiesta')
 

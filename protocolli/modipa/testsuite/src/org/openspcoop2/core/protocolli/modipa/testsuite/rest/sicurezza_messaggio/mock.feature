@@ -95,8 +95,15 @@ Scenario: isTest('assenza-header-digest-risposta')
     * def responseStatus = 200
     * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
 
-# TODO: Anche negli altri casi senza payload devo mettere response = ''
-Scenario: isTest('response-without-payload-idar03') || isTest('response-without-payload-idar03-digest-richiesta')
+
+Scenario: isTest('response-without-payload-idar03')
+    * match requestHeaders['Authorization'] == '#notpresent'
+    * def responseStatus = 201
+    * def response = ''
+    * def responseHeaders = ({ 'Content-Type': null, 'IDAR03TestHeader': "TestHeaderResponse" })
+
+
+Scenario: isTest('response-without-payload-idar03-digest-richiesta')
     * match requestHeaders['Authorization'] == '#notpresent'
     * def responseStatus = 201
     * def response = ''
@@ -106,14 +113,32 @@ Scenario: isTest('response-without-payload-idar03') || isTest('response-without-
 Scenario: isTest('request-without-payload-idar03') || isTest('request-without-payload-idar03-digest-richiesta')
     * match requestHeaders['Authorization'] == '#notpresent'
     * def responseStatus = 200
-    * def response = read('classpath:test/rest/sicurezza-messaggio/request.json')
+
+    * def response =
+    """
+    ({
+         "a" : {
+            "a2": "RGFuJ3MgVG9vbHMgYXJlIGNvb2wh",
+            "a1s": [ 1, 2 ]
+          },
+          "b": "Stringa di esempio"
+    })
+    """
 
 
-Scenario: isTest('request-response-without-payload-idar03') || isTest('request-response-without-payload-idar03-digest-richiesta')
+Scenario: isTest('request-response-without-payload-idar03')
+    * match requestHeaders['Authorization'] == '#notpresent'
+    * def responseStatus = 204
+    * def response = ''
+    * def responseHeaders = ({ 'Content-Type': null, 'IDAR03TestHeader': "TestHeaderResponse" })
+
+
+Scenario: isTest('request-response-without-payload-idar03-digest-richiesta')
     * match requestHeaders['Authorization'] == '#notpresent'
     * def responseStatus = 204
     * def response = ''
     * def responseHeaders = ({ 'Content-Type': null })
+
 
 
 ##########################################

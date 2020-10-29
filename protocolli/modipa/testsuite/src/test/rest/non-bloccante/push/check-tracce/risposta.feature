@@ -3,7 +3,6 @@ Feature: Controllo traccia risposta IDAC01 su fruizione ed erogazione per profil
 Scenario: Controllo traccia risposta IDAC01 su fruizione ed erogazione per profilo Non Bloccante Rest
 
 
-# TODO: Ci manca ProfiloInterazioneAsincrona-ApiCorrelata
 * def get_traccia = read('classpath:utils/get_traccia.js')
 * def traccia_to_match = 
 """

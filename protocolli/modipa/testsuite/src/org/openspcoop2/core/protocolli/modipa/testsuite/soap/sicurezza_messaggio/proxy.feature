@@ -371,8 +371,6 @@ Scenario: isTest('connettivita-base-idas03')
 
     * match digests contains only x_request_digests
     
-    # TODO: Che test-errore ci posso fare?
-
     * xmlstring server_response = response
     * eval karateCache.add("Server-Response", server_response)
 
@@ -484,9 +482,7 @@ Scenario: isTest('response-without-payload-idas03-digest-richiesta')
 
     * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS03MultipleOpDigestRichiesta/v1')
 
-    # TODO: BUG? Siccome la risposta è vuota, non viene inviata neanche la risposta con i digest della richiesta
     * def digests = bodyPath('/Envelope/Header/Security/Signature/SignedInfo/Reference/DigestValue')
-    * def x_request_digests = /Envelope/Header/X-RequestDigest/Reference/DigestValue
 
     # La signature non viene fatta su di una risposta vuota quindi non la controllo
     # Controllo qui la traccia della erogazione perchè non posso far viaggiare header
@@ -509,7 +505,6 @@ Scenario: isTest('response-without-payload-idas03-digest-richiesta')
     * def tid = responseHeaders['GovWay-Transaction-ID'][0]
     * call check_traccia ({tid: tid, tipo: 'Richiesta', body: client_request, x509sub: x509sub_client1, profilo_sicurezza: "IDAS0301", other_checks: checks_richiesta })
 
-    * match digests contains only x_request_digests
 
 
 #####################################################

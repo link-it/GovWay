@@ -764,6 +764,8 @@ Scenario: isTest('response-without-payload-idar03')
     * def url_invocazione_erogazione = govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR03CRUD/v1'
     * karate.proceed(url_invocazione_erogazione)
 
+    # TODO: Tra i signed_headers mettere quello custom,
+    # però scrivere un nuovo test dove altero lo header http e vediamo se si arrabbia
     * def server_token_match =
     """
     ({
@@ -773,7 +775,9 @@ Scenario: isTest('response-without-payload-idar03')
             client_id: 'RestBlockingIDAR03CRUD/v1',
             iss: 'DemoSoggettoErogatore',
             sub: 'RestBlockingIDAR03CRUD/v1',
-            signed_headers: '#notpresent'
+            signed_headers: [
+                { idar03testheader: 'TestHeaderResponse' }
+            ]
         }
     })
     """
@@ -839,13 +843,10 @@ Scenario: isTest('request-without-payload-idar03')
     })
     """
     * def responseHeaders = karate.merge(responseHeaders,newHeaders)
-    # TODO: QUI invece fallisce la fruizione con Header HTTP 'Digest' possiede un valore non corrispondente al messaggio    
 
 Scenario: isTest('request-response-without-payload-idar03')
 
-    # TODO: Se è vero che non devono esserci i signed_headers, allora considera l'idea di aggiungercene un'altro
-    # a livello di API, come fatto con idar03testheader e fare un test che mostra che tale header non viene inserito
-    # con un payload vuoto
+
     * def client_token_match = 
     """
     ({
@@ -874,7 +875,9 @@ Scenario: isTest('request-response-without-payload-idar03')
             client_id: 'RestBlockingIDAR03CRUD/v1',
             iss: 'DemoSoggettoErogatore',
             sub: 'RestBlockingIDAR03CRUD/v1',
-            signed_headers: '#notpresent'
+            signed_headers: [
+                { idar03testheader: 'TestHeaderResponse' }
+            ]
         }
     })
     """
@@ -995,7 +998,6 @@ Scenario: isTest('request-without-payload-idar03-digest-richiesta')
     })
     """
     * def responseHeaders = karate.merge(responseHeaders,newHeaders)
-    # TODO: QUI invece fallisce la fruizione con Header HTTP 'Digest' possiede un valore non corrispondente al messaggio    
 
 Scenario: isTest('request-response-without-payload-idar03-digest-richiesta')
 
