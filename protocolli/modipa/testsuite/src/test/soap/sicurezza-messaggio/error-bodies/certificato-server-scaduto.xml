@@ -12,7 +12,7 @@
                 <env:Text xml:lang="en-US">modipa/DemoSoggettoFruitore ha rilevato le seguenti eccezioni:
 A security error was encountered when verifying the message ; NotAfter: Tue Jul 09 12:30:00 CEST 2019</env:Text>
             </env:Reason>
-            <env:Role/>
+            <env:Role>http://govway.org/integration</env:Role>
             <env:Detail>
                 <problem xmlns="urn:ietf:rfc:7807">
                     <type>https://govway.org/handling-errors/502/InteroperabilityInvalidResponse.html</type>

@@ -234,7 +234,7 @@ And match header Authorization == '#notpresent'
 
 
 @riferimento-x509-x5t-x5u
-Scenario: Riferimento X509 con x5u nella fruizione e x5t nell'erogazione
+Scenario: Riferimento X509 con x5t nella fruizione e x5u nell'erogazione
 
 Given url govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01X5T-X5U/v1"
 And path 'resources', 1, 'M'

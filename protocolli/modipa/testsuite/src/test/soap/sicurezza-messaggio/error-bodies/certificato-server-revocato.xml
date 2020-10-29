@@ -12,7 +12,7 @@
                 <env:Text xml:lang="en-US">modipa/DemoSoggettoFruitore ha rilevato le seguenti eccezioni:
 A security error was encountered when verifying the message ; Certificate has been revoked, reason: KEY_COMPROMISE, revocation date: Tue Jul 09 12:32:00 CEST 2019, authority: CN=ExampleCA, O=Example, L=Pisa, ST=Italy, C=IT, extension OIDs: [2.5.29.21, 2.5.29.24]</env:Text>
             </env:Reason>
-            <env:Role/>
+            <env:Role>http://govway.org/integration</env:Role>
             <env:Detail>
                 <problem xmlns="urn:ietf:rfc:7807">
                     <type>https://govway.org/handling-errors/502/InteroperabilityInvalidResponse.html</type>

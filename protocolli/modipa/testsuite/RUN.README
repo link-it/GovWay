@@ -1,5 +1,12 @@
 Prerequisiti:
 
++ Impostare multitenant attivo con:
+  - Fruizioni -> Soggetto Erogatore=Escludi Soggetto Fruitore
+    Erogazioni -> Soggetti Fruitori=Escludi Soggetto Erogatore
+  il comando sql per farlo è:
+    update configurazione set multitenant_stato='abilitato', multitenant_fruizioni='escludiSoggettoFruitore', multitenant_erogazioni='escludiSoggettoErogatore';
+  NOTA:!!!una volta impostato riavviare l'application server!!!
+
 + Configurare l'ambiente di esecuzione dei test:
 
 	- Configurare il file di properties delle classi junit in <src/testsuite.properties>
