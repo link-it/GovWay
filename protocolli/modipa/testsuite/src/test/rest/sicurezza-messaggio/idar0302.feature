@@ -199,15 +199,14 @@ And match response == read('error-bodies/identificativo-token-riutilizzato.json'
 And match header GovWay-Transaction-ErrorType == 'Conflict'
 
 
-# Contattiamo la fruizione e le facciamo rispondere dal proxy con lo stesso token dell'erogazione
-# TODO: Continua da qui.
-# Given url govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR0302/v1"
-# And path 'resources', 1, 'M'
-# And request read('request.json')
-# And header GovWay-TestSuite-Test-ID = 'riutilizzo-token-risposta-idar0302'
-# And header GovWay-TestSuite-Server-Token = server_token_header
-# And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
-# When method post
-# Then status 502
-# And match response == read('error-bodies/identificativo-token-riutilizzato-in-risposta.json')
-# And match header GovWay-Transaction-ErrorType == 'ConflictResponse'
+Given url govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR0302/v1"
+And path 'resources', 1, 'M'
+And request read('request.json')
+And header GovWay-TestSuite-Test-ID = 'riutilizzo-token-risposta-idar0302'
+And header GovWay-TestSuite-Server-Token = server_token_header
+And header GovWay-TestSuite-Digest = response_digest[0]
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method post
+Then status 502
+And match response == read('error-bodies/identificativo-token-riutilizzato-in-risposta.json')
+And match header GovWay-Transaction-ErrorType == 'ConflictResponse'

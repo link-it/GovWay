@@ -922,6 +922,9 @@ Scenario: isTest('request-without-payload-idar03-tampered-header')
 
     * set requestHeaders['IDAR03TestHeader'][0] = 'tampered_header'
     * karate.proceed(url_invocazione_erogazione)
+    * match responseStatus == 400
+    * match response == read('classpath:test/rest/sicurezza-messaggio/error-bodies/manomissione-header-http-firmati-richiesta.json')
+    * match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidRequest'
 
 
 
@@ -1277,7 +1280,7 @@ Scenario: isTest('riutilizzo-token-idar0302')
 
 Scenario: isTest('riutilizzo-token-risposta-idar0302')
 
-    * def responseHeaders =  ({ 'Authorization': requestHeaders['GovWay-TestSuite-Server-Token'][0] })
+    * def responseHeaders =  ({ 'Authorization': requestHeaders['GovWay-TestSuite-Server-Token'][0], 'Digest': requestHeaders['GovWay-TestSuite-Digest'][0] })
     * def responseStatus = 200
     * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
 

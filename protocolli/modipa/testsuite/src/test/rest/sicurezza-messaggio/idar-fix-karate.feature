@@ -99,7 +99,7 @@ And match response == read('request.json')
 @request-without-payload-tampered-header
 Scenario: Manomissione header firmato nel test di un endpoint che non ha il payload nella richiesta
 
-* def url_invocazione = govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01CRUD/v1"
+* def url_invocazione = govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR03CRUD/v1"
 
 Given url url_invocazione
 And path 'resources', 'object', 1
@@ -107,10 +107,7 @@ And header GovWay-TestSuite-Test-ID = 'request-without-payload-idar03-tampered-h
 And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
 And header IDAR03TestHeader = "TestHeaderRequest"
 When method get
-Then status 200
-And match response == read('request.json')
-
-
+Then status 502
 
 
 @request-response-without-payload
