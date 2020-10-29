@@ -764,8 +764,6 @@ Scenario: isTest('response-without-payload-idar03')
     * def url_invocazione_erogazione = govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR03CRUD/v1'
     * karate.proceed(url_invocazione_erogazione)
 
-    # TODO: Tra i signed_headers mettere quello custom,
-    # però scrivere un nuovo test dove altero lo header http e vediamo se si arrabbia
     * def server_token_match =
     """
     ({
@@ -790,6 +788,61 @@ Scenario: isTest('response-without-payload-idar03')
         'GovWay-TestSuite-GovWay-Client-Token': requestHeaders.Authorization[0],
         'GovWay-TestSuite-GovWay-Server-Token': responseHeaders.Authorization[0],
         'Content-Type': null
+    })
+    """
+    * def responseHeaders = karate.merge(responseHeaders,newHeaders)
+
+
+
+Scenario: isTest('response-without-payload-idar03-tampered-header')
+
+    * def client_token_match = 
+    """
+    ({
+        header: { kid: 'ExampleClient1' },
+        payload: { 
+            aud: 'testsuite',
+            client_id: 'DemoSoggettoFruitore/ApplicativoBlockingIDA01',
+            iss: 'DemoSoggettoFruitore',
+            sub: 'ApplicativoBlockingIDA01',
+            signed_headers: [
+                { digest: '#string' },
+                { 'content-type': 'application\/json; charset=UTF-8' },
+            ]
+        }
+    })
+    """
+
+    * call checkToken ({token: requestHeaders.Authorization[0], match_to: client_token_match })
+
+    * def url_invocazione_erogazione = govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR03CRUD/v1'
+    * karate.proceed(url_invocazione_erogazione)
+
+    * def server_token_match =
+    """
+    ({
+        header: { kid: 'ExampleServer'},
+        payload: {
+            aud: 'DemoSoggettoFruitore/ApplicativoBlockingIDA01',
+            client_id: 'RestBlockingIDAR03CRUD/v1',
+            iss: 'DemoSoggettoErogatore',
+            sub: 'RestBlockingIDAR03CRUD/v1',
+            signed_headers: [
+                { idar03testheader: 'TestHeaderResponse' }
+            ]
+        }
+    })
+    """
+
+    * call checkToken ({token: responseHeaders.Authorization[0], match_to: server_token_match  })
+
+    * def newHeaders = 
+    """
+    ({
+        'GovWay-TestSuite-GovWay-Client-Token': requestHeaders.Authorization[0],
+        'GovWay-TestSuite-GovWay-Server-Token': responseHeaders.Authorization[0],
+        'Content-Type': null,
+        'IDAR03TestHeader': 'tampered_header'
     })
     """
     * def responseHeaders = karate.merge(responseHeaders,newHeaders)
@@ -843,6 +896,34 @@ Scenario: isTest('request-without-payload-idar03')
     })
     """
     * def responseHeaders = karate.merge(responseHeaders,newHeaders)
+
+
+Scenario: isTest('request-without-payload-idar03-tampered-header')
+
+    * def client_token_match = 
+    """
+    ({
+        header: { kid: 'ExampleClient1' },
+        payload: { 
+            aud: 'testsuite',
+            client_id: 'DemoSoggettoFruitore/ApplicativoBlockingIDA01',
+            iss: 'DemoSoggettoFruitore',
+            sub: 'ApplicativoBlockingIDA01',
+            signed_headers: [ 
+               { idar03testheader: 'TestHeaderRequest' }
+            ]
+        }
+    })
+    """
+
+    * call checkToken ({token: requestHeaders.Authorization[0], match_to: client_token_match })
+
+    * def url_invocazione_erogazione = govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR03CRUD/v1'
+
+    * set requestHeaders['IDAR03TestHeader'][0] = 'tampered_header'
+    * karate.proceed(url_invocazione_erogazione)
+
+
 
 Scenario: isTest('request-response-without-payload-idar03')
 

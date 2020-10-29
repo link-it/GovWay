@@ -207,6 +207,19 @@ And match header Authorization == '#notpresent'
 * call check_traccia ({ tid: tid, tipo: 'Risposta', token: server_token, x509sub: 'CN=ExampleServer, O=Example, L=Pisa, ST=Italy, C=IT', profilo_sicurezza: 'IDAR0301', other_checks: other_checks_risposta })
 
 
+@response-without-payload-tampered-header
+Scenario: Modifco uno degli header firmati in una risposta senza payload
+
+* def url_invocazione = govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR03CRUD/v1"
+
+Given url url_invocazione
+And path 'resources', 'object'
+And request read('request.json')
+And header GovWay-TestSuite-Test-ID = 'response-without-payload-idar03-tampered-header'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method post
+Then status 502
+And match response == read('error-bodies/manomissione-header-http-firmati-risposta.json')
 
 
 @response-without-payload-digest-richiesta

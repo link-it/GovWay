@@ -96,7 +96,7 @@ Scenario: isTest('assenza-header-digest-risposta')
     * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
 
 
-Scenario: isTest('response-without-payload-idar03')
+Scenario: isTest('response-without-payload-idar03')  || isTest('response-without-payload-idar03-tampered-header')
     * match requestHeaders['Authorization'] == '#notpresent'
     * def responseStatus = 201
     * def response = ''
