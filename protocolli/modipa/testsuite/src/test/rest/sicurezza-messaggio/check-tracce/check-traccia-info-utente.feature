@@ -19,8 +19,6 @@ Scenario: Controllo traccia IDAR01
     { name: 'ProfiloSicurezzaMessaggio-MessageId', value: '#uuid' },
     { name: 'ProfiloSicurezzaMessaggio-Audience', value: token.payload.aud },
     { name: 'ProfiloSicurezzaMessaggio-ClientId', value: token.payload.client_id },
-    { name: 'ProfiloSicurezzaMessaggio-Issuer', value: token.payload.iss },
-    { name: 'ProfiloSicurezzaMessaggio-Subject', value: token.payload.sub },
     { name: 'ProfiloSicurezzaMessaggio-X509-Subject', value: x509sub },
     { name: 'ProfiloSicurezzaMessaggio-X509-Issuer', value: 'CN=ExampleCA, O=Example, L=Pisa, ST=Italy, C=IT' }
 ])

@@ -506,6 +506,13 @@ Scenario: isTest('response-without-payload-idas03-digest-richiesta')
     * call check_traccia ({tid: tid, tipo: 'Richiesta', body: client_request, x509sub: x509sub_client1, profilo_sicurezza: "IDAS0301", other_checks: checks_richiesta })
 
 
+Scenario: isTest('no-informazioni-utente-at-erogazione')
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS03InfoUtente/v1')
+    * match responseStatus == 500
+    * match response == read('classpath:test/soap/sicurezza-messaggio/error-bodies/no-informazioni-utente-at-erogazione.xml')
+
+
 
 #####################################################
 #                     IDAS0302                      #

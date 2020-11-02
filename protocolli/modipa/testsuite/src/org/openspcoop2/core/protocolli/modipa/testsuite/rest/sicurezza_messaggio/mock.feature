@@ -140,6 +140,11 @@ Scenario: isTest('request-response-without-payload-idar03-digest-richiesta')
     * def responseHeaders = ({ 'Content-Type': null })
 
 
+Scenario: isTest('informazioni-utente-header') || isTest('informazioni-utente-query') || isTest('informazioni-utente-mixed')
+
+    * def responseStatus = 200
+    * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
+
 
 ##########################################
 #                IDAR0302                #

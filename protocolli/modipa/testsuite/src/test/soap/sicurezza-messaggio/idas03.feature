@@ -247,3 +247,20 @@ And match response == ''
 
 * def tid = responseHeaders['GovWay-Transaction-ID'][0]
 * call check_traccia ({tid: tid, tipo: 'Richiesta', body: client_request, x509sub: x509sub_client1, profilo_sicurezza: "IDAS0301", other_checks: checks_richiesta })
+
+
+
+@no-informazioni-utente-at-erogazione
+Scenario: All'erogazione non arrivano la security con le informazioni utente
+
+* def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS03/v1'
+
+Given url soap_url
+And request read("request.xml")
+And header Content-Type = 'application/soap+xml'
+And header action = soap_url
+And header GovWay-TestSuite-Test-ID = 'no-informazioni-utente-at-erogazione'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method post
+Then status 500
+And match response == read("error-bodies/no-informazioni-utente-at-erogazione.xml")

@@ -1132,6 +1132,74 @@ Scenario: isTest('request-response-without-payload-idar03-digest-richiesta')
     * def responseHeaders = karate.merge(responseHeaders,newHeaders)
 
 
+Scenario: isTest('informazioni-utente-header') || isTest('informazioni-utente-query') || isTest('informazioni-utente-mixed')
+
+    * def client_token_match = 
+    """
+    ({
+        header: { kid: 'ExampleClient1' },
+        payload: { 
+            aud: 'testsuite',
+            client_id: 'DemoSoggettoFruitore/ApplicativoBlockingIDA01',
+            iss: 'DemoSoggettoFruitore',
+            sub: 'utente-token',
+            user_ip: 'ip-utente-token',
+            signed_headers: [
+                { digest: '#string' },
+                { 'content-type': 'application\/json; charset=UTF-8' },            
+            ]
+        }
+    })
+    """
+    * call checkToken ({token: requestHeaders.Authorization[0], match_to: client_token_match })
+
+    * karate.proceed (govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR03InfoUtente/v1')
+    
+    * def request_token = decodeToken(requestHeaders.Authorization[0])
+    * def request_digest = get request_token $.payload.signed_headers..digest
+
+    * match requestHeaders['Digest'][0] == request_digest[0]
+
+    * def server_token_match =
+    """
+    ({
+        header: { kid: 'ExampleServer'},
+        payload: {
+            aud: 'DemoSoggettoFruitore/ApplicativoBlockingIDA01',
+            client_id: 'RestBlockingIDAR03InfoUtente/v1',
+            iss: 'DemoSoggettoErogatore',
+            sub: 'RestBlockingIDAR03InfoUtente/v1',
+            signed_headers: [
+                { digest: '#string' },
+                { 'content-type': 'application\/json' }
+            ]
+        }
+    })
+    """
+    * call checkToken ({token: responseHeaders.Authorization[0], match_to: server_token_match  })
+
+    * def response_token = decodeToken(responseHeaders.Authorization[0])
+    * def response_digest = get response_token $.payload.signed_headers..digest
+    
+    * match responseHeaders['Digest'][0] == response_digest[0]
+
+    * def newHeaders = 
+    """
+    ({
+        'GovWay-TestSuite-GovWay-Client-Token': requestHeaders.Authorization[0],
+        'GovWay-TestSuite-GovWay-Server-Token': responseHeaders.Authorization[0],
+    })
+    """
+    * def responseHeaders = karate.merge(responseHeaders,newHeaders)
+
+
+Scenario: isTest('no-informazioni-utente-at-erogazione')
+
+    * karate.proceed (govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR03InfoUtente/v1')
+    * match responseStatus == 400
+
+
+
 ##########################
 #       IDAR0302         #
 ##########################
