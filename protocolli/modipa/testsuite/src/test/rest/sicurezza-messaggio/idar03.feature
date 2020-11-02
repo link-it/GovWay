@@ -560,6 +560,8 @@ And header GovWay-TestSuite-Test-ID = 'informazioni-utente-header'
 And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
 When method post
 Then status 400
+And match header GovWay-Transaction-ErrorType == "BadRequest"
+
 
 # TODO: Digli ad andrea che nonostante siamo con la disclosure degli errori, la fruizione mi risponde con un
 # semplice 400 senza dirmi quello che la console di monitoraggio dice, ovvero:   Non è stato possibile recuperare un valore da associare alla risorsa 'CorniceSicurezza-User'

@@ -533,9 +533,6 @@ And match response == read("response.xml")
 * call check_traccia ({tid: tid, tipo: 'Risposta', body: server_response, x509sub: x509sub_server, profilo_sicurezza: "IDAS0301", other_checks: checks_risposta })
 
 
-
-
-
 @no-informazioni-utente-at-erogazione
 Scenario: All'erogazione non arrivano la security con le informazioni utente
 
@@ -550,3 +547,20 @@ And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', p
 When method post
 Then status 500
 And match response == read("error-bodies/no-informazioni-utente-at-erogazione.xml")
+
+
+@no-informazioni-utente-at-fruizione
+Scenario: Alla fruizione non passo gli header per l'informazione utente, facendola arrabbiare
+
+* def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS03InfoUtente/v1'
+
+Given url soap_url
+And request read("request.xml")
+And header Content-Type = 'application/soap+xml'
+And header action = soap_url
+And header GovWay-TestSuite-Test-ID = 'informazioni-utente-header'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method post
+Then status 500
+And match response == read("error-bodies/bad-request.xml")
+And match header GovWay-Transaction-ErrorType == "BadRequest"
