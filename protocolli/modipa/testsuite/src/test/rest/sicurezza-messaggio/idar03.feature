@@ -479,10 +479,6 @@ And match header Authorization == '#notpresent'
 * call check_traccia_iu ({ tid: tid, tipo: 'Risposta', token: server_token, x509sub: 'CN=ExampleServer, O=Example, L=Pisa, ST=Italy, C=IT', profilo_sicurezza: 'IDAR0301', other_checks: other_checks_risposta })
 
 
-#CodiceEnteCustom
-#
-#IndirizzoIPUtenteCustom
-
 
 @informazioni-utente-custom
 Scenario: Giro Ok IDAR03 con informazioni utente passate negli header http custom
@@ -552,3 +548,18 @@ When method post
 Then status 200
 And match response == read('response.json')
 And match header Authorization == '#notpresent'
+
+
+@no-informazioni-utente-at-fruizione
+Scenario: Alla fruizione non passo gli header per l'informazione utente, facendola arrabbiare
+
+Given url govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR03InfoUtente/v1"
+And path 'resources', 1, 'M'
+And request read('request.json')
+And header GovWay-TestSuite-Test-ID = 'informazioni-utente-header'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method post
+Then status 400
+
+# TODO: Digli ad andrea che nonostante siamo con la disclosure degli errori, la fruizione mi risponde con un
+# semplice 400 senza dirmi quello che la console di monitoraggio dice, ovvero:   Non è stato possibile recuperare un valore da associare alla risorsa 'CorniceSicurezza-User'
