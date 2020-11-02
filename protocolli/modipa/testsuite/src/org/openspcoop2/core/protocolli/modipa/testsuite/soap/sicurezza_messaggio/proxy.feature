@@ -513,6 +513,39 @@ Scenario: isTest('no-informazioni-utente-at-erogazione')
     * match response == read('classpath:test/soap/sicurezza-messaggio/error-bodies/no-informazioni-utente-at-erogazione.xml')
 
 
+Scenario: isTest('informazioni-utente-header') || isTest('informazioni-utente-query') || isTest('informazioni-utente-mixed')
+    
+    # Salvo la richiesta e la risposta per far controllare la traccia del token
+    # alla feature chiamante
+    * xmlstring client_request = bodyPath('/')
+    * eval karateCache.add("Client-Request", client_request)
+
+    * call check_client_token ({ address: "DemoSoggettoFruitore/ApplicativoBlockingIDA01", to: "testsuite" })
+    * match bodyPath('/Envelope/Header/Security/Assertion/Issuer') == "DemoSoggettoFruitore"
+    * match bodyPath('/Envelope/Header/Security/Assertion/Subject/NameID') == "DemoSoggettoFruitore"
+    * match bodyPath('/Envelope/Header/Security/Assertion/AttributeStatement/Attribute[@Name="User"]/AttributeValue') == "utente-token"
+    * match bodyPath('/Envelope/Header/Security/Assertion/AttributeStatement/Attribute[@Name="IP-User"]/AttributeValue') == "ip-utente-token"
+
+    * def idSignatureSAML = '#' + bodyPath('/Envelope/Header/Security/Assertion/@ID')
+    * match bodyPath("/Envelope/Header/Security/Signature/SignedInfo/Reference[@URI='"+idSignatureSAML+"']") == "#present"
+
+    # Siccome abbiamo un Riferimento X509 DirectReference, controllo che KeyInfo riferisca il BinarySecurityToken
+    * def keyRef = bodyPath('/Envelope/Header/Security/Signature/KeyInfo/SecurityTokenReference/Reference/@URI')
+    * def key = bodyPath('/Envelope/Header/Security/BinarySecurityToken/@Id')
+    * match keyRef == '#' + key
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS03InfoUtente/v1')
+
+    * call check_server_token ({ from: "SoapBlockingIDAS03InfoUtente/v1", to: "DemoSoggettoFruitore/ApplicativoBlockingIDA01" })
+
+    * def keyRef = /Envelope/Header/Security/Signature/KeyInfo/SecurityTokenReference/Reference/@URI
+    * def key = /Envelope/Header/Security/BinarySecurityToken/@Id
+    * match keyRef == '#' + key
+    
+    * xmlstring server_response = response
+    * eval karateCache.add("Server-Response", server_response)
+
+
 
 #####################################################
 #                     IDAS0302                      #

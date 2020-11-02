@@ -101,6 +101,13 @@ Scenario: isTest('response-without-payload-idas03') || isTest('response-without-
     * def responseStatus = 200
     * def response = ''
 
+
+Scenario: isTest('informazioni-utente-header') || isTest('informazioni-utente-query')  || isTest('informazioni-utente-mixed')
+
+    * def responseStatus = 200
+    * def response = read('classpath:test/soap/sicurezza-messaggio/response.xml')
+
+
 #####################################################
 #                     IDAS0302                      #
 #####################################################
