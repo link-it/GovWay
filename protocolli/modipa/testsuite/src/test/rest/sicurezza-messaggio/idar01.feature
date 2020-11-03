@@ -423,3 +423,17 @@ When method post
 Then status 502
 And match response == read('error-bodies/certificato-server-revocato.json')
 And match header GovWay-Transaction-ErrorType == 'InteroperabilityInvalidResponse'
+
+
+@risposta-not-200
+Scenario: Test senza validazione OpenAPI per controllare che secondo specifica ModiPA lo status code delle post sia 200
+
+Given url govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01NoValidazione/v1"
+And path 'resources', 1, 'M'
+And request read('request.json')
+And header GovWay-TestSuite-Test-ID = 'risposta-not-200'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method post
+Then status 502
+And match response == read('error-bodies/risposta-not-200.json')
+

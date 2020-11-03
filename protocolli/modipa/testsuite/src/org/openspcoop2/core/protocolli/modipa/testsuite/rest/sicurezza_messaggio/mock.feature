@@ -78,6 +78,13 @@ Scenario: isTest('certificato-server-scaduto') || isTest('certificato-server-rev
     * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
 
 
+Scenario: isTest('risposta-not-200')
+    # Controllo che al server non siano arrivate le informazioni di sicurezza
+    * match requestHeaders['Authorization'] == '#notpresent'
+    * def responseStatus = 301
+    * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
+
+
 ##########################################
 #                IDAR03                  #
 ##########################################

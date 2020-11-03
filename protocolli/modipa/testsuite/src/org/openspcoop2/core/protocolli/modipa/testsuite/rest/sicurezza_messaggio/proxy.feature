@@ -537,6 +537,15 @@ Scenario: isTest('certificato-server-revocato')
 
     * karate.proceed (govway_base_path + "/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01TrustStoreCACertificatoRevocato/v1")
 
+Scenario: isTest('risposta-not-200')
+
+    * karate.proceed(govway_base_path + "/rest/in/DemoSoggettoErogatore/RestBlockingIDAR01NoValidazione/v1")
+    * match responseStatus == 502
+    * match response == read('classpath:test/rest/sicurezza-messaggio/error-bodies/risposta-not-200.json')
+    * match header GovWay-Transaction-ErrorType == 'InteroperabilityResponseManagementFailed'
+
+
+
 ##############################
 #           IDAR02
 ##############################
