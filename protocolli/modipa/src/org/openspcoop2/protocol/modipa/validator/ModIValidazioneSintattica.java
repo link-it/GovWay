@@ -186,6 +186,15 @@ public class ModIValidazioneSintattica extends ValidazioneSintattica<AbstractMod
 				
 				if(ModICostanti.MODIPA_PROFILO_INTERAZIONE_VALUE_NON_BLOCCANTE.equals(interactionProfile)) {
 					
+					if(!isFault) {
+						if(rest) {
+							validatoreSintatticoRest.validateSyncInteractionProfile(msg, request, erroriValidazione);
+						}
+					}
+					
+				}
+				else if(ModICostanti.MODIPA_PROFILO_INTERAZIONE_VALUE_NON_BLOCCANTE.equals(interactionProfile)) {
+					
 					String asyncInteractionType = ModIPropertiesUtils.readPropertyAsyncInteractionProfile(aspc, nomePortType, azione);
 					bustaRitornata.addProperty(ModICostanti.MODIPA_BUSTA_EXT_PROFILO_INTERAZIONE_ASINCRONA_TIPO, asyncInteractionType);
 					
@@ -252,13 +261,13 @@ public class ModIValidazioneSintattica extends ValidazioneSintattica<AbstractMod
 					
 					if(!isFault) {
 						if(rest) {
-							validatoreSintatticoRest.validateInteractionProfile(msg, request, asyncInteractionType, asyncInteractionRole, 
+							validatoreSintatticoRest.validateAsyncInteractionProfile(msg, request, asyncInteractionType, asyncInteractionRole, 
 									apiContenenteRisorsa, azione,
 									bustaRitornata, erroriValidazione,
 									replyTo);
 						}
 						else {
-							validatoreSintatticoSoap.validateInteractionProfile(msg, request, asyncInteractionType, asyncInteractionRole, 
+							validatoreSintatticoSoap.validateAsyncInteractionProfile(msg, request, asyncInteractionType, asyncInteractionRole, 
 									bustaRitornata, erroriValidazione,
 									replyTo);
 						}

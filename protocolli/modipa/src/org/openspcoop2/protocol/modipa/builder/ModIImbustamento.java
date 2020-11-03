@@ -138,7 +138,14 @@ public class ModIImbustamento {
 			String interactionProfile = ModIPropertiesUtils.readPropertyInteractionProfile(aspc, nomePortType, azione);
 			busta.addProperty(ModICostanti.MODIPA_BUSTA_EXT_PROFILO_INTERAZIONE, interactionProfile);
 			
-			if(ModICostanti.MODIPA_PROFILO_INTERAZIONE_VALUE_NON_BLOCCANTE.equals(interactionProfile)) {
+			if(ModICostanti.MODIPA_PROFILO_INTERAZIONE_VALUE_BLOCCANTE.equals(interactionProfile)) {
+			
+				if(rest) {
+					imbustamentoRest.addSyncInteractionProfile(msg, ruoloMessaggio);
+				}
+				
+			}
+			else if(ModICostanti.MODIPA_PROFILO_INTERAZIONE_VALUE_NON_BLOCCANTE.equals(interactionProfile)) {
 				
 				String asyncInteractionType = ModIPropertiesUtils.readPropertyAsyncInteractionProfile(aspc, nomePortType, azione);
 				busta.addProperty(ModICostanti.MODIPA_BUSTA_EXT_PROFILO_INTERAZIONE_ASINCRONA_TIPO, asyncInteractionType);
@@ -207,13 +214,13 @@ public class ModIImbustamento {
 				}
 				
 				if(rest) {
-					imbustamentoRest.addInteractionProfile(msg, busta, ruoloMessaggio, 
+					imbustamentoRest.addAsyncInteractionProfile(msg, busta, ruoloMessaggio, 
 							asyncInteractionType, asyncInteractionRole,
 							replyTo,
 							apiContenenteRisorsa, azione);
 				}
 				else {
-					imbustamentoSoap.addInteractionProfile(msg, busta, ruoloMessaggio, 
+					imbustamentoSoap.addAsyncInteractionProfile(msg, busta, ruoloMessaggio, 
 							asyncInteractionType, asyncInteractionRole,
 							replyTo,
 							apiContenenteRisorsa, azione);

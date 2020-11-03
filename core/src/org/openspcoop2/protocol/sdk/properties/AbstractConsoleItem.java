@@ -102,6 +102,10 @@ public abstract class AbstractConsoleItem<T> extends BaseConsoleItem {
 		this.mapLabelValues.put(key, value);
 	}
 	
+	public void removeLabelValue(String label){
+		this.mapLabelValues.remove(label);
+	}
+	
 	public String getNote() {
 		return this.note;
 	}

@@ -236,7 +236,7 @@ public final class AccordiServizioParteComuneResourcesChange extends Action {
 			idRisorsa.setIdAccordo(idAs);
 			idRisorsa.setNome(oldNomeRisorsa);
 			this.consoleConfiguration = this.consoleDynamicConfiguration.getDynamicConfigResource(this.consoleOperationType, apcHelper, 
-					this.registryReader, this.configRegistryReader, idRisorsa);
+					this.registryReader, this.configRegistryReader, idRisorsa, httpMethod, path);
 			this.protocolProperties = apcHelper.estraiProtocolPropertiesDaRequest(this.consoleConfiguration, this.consoleOperationType);
 
 			if(this.protocolPropertiesSet == null){
@@ -314,7 +314,7 @@ public final class AccordiServizioParteComuneResourcesChange extends Action {
 
 				// update della configurazione 
 				this.consoleDynamicConfiguration.updateDynamicConfigResource(this.consoleConfiguration, this.consoleOperationType, apcHelper, this.protocolProperties, 
-						this.registryReader, this.configRegistryReader, idRisorsa);
+						this.registryReader, this.configRegistryReader, idRisorsa, httpMethod, path);
 
 				dati = apcHelper.addAccordiResourceToDati(tipoOp, dati, id, (long) idResInt, nomeRisorsa, descr, path, httpMethod, messageType, as.getStatoPackage(), tipoAccordo, protocollo, this.protocolFactory, serviceBinding,messageTypeRequest,messageTypeResponse,
 						profProtocollo, 
@@ -395,7 +395,7 @@ public final class AccordiServizioParteComuneResourcesChange extends Action {
 			// updateDynamic
 			if(isOk) {
 				this.consoleDynamicConfiguration.updateDynamicConfigResource(this.consoleConfiguration, this.consoleOperationType, apcHelper, this.protocolProperties, 
-						this.registryReader, this.configRegistryReader, idRisorsa);
+						this.registryReader, this.configRegistryReader, idRisorsa, httpMethod, path);
 			}
 				
 			// Validazione base dei parametri custom 
@@ -414,7 +414,7 @@ public final class AccordiServizioParteComuneResourcesChange extends Action {
 				try{
 					//validazione campi dinamici
 					this.consoleDynamicConfiguration.validateDynamicConfigResource(this.consoleConfiguration, this.consoleOperationType, apcHelper, this.protocolProperties, 
-							this.registryReader, this.configRegistryReader, idRisorsa);
+							this.registryReader, this.configRegistryReader, idRisorsa, httpMethod, path);
 				}catch(ProtocolException e){
 					ControlStationCore.getLog().error(e.getMessage(),e);
 					pd.setMessage(e.getMessage());
@@ -434,7 +434,7 @@ public final class AccordiServizioParteComuneResourcesChange extends Action {
 
 				// update della configurazione 
 				this.consoleDynamicConfiguration.updateDynamicConfigResource(this.consoleConfiguration, this.consoleOperationType, apcHelper, this.protocolProperties, 
-						this.registryReader, this.configRegistryReader, idRisorsa);
+						this.registryReader, this.configRegistryReader, idRisorsa, httpMethod, path);
 
 				dati = apcHelper.addAccordiResourceToDati(tipoOp, dati, id, (long) idResInt, nomeRisorsa, descr, path, httpMethod, messageType, as.getStatoPackage(), tipoAccordo, protocollo, this.protocolFactory, serviceBinding,messageTypeRequest,messageTypeResponse,
 						profProtocollo, 

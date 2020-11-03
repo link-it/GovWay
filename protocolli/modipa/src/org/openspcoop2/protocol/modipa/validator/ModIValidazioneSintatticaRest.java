@@ -76,7 +76,62 @@ public class ModIValidazioneSintatticaRest extends AbstractModIValidazioneSintat
 	}
 	
 	
-	public void validateInteractionProfile(OpenSPCoop2Message msg, boolean request, String asyncInteractionType, String asyncInteractionRole, 
+	public void validateSyncInteractionProfile(OpenSPCoop2Message msg, boolean request,
+			List<Eccezione> erroriValidazione) throws Exception {
+		
+		if(!request) {
+			
+			String returnCode = null;
+			int returnCodeInt = -1;
+			if(!request && msg.getTransportResponseContext()!=null) {
+				returnCode = msg.getTransportResponseContext().getCodiceTrasporto();
+				if(returnCode!=null) {
+					try {
+						returnCodeInt = Integer.valueOf(returnCode);
+					}catch(Exception e) {}
+				}
+			}
+			
+			Integer [] returnCodeAttesi = this.modiProperties.getRestBloccanteHttpStatus();
+			if(returnCodeAttesi!=null) {
+				boolean found = false;
+				for (Integer integer : returnCodeAttesi) {
+					if(integer.intValue() == ModICostanti.MODIPA_PROFILO_INTERAZIONE_HTTP_CODE_2XX_INT_VALUE) {
+						if((returnCodeInt >= 200) && (returnCodeInt<=299) ) {
+							found = true;
+							break;
+						}
+					}
+					else if(integer.intValue() == returnCodeInt) {
+						found = true;
+						break;
+					}
+				}
+				if(!found) {
+					StringBuilder sb = new StringBuilder();
+					for (Integer integer : returnCodeAttesi) {
+						
+						if(integer.intValue() == ModICostanti.MODIPA_PROFILO_INTERAZIONE_HTTP_CODE_2XX_INT_VALUE) {
+							sb = new StringBuilder();
+							sb.append("2xx");
+							break;
+						}
+						
+						if(sb.length()>0) {
+							sb.append(",");
+						}
+						sb.append(integer.intValue());
+					}
+					erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(CodiceErroreCooperazione.PROFILO_TRASMISSIONE, 
+							"HTTP Status '"+returnCodeInt+"' differente da quello atteso per il profilo bloccante (atteso: "+sb.toString()+")"));
+					return;
+				}
+			}
+		}
+		
+	}
+	
+	public void validateAsyncInteractionProfile(OpenSPCoop2Message msg, boolean request, String asyncInteractionType, String asyncInteractionRole, 
 			AccordoServizioParteComune apiContenenteRisorsa, String azione,
 			Busta busta, List<Eccezione> erroriValidazione,
 			String replyTo) throws Exception {

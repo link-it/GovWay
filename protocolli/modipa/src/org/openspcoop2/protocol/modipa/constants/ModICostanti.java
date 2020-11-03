@@ -117,8 +117,11 @@ public class ModICostanti {
     public static final String MODIPA_PROFILO_RIDEFINISCI = "ridefinisci";
     
     public static final String MODIPA_PROFILO_INTERAZIONE = "modipaInteractionProfile";
+    public static final String MODIPA_PROFILO_INTERAZIONE_VALUE_CRUD = "crud";
     public static final String MODIPA_PROFILO_INTERAZIONE_VALUE_BLOCCANTE = "bloccante";
     public static final String MODIPA_PROFILO_INTERAZIONE_VALUE_NON_BLOCCANTE = "nonBloccante";
+    public static final String MODIPA_PROFILO_INTERAZIONE_DEFAULT_REST_VALUE = MODIPA_PROFILO_INTERAZIONE_VALUE_CRUD;
+    public static final String MODIPA_PROFILO_INTERAZIONE_DEFAULT_SOAP_VALUE = MODIPA_PROFILO_INTERAZIONE_VALUE_BLOCCANTE;
     
     public static final String MODIPA_PROFILO_INTERAZIONE_ASINCRONA = "modipaInteractionAsyncProfile";
     public static final String MODIPA_PROFILO_INTERAZIONE_ASINCRONA_VALUE_PUSH = "PUSH";
@@ -251,7 +254,8 @@ public class ModICostanti {
     
     public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CERTIFICATI_KEYSTORE_MODE = "modipaKeystoreCertMode";
 
-    
+    public static final String MODIPA_PROFILO_INTERAZIONE_HTTP_CODE_2XX = "2xx";
+    public static final int MODIPA_PROFILO_INTERAZIONE_HTTP_CODE_2XX_INT_VALUE = -2;    
 }
 
 

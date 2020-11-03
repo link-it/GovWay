@@ -103,7 +103,7 @@ public class ModIPropertiesUtils {
 					interactionProfile = ProtocolPropertiesUtils.getOptionalStringValuePropertyRegistry(resource.getProtocolPropertyList(), 
 							ModICostanti.MODIPA_PROFILO_INTERAZIONE);
 					if(interactionProfile==null) {
-						interactionProfile = ModICostanti.MODIPA_PROFILO_INTERAZIONE_VALUE_BLOCCANTE; // default
+						interactionProfile = ModICostanti.MODIPA_PROFILO_INTERAZIONE_DEFAULT_REST_VALUE;
 					}
 					if(ModICostanti.MODIPA_PROFILO_INTERAZIONE_VALUE_NON_BLOCCANTE.equals(interactionProfile)) {
 						asyncInteractionProfile = ProtocolPropertiesUtils.getRequiredStringValuePropertyRegistry(resource.getProtocolPropertyList(), 
@@ -154,7 +154,7 @@ public class ModIPropertiesUtils {
 								interactionProfile = ProtocolPropertiesUtils.getOptionalStringValuePropertyRegistry(op.getProtocolPropertyList(), 
 										ModICostanti.MODIPA_PROFILO_INTERAZIONE);
 								if(interactionProfile==null) {
-									interactionProfile = ModICostanti.MODIPA_PROFILO_INTERAZIONE_VALUE_BLOCCANTE; // default
+									interactionProfile = ModICostanti.MODIPA_PROFILO_INTERAZIONE_DEFAULT_SOAP_VALUE;
 								}
 								if(ModICostanti.MODIPA_PROFILO_INTERAZIONE_VALUE_NON_BLOCCANTE.equals(interactionProfile)) {
 									asyncInteractionProfile = ProtocolPropertiesUtils.getRequiredStringValuePropertyRegistry(op.getProtocolPropertyList(), 
@@ -206,7 +206,7 @@ public class ModIPropertiesUtils {
 						interactionProfile = ProtocolPropertiesUtils.getOptionalStringValuePropertyRegistry(azioneAccordo.getProtocolPropertyList(), 
 								ModICostanti.MODIPA_PROFILO_INTERAZIONE);
 						if(interactionProfile==null) {
-							interactionProfile = ModICostanti.MODIPA_PROFILO_INTERAZIONE_VALUE_BLOCCANTE; // default
+							interactionProfile = ModICostanti.MODIPA_PROFILO_INTERAZIONE_DEFAULT_SOAP_VALUE;
 						}
 						if(ModICostanti.MODIPA_PROFILO_INTERAZIONE_VALUE_NON_BLOCCANTE.equals(interactionProfile)) {
 							asyncInteractionProfile = ProtocolPropertiesUtils.getRequiredStringValuePropertyRegistry(azioneAccordo.getProtocolPropertyList(), 

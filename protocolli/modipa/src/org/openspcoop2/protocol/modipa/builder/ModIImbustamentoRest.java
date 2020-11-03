@@ -80,7 +80,70 @@ public class ModIImbustamentoRest {
 		this.modiProperties = ModIProperties.getInstance();
 	}
 	
-	public void addInteractionProfile(OpenSPCoop2Message msg, Busta busta, RuoloMessaggio ruoloMessaggio,
+	public void addSyncInteractionProfile(OpenSPCoop2Message msg, RuoloMessaggio ruoloMessaggio) throws Exception {
+	
+		if(RuoloMessaggio.RICHIESTA.equals(ruoloMessaggio)) {
+			
+			// nop
+			
+		}
+		else {
+			
+			// Flusso di Risposta
+			
+			String returnCode = null;
+			int returnCodeInt = -1;
+			if(msg.getTransportResponseContext()!=null) {
+				returnCode = msg.getTransportResponseContext().getCodiceTrasporto();
+				if(returnCode!=null) {
+					try {
+						returnCodeInt = Integer.valueOf(returnCode);
+					}catch(Exception e) {}
+				}
+			}
+			
+			Integer [] returnCodeAttesi = this.modiProperties.getRestBloccanteHttpStatus();
+			
+			if(returnCodeAttesi!=null) {
+				boolean found = false;
+				for (Integer integer : returnCodeAttesi) {
+					if(integer.intValue() == ModICostanti.MODIPA_PROFILO_INTERAZIONE_HTTP_CODE_2XX_INT_VALUE) {
+						if((returnCodeInt >= 200) && (returnCodeInt<=299) ) {
+							found = true;
+							break;
+						}
+					}
+					else if(integer.intValue() == returnCodeInt) {
+						found = true;
+						break;
+					}
+				}
+				if(!found) {
+					StringBuilder sb = new StringBuilder();
+					for (Integer integer : returnCodeAttesi) {
+						
+						if(integer.intValue() == ModICostanti.MODIPA_PROFILO_INTERAZIONE_HTTP_CODE_2XX_INT_VALUE) {
+							sb = new StringBuilder();
+							sb.append("2xx");
+							break;
+						}
+						
+						if(sb.length()>0) {
+							sb.append(",");
+						}
+						sb.append(integer.intValue());
+					}
+					ProtocolException pe = new ProtocolException("HTTP Status '"+returnCodeInt+"' differente da quello atteso per il profilo bloccante (atteso: "+sb.toString()+")");
+					pe.setInteroperabilityError(true);
+					throw pe;
+				}
+			}
+			
+		}
+		
+	}
+	
+	public void addAsyncInteractionProfile(OpenSPCoop2Message msg, Busta busta, RuoloMessaggio ruoloMessaggio,
 			String asyncInteractionType, String asyncInteractionRole,
 			String replyTo,
 			AccordoServizioParteComune apiContenenteRisorsa, String azione) throws Exception {

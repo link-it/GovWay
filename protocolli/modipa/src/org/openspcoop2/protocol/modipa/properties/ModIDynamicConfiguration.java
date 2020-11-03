@@ -452,7 +452,7 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 				ModIConsoleCostanti.MODIPA_AZIONE_LABEL);
 		configuration.addConsoleItem(titolo );
 		
-		addProfiloInterazione(configuration);
+		addProfiloInterazione(configuration, false, null);
 		
 		addProfiloSicurezzaMessaggio(configuration, false, true);
 		
@@ -466,7 +466,7 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 			IRegistryReader registryReader, IConfigIntegrationReader configIntegrationReader, IDPortTypeAzione id)
 			throws ProtocolException {
 		
-		updateProfiloInterazione(consoleConfiguration, properties, registryReader, id.getIdPortType().getIdAccordo(), id.getIdPortType().getNome(), id.getNome());
+		updateProfiloInterazione(consoleConfiguration, properties, registryReader, id.getIdPortType().getIdAccordo(), id.getIdPortType().getNome(), id.getNome(), false);
 		
 		updateProfiloSicurezzaMessaggio(consoleConfiguration, properties, registryReader, true);
 		
@@ -478,7 +478,7 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 			IRegistryReader registryReader, IConfigIntegrationReader configIntegrationReader, IDPortTypeAzione id)
 			throws ProtocolException {
 
-		validateProfiloInterazione(consoleConfiguration, properties, registryReader, id.getIdPortType().getIdAccordo(), id.getIdPortType().getNome(), id.getNome());
+		validateProfiloInterazione(consoleConfiguration, properties, registryReader, id.getIdPortType().getIdAccordo(), id.getIdPortType().getNome(), id.getNome(), false);
 		
 	}
 
@@ -490,7 +490,7 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 	@Override
 	public ConsoleConfiguration getDynamicConfigResource(ConsoleOperationType consoleOperationType,
 			IConsoleHelper consoleHelper, IRegistryReader registryReader,
-			IConfigIntegrationReader configIntegrationReader, IDResource id) throws ProtocolException {
+			IConfigIntegrationReader configIntegrationReader, IDResource id, String httpMethod, String path) throws ProtocolException {
 
 		ConsoleConfiguration configuration = new ConsoleConfiguration();
 		
@@ -499,7 +499,7 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 				ModIConsoleCostanti.MODIPA_AZIONE_LABEL);
 		configuration.addConsoleItem(titolo );
 		
-		addProfiloInterazione(configuration);
+		addProfiloInterazione(configuration, true, httpMethod);
 		
 		addProfiloSicurezzaMessaggio(configuration, true, true);
 		
@@ -510,10 +510,10 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 	@Override
 	public void updateDynamicConfigResource(ConsoleConfiguration consoleConfiguration,
 			ConsoleOperationType consoleOperationType, IConsoleHelper consoleHelper, ProtocolProperties properties,
-			IRegistryReader registryReader, IConfigIntegrationReader configIntegrationReader, IDResource id)
+			IRegistryReader registryReader, IConfigIntegrationReader configIntegrationReader, IDResource id, String httpMethod, String path)
 			throws ProtocolException {
 		
-		updateProfiloInterazione(consoleConfiguration, properties, registryReader, id.getIdAccordo(), null, id.getNome());
+		updateProfiloInterazione(consoleConfiguration, properties, registryReader, id.getIdAccordo(), null, id.getNome(), true);
 		
 		updateProfiloSicurezzaMessaggio(consoleConfiguration, properties, registryReader, true);
 	}
@@ -521,10 +521,10 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 	@Override
 	public void validateDynamicConfigResource(ConsoleConfiguration consoleConfiguration,
 			ConsoleOperationType consoleOperationType, IConsoleHelper consoleHelper, ProtocolProperties properties,
-			IRegistryReader registryReader, IConfigIntegrationReader configIntegrationReader, IDResource id)
+			IRegistryReader registryReader, IConfigIntegrationReader configIntegrationReader, IDResource id, String httpMethod, String path)
 			throws ProtocolException {
 		
-		validateProfiloInterazione(consoleConfiguration, properties, registryReader, id.getIdAccordo(), null, id.getNome());
+		validateProfiloInterazione(consoleConfiguration, properties, registryReader, id.getIdAccordo(), null, id.getNome(), true);
 		
 	}
 	
@@ -847,7 +847,7 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 	
 	/*** UTILITIES */
 		
-	private void addProfiloInterazione(ConsoleConfiguration configuration) throws ProtocolException {
+	private void addProfiloInterazione(ConsoleConfiguration configuration, boolean rest, String httpMethod) throws ProtocolException {
 		
 		configuration.addConsoleItem(ProtocolPropertiesFactory.newSubTitleItem(ModIConsoleCostanti.MODIPA_API_PROFILO_INTERAZIONE_ID, 
 				ModIConsoleCostanti.MODIPA_API_PROFILO_INTERAZIONE_LABEL));
@@ -857,11 +857,32 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 				ConsoleItemType.SELECT,
 				ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ID, 
 				ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_LABEL);
-		profiloInterazioneItem.addLabelValue(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_LABEL_BLOCCANTE,
-				ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_VALUE_BLOCCANTE);
-		profiloInterazioneItem.addLabelValue(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_LABEL_NON_BLOCCANTE,
-				ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_VALUE_NON_BLOCCANTE);
-		profiloInterazioneItem.setDefaultValue(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_DEFAULT_VALUE);
+		boolean checkMethod = false;
+		// TODO ModIProperties.getInstance();
+		boolean addBloccante = true;
+		boolean addNonBloccante = true;
+		if(checkMethod) {
+			if(!org.openspcoop2.utils.transport.http.HttpRequestMethod.POST.equals(httpMethod)) {
+				addBloccante = false;
+			}
+			if(!org.openspcoop2.utils.transport.http.HttpRequestMethod.POST.equals(httpMethod) && 
+					!org.openspcoop2.utils.transport.http.HttpRequestMethod.GET.equals(httpMethod)) {
+				addNonBloccante = false;
+			}
+		}
+		if(rest) {
+			profiloInterazioneItem.addLabelValue(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_LABEL_CRUD,
+					ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_VALUE_CRUD);
+		}
+		if(addBloccante) {
+			profiloInterazioneItem.addLabelValue(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_LABEL_BLOCCANTE,
+					ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_VALUE_BLOCCANTE);
+		}
+		if(addNonBloccante) {
+			profiloInterazioneItem.addLabelValue(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_LABEL_NON_BLOCCANTE,
+					ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_VALUE_NON_BLOCCANTE);
+		}
+		profiloInterazioneItem.setDefaultValue(rest ? ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_DEFAULT_REST_VALUE : ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_DEFAULT_SOAP_VALUE);
 		profiloInterazioneItem.setReloadOnChange(true);
 		configuration.addConsoleItem(profiloInterazioneItem);
 		
@@ -913,7 +934,7 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 	}
 	
 	private void updateProfiloInterazione(ConsoleConfiguration consoleConfiguration, ProtocolProperties properties,
-			IRegistryReader registryReader, IDAccordo idAccordo, String idPortType, String idAzione) throws ProtocolException {
+			IRegistryReader registryReader, IDAccordo idAccordo, String idPortType, String idAzione, boolean rest) throws ProtocolException {
 		
 		AbstractConsoleItem<?> profiloInterazioneAsincronaItem = 	
 				ProtocolPropertiesUtils.getAbstractConsoleItem(consoleConfiguration.getConsoleItem(), ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_ID);
@@ -926,9 +947,11 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 		AbstractConsoleItem<?> profiloInterazioneAsincronaCorrelataAzioneItem = 	
 				ProtocolPropertiesUtils.getAbstractConsoleItem(consoleConfiguration.getConsoleItem(), ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_AZIONE_RICHIESTA_CORRELATA_ID);
 		
+		
+		
 		boolean allHidden = true;
 		StringProperty profiloInterazioneItemValue = (StringProperty) ProtocolPropertiesUtils.getAbstractPropertyById(properties, ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ID);
-		String profiloInterazione = ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_DEFAULT_VALUE;
+		String profiloInterazione = rest ? ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_DEFAULT_REST_VALUE : ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_DEFAULT_SOAP_VALUE;
 		if(profiloInterazioneItemValue!=null && profiloInterazioneItemValue.getValue()!=null && !"".equals(profiloInterazioneItemValue.getValue())) {
 			profiloInterazione = profiloInterazioneItemValue.getValue();
 		}	
@@ -1173,10 +1196,10 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 	}
 		
 	private void validateProfiloInterazione(ConsoleConfiguration consoleConfiguration, ProtocolProperties properties,
-			IRegistryReader registryReader, IDAccordo idAccordo, String idPortType, String idAzione) throws ProtocolException {
+			IRegistryReader registryReader, IDAccordo idAccordo, String idPortType, String idAzione, boolean rest) throws ProtocolException {
 	
 		StringProperty profiloInterazioneItemValue = (StringProperty) ProtocolPropertiesUtils.getAbstractPropertyById(properties, ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ID);
-		String profiloInterazione = ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_DEFAULT_VALUE;
+		String profiloInterazione = rest ? ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_DEFAULT_REST_VALUE : ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_DEFAULT_SOAP_VALUE;
 		if(profiloInterazioneItemValue!=null && profiloInterazioneItemValue.getValue()!=null && !"".equals(profiloInterazioneItemValue.getValue())) {
 			profiloInterazione = profiloInterazioneItemValue.getValue();
 		}	

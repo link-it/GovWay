@@ -194,6 +194,9 @@ public class ModIProperties {
 			getRestReplyToHeader();
 			getRestLocationHeader();
 			
+			// .. Bloccante ..
+			getRestBloccanteHttpStatus();
+			
 			// .. PUSH ..
 			isRestSecurityTokenPushReplyToUpdateOrCreateInFruizione();
 			isRestSecurityTokenPushReplyToUpdateInErogazione();
@@ -1360,6 +1363,43 @@ public class ModIProperties {
     	}
     	
     	return ModIProperties.getRestLocationHeader;
+	}
+	
+	// .. BLOCCANTE ..
+	
+	private static Integer [] getRestBloccanteHttpStatus = null;
+	public Integer [] getRestBloccanteHttpStatus() throws Exception{
+    	if(ModIProperties.getRestBloccanteHttpStatus==null){
+	    	String name = "org.openspcoop2.protocol.modipa.rest.bloccante.httpStatus";
+    		try{  
+				String value = this.reader.getValue_convertEnvProperties(name); 
+				
+				if (value != null){
+					value = value.trim();
+					if(ModICostanti.MODIPA_PROFILO_INTERAZIONE_HTTP_CODE_2XX.equalsIgnoreCase(value)) {
+						ModIProperties.getRestBloccanteHttpStatus = new Integer[1];
+						ModIProperties.getRestBloccanteHttpStatus[0] = ModICostanti.MODIPA_PROFILO_INTERAZIONE_HTTP_CODE_2XX_INT_VALUE;
+					}
+					else {
+						String [] tmp = value.split(",");
+						ModIProperties.getRestBloccanteHttpStatus = new Integer[tmp.length];
+						for (int i = 0; i < tmp.length; i++) {
+							ModIProperties.getRestBloccanteHttpStatus[i] = Integer.valueOf(tmp[i].trim());
+						}
+					}
+				}
+				else {
+					throw new Exception("non definita");
+				}
+				
+			}catch(java.lang.Exception e) {
+				String msgErrore = "Proprietà '"+name+"' non impostata, errore:"+e.getMessage(); 
+				this.log.error(msgErrore);
+				throw new Exception(msgErrore,e);
+			}
+    	}
+    	
+    	return ModIProperties.getRestBloccanteHttpStatus;
 	}
 	
 	// .. PUSH ..

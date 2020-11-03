@@ -88,7 +88,7 @@ public class ModIImbustamentoSoap {
 		this.modiProperties = ModIProperties.getInstance();
 	}
 	
-	public void addInteractionProfile(OpenSPCoop2Message msg, Busta busta, RuoloMessaggio ruoloMessaggio,
+	public void addAsyncInteractionProfile(OpenSPCoop2Message msg, Busta busta, RuoloMessaggio ruoloMessaggio,
 			String asyncInteractionType, String asyncInteractionRole,
 			String replyTo,
 			AccordoServizioParteComune apiContenenteRisorsa, String azione) throws Exception {

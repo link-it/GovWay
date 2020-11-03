@@ -84,7 +84,7 @@ public class ModIValidazioneSintatticaSoap extends AbstractModIValidazioneSintat
 		super(log, state, context, modiProperties, validazioneUtils);
 	}
 
-	public void validateInteractionProfile(OpenSPCoop2Message msg, boolean request, String asyncInteractionType, String asyncInteractionRole, 
+	public void validateAsyncInteractionProfile(OpenSPCoop2Message msg, boolean request, String asyncInteractionType, String asyncInteractionRole, 
 			Busta busta, List<Eccezione> erroriValidazione,
 			String replyTo) throws Exception {
 		
