@@ -140,12 +140,14 @@ public class ModISecurityConfig {
 				
 		if(fruizione) {
 			if(request) {
-				this.ttl = ProtocolPropertiesUtils.getRequiredNumberValuePropertyRegistry(listProtocolProperties, ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_RICHIESTA_EXPIRED).intValue();
+				boolean greatherThanZero = true;
+				this.ttl = ProtocolPropertiesUtils.getRequiredNumberValuePropertyRegistry(listProtocolProperties, ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_RICHIESTA_EXPIRED, greatherThanZero).intValue();
 			}
 		}
 		else {
 			if(!request) {
-				this.ttl = ProtocolPropertiesUtils.getRequiredNumberValuePropertyRegistry(listProtocolProperties, ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_RISPOSTA_EXPIRED).intValue();
+				boolean greatherThanZero = true;
+				this.ttl = ProtocolPropertiesUtils.getRequiredNumberValuePropertyRegistry(listProtocolProperties, ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_RISPOSTA_EXPIRED, greatherThanZero).intValue();
 			}
 		}
 		

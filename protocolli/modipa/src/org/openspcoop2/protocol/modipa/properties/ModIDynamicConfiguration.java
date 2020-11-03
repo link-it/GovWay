@@ -1601,6 +1601,7 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 			}
 			profiloSicurezzaMessaggioTTLItem.setDefaultValue(ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_EXPIRED_DEFAULT_VALUE);
 			profiloSicurezzaMessaggioTTLItem.setRequired(requiredValue);
+			profiloSicurezzaMessaggioTTLItem.setMin(1);
 			configuration.addConsoleItem(profiloSicurezzaMessaggioTTLItem);
 		}
 		
