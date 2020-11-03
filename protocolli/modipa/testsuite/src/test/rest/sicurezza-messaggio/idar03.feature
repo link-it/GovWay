@@ -545,9 +545,7 @@ And request read('request.json')
 And header GovWay-TestSuite-Test-ID = 'no-informazioni-utente-at-erogazione'
 And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
 When method post
-Then status 200
-And match response == read('response.json')
-And match header Authorization == '#notpresent'
+Then status 502
 
 
 @no-informazioni-utente-at-fruizione

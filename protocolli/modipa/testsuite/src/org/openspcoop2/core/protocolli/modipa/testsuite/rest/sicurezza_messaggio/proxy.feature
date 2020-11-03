@@ -1320,6 +1320,7 @@ Scenario: isTest('no-informazioni-utente-at-erogazione')
     * karate.proceed (govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR03InfoUtente/v1')
     * match responseStatus == 400
     * match responseHeaders['GovWay-Transaction-ErrorType'][0] == "InteroperabilityInvalidRequest"
+    * match response == read('classpath:test/rest/sicurezza-messaggio/error-bodies/no-token-ip-at-erogazione.json')
 
 
 
