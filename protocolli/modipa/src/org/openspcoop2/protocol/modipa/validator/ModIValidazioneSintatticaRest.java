@@ -589,6 +589,10 @@ public class ModIValidazioneSintatticaRest extends AbstractModIValidazioneSintat
 						busta.addProperty(ModICostanti.MODIPA_BUSTA_EXT_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_CORNICE_SICUREZZA_ENTE, toString(codiceEnte));
 					}
 				}
+				else {
+					erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(CodiceErroreCooperazione.MITTENTE_NON_PRESENTE, 
+							"Token senza claim '"+claimNameCodiceEnte+"'"));
+				}
 				
 				String claimNameUser = this.modiProperties.getSicurezzaMessaggio_corniceSicurezza_rest_user();
 				if(Claims.JSON_WEB_TOKEN_RFC_7519_SUBJECT.equals(claimNameUser)) {
@@ -600,6 +604,10 @@ public class ModIValidazioneSintatticaRest extends AbstractModIValidazioneSintat
 						busta.addProperty(ModICostanti.MODIPA_BUSTA_EXT_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_CORNICE_SICUREZZA_USER, toString(user));
 					}
 				}
+				else {
+					erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(CodiceErroreCooperazione.MITTENTE_NON_PRESENTE, 
+							"Token senza claim '"+claimNameUser+"'"));
+				}
 				
 				String claimNameIpUser = this.modiProperties.getSicurezzaMessaggio_corniceSicurezza_rest_ipuser();
 				if(objectNode.has(claimNameIpUser)) {
@@ -607,6 +615,10 @@ public class ModIValidazioneSintatticaRest extends AbstractModIValidazioneSintat
 					if(userIp!=null) {
 						busta.addProperty(ModICostanti.MODIPA_BUSTA_EXT_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_CORNICE_SICUREZZA_USER_IP, toString(userIp));
 					}
+				}
+				else {
+					erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(CodiceErroreCooperazione.MITTENTE_NON_PRESENTE, 
+							"Token senza claim '"+claimNameIpUser+"'"));
 				}
 			}
 			

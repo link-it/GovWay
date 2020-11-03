@@ -574,10 +574,10 @@ public class ModIValidazioneSintatticaSoap extends AbstractModIValidazioneSintat
 				busta.addProperty(ModICostanti.MODIPA_BUSTA_EXT_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_CORNICE_SICUREZZA_ENTE, codiceEnte);
 			}
 			catch(XPathNotFoundException notFound) {
-				erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(CodiceErroreCooperazione.FORMATO_INTESTAZIONE_NON_PRESENTE, 
+				erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(CodiceErroreCooperazione.MITTENTE_NON_PRESENTE, 
 						"Cornice Sicurezza; elemento 'Subject/NameID'"));
 			}catch(Exception e) {
-				erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(CodiceErroreCooperazione.FORMATO_INTESTAZIONE_NON_CORRETTO, 
+				erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(CodiceErroreCooperazione.MITTENTE_NON_VALIDO, 
 						"Cornice Sicurezza; elemento 'Subject/NameID'"));
 			}
 			
@@ -593,10 +593,10 @@ public class ModIValidazioneSintatticaSoap extends AbstractModIValidazioneSintat
 				busta.addProperty(ModICostanti.MODIPA_BUSTA_EXT_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_CORNICE_SICUREZZA_USER, user);
 			}
 			catch(XPathNotFoundException notFound) {
-				erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(CodiceErroreCooperazione.FORMATO_INTESTAZIONE_NON_PRESENTE, 
+				erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(CodiceErroreCooperazione.MITTENTE_NON_PRESENTE, 
 						"Cornice Sicurezza; elemento 'Attribute/"+attributeNameUser+"'"));
 			}catch(Exception e) {
-				erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(CodiceErroreCooperazione.FORMATO_INTESTAZIONE_NON_CORRETTO, 
+				erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(CodiceErroreCooperazione.MITTENTE_NON_VALIDO, 
 						"Cornice Sicurezza; elemento 'Attribute/"+attributeNameUser+"'"));
 			}
 			
@@ -612,10 +612,10 @@ public class ModIValidazioneSintatticaSoap extends AbstractModIValidazioneSintat
 				busta.addProperty(ModICostanti.MODIPA_BUSTA_EXT_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_CORNICE_SICUREZZA_USER_IP, ipUser);
 			}
 			catch(XPathNotFoundException notFound) {
-				erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(CodiceErroreCooperazione.FORMATO_INTESTAZIONE_NON_PRESENTE, 
+				erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(CodiceErroreCooperazione.MITTENTE_NON_PRESENTE, 
 						"Cornice Sicurezza; elemento 'Attribute/"+attributeNameIpUser+"'"));
 			}catch(Exception e) {
-				erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(CodiceErroreCooperazione.FORMATO_INTESTAZIONE_NON_CORRETTO, 
+				erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(CodiceErroreCooperazione.MITTENTE_NON_VALIDO, 
 						"Cornice Sicurezza; elemento 'Attribute/"+attributeNameIpUser+"'"));
 			}
 			
