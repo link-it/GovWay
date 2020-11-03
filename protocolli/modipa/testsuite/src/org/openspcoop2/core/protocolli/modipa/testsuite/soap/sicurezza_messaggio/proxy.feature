@@ -511,7 +511,7 @@ Scenario: isTest('no-informazioni-utente-at-erogazione')
     * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS03InfoUtente/v1')
     * match responseStatus == 500
     * match response == read('classpath:test/soap/sicurezza-messaggio/error-bodies/no-informazioni-utente-at-erogazione.xml')
-    * match responseHeaders['GovWay-Transaction-ErrorType'] == "InteroperabilityInvalidRequest"
+    * match responseHeaders['GovWay-Transaction-ErrorType'][0] == "InteroperabilityInvalidRequest"
 
 
 Scenario: isTest('informazioni-utente-header') || isTest('informazioni-utente-query') || isTest('informazioni-utente-mixed')

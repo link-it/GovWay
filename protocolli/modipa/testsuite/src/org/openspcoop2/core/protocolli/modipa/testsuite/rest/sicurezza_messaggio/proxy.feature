@@ -1319,7 +1319,7 @@ Scenario: isTest('no-informazioni-utente-at-erogazione')
 
     * karate.proceed (govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR03InfoUtente/v1')
     * match responseStatus == 400
-    * match responseHeaders['GovWay-Transaction-ErrorType'] == "InteroperabilityInvalidRequest"
+    * match responseHeaders['GovWay-Transaction-ErrorType'][0] == "InteroperabilityInvalidRequest"
 
 
 

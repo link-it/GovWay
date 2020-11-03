@@ -534,7 +534,7 @@ And match response == read("response.xml")
 
 
 @no-informazioni-utente-at-erogazione
-Scenario: All'erogazione non arrivano la security con le informazioni utente
+Scenario: All'erogazione non arriva la security con le informazioni utente
 
 * def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS03/v1'
 
