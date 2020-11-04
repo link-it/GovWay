@@ -279,11 +279,11 @@ public class ModIImbustamentoRest {
 						}
 					}
 					
-					returnCodeAttesi = this.modiProperties.getRestSecurityTokenPushRequestHttpStatus();
+					returnCodeAttesi = this.modiProperties.getRestNonBloccantePushRequestHttpStatus();
 				}
 				else {
 					
-					returnCodeAttesi = this.modiProperties.getRestSecurityTokenPushResponseHttpStatus();
+					returnCodeAttesi = this.modiProperties.getRestNonBloccantePushResponseHttpStatus();
 					
 				}
 				
@@ -319,10 +319,10 @@ public class ModIImbustamentoRest {
 						busta.setCollaborazione(correlationIdExtracted);
 					}
 					
-					returnCodeAttesi = this.modiProperties.getRestSecurityTokenPullRequestHttpStatus();
+					returnCodeAttesi = this.modiProperties.getRestNonBloccantePullRequestHttpStatus();
 				}
 				else if(ModICostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RICHIESTA_STATO.equals(asyncInteractionRole)) {
-					Integer [] returnCodeResourceReady = this.modiProperties.getRestSecurityTokenPullRequestStateOkHttpStatus();
+					Integer [] returnCodeResourceReady = this.modiProperties.getRestNonBloccantePullRequestStateOkHttpStatus();
 					boolean isReady = false;
 					for (Integer integer : returnCodeResourceReady) {
 						if(integer.intValue() == returnCodeInt) {
@@ -347,7 +347,7 @@ public class ModIImbustamentoRest {
 						returnCodeAttesi = returnCodeResourceReady;
 					}
 					else {
-						Integer [] returnCodeAttesi_notReady = this.modiProperties.getRestSecurityTokenPullRequestStateNotReadyHttpStatus();
+						Integer [] returnCodeAttesi_notReady = this.modiProperties.getRestNonBloccantePullRequestStateNotReadyHttpStatus();
 						returnCodeAttesi = new Integer[returnCodeResourceReady.length+returnCodeAttesi_notReady.length];
 						int i = 0;
 						for (int j=0; j < returnCodeAttesi_notReady.length; j++) {
@@ -361,7 +361,7 @@ public class ModIImbustamentoRest {
 					}
 				}
 				else {
-					returnCodeAttesi = this.modiProperties.getRestSecurityTokenPullResponseHttpStatus();
+					returnCodeAttesi = this.modiProperties.getRestNonBloccantePullResponseHttpStatus();
 				}
 				
 			}

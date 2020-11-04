@@ -236,7 +236,9 @@ public final class AccordiServizioParteComuneResourcesChange extends Action {
 			idRisorsa.setIdAccordo(idAs);
 			idRisorsa.setNome(oldNomeRisorsa);
 			this.consoleConfiguration = this.consoleDynamicConfiguration.getDynamicConfigResource(this.consoleOperationType, apcHelper, 
-					this.registryReader, this.configRegistryReader, idRisorsa, httpMethod, path);
+					this.registryReader, this.configRegistryReader, idRisorsa, 
+					(nomeRisorsa == null ? resourceOLD.get_value_method() : httpMethod), 
+					(nomeRisorsa == null ? resourceOLD.getPath() : path));
 			this.protocolProperties = apcHelper.estraiProtocolPropertiesDaRequest(this.consoleConfiguration, this.consoleOperationType);
 
 			if(this.protocolPropertiesSet == null){

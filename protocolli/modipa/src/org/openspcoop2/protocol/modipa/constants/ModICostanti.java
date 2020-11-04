@@ -22,6 +22,7 @@
 
 package org.openspcoop2.protocol.modipa.constants;
 
+import org.openspcoop2.protocol.engine.constants.Costanti;
 import org.openspcoop2.security.message.constants.SecurityConstants;
 import org.openspcoop2.security.message.constants.SignatureAlgorithm;
 import org.openspcoop2.security.message.constants.SignatureC14NAlgorithm;
@@ -36,7 +37,7 @@ import org.openspcoop2.security.message.constants.SignatureC14NAlgorithm;
 
 public class ModICostanti {
    
-    public static final String MODIPA_PROTOCOL_NAME = "modipa";
+    public static final String MODIPA_PROTOCOL_NAME = Costanti.MODIPA_PROTOCOL_NAME;
 	
 	public final static String OPENSPCOOP2_LOCAL_HOME = "GOVWAY_HOME";
 	
@@ -90,7 +91,7 @@ public class ModICostanti {
     public final static String MODIPA_OPENSPCOOP2_MSG_CONTEXT_SBUSTAMENTO_REST = "MODIPA_SBUSTAMENTO_REST";
     public final static String MODIPA_OPENSPCOOP2_MSG_CONTEXT_SBUSTAMENTO_SOAP = "MODIPA_SBUSTAMENTO_SOAP";
     
-    public static final String MODIPA_VALUE_UNDEFINED = "-";
+    public static final String MODIPA_VALUE_UNDEFINED = Costanti.MODIPA_VALUE_UNDEFINED;
         
     public static final String MODIPA_KEYSTORE_MODE = "modipaKeystoreMode";
     public static final String MODIPA_KEYSTORE_MODE_VALUE_ARCHIVE = "archive";
@@ -132,9 +133,9 @@ public class ModICostanti {
     public static final String MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RICHIESTA_STATO = "RichiestaStato";
     public static final String MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RISPOSTA = "Risposta";
     
-    public static final String MODIPA_PROFILO_INTERAZIONE_ASINCRONA_API_RICHIESTA_CORRELATA = "modipaInteractionAsyncApiRequest";
-    public static final String MODIPA_PROFILO_INTERAZIONE_ASINCRONA_SERVIZIO_RICHIESTA_CORRELATA = "modipaInteractionAsyncServiceRequest";
-    public static final String MODIPA_PROFILO_INTERAZIONE_ASINCRONA_AZIONE_RICHIESTA_CORRELATA = "modipaInteractionAsyncActionRequest";
+    public static final String MODIPA_PROFILO_INTERAZIONE_ASINCRONA_API_RICHIESTA_CORRELATA = Costanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_API_RICHIESTA_CORRELATA;
+    public static final String MODIPA_PROFILO_INTERAZIONE_ASINCRONA_SERVIZIO_RICHIESTA_CORRELATA = Costanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_SERVIZIO_RICHIESTA_CORRELATA;
+    public static final String MODIPA_PROFILO_INTERAZIONE_ASINCRONA_AZIONE_RICHIESTA_CORRELATA = Costanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_AZIONE_RICHIESTA_CORRELATA;
     
     public static final String MODIPA_PROFILO_SICUREZZA_CANALE = "modipaSecurityChannelProfile";
     public static final String MODIPA_PROFILO_SICUREZZA_CANALE_VALUE_IDAC01 = "idac01";

@@ -53,10 +53,12 @@ import org.openspcoop2.core.id.IDSoggetto;
 import org.openspcoop2.core.mapping.DBMappingUtils;
 import org.openspcoop2.core.mapping.MappingErogazionePortaApplicativa;
 import org.openspcoop2.core.mapping.MappingFruizionePortaDelegata;
+import org.openspcoop2.core.mapping.ProprietariProtocolProperty;
 import org.openspcoop2.core.registry.driver.IDAccordoCooperazioneFactory;
 import org.openspcoop2.core.registry.driver.IDAccordoFactory;
 import org.openspcoop2.core.registry.driver.IDServizioFactory;
 import org.openspcoop2.protocol.engine.ProtocolFactoryManager;
+import org.openspcoop2.protocol.engine.constants.Costanti;
 import org.openspcoop2.protocol.engine.mapping.ModalitaIdentificazioneAzione;
 import org.openspcoop2.utils.UtilsException;
 import org.openspcoop2.utils.sql.ISQLQueryObject;
@@ -2293,6 +2295,8 @@ public class DBOggettiInUsoUtils  {
 		
 			boolean isInUso = false;
 			
+			List<String> correlazione_list = whereIsInUso.get(ErrorsHandlerCostant.IS_CORRELATA);
+			
 			List<String> porte_applicative_list = whereIsInUso.get(ErrorsHandlerCostant.IN_USO_IN_PORTE_APPLICATIVE);
 			List<String> porte_delegate_list = whereIsInUso.get(ErrorsHandlerCostant.IN_USO_IN_PORTE_DELEGATE);
 			List<String> mappingErogazionePA_list = whereIsInUso.get(ErrorsHandlerCostant.IN_USO_IN_MAPPING_EROGAZIONE_PA);
@@ -2304,6 +2308,11 @@ public class DBOggettiInUsoUtils  {
 			List<String> trasformazionePA_list = whereIsInUso.get(ErrorsHandlerCostant.TRASFORMAZIONE_PA);
 			
 			List<String> ct_list = whereIsInUso.get(ErrorsHandlerCostant.CONTROLLO_TRAFFICO);
+			
+			if (correlazione_list == null) {
+				correlazione_list = new ArrayList<String>();
+				whereIsInUso.put(ErrorsHandlerCostant.IS_CORRELATA, correlazione_list);
+			}
 			
 			if (porte_applicative_list == null) {
 				porte_applicative_list = new ArrayList<String>();
@@ -2384,6 +2393,165 @@ public class DBOggettiInUsoUtils  {
 			}
 			risultato.close();
 			stmt.close();
+			
+			
+			
+			
+			// Controllo che l'azione non sia stata correlata da un'altra azione tramite Modi PA
+			if(Costanti.MODIPA_PROTOCOL_NAME.equals(idRisorsa.getIdAccordo().getSoggettoReferente().getTipo())) {
+			
+				ISQLQueryObject sqlQueryObjectApiExists = SQLObjectFactory.createSQLQueryObject(tipoDB);
+				sqlQueryObjectApiExists.setANDLogicOperator(true);
+				sqlQueryObjectApiExists.addFromTable(CostantiDB.PROTOCOL_PROPERTIES);
+				sqlQueryObjectApiExists.addSelectField(CostantiDB.PROTOCOL_PROPERTIES, "name");
+				sqlQueryObjectApiExists.addWhereCondition(CostantiDB.API_RESOURCES + ".id = " + CostantiDB.PROTOCOL_PROPERTIES + ".id_proprietario");
+				sqlQueryObjectApiExists.addWhereCondition(CostantiDB.PROTOCOL_PROPERTIES + ".tipo_proprietario=?");
+				sqlQueryObjectApiExists.addWhereCondition(CostantiDB.PROTOCOL_PROPERTIES + ".name=?");
+				sqlQueryObjectApiExists.addWhereCondition(CostantiDB.PROTOCOL_PROPERTIES + ".value=?");
+
+				ISQLQueryObject sqlQueryObjectOperationExists = SQLObjectFactory.createSQLQueryObject(tipoDB);
+				sqlQueryObjectOperationExists.setANDLogicOperator(true);
+				sqlQueryObjectOperationExists.addFromTable(CostantiDB.PROTOCOL_PROPERTIES);
+				sqlQueryObjectOperationExists.addSelectField(CostantiDB.PROTOCOL_PROPERTIES, "name");
+				sqlQueryObjectOperationExists.addWhereCondition(CostantiDB.API_RESOURCES + ".id = " + CostantiDB.PROTOCOL_PROPERTIES + ".id_proprietario");
+				sqlQueryObjectOperationExists.addWhereCondition(CostantiDB.PROTOCOL_PROPERTIES + ".tipo_proprietario=?");
+				sqlQueryObjectOperationExists.addWhereCondition(CostantiDB.PROTOCOL_PROPERTIES + ".name=?");
+				sqlQueryObjectOperationExists.addWhereCondition(CostantiDB.PROTOCOL_PROPERTIES + ".value=?");
+				
+				
+				// Verifico correlazione PULL (all'interno del solito accordo)
+				
+				sqlQueryObject = SQLObjectFactory.createSQLQueryObject(tipoDB);
+				sqlQueryObject.addFromTable(CostantiDB.API_RESOURCES);
+				sqlQueryObject.addWhereCondition(CostantiDB.API_RESOURCES + ".id_accordo = ?");
+				sqlQueryObject.addSelectAliasField(CostantiDB.API_RESOURCES,"nome","nomeRisorsaCorrelata");
+				sqlQueryObject.addSelectAliasField(CostantiDB.API_RESOURCES,"http_method","httpMethodRisorsaCorrelata");
+				sqlQueryObject.addSelectAliasField(CostantiDB.API_RESOURCES,"path","pathRisorsaCorrelata");
+				sqlQueryObject.addWhereExistsCondition(false, sqlQueryObjectApiExists);
+				sqlQueryObject.addWhereExistsCondition(false, sqlQueryObjectOperationExists);
+				sqlQueryObject.setANDLogicOperator(true);
+				sqlQueryObject.addOrderBy("pathRisorsaCorrelata");
+				sqlQueryObject.addOrderBy("httpMethodRisorsaCorrelata");
+				sqlQueryObject.setSortType(true);
+				queryString = sqlQueryObject.createSQLQuery();
+				stmt = con.prepareStatement(queryString);
+				int index = 1;
+				stmt.setLong(index++, idAccordo);
+				// sqlQueryObjectApiExists
+				stmt.setString(index++, ProprietariProtocolProperty.RESOURCE.name());
+				stmt.setString(index++, Costanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_API_RICHIESTA_CORRELATA);
+				stmt.setString(index++, Costanti.MODIPA_VALUE_UNDEFINED);
+				// sqlQueryObjectOperationExists
+				stmt.setString(index++, ProprietariProtocolProperty.RESOURCE.name());
+				stmt.setString(index++, Costanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_AZIONE_RICHIESTA_CORRELATA);
+				stmt.setString(index++, idRisorsa.getNome());
+				risultato = stmt.executeQuery();
+				while (risultato.next()){
+					@SuppressWarnings("unused")
+					String nomeRisorsaCorrelata = risultato.getString("nomeRisorsaCorrelata");
+					String httpMethodRisorsaCorrelata = risultato.getString("httpMethodRisorsaCorrelata");
+					String pathRisorsaCorrelata = risultato.getString("pathRisorsaCorrelata");
+					
+					String path = null;
+					if(pathRisorsaCorrelata==null || "".equals(pathRisorsaCorrelata)) {
+						path = "*";
+					}
+					else {
+						path = pathRisorsaCorrelata;
+					}
+					
+					String method = null;
+					if(httpMethodRisorsaCorrelata==null || "".equals(httpMethodRisorsaCorrelata)) {
+						method = "Qualsiasi";
+					}
+					else {
+						method = httpMethodRisorsaCorrelata;
+					}
+					
+					correlazione_list.add("Risorsa "+method+" "+path+" (interazione: NonBloccante-Pull)");
+					isInUso = true;
+				}
+				risultato.close();
+				stmt.close();
+				
+				// Verifico correlazione PUSH
+				
+				sqlQueryObject = SQLObjectFactory.createSQLQueryObject(tipoDB);
+				sqlQueryObject.addFromTable(CostantiDB.ACCORDI);
+				sqlQueryObject.addFromTable(CostantiDB.SOGGETTI);
+				sqlQueryObject.addFromTable(CostantiDB.API_RESOURCES);
+				sqlQueryObject.addSelectAliasField(CostantiDB.API_RESOURCES,"nome","nomeRisorsaCorrelata");
+				sqlQueryObject.addSelectAliasField(CostantiDB.API_RESOURCES,"http_method","httpMethodRisorsaCorrelata");
+				sqlQueryObject.addSelectAliasField(CostantiDB.API_RESOURCES,"path","pathRisorsaCorrelata");
+				sqlQueryObject.addSelectAliasField(CostantiDB.ACCORDI,"nome","nomeApi");
+				sqlQueryObject.addSelectAliasField(CostantiDB.ACCORDI,"versione","versioneApi");
+				sqlQueryObject.addSelectAliasField(CostantiDB.SOGGETTI,"tipo_soggetto","tipoReferenteApi");
+				sqlQueryObject.addSelectAliasField(CostantiDB.SOGGETTI,"nome_soggetto","nomeReferenteApi");
+				sqlQueryObject.addWhereCondition(CostantiDB.API_RESOURCES + ".id_accordo = " + CostantiDB.ACCORDI + ".id");
+				sqlQueryObject.addWhereCondition(CostantiDB.SOGGETTI + ".id = " + CostantiDB.ACCORDI + ".id_referente");
+				sqlQueryObject.addWhereExistsCondition(false, sqlQueryObjectApiExists);
+				sqlQueryObject.addWhereExistsCondition(false, sqlQueryObjectOperationExists);
+				sqlQueryObject.setANDLogicOperator(true);
+				sqlQueryObject.addOrderBy("nomeApi");
+				sqlQueryObject.addOrderBy("versioneApi");
+				sqlQueryObject.addOrderBy("nomeReferenteApi");
+				sqlQueryObject.addOrderBy("tipoReferenteApi");
+				sqlQueryObject.addOrderBy("pathRisorsaCorrelata");
+				sqlQueryObject.addOrderBy("httpMethodRisorsaCorrelata");
+				sqlQueryObject.setSortType(true);
+				queryString = sqlQueryObject.createSQLQuery();
+				stmt = con.prepareStatement(queryString);
+				index = 1;
+				stmt.setLong(index++, idAccordo);
+				// sqlQueryObjectApiExists
+				stmt.setString(index++, ProprietariProtocolProperty.RESOURCE.name());
+				stmt.setString(index++, Costanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_API_RICHIESTA_CORRELATA);
+				stmt.setString(index++, IDAccordoFactory.getInstance().getUriFromIDAccordo(idRisorsa.getIdAccordo()));
+				// sqlQueryObjectOperationExists
+				stmt.setString(index++, ProprietariProtocolProperty.RESOURCE.name());
+				stmt.setString(index++, Costanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_AZIONE_RICHIESTA_CORRELATA);
+				stmt.setString(index++, idRisorsa.getNome());
+				risultato = stmt.executeQuery();
+				IDAccordoFactory idAccordoFactory = IDAccordoFactory.getInstance();
+				while (risultato.next()){
+					
+					String nomeApi = risultato.getString("nomeApi");
+					int versioneApi = risultato.getInt("versioneApi");
+					String tipoReferenteApi = risultato.getString("tipoReferenteApi");
+					String nomeReferenteApi = risultato.getString("nomeReferenteApi");
+					IDAccordo idAPI = idAccordoFactory.getIDAccordoFromValues(nomeApi, tipoReferenteApi, nomeReferenteApi, versioneApi);
+					
+					@SuppressWarnings("unused")
+					String nomeRisorsaCorrelata = risultato.getString("nomeRisorsaCorrelata");
+					String httpMethodRisorsaCorrelata = risultato.getString("httpMethodRisorsaCorrelata");
+					String pathRisorsaCorrelata = risultato.getString("pathRisorsaCorrelata");
+					
+					String path = null;
+					if(pathRisorsaCorrelata==null || "".equals(pathRisorsaCorrelata)) {
+						path = "*";
+					}
+					else {
+						path = pathRisorsaCorrelata;
+					}
+					
+					String method = null;
+					if(httpMethodRisorsaCorrelata==null || "".equals(httpMethodRisorsaCorrelata)) {
+						method = "Qualsiasi";
+					}
+					else {
+						method = httpMethodRisorsaCorrelata;
+					}
+					
+					correlazione_list.add("Risorsa "+method+" "+path+" dell'API '"+idAccordoFactory.getUriFromIDAccordo(idAPI)+"' (interazione: NonBloccante-Push)");
+					isInUso = true;
+				}
+				risultato.close();
+				stmt.close();
+				
+			}
+			
+			
+			
 			
 
 			
@@ -2787,6 +2955,12 @@ public class DBOggettiInUsoUtils  {
 			
 			switch (key) {
 
+			case IS_CORRELATA:
+				if ( messages!=null && messages.size() > 0) {
+					msg += "correlata ad altre risorse: " + formatList(messages,separator) + separator;
+				}
+				break;
+			
 			case IN_USO_IN_PORTE_APPLICATIVE:
 				if ( messages!=null && messages.size() > 0) {
 					msg += "appartenente ad un gruppo differente da quello predefinito nelle Porte Inbound: " + formatList(messages,separator) + separator;
@@ -3389,6 +3563,141 @@ public class DBOggettiInUsoUtils  {
 			}
 			risultato.close();
 			stmt.close();
+			
+			// Controllo che l'azione non sia stata correlata da un'altra azione tramite Modi PA
+			if(Costanti.MODIPA_PROTOCOL_NAME.equals(idOperazione.getIdPortType().getIdAccordo().getSoggettoReferente().getTipo())) {
+			
+				ISQLQueryObject sqlQueryObjectApiExists = SQLObjectFactory.createSQLQueryObject(tipoDB);
+				sqlQueryObjectApiExists.setANDLogicOperator(true);
+				sqlQueryObjectApiExists.addFromTable(CostantiDB.PROTOCOL_PROPERTIES);
+				sqlQueryObjectApiExists.addSelectField(CostantiDB.PROTOCOL_PROPERTIES, "name");
+				sqlQueryObjectApiExists.addWhereCondition(CostantiDB.PORT_TYPE_AZIONI + ".id = " + CostantiDB.PROTOCOL_PROPERTIES + ".id_proprietario");
+				sqlQueryObjectApiExists.addWhereCondition(CostantiDB.PROTOCOL_PROPERTIES + ".tipo_proprietario=?");
+				sqlQueryObjectApiExists.addWhereCondition(CostantiDB.PROTOCOL_PROPERTIES + ".name=?");
+				sqlQueryObjectApiExists.addWhereCondition(CostantiDB.PROTOCOL_PROPERTIES + ".value=?");
+				
+				ISQLQueryObject sqlQueryObjectPortTypeExists = SQLObjectFactory.createSQLQueryObject(tipoDB);
+				sqlQueryObjectPortTypeExists.setANDLogicOperator(true);
+				sqlQueryObjectPortTypeExists.addFromTable(CostantiDB.PROTOCOL_PROPERTIES);
+				sqlQueryObjectPortTypeExists.addSelectField(CostantiDB.PROTOCOL_PROPERTIES, "name");
+				sqlQueryObjectPortTypeExists.addWhereCondition(CostantiDB.PORT_TYPE_AZIONI + ".id = " + CostantiDB.PROTOCOL_PROPERTIES + ".id_proprietario");
+				sqlQueryObjectPortTypeExists.addWhereCondition(CostantiDB.PROTOCOL_PROPERTIES + ".tipo_proprietario=?");
+				sqlQueryObjectPortTypeExists.addWhereCondition(CostantiDB.PROTOCOL_PROPERTIES + ".name=?");
+				sqlQueryObjectPortTypeExists.addWhereCondition(CostantiDB.PROTOCOL_PROPERTIES + ".value=?");
+				
+				ISQLQueryObject sqlQueryObjectOperationExists = SQLObjectFactory.createSQLQueryObject(tipoDB);
+				sqlQueryObjectOperationExists.setANDLogicOperator(true);
+				sqlQueryObjectOperationExists.addFromTable(CostantiDB.PROTOCOL_PROPERTIES);
+				sqlQueryObjectOperationExists.addSelectField(CostantiDB.PROTOCOL_PROPERTIES, "name");
+				sqlQueryObjectOperationExists.addWhereCondition(CostantiDB.PORT_TYPE_AZIONI + ".id = " + CostantiDB.PROTOCOL_PROPERTIES + ".id_proprietario");
+				sqlQueryObjectOperationExists.addWhereCondition(CostantiDB.PROTOCOL_PROPERTIES + ".tipo_proprietario=?");
+				sqlQueryObjectOperationExists.addWhereCondition(CostantiDB.PROTOCOL_PROPERTIES + ".name=?");
+				sqlQueryObjectOperationExists.addWhereCondition(CostantiDB.PROTOCOL_PROPERTIES + ".value=?");
+				
+				
+				// Verifico correlazione PULL (all'interno del solito accordo)
+				
+				sqlQueryObject = SQLObjectFactory.createSQLQueryObject(tipoDB);
+				sqlQueryObject.addFromTable(CostantiDB.PORT_TYPE);
+				sqlQueryObject.addFromTable(CostantiDB.PORT_TYPE_AZIONI);
+				sqlQueryObject.addSelectAliasField(CostantiDB.PORT_TYPE_AZIONI,"nome","nomeAzioneCorrelata");
+				sqlQueryObject.addWhereCondition(CostantiDB.PORT_TYPE + ".id_accordo = ?");
+				sqlQueryObject.addWhereCondition(CostantiDB.PORT_TYPE + ".nome = ?");
+				sqlQueryObject.addWhereCondition(CostantiDB.PORT_TYPE_AZIONI + ".id_port_type = " + CostantiDB.PORT_TYPE + ".id");
+				sqlQueryObject.addWhereExistsCondition(false, sqlQueryObjectApiExists);
+				sqlQueryObject.addWhereExistsCondition(false, sqlQueryObjectPortTypeExists);
+				sqlQueryObject.addWhereExistsCondition(false, sqlQueryObjectOperationExists);
+				sqlQueryObject.setANDLogicOperator(true);
+				sqlQueryObject.addOrderBy("nomePTCorrelato");
+				sqlQueryObject.addOrderBy("nomeAzioneCorrelata");
+				sqlQueryObject.setSortType(true);
+				queryString = sqlQueryObject.createSQLQuery();
+				stmt = con.prepareStatement(queryString);
+				index = 1;
+				stmt.setLong(index++, idAccordo);
+				stmt.setString(index++, idOperazione.getIdPortType().getNome());
+				// sqlQueryObjectApiExists
+				stmt.setString(index++, ProprietariProtocolProperty.OPERATION.name());
+				stmt.setString(index++, Costanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_API_RICHIESTA_CORRELATA);
+				stmt.setString(index++, Costanti.MODIPA_VALUE_UNDEFINED);
+				// sqlQueryObjectPortTypeExists
+				stmt.setString(index++, ProprietariProtocolProperty.OPERATION.name());
+				stmt.setString(index++, Costanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_SERVIZIO_RICHIESTA_CORRELATA);
+				stmt.setString(index++, Costanti.MODIPA_VALUE_UNDEFINED);
+				// sqlQueryObjectOperationExists
+				stmt.setString(index++, ProprietariProtocolProperty.OPERATION.name());
+				stmt.setString(index++, Costanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_AZIONE_RICHIESTA_CORRELATA);
+				stmt.setString(index++, idOperazione.getNome());
+				risultato = stmt.executeQuery();
+				while (risultato.next()){
+					String nomeAzioneCorrelata = risultato.getString("nomeAzioneCorrelata");
+					correlazione_list.add("Azione "+nomeAzioneCorrelata+" (interazione: NonBloccante-Pull)");
+					isInUso = true;
+				}
+				risultato.close();
+				stmt.close();
+				
+				// Verifico correlazione PUSH
+				
+				sqlQueryObject = SQLObjectFactory.createSQLQueryObject(tipoDB);
+				sqlQueryObject.addFromTable(CostantiDB.ACCORDI);
+				sqlQueryObject.addFromTable(CostantiDB.SOGGETTI);
+				sqlQueryObject.addFromTable(CostantiDB.PORT_TYPE);
+				sqlQueryObject.addFromTable(CostantiDB.PORT_TYPE_AZIONI);
+				sqlQueryObject.addSelectAliasField(CostantiDB.PORT_TYPE_AZIONI,"nome","nomeAzioneCorrelata");
+				sqlQueryObject.addSelectAliasField(CostantiDB.PORT_TYPE,"nome","nomePTCorrelato");
+				sqlQueryObject.addSelectAliasField(CostantiDB.ACCORDI,"nome","nomeApi");
+				sqlQueryObject.addSelectAliasField(CostantiDB.ACCORDI,"versione","versioneApi");
+				sqlQueryObject.addSelectAliasField(CostantiDB.SOGGETTI,"tipo_soggetto","tipoReferenteApi");
+				sqlQueryObject.addSelectAliasField(CostantiDB.SOGGETTI,"nome_soggetto","nomeReferenteApi");
+				sqlQueryObject.addWhereCondition(CostantiDB.PORT_TYPE + ".id_accordo = " + CostantiDB.ACCORDI + ".id");
+				sqlQueryObject.addWhereCondition(CostantiDB.SOGGETTI + ".id = " + CostantiDB.ACCORDI + ".id_referente");
+				sqlQueryObject.addWhereCondition(CostantiDB.PORT_TYPE_AZIONI + ".id_port_type = " + CostantiDB.PORT_TYPE + ".id");
+				sqlQueryObject.addWhereExistsCondition(false, sqlQueryObjectApiExists);
+				sqlQueryObject.addWhereExistsCondition(false, sqlQueryObjectPortTypeExists);
+				sqlQueryObject.addWhereExistsCondition(false, sqlQueryObjectOperationExists);
+				sqlQueryObject.setANDLogicOperator(true);
+				sqlQueryObject.addOrderBy("nomeApi");
+				sqlQueryObject.addOrderBy("versioneApi");
+				sqlQueryObject.addOrderBy("nomeReferenteApi");
+				sqlQueryObject.addOrderBy("tipoReferenteApi");
+				sqlQueryObject.addOrderBy("nomePTCorrelato");
+				sqlQueryObject.addOrderBy("nomeAzioneCorrelata");
+				sqlQueryObject.setSortType(true);
+				queryString = sqlQueryObject.createSQLQuery();
+				stmt = con.prepareStatement(queryString);
+				index = 1;
+				stmt.setLong(index++, idAccordo);
+				stmt.setString(index++, idOperazione.getIdPortType().getNome());
+				// sqlQueryObjectApiExists
+				stmt.setString(index++, ProprietariProtocolProperty.OPERATION.name());
+				stmt.setString(index++, Costanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_API_RICHIESTA_CORRELATA);
+				stmt.setString(index++, IDAccordoFactory.getInstance().getUriFromIDAccordo(idOperazione.getIdPortType().getIdAccordo()));
+				// sqlQueryObjectPortTypeExists
+				stmt.setString(index++, ProprietariProtocolProperty.OPERATION.name());
+				stmt.setString(index++, Costanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_SERVIZIO_RICHIESTA_CORRELATA);
+				stmt.setString(index++, idOperazione.getIdPortType().getNome());
+				// sqlQueryObjectOperationExists
+				stmt.setString(index++, ProprietariProtocolProperty.OPERATION.name());
+				stmt.setString(index++, Costanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_AZIONE_RICHIESTA_CORRELATA);
+				stmt.setString(index++, idOperazione.getNome());
+				risultato = stmt.executeQuery();
+				IDAccordoFactory idAccordoFactory = IDAccordoFactory.getInstance();
+				while (risultato.next()){
+					String nomeAzioneCorrelata = risultato.getString("nomeAzioneCorrelata");
+					String nomePTCorrelato = risultato.getString("nomePTCorrelato");
+					String nomeApi = risultato.getString("nomeApi");
+					int versioneApi = risultato.getInt("versioneApi");
+					String tipoReferenteApi = risultato.getString("tipoReferenteApi");
+					String nomeReferenteApi = risultato.getString("nomeReferenteApi");
+					IDAccordo idAPI = idAccordoFactory.getIDAccordoFromValues(nomeApi, tipoReferenteApi, nomeReferenteApi, versioneApi);
+					correlazione_list.add("Azione "+nomeAzioneCorrelata+" del Servizio "+nomePTCorrelato+" dell'API '"+idAccordoFactory.getUriFromIDAccordo(idAPI)+"' (interazione: NonBloccante-Push)");
+					isInUso = true;
+				}
+				risultato.close();
+				stmt.close();
+				
+			}
 			
 			
 			

@@ -93,12 +93,11 @@ import org.openspcoop2.utils.certificate.CertificateInfo;
  */
 public class ModIDynamicConfiguration extends BasicDynamicConfiguration implements org.openspcoop2.protocol.sdk.properties.IConsoleDynamicConfiguration {
 
-
-
-
+	private ModIProperties modiProperties = null;
 
 	public ModIDynamicConfiguration(IProtocolFactory<?> factory) throws ProtocolException{
 		super(factory);
+		this.modiProperties = ModIProperties.getInstance();
 	}
 
 	
@@ -466,7 +465,7 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 			IRegistryReader registryReader, IConfigIntegrationReader configIntegrationReader, IDPortTypeAzione id)
 			throws ProtocolException {
 		
-		updateProfiloInterazione(consoleConfiguration, properties, registryReader, id.getIdPortType().getIdAccordo(), id.getIdPortType().getNome(), id.getNome(), false);
+		updateProfiloInterazione(consoleConfiguration, consoleOperationType, properties, registryReader, id.getIdPortType().getIdAccordo(), id.getIdPortType().getNome(), id.getNome(), false, null);
 		
 		updateProfiloSicurezzaMessaggio(consoleConfiguration, properties, registryReader, true);
 		
@@ -513,7 +512,7 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 			IRegistryReader registryReader, IConfigIntegrationReader configIntegrationReader, IDResource id, String httpMethod, String path)
 			throws ProtocolException {
 		
-		updateProfiloInterazione(consoleConfiguration, properties, registryReader, id.getIdAccordo(), null, id.getNome(), true);
+		updateProfiloInterazione(consoleConfiguration, consoleOperationType, properties, registryReader, id.getIdAccordo(), null, id.getNome(), true, httpMethod);
 		
 		updateProfiloSicurezzaMessaggio(consoleConfiguration, properties, registryReader, true);
 	}
@@ -852,23 +851,23 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 		configuration.addConsoleItem(ProtocolPropertiesFactory.newSubTitleItem(ModIConsoleCostanti.MODIPA_API_PROFILO_INTERAZIONE_ID, 
 				ModIConsoleCostanti.MODIPA_API_PROFILO_INTERAZIONE_LABEL));
 		
+		ModIProfiliInterazioneRESTConfig config = null;
+		if(rest) {
+			config = new ModIProfiliInterazioneRESTConfig(this.modiProperties, httpMethod, null);
+		}
+	
 		StringConsoleItem profiloInterazioneItem = (StringConsoleItem) 
 				ProtocolPropertiesFactory.newConsoleItem(ConsoleItemValueType.STRING,
 				ConsoleItemType.SELECT,
 				ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ID, 
 				ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_LABEL);
-		boolean checkMethod = false;
-		// TODO ModIProperties.getInstance();
 		boolean addBloccante = true;
-		boolean addNonBloccante = true;
-		if(checkMethod) {
-			if(!org.openspcoop2.utils.transport.http.HttpRequestMethod.POST.equals(httpMethod)) {
-				addBloccante = false;
-			}
-			if(!org.openspcoop2.utils.transport.http.HttpRequestMethod.POST.equals(httpMethod) && 
-					!org.openspcoop2.utils.transport.http.HttpRequestMethod.GET.equals(httpMethod)) {
-				addNonBloccante = false;
-			}
+		boolean addNonBloccantePush = true;
+		boolean addNonBloccantePull = true;
+		if(rest) {
+			addBloccante = config.isCompatibileBloccante();
+			addNonBloccantePush = config.isCompatibileNonBloccantePush();
+			addNonBloccantePull = config.isCompatibileNonBloccantePull();
 		}
 		if(rest) {
 			profiloInterazioneItem.addLabelValue(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_LABEL_CRUD,
@@ -878,7 +877,7 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 			profiloInterazioneItem.addLabelValue(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_LABEL_BLOCCANTE,
 					ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_VALUE_BLOCCANTE);
 		}
-		if(addNonBloccante) {
+		if(addNonBloccantePush || addNonBloccantePull) {
 			profiloInterazioneItem.addLabelValue(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_LABEL_NON_BLOCCANTE,
 					ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_VALUE_NON_BLOCCANTE);
 		}
@@ -933,8 +932,8 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 		
 	}
 	
-	private void updateProfiloInterazione(ConsoleConfiguration consoleConfiguration, ProtocolProperties properties,
-			IRegistryReader registryReader, IDAccordo idAccordo, String idPortType, String idAzione, boolean rest) throws ProtocolException {
+	private void updateProfiloInterazione(ConsoleConfiguration consoleConfiguration, ConsoleOperationType consoleOperationType, ProtocolProperties properties,
+			IRegistryReader registryReader, IDAccordo idAccordo, String idPortType, String idAzione, boolean rest, String httpMethod) throws ProtocolException {
 		
 		AbstractConsoleItem<?> profiloInterazioneAsincronaItem = 	
 				ProtocolPropertiesUtils.getAbstractConsoleItem(consoleConfiguration.getConsoleItem(), ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_ID);
@@ -947,7 +946,30 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 		AbstractConsoleItem<?> profiloInterazioneAsincronaCorrelataAzioneItem = 	
 				ProtocolPropertiesUtils.getAbstractConsoleItem(consoleConfiguration.getConsoleItem(), ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_AZIONE_RICHIESTA_CORRELATA_ID);
 		
+		ModIProfiliInterazioneRESTConfig config = null;
+		if(rest) {
+			Resource resource = null;
+			if(ConsoleOperationType.CHANGE.equals(consoleOperationType)) {
+				try {
+					IDResource id = new IDResource();
+					id.setIdAccordo(idAccordo);
+					id.setNome(idAzione);
+					resource = registryReader.getResourceAccordo(id);
+				}catch(Exception e) {
+					throw new ProtocolException(e.getMessage(), e);
+				}
+			}
+			config = new ModIProfiliInterazioneRESTConfig(this.modiProperties, httpMethod, resource);
+		}
 		
+		boolean addBloccante = true;
+		boolean addNonBloccantePush = true;
+		boolean addNonBloccantePull = true;
+		if(rest) {
+			addBloccante = config.isCompatibileBloccante();
+			addNonBloccantePush = config.isCompatibileNonBloccantePush();
+			addNonBloccantePull = config.isCompatibileNonBloccantePull();
+		}
 		
 		boolean allHidden = true;
 		StringProperty profiloInterazioneItemValue = (StringProperty) ProtocolPropertiesUtils.getAbstractPropertyById(properties, ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ID);
@@ -955,45 +977,138 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 		if(profiloInterazioneItemValue!=null && profiloInterazioneItemValue.getValue()!=null && !"".equals(profiloInterazioneItemValue.getValue())) {
 			profiloInterazione = profiloInterazioneItemValue.getValue();
 		}	
+		
+		StringConsoleItem profiloInterazioneItem = 	(StringConsoleItem)
+				ProtocolPropertiesUtils.getAbstractConsoleItem(consoleConfiguration.getConsoleItem(), ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ID);
+		if(!addBloccante) {
+			profiloInterazioneItem.removeLabelValue(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_LABEL_BLOCCANTE);
+		}
+		if(!addNonBloccantePush && !addNonBloccantePull) {
+			profiloInterazioneItem.removeLabelValue(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_LABEL_NON_BLOCCANTE);
+		}
+		
+		if(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_VALUE_BLOCCANTE.equals(profiloInterazione)) {
+			if(!addBloccante) {
+				profiloInterazione = rest ? ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_DEFAULT_REST_VALUE : ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_DEFAULT_SOAP_VALUE;
+			}
+		}
+		else if(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_VALUE_NON_BLOCCANTE.equals(profiloInterazione)) {
+			if(!addNonBloccantePush && !addNonBloccantePull) {
+				profiloInterazione = rest ? ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_DEFAULT_REST_VALUE : ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_DEFAULT_SOAP_VALUE;
+			}
+		}
+		
 		if(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_VALUE_NON_BLOCCANTE.equals(profiloInterazione)) {
 			
 			allHidden = false;
 			
 			profiloInterazioneAsincronaItem.setType(ConsoleItemType.SELECT);
-			((StringConsoleItem)profiloInterazioneAsincronaItem).addLabelValue(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_LABEL_PUSH,
-					ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_VALUE_PUSH);
-			((StringConsoleItem)profiloInterazioneAsincronaItem).addLabelValue(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_LABEL_PULL,
-					ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_VALUE_PULL);
+			if(addNonBloccantePush) {
+				((StringConsoleItem)profiloInterazioneAsincronaItem).addLabelValue(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_LABEL_PUSH,
+						ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_VALUE_PUSH);
+			}
+			if(addNonBloccantePull) {
+				((StringConsoleItem)profiloInterazioneAsincronaItem).addLabelValue(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_LABEL_PULL,
+						ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_VALUE_PULL);
+			}
 			
 			StringProperty profiloInterazioneAsincronaItemValue = (StringProperty) ProtocolPropertiesUtils.getAbstractPropertyById(properties, ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_ID);
 			String interazioneMode = ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_DEFAULT_VALUE;
 			if(profiloInterazioneAsincronaItemValue!=null && profiloInterazioneAsincronaItemValue.getValue()!=null && !"".equals(profiloInterazioneAsincronaItemValue.getValue())) {
 				interazioneMode = profiloInterazioneAsincronaItemValue.getValue();
+				// verifico compatibilita
+				if(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_VALUE_PUSH.equals(interazioneMode)) {
+					if(!addNonBloccantePush) {
+						interazioneMode = ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_VALUE_PULL;
+					}
+				}
+				else if(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_VALUE_PULL.equals(interazioneMode)) {
+					if(!addNonBloccantePull) {
+						interazioneMode = ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_VALUE_PUSH;
+					}
+				}
 			}		
 			else {
+				// verifico compatibilita default
+				if(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_VALUE_PUSH.equals(interazioneMode)) {
+					if(!addNonBloccantePush) {
+						interazioneMode = ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_VALUE_PULL;
+					}
+				}
+				else if(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_VALUE_PULL.equals(interazioneMode)) {
+					if(!addNonBloccantePull) {
+						interazioneMode = ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_VALUE_PUSH;
+					}
+				}
 				if(profiloInterazioneAsincronaItemValue!=null) {
 					profiloInterazioneAsincronaItemValue.setValue(interazioneMode); // imposto il default
 				}
 			}
 			boolean push = ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_VALUE_PUSH.equals(interazioneMode);
 			
+			boolean addRichiesta = true;
+			boolean addRichiestaStato = true;
+			boolean addRisposta = true;
+			if(push) {
+				addRichiestaStato = false;
+				if(rest) {
+					addRichiesta = config.isCompatibileNonBloccantePushRequest();
+					addRisposta = config.isCompatibileNonBloccantePushResponse();
+				}
+			}
+			else {
+				if(rest) {
+					addRichiesta = config.isCompatibileNonBloccantePullRequest();
+					addRichiestaStato = config.isCompatibileNonBloccantePullRequestState();
+					addRisposta = config.isCompatibileNonBloccantePullResponse();
+				}
+			}
+			
 			profiloInterazioneAsincronaRelazioneItem.setType(ConsoleItemType.SELECT);
-			((StringConsoleItem)profiloInterazioneAsincronaRelazioneItem).addLabelValue(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_LABEL_RICHIESTA,
-					ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RICHIESTA);
-			if(!push) {
+			if(addRichiesta) {
+				((StringConsoleItem)profiloInterazioneAsincronaRelazioneItem).addLabelValue(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_LABEL_RICHIESTA,
+						ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RICHIESTA);
+			}
+			if(addRichiestaStato) {
 				((StringConsoleItem)profiloInterazioneAsincronaRelazioneItem).addLabelValue(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_LABEL_RICHIESTA_STATO,
 						ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RICHIESTA_STATO);
 			}
-			((StringConsoleItem)profiloInterazioneAsincronaRelazioneItem).addLabelValue(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_LABEL_RISPOSTA,
-					ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RISPOSTA);
+			if(addRisposta) {
+				((StringConsoleItem)profiloInterazioneAsincronaRelazioneItem).addLabelValue(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_LABEL_RISPOSTA,
+						ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RISPOSTA);
+			}
 			
 			StringProperty profiloRelazioneAsincronaItemValue = (StringProperty) ProtocolPropertiesUtils.getAbstractPropertyById(properties, ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_ID);
 			String relazioneMode = ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_DEFAULT_VALUE;
 			if(profiloRelazioneAsincronaItemValue!=null && profiloRelazioneAsincronaItemValue.getValue()!=null && !"".equals(profiloRelazioneAsincronaItemValue.getValue())) {
 				relazioneMode = profiloRelazioneAsincronaItemValue.getValue();
-			}		
-			boolean request = ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RICHIESTA.equals(relazioneMode);
+			}	
+			if(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RICHIESTA.equals(relazioneMode) && !addRichiesta) {
+				if(addRisposta) {
+					relazioneMode = ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RISPOSTA;
+				}
+				else if(addRichiestaStato) {
+					relazioneMode = ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RICHIESTA_STATO;
+				}
+			}
+			else if(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RICHIESTA_STATO.equals(relazioneMode) && !addRichiestaStato) {
+				if(addRichiesta) {
+					relazioneMode = ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RICHIESTA;
+				}
+				else if(addRisposta) {
+					relazioneMode = ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RISPOSTA;
+				}
+			}
+			else if(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RISPOSTA.equals(relazioneMode) && !addRisposta) {
+				if(addRichiesta) {
+					relazioneMode = ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RICHIESTA;
+				}
+				else if(addRichiestaStato) {
+					relazioneMode = ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RICHIESTA_STATO;
+				}
+			}
 			
+			boolean request = ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_VALUE_RICHIESTA.equals(relazioneMode);			
 			if(request) {
 				profiloInterazioneAsincronaCorrelataApiItem.setType(ConsoleItemType.HIDDEN);
 				profiloInterazioneAsincronaCorrelataServizioItem.setType(ConsoleItemType.HIDDEN);

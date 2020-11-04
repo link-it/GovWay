@@ -149,6 +149,15 @@ public class Costanti {
     
     public final static String REQUISITI_INPUT_RACCOLTI = "[[InformationMissingRequisiti]]";
     
+    
+    public static final String MODIPA_PROTOCOL_NAME = "modipa";
+    
+    public static final String MODIPA_VALUE_UNDEFINED = "-";
+    
+    public static final String MODIPA_PROFILO_INTERAZIONE_ASINCRONA_API_RICHIESTA_CORRELATA = "modipaInteractionAsyncApiRequest";
+    public static final String MODIPA_PROFILO_INTERAZIONE_ASINCRONA_SERVIZIO_RICHIESTA_CORRELATA = "modipaInteractionAsyncServiceRequest";
+    public static final String MODIPA_PROFILO_INTERAZIONE_ASINCRONA_AZIONE_RICHIESTA_CORRELATA = "modipaInteractionAsyncActionRequest";
+    
 }
 
 
