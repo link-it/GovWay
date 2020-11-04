@@ -322,7 +322,7 @@ public class ProtocolPropertiesHelper extends ConsoleHelper {
 		/* CHANGE_BINARY */
 		de = new DataElement();
 		de.setLabel(ProtocolPropertiesCostanti.PARAMETRO_PP_CHANGE_BINARY);
-		de.setValue("true");
+		de.setValue(ProtocolPropertiesCostanti.PARAMETRO_PP_CHANGE_BINARY_VALUE_TRUE);
 		de.setType(DataElementType.HIDDEN);
 		de.setName(ProtocolPropertiesCostanti.PARAMETRO_PP_CHANGE_BINARY);
 		dati.addElement(de);

@@ -47,6 +47,7 @@ import org.openspcoop2.core.registry.constants.PddTipologia;
 import org.openspcoop2.core.registry.constants.ServiceBinding;
 import org.openspcoop2.core.registry.driver.IDAccordoFactory;
 import org.openspcoop2.protocol.basic.properties.BasicDynamicConfiguration;
+import org.openspcoop2.protocol.engine.constants.Costanti;
 import org.openspcoop2.protocol.engine.utils.AzioniUtils;
 import org.openspcoop2.protocol.engine.utils.NamingUtils;
 import org.openspcoop2.protocol.modipa.config.ModIProperties;
@@ -112,7 +113,7 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 		
 		boolean esterno = false;
 		try {
-			String dominio = consoleHelper.getParameter("dominio"); // definito in SoggettiCostanti.PARAMETRO_SOGGETTO_DOMINIO
+			String dominio = consoleHelper.getParameter(Costanti.CONSOLE_PARAMETRO_SOGGETTO_DOMINIO);
 			if(dominio==null || "".equals(dominio)) {
 				if(ConsoleOperationType.CHANGE.equals(consoleOperationType)) {
 					Soggetto soggetto = registryReader.getSoggetto(id.getIdSoggettoProprietario());
@@ -140,7 +141,7 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 		
 		boolean isClient = true;
 		try {
-			String client = consoleHelper.getParameter("tipoSA"); // definito in ServiziApplicativiCostanti.PARAMETRO_SERVIZI_APPLICATIVI_TIPO_SA
+			String client = consoleHelper.getParameter(Costanti.CONSOLE_PARAMETRO_SERVIZI_APPLICATIVI_TIPO_SA);
 			isClient = (client==null) || ("".equals(client)) || (CostantiConfigurazione.CLIENT.toString().equals(client)) || (CostantiConfigurazione.CLIENT_OR_SERVER.toString().equals(client));
 			if(ConsoleOperationType.CHANGE.equals(consoleOperationType)) {
 				ServizioApplicativo sa = configIntegrationReader.getServizioApplicativo(id);
@@ -198,7 +199,7 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 		
 		boolean esterno = false;
 		try {
-			String dominio = consoleHelper.getParameter("dominio"); // definito in SoggettiCostanti.PARAMETRO_SOGGETTO_DOMINIO
+			String dominio = consoleHelper.getParameter(Costanti.CONSOLE_PARAMETRO_SOGGETTO_DOMINIO);
 			esterno = PddTipologia.ESTERNO.toString().equals(dominio);
 		}catch(Exception e) {
 			throw new ProtocolException(e.getMessage(),e);
@@ -206,7 +207,7 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 		
 		boolean isClient = true;
 		try {
-			String client = consoleHelper.getParameter("tipoSA"); // definito in ServiziApplicativiCostanti.PARAMETRO_SERVIZI_APPLICATIVI_TIPO_SA
+			String client = consoleHelper.getParameter(Costanti.CONSOLE_PARAMETRO_SERVIZI_APPLICATIVI_TIPO_SA);
 			isClient = (client==null) || ("".equals(client)) || (CostantiConfigurazione.CLIENT.toString().equals(client)) || (CostantiConfigurazione.CLIENT_OR_SERVER.toString().equals(client));
 			if(ConsoleOperationType.CHANGE.equals(consoleOperationType)) {
 				ServizioApplicativo sa = configIntegrationReader.getServizioApplicativo(id);
@@ -248,7 +249,7 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 		
 		boolean esterno = false;
 		try {
-			String dominio = consoleHelper.getParameter("dominio"); // definito in SoggettiCostanti.PARAMETRO_SOGGETTO_DOMINIO
+			String dominio = consoleHelper.getParameter(Costanti.CONSOLE_PARAMETRO_SOGGETTO_DOMINIO);
 			esterno = PddTipologia.ESTERNO.toString().equals(dominio);
 		}catch(Exception e) {
 			throw new ProtocolException(e.getMessage(),e);
@@ -256,7 +257,7 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 		
 		boolean isClient = true;
 		try {
-			String client = consoleHelper.getParameter("tipoSA"); // definito in ServiziApplicativiCostanti.PARAMETRO_SERVIZI_APPLICATIVI_TIPO_SA
+			String client = consoleHelper.getParameter(Costanti.CONSOLE_PARAMETRO_SERVIZI_APPLICATIVI_TIPO_SA);
 			isClient = (client==null) || ("".equals(client)) || (CostantiConfigurazione.CLIENT.toString().equals(client)) || (CostantiConfigurazione.CLIENT_OR_SERVER.toString().equals(client));
 			if(ConsoleOperationType.CHANGE.equals(consoleOperationType)) {
 				ServizioApplicativo sa = configIntegrationReader.getServizioApplicativo(id);
@@ -270,8 +271,8 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 			boolean changeBinary = false;
 			if(ConsoleOperationType.CHANGE.equals(consoleOperationType)) {
 				try {
-					String p = consoleHelper.getParameter("changeBinary"); // ProtocolPropertiesCostanti.PARAMETRO_PP_CHANGE_BINARY
-					if("true".equalsIgnoreCase(p)) {
+					String p = consoleHelper.getParameter(Costanti.CONSOLE_PARAMETRO_PP_CHANGE_BINARY);
+					if(Costanti.CONSOLE_PARAMETRO_PP_CHANGE_BINARY_VALUE_TRUE.equalsIgnoreCase(p)) {
 						changeBinary = true;
 						BinaryProperty archiveItemValue = (BinaryProperty) ProtocolPropertiesUtils.getAbstractPropertyById(properties, ModIConsoleCostanti.MODIPA_KEYSTORE_ARCHIVE_ID);
 						if(archiveItemValue==null || archiveItemValue.getValue()==null) {
@@ -345,7 +346,7 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 		}
 		else {
 			try {
-				String serviceBinding = consoleHelper.getParameter("serviceBinding"); // AccordiServizioParteComuneCostanti.PARAMETRO_APC_SERVICE_BINDING;
+				String serviceBinding = consoleHelper.getParameter(Costanti.CONSOLE_PARAMETRO_SERVICE_BINDING);
 				rest = !ServiceBinding.SOAP.name().equals(serviceBinding);
 			}catch(Exception e) {
 				throw new ProtocolException(e.getMessage(),e);
@@ -371,12 +372,14 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 	public void validateDynamicConfigAccordoServizioParteComune(ConsoleConfiguration consoleConfiguration, ConsoleOperationType consoleOperationType, IConsoleHelper consoleHelper, ProtocolProperties properties, 
 			IRegistryReader registryReader, IConfigIntegrationReader configIntegrationReader, IDAccordo id) throws ProtocolException{
 		
-		if(ConsoleOperationType.CHANGE.equals(consoleOperationType) && id!=null) {
+		boolean permettiModificaNomeAccordo = true;
+		// Lascio il codice se servisse, ma è stato aggiunto la gestione sull'update dell'API
+		if(!permettiModificaNomeAccordo && ConsoleOperationType.CHANGE.equals(consoleOperationType) && id!=null) {
 			try {
-				String apiGestioneParziale = consoleHelper.getParameter("apiGestioneParziale"); // ApiCostanti.PARAMETRO_APC_API_GESTIONE_PARZIALE
-				if("apiInfoGenerali".equals(apiGestioneParziale)) { // ApiCostanti.VALORE_PARAMETRO_APC_API_INFORMAZIONI_GENERALI
-					String nome = consoleHelper.getParameter("nome"); // AccordiServizioParteComuneCostanti.PARAMETRO_APC_NOME
-					String versioneS = consoleHelper.getParameter("versione"); // AccordiServizioParteComuneCostanti.PARAMETRO_APC_VERSIONE
+				String apiGestioneParziale = consoleHelper.getParameter(Costanti.CONSOLE_PARAMETRO_APC_API_GESTIONE_PARZIALE);
+				if(Costanti.CONSOLE_VALORE_PARAMETRO_APC_API_INFORMAZIONI_GENERALI.equals(apiGestioneParziale)) {
+					String nome = consoleHelper.getParameter(Costanti.CONSOLE_PARAMETRO_APC_NOME);
+					String versioneS = consoleHelper.getParameter(Costanti.CONSOLE_PARAMETRO_APC_VERSIONE);
 					int versione = -1;
 					try {
 						versione = Integer.valueOf(versioneS);
@@ -642,7 +645,7 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 				api = registryReader.getAccordoServizioParteComune(idAccordo, false);
 			}
 			
-			portType = consoleHelper.getParameter("port_type"); // AccordiServizioParteSpecificaCostanti.PARAMETRO_APS_PORT_TYPE
+			portType = consoleHelper.getParameter(Costanti.CONSOLE_PARAMETRO_APS_PORT_TYPE);
 			if((portType==null || "".equals(portType)) && id!=null) {
 				portType = id.getPortType();
 			}
@@ -696,7 +699,7 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 				api = registryReader.getAccordoServizioParteComune(idAccordo, false);
 			}
 			
-			portType = consoleHelper.getParameter("port_type"); // AccordiServizioParteSpecificaCostanti.PARAMETRO_APS_PORT_TYPE
+			portType = consoleHelper.getParameter(Costanti.CONSOLE_PARAMETRO_APS_PORT_TYPE);
 			if((portType==null || "".equals(portType)) && id!=null) {
 				portType = id.getPortType();
 			}
@@ -740,7 +743,7 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 				api = registryReader.getAccordoServizioParteComune(idAccordo, false);
 			}
 			
-			portType = consoleHelper.getParameter("port_type"); // AccordiServizioParteSpecificaCostanti.PARAMETRO_APS_PORT_TYPE
+			portType = consoleHelper.getParameter(Costanti.CONSOLE_PARAMETRO_APS_PORT_TYPE);
 			if((portType==null || "".equals(portType)) && id!=null) {
 				portType = id.getPortType();
 			}
@@ -819,24 +822,24 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 	}
 	
 	private boolean isMascheraGestioneErogazione(IConsoleHelper consoleHelper) {
-		Object obj = consoleHelper.getSession().getAttribute("tipologiaErogazione"); // AccordiServizioParteSpecificaCostanti.PARAMETRO_APS_TIPO_EROGAZIONE
+		Object obj = consoleHelper.getSession().getAttribute(Costanti.CONSOLE_PARAMETRO_APS_TIPO_EROGAZIONE);
 		String tipologia = null;
 		if(obj != null)
 			tipologia = (String) obj;
 		if(tipologia!=null) {
-			if("erogazione".equals(tipologia)) { // AccordiServizioParteSpecificaCostanti.PARAMETRO_APS_TIPO_EROGAZIONE_VALUE_EROGAZIONE
+			if(Costanti.CONSOLE_PARAMETRO_APS_TIPO_EROGAZIONE_VALUE_EROGAZIONE.equals(tipologia)) {
 				return true;
 			}
 		}
 		return false;
 	}
 	private boolean isMascheraGestioneFruizione(IConsoleHelper consoleHelper) {
-		Object obj = consoleHelper.getSession().getAttribute("tipologiaErogazione"); // AccordiServizioParteSpecificaCostanti.PARAMETRO_APS_TIPO_EROGAZIONE
+		Object obj = consoleHelper.getSession().getAttribute(Costanti.CONSOLE_PARAMETRO_APS_TIPO_EROGAZIONE);
 		String tipologia = null;
 		if(obj != null)
 			tipologia = (String) obj;
 		if(tipologia!=null) {
-			if("fruizione".equals(tipologia)) { // AccordiServizioParteSpecificaCostanti.PARAMETRO_APS_TIPO_EROGAZIONE_VALUE_FRUIZIONE
+			if(Costanti.CONSOLE_PARAMETRO_APS_TIPO_EROGAZIONE_VALUE_FRUIZIONE.equals(tipologia)) {
 				return true;
 			}
 		}
