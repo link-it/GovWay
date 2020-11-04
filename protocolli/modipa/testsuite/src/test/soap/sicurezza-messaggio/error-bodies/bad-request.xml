@@ -11,7 +11,7 @@
             <env:Reason>
                 <env:Text xml:lang="en-US">Sistema non disponibile</env:Text>
             </env:Reason>
-            <env:Role/>
+            <env:Role>http://govway.org/integration</env:Role>
             <env:Detail>
                 <problem xmlns="urn:ietf:rfc:7807">
                     <type>https://govway.org/handling-errors/400/BadRequest.html</type>
