@@ -59,6 +59,7 @@ public class ApiOperation extends BaseBean implements Serializable {
 	
 	private void normalizePath(){
 		if(this.path!=null) {
+			this.path = this.path.trim();
 			if(this.path.startsWith("/")==false){
 				this.path = "/"+this.path;
 			}
@@ -66,6 +67,9 @@ public class ApiOperation extends BaseBean implements Serializable {
 				// in wadl viene usato ${xx}
 				// in swagger {xx}
 				this.path = this.path.replace("${", "{");
+			}
+			if(this.path.length()>1 && this.path.endsWith("/")) {
+				this.path = this.path.substring(0, this.path.length()-1);
 			}
 		}
 	}
