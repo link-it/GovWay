@@ -2,7 +2,6 @@ Feature: Server mock per il testing della sicurezza messaggio
 
 Background:
     * def isTest = function(id) { return karate.get("requestHeaders['GovWay-TestSuite-Test-ID'][0]") == id } 
-    * def checkToken = read('check-token.feature')
 
     * def confHeaders = 
     """
@@ -21,6 +20,8 @@ Scenario: isTest('connettivita-base') || isTest('connettivita-base-default-trust
     
     # Controllo che al server non siano arrivate le informazioni di sicurezza
     * match requestHeaders['Authorization'] == '#notpresent'
+    * match requestHeaders['Agid-JWT-Signature'] == '#notpresent'
+    
     * def responseStatus = 200
     * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
 
@@ -47,6 +48,7 @@ Scenario: isTest('connettivita-base-no-sbustamento')
         }
     })
     """
+    * def checkToken = read('check-token.feature')
     * call checkToken ({token: requestHeaders.Authorization[0], match_to: client_token_match })
 
     * def responseStatus = 200
@@ -91,10 +93,16 @@ Scenario: isTest('risposta-not-200')
 
 Scenario: isTest('connettivita-base-idar03') || isTest('manomissione-header-http-firmati-risposta')
 
-    * match requestHeaders['Authorization'] == '#notpresent'
+    * match requestHeaders['Agid-JWT-Signature'] == '#notpresent'
     * def responseStatus = 200
     * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
     * def responseHeaders = { IDAR03TestHeader: "TestHeaderResponse" }
+
+Scenario: isTest('connettivita-base-idar03-header-bearer')
+
+    * match requestHeaders['Authorization'] == '#notpresent'
+    * def responseStatus = 200
+    * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
 
 
 Scenario: isTest('assenza-header-digest-risposta')
@@ -104,21 +112,21 @@ Scenario: isTest('assenza-header-digest-risposta')
 
 
 Scenario: isTest('response-without-payload-idar03')  || isTest('response-without-payload-idar03-tampered-header')
-    * match requestHeaders['Authorization'] == '#notpresent'
+    * match requestHeaders['Agid-JWT-Signature'] == '#notpresent'
     * def responseStatus = 201
     * def response = ''
     * def responseHeaders = ({ 'Content-Type': null, 'IDAR03TestHeader': "TestHeaderResponse" })
 
 
 Scenario: isTest('response-without-payload-idar03-digest-richiesta')
-    * match requestHeaders['Authorization'] == '#notpresent'
+    * match requestHeaders['Agid-JWT-Signature'] == '#notpresent'
     * def responseStatus = 201
     * def response = ''
     * def responseHeaders = ({ 'Content-Type': null })
 
 
 Scenario: isTest('request-without-payload-idar03') || isTest('request-without-payload-idar03-digest-richiesta')
-    * match requestHeaders['Authorization'] == '#notpresent'
+    * match requestHeaders['Agid-JWT-Signature'] == '#notpresent'
     * def responseStatus = 200
 
     * def response =
@@ -134,14 +142,14 @@ Scenario: isTest('request-without-payload-idar03') || isTest('request-without-pa
 
 
 Scenario: isTest('request-response-without-payload-idar03')
-    * match requestHeaders['Authorization'] == '#notpresent'
+    * match requestHeaders['Agid-JWT-Signature'] == '#notpresent'
     * def responseStatus = 204
     * def response = ''
     * def responseHeaders = ({ 'Content-Type': null, 'IDAR03TestHeader': "TestHeaderResponse" })
 
 
 Scenario: isTest('request-response-without-payload-idar03-digest-richiesta')
-    * match requestHeaders['Authorization'] == '#notpresent'
+    * match requestHeaders['Agid-JWT-Signature'] == '#notpresent'
     * def responseStatus = 204
     * def response = ''
     * def responseHeaders = ({ 'Content-Type': null })
@@ -160,7 +168,7 @@ Scenario: isTest('informazioni-utente-header') || isTest('informazioni-utente-qu
 
 Scenario: isTest('connettivita-base-idar0302') || isTest('manomissione-header-http-firmati-risposta-idar0302')
 
-    * match requestHeaders['Authorization'] == '#notpresent'
+    * match requestHeaders['Agid-JWT-Signature'] == '#notpresent'
     * def responseStatus = 200
     * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
     * def responseHeaders = { IDAR03TestHeader: "TestHeaderResponse" }

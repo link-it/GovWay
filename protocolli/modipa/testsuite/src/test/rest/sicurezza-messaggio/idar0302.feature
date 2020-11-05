@@ -24,8 +24,8 @@ And match response == read('response.json')
 And match header Authorization == '#notpresent'
 
 
-* def client_token = decode_token(responseHeaders['GovWay-TestSuite-GovWay-Client-Token'][0])
-* def server_token = decode_token(responseHeaders['GovWay-TestSuite-GovWay-Server-Token'][0])
+* def client_token = decode_token(responseHeaders['GovWay-TestSuite-GovWay-Client-Token'][0], "AGID")
+* def server_token = decode_token(responseHeaders['GovWay-TestSuite-GovWay-Server-Token'][0], "AGID")
 * def request_digest = get client_token $.payload.signed_headers..digest
 * def response_digest = get server_token $.payload.signed_headers..digest
 
@@ -180,10 +180,10 @@ And match header Authorization == '#notpresent'
 * def client_token_header = responseHeaders['GovWay-TestSuite-GovWay-Client-Token'][0]
 * def server_token_header = responseHeaders['GovWay-TestSuite-GovWay-Server-Token'][0]
 
-* def client_token = decode_token(responseHeaders['GovWay-TestSuite-GovWay-Client-Token'][0])
+* def client_token = decode_token(responseHeaders['GovWay-TestSuite-GovWay-Client-Token'][0], "AGID")
 * def request_digest = get client_token $.payload.signed_headers..digest
 
-* def server_token = decode_token(responseHeaders['GovWay-TestSuite-GovWay-Server-Token'][0])
+* def server_token = decode_token(responseHeaders['GovWay-TestSuite-GovWay-Server-Token'][0], "AGID")
 * def response_digest = get server_token $.payload.signed_headers..digest
 
 # Contattiamo direttamente l'erogazione con il token che si ripete
@@ -191,7 +191,7 @@ And match header Authorization == '#notpresent'
 Given url govway_base_path + "/rest/in/DemoSoggettoErogatore/RestBlockingIDAR0302/v1"
 And path 'resources', 1, 'M'
 And request read('request.json')
-And header Authorization = client_token_header
+And header Agid-JWT-Signature = client_token_header
 And header Digest = request_digest[0]
 When method post
 Then status 409
