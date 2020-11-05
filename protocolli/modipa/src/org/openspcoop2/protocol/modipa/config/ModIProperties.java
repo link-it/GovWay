@@ -914,6 +914,38 @@ public class ModIProperties {
 	
 	
 	
+    /* **** Nomenclatura **** */ 
+    
+    private static Boolean isNomenclaturaVersioneBozza = null;
+	public Boolean isNomenclaturaVersioneBozza(){
+		if(ModIProperties.isNomenclaturaVersioneBozza==null){
+			
+			Boolean defaultValue = false;
+			String propertyName = "org.openspcoop2.protocol.modipa.nomenclatura.usaVersioneBozza";
+			
+			try{  
+				String value = this.reader.getValue_convertEnvProperties(propertyName); 
+
+				if (value != null){
+					value = value.trim();
+					ModIProperties.isNomenclaturaVersioneBozza = Boolean.parseBoolean(value);
+				}else{
+					this.log.debug("Proprietà '"+propertyName+"' non impostata, viene utilizzato il default="+defaultValue);
+					ModIProperties.isNomenclaturaVersioneBozza = defaultValue;
+				}
+
+			}catch(java.lang.Exception e) {
+				this.log.debug("Proprietà '"+propertyName+"' non impostata, viene utilizzato il default="+defaultValue+", errore:"+e.getMessage());
+				ModIProperties.isNomenclaturaVersioneBozza = defaultValue;
+			}
+		}
+
+		return ModIProperties.isNomenclaturaVersioneBozza;
+	}
+	
+	
+	
+	
 	/* **** REST **** */ 
 	
 	private static String getRestSecurityTokenHeader= null;
