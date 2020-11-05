@@ -353,11 +353,11 @@ public class ModIValidazioneSintatticaRest extends AbstractModIValidazioneSintat
 		}
 	}
 	
-	public String validateSecurityProfile(OpenSPCoop2Message msg, boolean request, String securityMessageProfile, boolean corniceSicurezza, boolean includiRequestDigest, 
+	public String validateSecurityProfile(OpenSPCoop2Message msg, boolean request, String securityMessageProfile, String headerTokenRest, boolean corniceSicurezza, boolean includiRequestDigest, 
 			Busta busta, List<Eccezione> erroriValidazione,
 			ModITruststoreConfig trustStoreCertificati, ModITruststoreConfig trustStoreSsl, ModISecurityConfig securityConfig) throws Exception {
 		
-		String securityTokenHeader = this.modiProperties.getRestSecurityTokenHeader();
+		String securityTokenHeader = headerTokenRest;
 		String securityToken = null;
 		if(msg!=null) {
 			if(request && msg.getTransportRequestContext()!=null) {

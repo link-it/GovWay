@@ -312,13 +312,18 @@ public class ModIValidazioneSintattica extends ValidazioneSintattica<AbstractMod
 							trustStoreSsl = new ModITruststoreConfig(fruizione, idSoggettoMittente, asps, true);
 						}
 						
+						String headerTokenRest = null;
+						if(rest) {
+							headerTokenRest = ModIPropertiesUtils.readPropertySecurityMessageHeader(aspc, nomePortType, azione);
+						}
+						
 						boolean corniceSicurezza = ModIPropertiesUtils.isPropertySecurityMessageConCorniceSicurezza(aspc, nomePortType, azione);
 						
 						boolean includiRequestDigest = ModIPropertiesUtils.isPropertySecurityMessageIncludiRequestDigest(aspc, nomePortType, azione);
 						
 						if(rest) {
 							
-							String token = validatoreSintatticoRest.validateSecurityProfile(msg, request, securityMessageProfile, corniceSicurezza, includiRequestDigest, bustaRitornata, 
+							String token = validatoreSintatticoRest.validateSecurityProfile(msg, request, securityMessageProfile, headerTokenRest, corniceSicurezza, includiRequestDigest, bustaRitornata, 
 									erroriValidazione, trustStoreCertificati, trustStoreSsl, securityConfig);
 							
 							if(token!=null) {

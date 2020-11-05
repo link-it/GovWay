@@ -174,9 +174,13 @@ public class ModIProperties {
 			
 			this.isGenerazioneTracce();
 			
+			/* **** Versionamento **** */ 
+			
+			this.isModIVersioneBozza();
+			
 			/* **** REST **** */ 
 			
-			getRestSecurityTokenHeader();
+			getRestSecurityTokenHeaderModI();
 			if(isRestSecurityTokenClaimsIssuerEnabled()) {
 				getRestSecurityTokenClaimsIssuerHeaderValue();
 			}
@@ -914,10 +918,42 @@ public class ModIProperties {
 	
 	
 	
+    /* **** Nomenclatura **** */ 
+    
+    private static Boolean isModIVersioneBozza = null;
+	public Boolean isModIVersioneBozza(){
+		if(ModIProperties.isModIVersioneBozza==null){
+			
+			Boolean defaultValue = false;
+			String propertyName = "org.openspcoop2.protocol.modipa.usaVersioneBozza";
+			
+			try{  
+				String value = this.reader.getValue_convertEnvProperties(propertyName); 
+
+				if (value != null){
+					value = value.trim();
+					ModIProperties.isModIVersioneBozza = Boolean.parseBoolean(value);
+				}else{
+					this.log.debug("Proprietà '"+propertyName+"' non impostata, viene utilizzato il default="+defaultValue);
+					ModIProperties.isModIVersioneBozza = defaultValue;
+				}
+
+			}catch(java.lang.Exception e) {
+				this.log.debug("Proprietà '"+propertyName+"' non impostata, viene utilizzato il default="+defaultValue+", errore:"+e.getMessage());
+				ModIProperties.isModIVersioneBozza = defaultValue;
+			}
+		}
+
+		return ModIProperties.isModIVersioneBozza;
+	}
+	
+	
+	
+	
 	/* **** REST **** */ 
 	
 	private static String getRestSecurityTokenHeader= null;
-	public String getRestSecurityTokenHeader() throws Exception{
+	public String getRestSecurityTokenHeaderModI() throws ProtocolException{
     	if(ModIProperties.getRestSecurityTokenHeader==null){
 	    	String name = "org.openspcoop2.protocol.modipa.rest.securityToken.header";
     		try{  
@@ -934,7 +970,7 @@ public class ModIProperties {
 			}catch(java.lang.Exception e) {
 				String msgErrore = "Proprietà '"+name+"' non impostata, errore:"+e.getMessage(); 
 				this.log.error(msgErrore);
-				throw new Exception(msgErrore,e);
+				throw new ProtocolException(msgErrore,e);
 			}
     	}
     	
