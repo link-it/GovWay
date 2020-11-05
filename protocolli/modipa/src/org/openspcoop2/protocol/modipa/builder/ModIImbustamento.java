@@ -262,6 +262,11 @@ public class ModIImbustamento {
 					
 					boolean fruizione = MessageRole.REQUEST.equals(messageRole);
 					
+					String headerTokenRest = null;
+					if(rest) {
+						headerTokenRest = ModIPropertiesUtils.readPropertySecurityMessageHeader(aspc, nomePortType, azione);
+					}
+					
 					boolean corniceSicurezza = ModIPropertiesUtils.isPropertySecurityMessageConCorniceSicurezza(aspc, nomePortType, azione);
 					
 					boolean includiRequestDigest = ModIPropertiesUtils.isPropertySecurityMessageIncludiRequestDigest(aspc, nomePortType, azione);
@@ -291,7 +296,7 @@ public class ModIImbustamento {
 					}
 					
 					if(rest) {
-						String token = imbustamentoRest.addToken(msg, context, keystoreConfig, securityConfig, busta, securityMessageProfile, corniceSicurezza, ruoloMessaggio, includiRequestDigest);
+						String token = imbustamentoRest.addToken(msg, context, keystoreConfig, securityConfig, busta, securityMessageProfile, headerTokenRest, corniceSicurezza, ruoloMessaggio, includiRequestDigest);
 						protocolMessage.setBustaRawContent(new ModIBustaRawContent(token));
 					}
 					else {

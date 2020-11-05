@@ -22,6 +22,8 @@
 
 package org.openspcoop2.protocol.modipa.constants;
 
+import org.openspcoop2.utils.transport.http.HttpConstants;
+
 /**
  * Classe dove sono fornite le stringhe costanti, definite dalla specifica del protocollo ModI, 
  *
@@ -217,6 +219,15 @@ public class ModIConsoleCostanti {
     public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM0302_SOAP_NEW = "INTEGRITY_SOAP_01 con ID_AUTH_SOAP_02";
     public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM0302_SOAP_NOTE = "Integrità payload del messaggio + unicità del messaggio";
     public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_DEFAULT_VALUE = MODIPA_PROFILO_SICUREZZA_MESSAGGIO_VALUE_UNDEFINED;
+    
+	public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_HEADER_LABEL = "Header HTTP del Token";
+    public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_HEADER_ID = ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_HEADER;
+    public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_HEADER_VALUE_MODIPA = ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_HEADER_VALUE_MODIPA;
+    public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_HEADER_LABEL_MODIPA = "Letto da property";
+    public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_HEADER_VALUE_AUTHORIZATION = ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_HEADER_VALUE_AUTHORIZATION;
+    public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_HEADER_LABEL_AUTHORIZATION = HttpConstants.AUTHORIZATION+" "+HttpConstants.AUTHENTICATION_BEARER;
+    public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_HEADER_IDAM03_DEFAULT_VALUE = ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_HEADER_IDAM03_DEFAULT_VALUE;
+    public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_HEADER_NOT_IDAM03_DEFAULT_VALUE = ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_HEADER_NOT_IDAM03_DEFAULT_VALUE;
     
 	public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_REQUEST_DIGEST_LABEL = "Digest Richiesta"; // Ho levato Includi come prefisso perche' nel caso di fruizione, l'header deve essere ripulito, quindi sarebbe piu' gestisci
 	public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_REQUEST_DIGEST_ID = ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_RISPOSTA_REQUEST_DIGEST;

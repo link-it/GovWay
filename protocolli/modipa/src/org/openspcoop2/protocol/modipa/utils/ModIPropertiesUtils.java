@@ -22,6 +22,7 @@ package org.openspcoop2.protocol.modipa.utils;
 
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.openspcoop2.core.id.IDSoggetto;
 import org.openspcoop2.core.registry.AccordoServizioParteComune;
 import org.openspcoop2.core.registry.AccordoServizioParteSpecifica;
@@ -31,9 +32,11 @@ import org.openspcoop2.core.registry.Operation;
 import org.openspcoop2.core.registry.PortType;
 import org.openspcoop2.core.registry.ProtocolProperty;
 import org.openspcoop2.core.registry.Resource;
+import org.openspcoop2.protocol.modipa.config.ModIProperties;
 import org.openspcoop2.protocol.modipa.constants.ModICostanti;
 import org.openspcoop2.protocol.sdk.ProtocolException;
 import org.openspcoop2.protocol.sdk.properties.ProtocolPropertiesUtils;
+import org.openspcoop2.utils.transport.http.HttpConstants;
 
 /**
  * ModIBuilderUtils
@@ -74,6 +77,9 @@ public class ModIPropertiesUtils {
 	public static String readPropertySecurityMessageProfile(AccordoServizioParteComune aspc, String nomePortType, String azione) throws ProtocolException {
 		return _readProperty(aspc, nomePortType, azione, ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO);
 	}
+	public static String readPropertySecurityMessageHeader(AccordoServizioParteComune aspc, String nomePortType, String azione) throws ProtocolException {
+		return _readProperty(aspc, nomePortType, azione, ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_HEADER);
+	}
 	public static boolean isPropertySecurityMessageConCorniceSicurezza(AccordoServizioParteComune aspc, String nomePortType, String azione) throws ProtocolException {
 		String tmp = _readProperty(aspc, nomePortType, azione, ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA);
 		return tmp!=null ? Boolean.valueOf(tmp) : false;
@@ -92,6 +98,8 @@ public class ModIPropertiesUtils {
 		String asyncInteractionRequestAction = null;
 		String securityMessageProfile = ProtocolPropertiesUtils.getOptionalStringValuePropertyRegistry(aspc.getProtocolPropertyList(), 
 				ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO);
+		String securityMessageProfileHeader = ProtocolPropertiesUtils.getOptionalStringValuePropertyRegistry(aspc.getProtocolPropertyList(), 
+				ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_HEADER);
 		String securityMessageCorniceSicurezza = ProtocolPropertiesUtils.getBooleanValuePropertyRegistry(aspc.getProtocolPropertyList(), 
 				ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA, false)+"";
 		String securityMessageRequestDigest = ProtocolPropertiesUtils.getBooleanValuePropertyRegistry(aspc.getProtocolPropertyList(), 
@@ -136,6 +144,8 @@ public class ModIPropertiesUtils {
 					if(ModICostanti.MODIPA_PROFILO_RIDEFINISCI.equals(securityMessageProfileMode)) {
 						securityMessageProfile = ProtocolPropertiesUtils.getOptionalStringValuePropertyRegistry(resource.getProtocolPropertyList(), 
 								ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO);
+						securityMessageProfileHeader = ProtocolPropertiesUtils.getOptionalStringValuePropertyRegistry(resource.getProtocolPropertyList(), 
+								ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_HEADER);
 						securityMessageCorniceSicurezza = ProtocolPropertiesUtils.getBooleanValuePropertyRegistry(resource.getProtocolPropertyList(), 
 								ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA, false)+"";
 						securityMessageRequestDigest = ProtocolPropertiesUtils.getBooleanValuePropertyRegistry(resource.getProtocolPropertyList(), 
@@ -188,6 +198,8 @@ public class ModIPropertiesUtils {
 								if(ModICostanti.MODIPA_PROFILO_RIDEFINISCI.equals(securityMessageProfileMode)) {
 									securityMessageProfile = ProtocolPropertiesUtils.getOptionalStringValuePropertyRegistry(op.getProtocolPropertyList(), 
 											ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO);
+									securityMessageProfileHeader = ProtocolPropertiesUtils.getOptionalStringValuePropertyRegistry(op.getProtocolPropertyList(), 
+											ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_HEADER);
 									securityMessageCorniceSicurezza = ProtocolPropertiesUtils.getBooleanValuePropertyRegistry(op.getProtocolPropertyList(), 
 											ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA, false)+"";
 									securityMessageRequestDigest = ProtocolPropertiesUtils.getBooleanValuePropertyRegistry(op.getProtocolPropertyList(), 
@@ -240,6 +252,8 @@ public class ModIPropertiesUtils {
 						if(ModICostanti.MODIPA_PROFILO_RIDEFINISCI.equals(securityMessageProfileMode)) {
 							securityMessageProfile = ProtocolPropertiesUtils.getOptionalStringValuePropertyRegistry(azioneAccordo.getProtocolPropertyList(), 
 									ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO);
+							securityMessageProfileHeader = ProtocolPropertiesUtils.getOptionalStringValuePropertyRegistry(azioneAccordo.getProtocolPropertyList(), 
+									ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_HEADER);
 							securityMessageCorniceSicurezza = ProtocolPropertiesUtils.getBooleanValuePropertyRegistry(azioneAccordo.getProtocolPropertyList(), 
 									ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA, false)+"";
 							securityMessageRequestDigest = ProtocolPropertiesUtils.getBooleanValuePropertyRegistry(azioneAccordo.getProtocolPropertyList(), 
@@ -270,6 +284,30 @@ public class ModIPropertiesUtils {
 		}
 		else if(ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO.equals(propertyName)) {
 			return securityMessageProfile;
+		}
+		else if(ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_HEADER.equals(propertyName)) {
+			
+			if(securityMessageProfileHeader==null || StringUtils.isEmpty(securityMessageProfileHeader)) {
+				boolean integrita = ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_VALUE_IDAM0301.equals(securityMessageProfile) || 
+						ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_VALUE_IDAM0302.equals(securityMessageProfile);
+				if(integrita) {
+					securityMessageProfileHeader = ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_HEADER_IDAM03_DEFAULT_VALUE;
+				}
+				else {
+					securityMessageProfileHeader = ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_HEADER_NOT_IDAM03_DEFAULT_VALUE;
+				}
+			}
+			if(ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_HEADER_VALUE_MODIPA.equals(securityMessageProfileHeader)) {
+				return ModIProperties.getInstance().getRestSecurityTokenHeaderModI();
+			}
+			else if(ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_HEADER_VALUE_AUTHORIZATION.equals(securityMessageProfileHeader)) {
+				return HttpConstants.AUTHORIZATION;
+			}
+			else {
+				// caso che non dovrebbe capitare
+				return HttpConstants.AUTHORIZATION;
+			}
+			
 		}
 		else if(ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA.equals(propertyName)) {
 			return securityMessageCorniceSicurezza;

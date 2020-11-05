@@ -392,7 +392,7 @@ public class ModIImbustamentoRest {
 	}
 	
 	public String addToken(OpenSPCoop2Message msg, Context context, ModIKeystoreConfig keystoreConfig, ModISecurityConfig securityConfig,
-			Busta busta, String securityMessageProfile, boolean corniceSicurezza, RuoloMessaggio ruoloMessaggio, boolean includiRequestDigest) throws Exception {
+			Busta busta, String securityMessageProfile, String headerTokenRest, boolean corniceSicurezza, RuoloMessaggio ruoloMessaggio, boolean includiRequestDigest) throws Exception {
 		
 		boolean integrita = ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_VALUE_IDAM0301.equals(securityMessageProfile) || 
 				ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_VALUE_IDAM0302.equals(securityMessageProfile);
@@ -669,7 +669,7 @@ public class ModIImbustamentoRest {
 		bout.flush();
 		bout.close();
 		
-		String securityTokenHeader = this.modiProperties.getRestSecurityTokenHeader();
+		String securityTokenHeader = headerTokenRest;
 		if(HttpConstants.AUTHORIZATION.equalsIgnoreCase(securityTokenHeader)) {
 			msg.forceTransportHeader(securityTokenHeader, HttpConstants.AUTHORIZATION_PREFIX_BEARER+bout.toString());
 		}

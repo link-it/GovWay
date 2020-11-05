@@ -176,7 +176,7 @@ public class ModIProperties {
 			
 			/* **** REST **** */ 
 			
-			getRestSecurityTokenHeader();
+			getRestSecurityTokenHeaderModI();
 			if(isRestSecurityTokenClaimsIssuerEnabled()) {
 				getRestSecurityTokenClaimsIssuerHeaderValue();
 			}
@@ -949,7 +949,7 @@ public class ModIProperties {
 	/* **** REST **** */ 
 	
 	private static String getRestSecurityTokenHeader= null;
-	public String getRestSecurityTokenHeader() throws Exception{
+	public String getRestSecurityTokenHeaderModI() throws ProtocolException{
     	if(ModIProperties.getRestSecurityTokenHeader==null){
 	    	String name = "org.openspcoop2.protocol.modipa.rest.securityToken.header";
     		try{  
@@ -966,7 +966,7 @@ public class ModIProperties {
 			}catch(java.lang.Exception e) {
 				String msgErrore = "Proprietà '"+name+"' non impostata, errore:"+e.getMessage(); 
 				this.log.error(msgErrore);
-				throw new Exception(msgErrore,e);
+				throw new ProtocolException(msgErrore,e);
 			}
     	}
     	
