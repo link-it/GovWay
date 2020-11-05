@@ -180,6 +180,12 @@ Scenario: isTest('assenza-header-digest-risposta-idar0302') || isTest('riutilizz
     * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
 
 
+Scenario: isTest('connettivita-base-idar0302-header-bearer')
+
+    * match requestHeaders['Authorization'] == '#notpresent'
+    * def responseStatus = 200
+    * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
+
 # catch all
 #
 #

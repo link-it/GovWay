@@ -560,8 +560,6 @@ When method post
 Then status 400
 And match header GovWay-Transaction-ErrorType == "BadRequest"
 
-# TODO: Digli ad andrea che nonostante siamo con la disclosure degli errori, la fruizione mi risponde con un
-# semplice 400 senza dirmi quello che la console di monitoraggio dice, ovvero:   Non è stato possibile recuperare un valore da associare alla risorsa 'CorniceSicurezza-User'
 
 @connettivita-base-header-bearer
 Scenario: Test connettività base
@@ -607,6 +605,5 @@ And match header Authorization == '#notpresent'
 * def tid = responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]
 * call check_traccia ({ tid: tid, tipo: 'Richiesta', token: client_token, x509sub: 'CN=ExampleClient1, O=Example, L=Pisa, ST=Italy, C=IT', profilo_sicurezza: 'IDAR0301', other_checks: other_checks_richiesta })
 * call check_traccia ({ tid: tid, tipo: 'Risposta', token: server_token, x509sub: 'CN=ExampleServer, O=Example, L=Pisa, ST=Italy, C=IT', profilo_sicurezza: 'IDAR0301', other_checks: other_checks_risposta })
-
 
 

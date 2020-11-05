@@ -1554,6 +1554,66 @@ Scenario: isTest('riutilizzo-token-risposta-idar0302')
     * def responseStatus = 200
     * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
 
+
+Scenario: isTest('connettivita-base-idar0302-header-bearer')
+
+    * def client_token_match = 
+    """
+    ({
+        header: { kid: 'ExampleClient1' },
+        payload: { 
+            aud: 'testsuite',
+            client_id: 'DemoSoggettoFruitore/ApplicativoBlockingIDA01',
+            iss: 'DemoSoggettoFruitore',
+            sub: 'ApplicativoBlockingIDA01',
+            signed_headers: [
+                { digest: '#string' },
+                { 'content-type': 'application\/json; charset=UTF-8' }
+            ]
+        }
+    })
+    """
+    * call checkToken ({token: requestHeaders['Authorization'][0], match_to: client_token_match })
+
+    * karate.proceed (govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR0302HeaderBearer/v1')
+    
+    * def request_token = decodeToken(requestHeaders['Authorization'][0])
+    * def request_digest = get request_token $.payload.signed_headers..digest
+
+    * match requestHeaders['Digest'][0] == request_digest[0]
+
+    * def server_token_match =
+    """
+    ({
+        header: { kid: 'ExampleServer'},
+        payload: {
+            aud: 'DemoSoggettoFruitore/ApplicativoBlockingIDA01',
+            client_id: 'RestBlockingIDAR0302HeaderBearer/v1',
+            iss: 'DemoSoggettoErogatore',
+            sub: 'RestBlockingIDAR0302HeaderBearer/v1',
+            signed_headers: [
+                { digest: '#string' },
+                { 'content-type': 'application\/json' }
+            ]
+        }
+    })
+    """
+    * call checkToken ({token: responseHeaders['Authorization'][0], match_to: server_token_match})
+
+    * def response_token = decodeToken(responseHeaders['Authorization'][0])
+    * def response_digest = get response_token $.payload.signed_headers..digest
+    
+    * match responseHeaders['Digest'][0] == response_digest[0]
+
+    * def newHeaders = 
+    """
+    ({
+        'GovWay-TestSuite-GovWay-Client-Token': requestHeaders['Authorization'][0],
+        'GovWay-TestSuite-GovWay-Server-Token': responseHeaders['Authorization'][0],
+    })
+    """
+    * def responseHeaders = karate.merge(responseHeaders,newHeaders)
+
 # catch all
 #
 #
