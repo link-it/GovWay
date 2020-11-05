@@ -325,9 +325,9 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 				ConsoleItemType.SELECT,
 				ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_CANALE_ID, 
 				ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_CANALE_LABEL);
-		profiloSicurezzaCanaleItem.addLabelValue(this.modiProperties.isNomenclaturaVersioneBozza() ? ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_CANALE_LABEL_IDAC01_OLD : ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_CANALE_LABEL_IDAC01_NEW,
+		profiloSicurezzaCanaleItem.addLabelValue(this.modiProperties.isModIVersioneBozza() ? ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_CANALE_LABEL_IDAC01_OLD : ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_CANALE_LABEL_IDAC01_NEW,
 				ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_CANALE_VALUE_IDAC01);
-		profiloSicurezzaCanaleItem.addLabelValue(this.modiProperties.isNomenclaturaVersioneBozza() ? ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_CANALE_LABEL_IDAC02_OLD : ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_CANALE_LABEL_IDAC02_NEW,
+		profiloSicurezzaCanaleItem.addLabelValue(this.modiProperties.isModIVersioneBozza() ? ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_CANALE_LABEL_IDAC02_OLD : ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_CANALE_LABEL_IDAC02_NEW,
 				ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_CANALE_VALUE_IDAC02);
 		profiloSicurezzaCanaleItem.setDefaultValue(ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_CANALE_DEFAULT_VALUE);
 		if(ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_CANALE_DEFAULT_VALUE.equals(ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_CANALE_VALUE_IDAC01)) {
@@ -356,7 +356,7 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 		
 		boolean rest = this.isApiRest(consoleOperationType, consoleHelper, registryReader, id);
 		
-		updateProfiloSicurezzaMessaggio(consoleConfiguration, properties, registryReader, rest, false);
+		updateProfiloSicurezzaMessaggio(consoleConfiguration, consoleHelper, properties, registryReader, rest, false);
 		
 	}
 		
@@ -488,7 +488,7 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 		
 		updateProfiloInterazione(consoleConfiguration, consoleOperationType, properties, registryReader, id.getIdPortType().getIdAccordo(), id.getIdPortType().getNome(), id.getNome(), false, null);
 		
-		updateProfiloSicurezzaMessaggio(consoleConfiguration, properties, registryReader, false, true);
+		updateProfiloSicurezzaMessaggio(consoleConfiguration, consoleHelper, properties, registryReader, false, true);
 		
 	}
 
@@ -535,7 +535,7 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 		
 		updateProfiloInterazione(consoleConfiguration, consoleOperationType, properties, registryReader, id.getIdAccordo(), null, id.getNome(), true, httpMethod);
 		
-		updateProfiloSicurezzaMessaggio(consoleConfiguration, properties, registryReader, true, true);
+		updateProfiloSicurezzaMessaggio(consoleConfiguration, consoleHelper, properties, registryReader, true, true);
 	}
 	
 	@Override
@@ -1468,23 +1468,23 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 		profiloSicurezzaMessaggioItem.addLabelValue(ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_UNDEFINED,
 				ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_VALUE_UNDEFINED);
 		if(rest) {
-			profiloSicurezzaMessaggioItem.addLabelValue(this.modiProperties.isNomenclaturaVersioneBozza() ? ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM01_REST_OLD : ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM01_REST_NEW,
+			profiloSicurezzaMessaggioItem.addLabelValue(this.modiProperties.isModIVersioneBozza() ? ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM01_REST_OLD : ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM01_REST_NEW,
 					ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_VALUE_IDAM01);
-			profiloSicurezzaMessaggioItem.addLabelValue(this.modiProperties.isNomenclaturaVersioneBozza() ? ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM02_REST_OLD : ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM02_REST_NEW,
+			profiloSicurezzaMessaggioItem.addLabelValue(this.modiProperties.isModIVersioneBozza() ? ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM02_REST_OLD : ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM02_REST_NEW,
 					ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_VALUE_IDAM02);
-			profiloSicurezzaMessaggioItem.addLabelValue(this.modiProperties.isNomenclaturaVersioneBozza() ? ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM0301_REST_OLD : ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM0301_REST_NEW,
+			profiloSicurezzaMessaggioItem.addLabelValue(this.modiProperties.isModIVersioneBozza() ? ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM0301_REST_OLD : ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM0301_REST_NEW,
 					ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_VALUE_IDAM0301);
-			profiloSicurezzaMessaggioItem.addLabelValue(this.modiProperties.isNomenclaturaVersioneBozza() ? ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM0302_REST_OLD : ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM0302_REST_NEW,
+			profiloSicurezzaMessaggioItem.addLabelValue(this.modiProperties.isModIVersioneBozza() ? ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM0302_REST_OLD : ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM0302_REST_NEW,
 					ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_VALUE_IDAM0302);
 		}
 		else {
-			profiloSicurezzaMessaggioItem.addLabelValue(this.modiProperties.isNomenclaturaVersioneBozza() ? ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM01_SOAP_OLD : ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM01_SOAP_NEW,
+			profiloSicurezzaMessaggioItem.addLabelValue(this.modiProperties.isModIVersioneBozza() ? ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM01_SOAP_OLD : ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM01_SOAP_NEW,
 					ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_VALUE_IDAM01);
-			profiloSicurezzaMessaggioItem.addLabelValue(this.modiProperties.isNomenclaturaVersioneBozza() ? ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM02_SOAP_OLD : ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM02_SOAP_NEW,
+			profiloSicurezzaMessaggioItem.addLabelValue(this.modiProperties.isModIVersioneBozza() ? ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM02_SOAP_OLD : ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM02_SOAP_NEW,
 					ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_VALUE_IDAM02);
-			profiloSicurezzaMessaggioItem.addLabelValue(this.modiProperties.isNomenclaturaVersioneBozza() ? ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM0301_SOAP_OLD : ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM0301_SOAP_NEW,
+			profiloSicurezzaMessaggioItem.addLabelValue(this.modiProperties.isModIVersioneBozza() ? ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM0301_SOAP_OLD : ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM0301_SOAP_NEW,
 					ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_VALUE_IDAM0301);
-			profiloSicurezzaMessaggioItem.addLabelValue(this.modiProperties.isNomenclaturaVersioneBozza() ? ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM0302_SOAP_OLD : ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM0302_SOAP_NEW,
+			profiloSicurezzaMessaggioItem.addLabelValue(this.modiProperties.isModIVersioneBozza() ? ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM0302_SOAP_OLD : ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL_IDAM0302_SOAP_NEW,
 					ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_VALUE_IDAM0302);
 		}
 		profiloSicurezzaMessaggioItem.setDefaultValue(ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_DEFAULT_VALUE);
@@ -1566,7 +1566,7 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 				ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_VALUE_IDAM0302.equals(value);
 	}
 	
-	private void updateProfiloSicurezzaMessaggio(ConsoleConfiguration consoleConfiguration, ProtocolProperties properties,
+	private void updateProfiloSicurezzaMessaggio(ConsoleConfiguration consoleConfiguration, IConsoleHelper consoleHelper, ProtocolProperties properties,
 			IRegistryReader registryReader, boolean rest, boolean action) throws ProtocolException {
 		
 		boolean corniceSicurezza = this.modiProperties.isSicurezzaMessaggio_corniceSicurezza_enabled();
@@ -1635,6 +1635,16 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 			if(isSicurezza01 || isSicurezza02 || isSicurezza03) {
 				profiloSicurezzaMessaggioHeaderItem.setType(ConsoleItemType.SELECT);
 				StringProperty profiloSicurezzaMessaggioHeaderItemValue = (StringProperty) ProtocolPropertiesUtils.getAbstractPropertyById(properties, ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_HEADER_ID);
+				String postBackElementName = null;
+				try {
+					postBackElementName = consoleHelper.getPostBackElementName();
+				}catch(Exception e) {
+					// ignoro
+					//throw new ProtocolException(e.getMessage(),e);
+				}
+				if(profiloSicurezzaMessaggioHeaderItemValue!=null && ModIConsoleCostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_ID.equals(postBackElementName)){
+					profiloSicurezzaMessaggioHeaderItemValue.setValue(null);
+				}
 				if(isSicurezza03) {
 					if(profiloSicurezzaMessaggioHeaderItemValue!=null &&
 						(profiloSicurezzaMessaggioHeaderItemValue.getValue()==null || StringUtils.isEmpty(profiloSicurezzaMessaggioHeaderItemValue.getValue()))
@@ -2204,16 +2214,20 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 					ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_SOAP_ALG_LABEL);
 			profiloSicurezzaMessaggioAlgItem.addLabelValue(ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_SOAP_ALG_LABEL_DSA_SHA_256,
 					ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_SOAP_ALG_VALUE_DSA_SHA_256);
-			profiloSicurezzaMessaggioAlgItem.addLabelValue(ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_SOAP_ALG_LABEL_RSA_SHA_224,
-					ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_SOAP_ALG_VALUE_RSA_SHA_224);
+			if(this.modiProperties.isModIVersioneBozza()) {
+				profiloSicurezzaMessaggioAlgItem.addLabelValue(ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_SOAP_ALG_LABEL_RSA_SHA_224,
+						ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_SOAP_ALG_VALUE_RSA_SHA_224);
+			}
 			profiloSicurezzaMessaggioAlgItem.addLabelValue(ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_SOAP_ALG_LABEL_RSA_SHA_256,
 					ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_SOAP_ALG_VALUE_RSA_SHA_256);
 			profiloSicurezzaMessaggioAlgItem.addLabelValue(ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_SOAP_ALG_LABEL_RSA_SHA_384,
 					ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_SOAP_ALG_VALUE_RSA_SHA_384);
 			profiloSicurezzaMessaggioAlgItem.addLabelValue(ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_SOAP_ALG_LABEL_RSA_SHA_512,
 					ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_SOAP_ALG_VALUE_RSA_SHA_512);
-			profiloSicurezzaMessaggioAlgItem.addLabelValue(ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_SOAP_ALG_LABEL_ECDSA_SHA_224,
-					ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_SOAP_ALG_VALUE_ECDSA_SHA_224);
+			if(this.modiProperties.isModIVersioneBozza()) {
+				profiloSicurezzaMessaggioAlgItem.addLabelValue(ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_SOAP_ALG_LABEL_ECDSA_SHA_224,
+						ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_SOAP_ALG_VALUE_ECDSA_SHA_224);
+			}
 			profiloSicurezzaMessaggioAlgItem.addLabelValue(ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_SOAP_ALG_LABEL_ECDSA_SHA_256,
 					ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_SOAP_ALG_VALUE_ECDSA_SHA_256);
 			profiloSicurezzaMessaggioAlgItem.addLabelValue(ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_SOAP_ALG_LABEL_ECDSA_SHA_384,

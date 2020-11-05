@@ -174,6 +174,10 @@ public class ModIProperties {
 			
 			this.isGenerazioneTracce();
 			
+			/* **** Versionamento **** */ 
+			
+			this.isModIVersioneBozza();
+			
 			/* **** REST **** */ 
 			
 			getRestSecurityTokenHeaderModI();
@@ -916,31 +920,31 @@ public class ModIProperties {
 	
     /* **** Nomenclatura **** */ 
     
-    private static Boolean isNomenclaturaVersioneBozza = null;
-	public Boolean isNomenclaturaVersioneBozza(){
-		if(ModIProperties.isNomenclaturaVersioneBozza==null){
+    private static Boolean isModIVersioneBozza = null;
+	public Boolean isModIVersioneBozza(){
+		if(ModIProperties.isModIVersioneBozza==null){
 			
 			Boolean defaultValue = false;
-			String propertyName = "org.openspcoop2.protocol.modipa.nomenclatura.usaVersioneBozza";
+			String propertyName = "org.openspcoop2.protocol.modipa.usaVersioneBozza";
 			
 			try{  
 				String value = this.reader.getValue_convertEnvProperties(propertyName); 
 
 				if (value != null){
 					value = value.trim();
-					ModIProperties.isNomenclaturaVersioneBozza = Boolean.parseBoolean(value);
+					ModIProperties.isModIVersioneBozza = Boolean.parseBoolean(value);
 				}else{
 					this.log.debug("Proprietà '"+propertyName+"' non impostata, viene utilizzato il default="+defaultValue);
-					ModIProperties.isNomenclaturaVersioneBozza = defaultValue;
+					ModIProperties.isModIVersioneBozza = defaultValue;
 				}
 
 			}catch(java.lang.Exception e) {
 				this.log.debug("Proprietà '"+propertyName+"' non impostata, viene utilizzato il default="+defaultValue+", errore:"+e.getMessage());
-				ModIProperties.isNomenclaturaVersioneBozza = defaultValue;
+				ModIProperties.isModIVersioneBozza = defaultValue;
 			}
 		}
 
-		return ModIProperties.isNomenclaturaVersioneBozza;
+		return ModIProperties.isModIVersioneBozza;
 	}
 	
 	
