@@ -178,12 +178,30 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 			StringConsoleItem profiloSicurezzaMessaggioAudienceItem = (StringConsoleItem) 
 					ProtocolPropertiesFactory.newConsoleItem(ConsoleItemValueType.STRING,
 					ConsoleItemType.TEXT_AREA,
-					ModIConsoleCostanti.MODIPA_API_APPLICATIVI_AUDIENCE_RISPOSTA_ID, 
-					ModIConsoleCostanti.MODIPA_API_APPLICATIVI_AUDIENCE_RISPOSTA_LABEL);
+					ModIConsoleCostanti.MODIPA_APPLICATIVI_AUDIENCE_RISPOSTA_ID, 
+					ModIConsoleCostanti.MODIPA_APPLICATIVI_AUDIENCE_RISPOSTA_LABEL);
 			profiloSicurezzaMessaggioAudienceItem.setRows(2);
-			profiloSicurezzaMessaggioAudienceItem.setNote(ModIConsoleCostanti.MODIPA_API_APPLICATIVI_AUDIENCE_RISPOSTA_NOTE);
+			profiloSicurezzaMessaggioAudienceItem.setNote(ModIConsoleCostanti.MODIPA_APPLICATIVI_AUDIENCE_RISPOSTA_NOTE);
+			ConsoleItemInfo infoAud = new ConsoleItemInfo(ModIConsoleCostanti.MODIPA_APPLICATIVI_AUDIENCE_RISPOSTA_LABEL);
+			infoAud.setHeaderBody(ModIConsoleCostanti.MODIPA_APPLICATIVI_AUDIENCE_RISPOSTA_INFO);
+			profiloSicurezzaMessaggioAudienceItem.setInfo(infoAud);
+			profiloSicurezzaMessaggioAudienceItem.setRequired(false);
 			configuration.addConsoleItem(profiloSicurezzaMessaggioAudienceItem);
 			
+			
+			StringConsoleItem profiloSicurezzaMessaggioX5UItem = (StringConsoleItem) 
+				ProtocolPropertiesFactory.newConsoleItem(ConsoleItemValueType.STRING,
+				ConsoleItemType.TEXT_AREA,
+				ModIConsoleCostanti.MODIPA_APPLICATIVI_PROFILO_SICUREZZA_MESSAGGIO_REST_X5U_URL_ID, 
+				ModIConsoleCostanti.MODIPA_APPLICATIVI_PROFILO_SICUREZZA_MESSAGGIO_REST_X5U_URL_LABEL);
+			profiloSicurezzaMessaggioX5UItem.setRows(2);
+			profiloSicurezzaMessaggioX5UItem.setNote(ModIConsoleCostanti.MODIPA_APPLICATIVI_PROFILO_SICUREZZA_MESSAGGIO_REST_X5U_URL_NOTE);
+			ConsoleItemInfo infoX5U = new ConsoleItemInfo(ModIConsoleCostanti.MODIPA_APPLICATIVI_PROFILO_SICUREZZA_MESSAGGIO_REST_X5U_URL_LABEL);
+			infoX5U.setHeaderBody(ModIConsoleCostanti.MODIPA_APPLICATIVI_PROFILO_SICUREZZA_MESSAGGIO_REST_X5U_URL_INFO);
+			profiloSicurezzaMessaggioX5UItem.setInfo(infoX5U);
+			profiloSicurezzaMessaggioX5UItem.setRequired(false);
+			configuration.addConsoleItem(profiloSicurezzaMessaggioX5UItem);
+						
 			return configuration;
 		}
 		else {
@@ -235,7 +253,7 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 					archiveItemValue.setClearContent(true);
 				}
 				
-				AbstractConsoleItem<?> profiloSicurezzaMessaggioAudienceItem = ProtocolPropertiesUtils.getAbstractConsoleItem(consoleConfiguration.getConsoleItem(), ModIConsoleCostanti.MODIPA_API_APPLICATIVI_AUDIENCE_RISPOSTA_ID);
+				AbstractConsoleItem<?> profiloSicurezzaMessaggioAudienceItem = ProtocolPropertiesUtils.getAbstractConsoleItem(consoleConfiguration.getConsoleItem(), ModIConsoleCostanti.MODIPA_APPLICATIVI_AUDIENCE_RISPOSTA_ID);
 				profiloSicurezzaMessaggioAudienceItem.setType(ConsoleItemType.HIDDEN);
 			}
 		
@@ -2587,7 +2605,8 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 		
 		String idUrl = null;
 		if(fruizione && request) {
-			idUrl = ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_RICHIESTA_X5U_URL_ID;
+			// Deprecato, spostato su SA
+			//idUrl = ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_RICHIESTA_X5U_URL_ID;
 		}
 		else if(!fruizione && !request) {
 			idUrl = ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_RISPOSTA_X5U_URL_ID;
@@ -2595,10 +2614,14 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 		if(idUrl!=null) {
 			StringConsoleItem profiloSicurezzaMessaggioX5UItem = (StringConsoleItem) 
 				ProtocolPropertiesFactory.newConsoleItem(ConsoleItemValueType.STRING,
-				ConsoleItemType.TEXT_EDIT,
+				ConsoleItemType.TEXT_AREA,
 				idUrl, 
 				ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_X5U_URL_LABEL);
+			profiloSicurezzaMessaggioX5UItem.setRows(2);
 			profiloSicurezzaMessaggioX5UItem.setNote(ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_X5U_URL_NOTE);
+			ConsoleItemInfo infoX5U = new ConsoleItemInfo(ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_X5U_URL_LABEL);
+			infoX5U.setHeaderBody(ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_X5U_URL_INFO);
+			profiloSicurezzaMessaggioX5UItem.setInfo(infoX5U);
 			if(ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_RIFERIMENTO_X509_X5U_DEFAULT_VALUE) {
 				profiloSicurezzaMessaggioX5UItem.setRequired(requiredValue);
 			}
@@ -2832,7 +2855,8 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 			
 			String idUrl = null;
 			if(fruizione && request) {
-				idUrl = ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_RICHIESTA_X5U_URL_ID;
+				// Deprecato, spostato su SA
+				//idUrl = ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_RICHIESTA_X5U_URL_ID;
 			}
 			else if(!fruizione && !request) {
 				idUrl = ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_RISPOSTA_X5U_URL_ID;
@@ -2842,7 +2866,7 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 						ProtocolPropertiesUtils.getAbstractConsoleItem(consoleConfiguration.getConsoleItem(), idUrl);
 				if(profiloSicurezzaMessaggioX5UItem!=null) {
 					if(x5url) {
-						profiloSicurezzaMessaggioX5UItem.setType(ConsoleItemType.TEXT_EDIT);
+						profiloSicurezzaMessaggioX5UItem.setType(ConsoleItemType.TEXT_AREA);
 						profiloSicurezzaMessaggioX5UItem.setRequired(requiredValue);
 					}
 					else {

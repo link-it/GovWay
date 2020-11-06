@@ -127,7 +127,7 @@ public class ModISecurityConfig {
 		}
 		
 		if(rest) {
-			this.initSharedRest(listProtocolProperties,fruizione,request);
+			this.initSharedRest(listProtocolProperties,sa,fruizione,request);
 			
 			String httpHeaders = ProtocolPropertiesUtils.getOptionalStringValuePropertyRegistry(listProtocolProperties, ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_HTTP_HEADERS_REST);
 			if(httpHeaders!=null && httpHeaders.length()>0) {
@@ -357,7 +357,7 @@ public class ModISecurityConfig {
 		List<ProtocolProperty> listProtocolProperties = ModIPropertiesUtils.getProtocolProperties(fruizione, soggettoFruitore, aspsParam);
 		
 		if(rest) {
-			this.initSharedRest(listProtocolProperties,fruizione,request);
+			this.initSharedRest(listProtocolProperties,null, fruizione,request);
 		}
 		else {
 			this.initSharedSoap(listProtocolProperties,fruizione,request);
@@ -440,7 +440,7 @@ public class ModISecurityConfig {
 		
 	}
 	
-	private void initSharedRest(List<ProtocolProperty> listProtocolProperties, boolean fruizione, boolean request) throws ProtocolException {
+	private void initSharedRest(List<ProtocolProperty> listProtocolProperties, ServizioApplicativo sa, boolean fruizione, boolean request) throws ProtocolException {
 		
 		if(fruizione) {
 			if(request) {
@@ -489,7 +489,11 @@ public class ModISecurityConfig {
 		if(vX509.contains(ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_REST_RIFERIMENTO_X509_VALUE_X5U)) {
 			this.x5u = true;
 			if(fruizione && request) {
-				this.x5url = ProtocolPropertiesUtils.getRequiredStringValuePropertyRegistry(listProtocolProperties, ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_REST_RICHIESTA_X509_VALUE_X5URL);
+				try {
+					this.x5url = ProtocolPropertiesUtils.getRequiredStringValuePropertyConfig(sa.getProtocolPropertyList(), ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_REST_SA_RICHIESTA_X509_VALUE_X5URL);
+				}catch(Exception e) {
+					throw new ProtocolException("Applicativo '"+sa.getNome()+"' non utilizzabile con la configurazione di sicurezza (x5u) associata alla fruizione richiesta, poichè non contiene la definizione di una URL che riferisce un certificato (o certificate chain) X.509 corrispondente alla chiave firmataria del security token");
+				}
 			}
 			else if(!fruizione && !request) {
 				this.x5url = ProtocolPropertiesUtils.getRequiredStringValuePropertyRegistry(listProtocolProperties, ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_REST_RISPOSTA_X509_VALUE_X5URL);

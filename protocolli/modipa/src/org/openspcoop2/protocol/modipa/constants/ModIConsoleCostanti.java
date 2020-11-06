@@ -107,9 +107,18 @@ public class ModIConsoleCostanti {
 	public static final String MODIPA_APPLICATIVI_LABEL = MODIPA_TITLE_LABEL;
 	public static final String MODIPA_APPLICATIVI_ID = "modipaApplicativiTitleId";
 	
-	public static final String MODIPA_API_APPLICATIVI_AUDIENCE_RISPOSTA_LABEL = "Reply Audience/WSA-To";
-	public static final String MODIPA_API_APPLICATIVI_AUDIENCE_RISPOSTA_ID = ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_RISPOSTA_AUDIENCE;
-	public static final String MODIPA_API_APPLICATIVI_AUDIENCE_RISPOSTA_NOTE = "Identificativo dell'Applicativo scambiato nei token di sicurezza delle risposte";
+	public static final String MODIPA_APPLICATIVI_AUDIENCE_RISPOSTA_LABEL = "Reply Audience/WSA-To";
+	public static final String MODIPA_APPLICATIVI_AUDIENCE_RISPOSTA_ID = ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_RISPOSTA_AUDIENCE;
+	public static final String MODIPA_APPLICATIVI_AUDIENCE_RISPOSTA_NOTE = "Identificativo dell'Applicativo scambiato nei token di sicurezza";
+	public static final String MODIPA_APPLICATIVI_AUDIENCE_RISPOSTA_INFO = "Identificativo dell’applicativo utilizzato per valorizzare nel token di sicurezza di una richiesta, prodotto da una fruzione, il claim 'client_id' per API REST e l'header 'wsa:From' per API SOAP.<BR/>"+
+			"Se è abilitata la funzionalità 'Verifica Audience / WSAddressing To' nella configurazione della sicurezza della risposta di una fruizione, viene verificato che nel token di sicurezza della risposta ricevuto vi sia un claim 'aud' per API REST o un header 'wsa:To' per API SOAP che possiede un valore identico all'identificato fornito.";
+	
+	public static final String MODIPA_APPLICATIVI_PROFILO_SICUREZZA_MESSAGGIO_REST_X5U_URL_LABEL = "URL (x5u)";
+	public static final String MODIPA_APPLICATIVI_PROFILO_SICUREZZA_MESSAGGIO_REST_X5U_URL_ID = ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_REST_SA_RICHIESTA_X509_VALUE_X5URL;
+	public static final String MODIPA_APPLICATIVI_PROFILO_SICUREZZA_MESSAGGIO_REST_X5U_URL_NOTE = "URL che riferisce un certificato (o certificate chain) X.509 corrispondente alla chiave firmataria del security token";
+	public static final String MODIPA_APPLICATIVI_PROFILO_SICUREZZA_MESSAGGIO_REST_X5U_URL_INFO = "URL che riferisce un certificato (o certificate chain) X.509 corrispondente alla chiave firmataria del security token.<BR/>"+
+			"Deve essere obbligatoriamente definito se l'applicativo fruisce di API REST configurate per generare un token di sicurezza tramite il claim 'x5u'";
+	
 	
 	
 
@@ -376,10 +385,11 @@ public class ModIConsoleCostanti {
     public static final boolean MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_RIFERIMENTO_X509_X5C_USE_CERTIFICATE_CHAIN_DEFAULT_VALUE = false;
 	
 	public static final String MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_X5U_URL_LABEL = "URL (x5u)";
-	public static final String MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_RICHIESTA_X5U_URL_ID = ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_REST_RICHIESTA_X509_VALUE_X5URL;
+	// Deprecato, spostato sul S.A.
+	// public static final String MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_RICHIESTA_X5U_URL_ID = ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_REST_RICHIESTA_X509_VALUE_X5URL;
 	public static final String MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_RISPOSTA_X5U_URL_ID = ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_REST_RISPOSTA_X509_VALUE_X5URL;
-	public static final String MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_X5U_URL_NOTE = "URL che riferisce un certificato (o cert chain) X.509 corrispondente alla chiave firmataria del security token";
-	
+	public static final String MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_X5U_URL_NOTE = MODIPA_APPLICATIVI_PROFILO_SICUREZZA_MESSAGGIO_REST_X5U_URL_NOTE;
+	public static final String MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_X5U_URL_INFO = "URL che riferisce un certificato (o certificate chain) X.509 corrispondente alla chiave firmataria del security token.";
 	
 	public static final String MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_SOAP_ALG_LABEL = "Algoritmo";
 	public static final String MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_SOAP_ALG_RICHIESTA_ID = ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_SOAP_RICHIESTA_ALG;
