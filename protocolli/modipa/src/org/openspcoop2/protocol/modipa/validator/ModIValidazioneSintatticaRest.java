@@ -355,7 +355,8 @@ public class ModIValidazioneSintatticaRest extends AbstractModIValidazioneSintat
 	
 	public String validateSecurityProfile(OpenSPCoop2Message msg, boolean request, String securityMessageProfile, String headerTokenRest, boolean corniceSicurezza, boolean includiRequestDigest, 
 			Busta busta, List<Eccezione> erroriValidazione,
-			ModITruststoreConfig trustStoreCertificati, ModITruststoreConfig trustStoreSsl, ModISecurityConfig securityConfig) throws Exception {
+			ModITruststoreConfig trustStoreCertificati, ModITruststoreConfig trustStoreSsl, ModISecurityConfig securityConfig,
+			boolean buildSecurityTokenInRequest) throws Exception {
 		
 		String securityTokenHeader = headerTokenRest;
 		String securityToken = null;
@@ -591,10 +592,12 @@ public class ModIValidazioneSintatticaRest extends AbstractModIValidazioneSintat
 				busta.addProperty(ModICostanti.MODIPA_BUSTA_EXT_PROFILO_SICUREZZA_MESSAGGIO_REST_AUDIENCE, toString(aud));
 			}
 			else {
-				erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(
-						request ? CodiceErroreCooperazione.SERVIZIO_APPLICATIVO_EROGATORE_NON_PRESENTE :
-							CodiceErroreCooperazione.SERVIZIO_APPLICATIVO_FRUITORE_NON_PRESENTE, 
-						"Token senza claim '"+Claims.JSON_WEB_TOKEN_RFC_7519_AUDIENCE+"'"));
+				if(request || buildSecurityTokenInRequest) {
+					erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(
+							request ? CodiceErroreCooperazione.SERVIZIO_APPLICATIVO_EROGATORE_NON_PRESENTE :
+								CodiceErroreCooperazione.SERVIZIO_APPLICATIVO_FRUITORE_NON_PRESENTE, 
+							"Token senza claim '"+Claims.JSON_WEB_TOKEN_RFC_7519_AUDIENCE+"'"));
+				}
 			}
 			
 			boolean jtiRequired = false;

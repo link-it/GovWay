@@ -286,19 +286,9 @@ public class ModIValidazioneSintattica extends ValidazioneSintattica<AbstractMod
 				String securityMessageProfile = ModIPropertiesUtils.readPropertySecurityMessageProfile(aspc, nomePortType, azione);
 				if(securityMessageProfile!=null && !ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_VALUE_UNDEFINED.equals(securityMessageProfile)) {
 					
-					// check Fault
-					boolean processSecurity = true;
-					boolean processFault = false;
-					if(rest) {
-						processFault = this.modiProperties.isRestSecurityTokenFaultProcessEnabled();
-					}
-					else {
-						processFault = this.modiProperties.isSoapSecurityTokenFaultProcessEnabled();
-					}
-					if(isFault && !processFault) {
-						processSecurity = false;
-					}
-													
+					boolean processSecurity = ModIPropertiesUtils.processSecurity(aspc, nomePortType, azione, request, 
+							msg, rest, this.modiProperties);
+																		
 					if(processSecurity) {
 					
 						bustaRitornata.addProperty(ModICostanti.MODIPA_BUSTA_EXT_PROFILO_SICUREZZA_MESSAGGIO, 
@@ -321,10 +311,23 @@ public class ModIValidazioneSintattica extends ValidazioneSintattica<AbstractMod
 						
 						boolean includiRequestDigest = ModIPropertiesUtils.isPropertySecurityMessageIncludiRequestDigest(aspc, nomePortType, azione);
 						
+						boolean buildSecurityTokenInRequest = true;
+						if(!request) {
+							String securityMessageRequest = null;
+							if(datiRichiesta!=null) {
+								securityMessageRequest = datiRichiesta.getProperty(ModICostanti.MODIPA_BUSTA_EXT_PROFILO_SICUREZZA_MESSAGGIO);
+							}
+							if(securityMessageRequest==null) {
+								buildSecurityTokenInRequest = false;
+							}
+							msg.addContextProperty(ModICostanti.MODIPA_OPENSPCOOP2_MSG_CONTEXT_BUILD_SECURITY_REQUEST_TOKEN, buildSecurityTokenInRequest);
+						}
+						
 						if(rest) {
 							
 							String token = validatoreSintatticoRest.validateSecurityProfile(msg, request, securityMessageProfile, headerTokenRest, corniceSicurezza, includiRequestDigest, bustaRitornata, 
-									erroriValidazione, trustStoreCertificati, trustStoreSsl, securityConfig);
+									erroriValidazione, trustStoreCertificati, trustStoreSsl, securityConfig,
+									buildSecurityTokenInRequest);
 							
 							if(token!=null) {
 								
@@ -339,7 +342,8 @@ public class ModIValidazioneSintattica extends ValidazioneSintattica<AbstractMod
 						else {
 							
 							SOAPEnvelope token = validatoreSintatticoSoap.validateSecurityProfile(msg, request, securityMessageProfile, corniceSicurezza, includiRequestDigest, bustaRitornata, 
-									erroriValidazione, trustStoreCertificati, securityConfig);
+									erroriValidazione, trustStoreCertificati, securityConfig,
+									buildSecurityTokenInRequest);
 							
 							if(token!=null) {
 								

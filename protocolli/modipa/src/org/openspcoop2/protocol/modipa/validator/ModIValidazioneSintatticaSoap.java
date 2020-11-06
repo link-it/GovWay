@@ -179,7 +179,8 @@ public class ModIValidazioneSintatticaSoap extends AbstractModIValidazioneSintat
 	
 	public SOAPEnvelope validateSecurityProfile(OpenSPCoop2Message msg, boolean request, String securityMessageProfile, boolean corniceSicurezza, boolean includiRequestDigest, 
 			Busta busta, List<Eccezione> erroriValidazione,
-			ModITruststoreConfig trustStoreCertificati, ModISecurityConfig securityConfig) throws Exception {
+			ModITruststoreConfig trustStoreCertificati, ModISecurityConfig securityConfig,
+			boolean buildSecurityTokenInRequest) throws Exception {
 		
 		MessageSecurityContextParameters messageSecurityContextParameters = new MessageSecurityContextParameters();
 		messageSecurityContextParameters.setFunctionAsClient(false);
@@ -503,9 +504,11 @@ public class ModIValidazioneSintatticaSoap extends AbstractModIValidazioneSintat
 		if(wsAddressingHeader!=null) {
 		
 			if(wsAddressingHeader.getTo()==null || wsAddressingHeader.getToValue()==null) {
-				erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(request ? CodiceErroreCooperazione.SERVIZIO_APPLICATIVO_EROGATORE_NON_PRESENTE :
-					CodiceErroreCooperazione.SERVIZIO_APPLICATIVO_FRUITORE_NON_PRESENTE, 
-						"Header WSAddressing '"+Costanti.WSA_SOAP_HEADER_TO+"' non presente"));
+				if(request || buildSecurityTokenInRequest) {
+					erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(request ? CodiceErroreCooperazione.SERVIZIO_APPLICATIVO_EROGATORE_NON_PRESENTE :
+						CodiceErroreCooperazione.SERVIZIO_APPLICATIVO_FRUITORE_NON_PRESENTE, 
+							"Header WSAddressing '"+Costanti.WSA_SOAP_HEADER_TO+"' non presente"));
+				}
 			}
 			else {
 				busta.addProperty(ModICostanti.MODIPA_BUSTA_EXT_PROFILO_SICUREZZA_MESSAGGIO_SOAP_WSA_TO, wsAddressingHeader.getToValue());

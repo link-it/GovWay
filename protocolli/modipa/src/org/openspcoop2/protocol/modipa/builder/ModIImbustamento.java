@@ -239,21 +239,10 @@ public class ModIImbustamento {
 			String securityMessageProfile = ModIPropertiesUtils.readPropertySecurityMessageProfile(aspc, nomePortType, azione);
 			if(securityMessageProfile!=null && !ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_VALUE_UNDEFINED.equals(securityMessageProfile)) {
 				
-				// check Fault
-				boolean addSecurity = true;
-				boolean isFault = false;
-				boolean processFault = false;
-				if(rest) {
-					isFault = msg.isFault() || msg.castAsRest().isProblemDetailsForHttpApis_RFC7807();	
-					processFault = this.modiProperties.isRestSecurityTokenFaultProcessEnabled();
-				}
-				else {
-					isFault = msg.isFault() || msg.castAsSoap().getSOAPBody().hasFault();
-					processFault = this.modiProperties.isSoapSecurityTokenFaultProcessEnabled();
-				}
-				if(isFault && !processFault) {
-					addSecurity = false;
-				}
+				// check config
+				boolean isRichiesta = MessageRole.REQUEST.equals(messageRole);
+				boolean addSecurity = ModIPropertiesUtils.processSecurity(aspc, nomePortType, azione, isRichiesta, 
+						msg, rest, this.modiProperties);
 												
 				if(addSecurity) {
 				
