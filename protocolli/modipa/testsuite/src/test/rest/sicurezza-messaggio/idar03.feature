@@ -546,7 +546,7 @@ And header GovWay-TestSuite-Test-ID = 'no-informazioni-utente-at-erogazione'
 And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
 When method post
 Then status 502
-
+# TODO: Aggiungi il controllo del body, anche per soap
 
 @no-informazioni-utente-at-fruizione
 Scenario: Alla fruizione non passo gli header per l'informazione utente, facendola arrabbiare

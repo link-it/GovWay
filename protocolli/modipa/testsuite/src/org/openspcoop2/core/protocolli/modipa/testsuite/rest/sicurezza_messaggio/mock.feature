@@ -87,6 +87,19 @@ Scenario: isTest('risposta-not-200')
     * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
 
 
+Scenario: isTest('connettivita-base-header-agid')
+    * match requestHeaders['Agid-JWT-Signature'] == '#notpresent'
+    * def responseStatus = 200
+    * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
+
+
+Scenario: isTest('connettivita-base-idar02-header-agid')
+    * match requestHeaders['Agid-JWT-Signature'] == '#notpresent'
+    * def responseStatus = 200
+    * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
+
+
+
 ##########################################
 #                IDAR03                  #
 ##########################################
