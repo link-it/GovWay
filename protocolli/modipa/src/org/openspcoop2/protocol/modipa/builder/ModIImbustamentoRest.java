@@ -463,7 +463,8 @@ public class ModIImbustamentoRest {
 			}
 			String codiceEnte = null;
 			try {
-				codiceEnte = ModIUtilities.getDynamicValue("CorniceSicurezza-CodiceEnte", securityConfig.getCorniceSicurezzaCodiceEnteRule(), dynamicMap, context);
+				codiceEnte = ModIUtilities.getDynamicValue(ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_LABEL+" - "+ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_CODICE_ENTE_MODE_LABEL, 
+						securityConfig.getCorniceSicurezzaCodiceEnteRule(), dynamicMap, context);
 			}catch(Exception e) {
 				ProtocolException pe = new ProtocolException(e.getMessage());
 				pe.setInteroperabilityError(true);
@@ -478,7 +479,8 @@ public class ModIImbustamentoRest {
 			}
 			String utente = null;
 			try {
-				utente = ModIUtilities.getDynamicValue("CorniceSicurezza-User", securityConfig.getCorniceSicurezzaUserRule(), dynamicMap, context);
+				utente = ModIUtilities.getDynamicValue(ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_LABEL+" - "+ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_USER_MODE_LABEL,
+						securityConfig.getCorniceSicurezzaUserRule(), dynamicMap, context);
 			}catch(Exception e) {
 				ProtocolException pe = new ProtocolException(e.getMessage());
 				pe.setInteroperabilityError(true);
@@ -490,7 +492,8 @@ public class ModIImbustamentoRest {
 			String claimNameIpUser = this.modiProperties.getSicurezzaMessaggio_corniceSicurezza_rest_ipuser();
 			String indirizzoIpPostazione = null;
 			try {
-				indirizzoIpPostazione = ModIUtilities.getDynamicValue("CorniceSicurezza-IPUser", securityConfig.getCorniceSicurezzaIpUserRule(), dynamicMap, context);
+				indirizzoIpPostazione = ModIUtilities.getDynamicValue(ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_LABEL+" - "+ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_IP_USER_MODE_LABEL,
+						securityConfig.getCorniceSicurezzaIpUserRule(), dynamicMap, context);
 			}catch(Exception e) {
 				ProtocolException pe = new ProtocolException(e.getMessage());
 				pe.setInteroperabilityError(true);

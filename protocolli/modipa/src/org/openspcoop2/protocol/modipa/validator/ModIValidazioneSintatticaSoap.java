@@ -575,10 +575,10 @@ public class ModIValidazioneSintatticaSoap extends AbstractModIValidazioneSintat
 			}
 			catch(XPathNotFoundException notFound) {
 				erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(CodiceErroreCooperazione.MITTENTE_NON_PRESENTE, 
-						"Cornice Sicurezza; elemento 'Subject/NameID'"));
+						ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_LABEL+"; elemento 'Subject/NameID'"));
 			}catch(Exception e) {
 				erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(CodiceErroreCooperazione.MITTENTE_NON_VALIDO, 
-						"Cornice Sicurezza; elemento 'Subject/NameID'"));
+						ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_LABEL+"; elemento 'Subject/NameID'"));
 			}
 			
 			String attributeNameUser = this.modiProperties.getSicurezzaMessaggio_corniceSicurezza_soap_user();
@@ -594,10 +594,10 @@ public class ModIValidazioneSintatticaSoap extends AbstractModIValidazioneSintat
 			}
 			catch(XPathNotFoundException notFound) {
 				erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(CodiceErroreCooperazione.MITTENTE_NON_PRESENTE, 
-						"Cornice Sicurezza; elemento 'Attribute/"+attributeNameUser+"'"));
+						ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_LABEL+"; elemento 'Attribute/"+attributeNameUser+"'"));
 			}catch(Exception e) {
 				erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(CodiceErroreCooperazione.MITTENTE_NON_VALIDO, 
-						"Cornice Sicurezza; elemento 'Attribute/"+attributeNameUser+"'"));
+						ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_LABEL+"; elemento 'Attribute/"+attributeNameUser+"'"));
 			}
 			
 			String attributeNameIpUser = this.modiProperties.getSicurezzaMessaggio_corniceSicurezza_soap_ipuser();
@@ -613,10 +613,10 @@ public class ModIValidazioneSintatticaSoap extends AbstractModIValidazioneSintat
 			}
 			catch(XPathNotFoundException notFound) {
 				erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(CodiceErroreCooperazione.MITTENTE_NON_PRESENTE, 
-						"Cornice Sicurezza; elemento 'Attribute/"+attributeNameIpUser+"'"));
+						ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_LABEL+"; elemento 'Attribute/"+attributeNameIpUser+"'"));
 			}catch(Exception e) {
 				erroriValidazione.add(this.validazioneUtils.newEccezioneValidazione(CodiceErroreCooperazione.MITTENTE_NON_VALIDO, 
-						"Cornice Sicurezza; elemento 'Attribute/"+attributeNameIpUser+"'"));
+						ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_LABEL+"; elemento 'Attribute/"+attributeNameIpUser+"'"));
 			}
 			
 		}
