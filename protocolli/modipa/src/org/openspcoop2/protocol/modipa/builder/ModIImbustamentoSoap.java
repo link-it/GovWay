@@ -302,26 +302,47 @@ public class ModIImbustamentoSoap {
 		}
 		
 		if(busta.getRiferimentoMessaggio()!=null) {
-			wsAddressingValue.setRelatesTo(busta.getRiferimentoMessaggio());
-			busta.addProperty(ModICostanti.MODIPA_BUSTA_EXT_PROFILO_SICUREZZA_MESSAGGIO_RELATES_TO, busta.getRiferimentoMessaggio());
+			
+			boolean add = true;
+			if(RuoloMessaggio.RISPOSTA.equals(ruoloMessaggio)) {
+				boolean buildSecurityTokenInRequest = false;
+				Object buildSecurityTokenInRequestObject = null;
+				if(context!=null) {
+					buildSecurityTokenInRequestObject = context.getObject(ModICostanti.MODIPA_OPENSPCOOP2_MSG_CONTEXT_BUILD_SECURITY_REQUEST_TOKEN);
+					if(buildSecurityTokenInRequestObject!=null && buildSecurityTokenInRequestObject instanceof Boolean) {
+						buildSecurityTokenInRequest = (Boolean) buildSecurityTokenInRequestObject;
+					}
+				}
+				add = buildSecurityTokenInRequest;
+			}
+			if(add) {
+				wsAddressingValue.setRelatesTo(busta.getRiferimentoMessaggio());
+				busta.addProperty(ModICostanti.MODIPA_BUSTA_EXT_PROFILO_SICUREZZA_MESSAGGIO_RELATES_TO, busta.getRiferimentoMessaggio());
+			}
+			
 		}
 		
 		wsAddressingValue.setReplyToAnonymouys();
 		
-		if(soapMessage.getSoapAction()!=null) {
-			String soapAction = soapMessage.getSoapAction();
-			soapAction = soapAction.trim();
-			if(soapAction.startsWith("\"")) {
-				if(soapAction.length()>1) {
-					soapAction = soapAction.substring(1);
+		if(this.modiProperties.isSoapSecurityTokenWsaToSoapAction()) {
+			if(soapMessage.getSoapAction()!=null) {
+				String soapAction = soapMessage.getSoapAction();
+				soapAction = soapAction.trim();
+				if(soapAction.startsWith("\"")) {
+					if(soapAction.length()>1) {
+						soapAction = soapAction.substring(1);
+					}
 				}
-			}
-			if(soapAction.endsWith("\"")) {
-				if(soapAction.length()>1) {
-					soapAction = soapAction.substring(0,(soapAction.length()-1));
+				if(soapAction.endsWith("\"")) {
+					if(soapAction.length()>1) {
+						soapAction = soapAction.substring(0,(soapAction.length()-1));
+					}
 				}
+				wsAddressingValue.setAction(soapAction);
 			}
-			wsAddressingValue.setAction(soapAction);
+		}
+		else if(this.modiProperties.isSoapSecurityTokenWsaToOperation()) {
+			wsAddressingValue.setAction(busta.getAzione());
 		}
 		
 		WSAddressingHeader wsAddressingHeaders = wsaddressingUtilities.build(soapMessage, 

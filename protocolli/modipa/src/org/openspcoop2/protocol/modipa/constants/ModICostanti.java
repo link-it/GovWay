@@ -293,6 +293,13 @@ public class ModICostanti {
 
     public static final String MODIPA_PROFILO_INTERAZIONE_HTTP_CODE_2XX = "2xx";
     public static final int MODIPA_PROFILO_INTERAZIONE_HTTP_CODE_2XX_INT_VALUE = -2;    
+    
+    public static final String CONFIG_MODIPA_SOGGETTO_MITTENTE_KEYWORD = "#SoggettoMittente#";
+    
+    public static final String CONFIG_MODIPA_SOAP_SECURITY_TOKEN_WSA_TO_KEYWORD_SOAP_ACTION = "soapAction";
+    public static final String CONFIG_MODIPA_SOAP_SECURITY_TOKEN_WSA_TO_KEYWORD_OPERATION = "operation";
+    public static final String CONFIG_MODIPA_SOAP_SECURITY_TOKEN_WSA_TO_KEYWORD_NONE = "none";
+
 }
 
 

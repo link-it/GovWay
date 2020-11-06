@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.commons.lang.StringUtils;
 import org.openspcoop2.protocol.modipa.constants.ModICostanti;
 import org.openspcoop2.protocol.modipa.utils.ModISecurityConfig;
 import org.openspcoop2.protocol.sdk.ProtocolException;
@@ -196,6 +197,7 @@ public class ModIProperties {
 			isRestSecurityTokenResponseDigestClean();
 			isRestSecurityTokenResponseDigestHEADuseServerHeader();
 			isRestSecurityTokenFaultProcessEnabled();
+			getRestResponseSecurityTokenAudienceDefault(null);
 			getRestCorrelationIdHeader();
 			getRestReplyToHeader();
 			getRestLocationHeader();
@@ -253,6 +255,12 @@ public class ModIProperties {
 			useSoapBodyRequestDigestNamespace();
 			isSoapRequestDigestMustUnderstand();
 			getSoapRequestDigestActor();
+			
+			getSoapResponseSecurityTokenAudienceDefault(null);
+			
+			isSoapSecurityTokenWsaToSoapAction();
+			isSoapSecurityTokenWsaToOperation();
+			isSoapSecurityTokenWsaToDisabled();
 			
 			// .. PUSH ..
 			isSoapSecurityTokenPushReplyToUpdateOrCreateInFruizione();
@@ -1334,6 +1342,35 @@ public class ModIProperties {
     	
     	return ModIProperties.getRestSecurityTokenFaultProcessEnabled;
 	}
+	
+	private static Boolean getRestResponseSecurityTokenAudienceDefault_read= null;
+	private static String getRestResponseSecurityTokenAudienceDefault= null;
+	public String getRestResponseSecurityTokenAudienceDefault(String soggettoMittente) throws ProtocolException{
+    	if(ModIProperties.getRestResponseSecurityTokenAudienceDefault_read==null){
+	    	String name = "org.openspcoop2.protocol.modipa.rest.response.securityToken.audience.default";
+    		try{  
+				String value = this.reader.getValue_convertEnvProperties(name); 
+				if (value != null){
+					value = value.trim();
+					ModIProperties.getRestResponseSecurityTokenAudienceDefault = value;
+				}
+				
+			}catch(java.lang.Exception e) {
+				String msgErrore = "Proprietà '"+name+"' non impostata, errore:"+e.getMessage(); 
+				this.log.error(msgErrore);
+				throw new ProtocolException(msgErrore,e);
+			}
+    		
+    		getRestResponseSecurityTokenAudienceDefault_read = true;
+    	}
+    	
+    	if(ModICostanti.CONFIG_MODIPA_SOGGETTO_MITTENTE_KEYWORD.equalsIgnoreCase(ModIProperties.getRestResponseSecurityTokenAudienceDefault) && soggettoMittente!=null && !StringUtils.isEmpty(soggettoMittente)) {
+			return soggettoMittente;
+		}
+    	else {
+    		return ModIProperties.getRestResponseSecurityTokenAudienceDefault;
+    	}
+	}	
 	
 	private static String getRestCorrelationIdHeader= null;
 	public String getRestCorrelationIdHeader() throws Exception{
@@ -2520,6 +2557,83 @@ public class ModIProperties {
     	}
     	
     	return ModIProperties.getSoapRequestDigestActor;
+	}
+	
+	private static Boolean getSoapSecurityTokenWsaTo_read= null;
+	private static String getSoapSecurityTokenWsaTo= null;
+	private String getSoapSecurityTokenWsaTo() throws ProtocolException{
+    	if(ModIProperties.getSoapSecurityTokenWsaTo_read==null){
+	    	String name = "org.openspcoop2.protocol.modipa.soap.securityToken.wsaTo";
+    		try{  
+				String value = this.reader.getValue_convertEnvProperties(name); 
+				if (value != null){
+					value = value.trim();
+					ModIProperties.getSoapSecurityTokenWsaTo = value;
+				}
+				else {
+					throw new Exception("non definita");
+				}
+				
+			}catch(java.lang.Exception e) {
+				String msgErrore = "Proprietà '"+name+"' non impostata, errore:"+e.getMessage(); 
+				this.log.error(msgErrore);
+				throw new ProtocolException(msgErrore,e);
+			}
+    		
+    		getSoapSecurityTokenWsaTo_read = true;
+    	}
+    	
+    	return ModIProperties.getSoapSecurityTokenWsaTo;
+	}
+	private static Boolean getSoapSecurityTokenWsaTo_soapAction= null;
+	private static Boolean getSoapSecurityTokenWsaTo_operation= null;
+	private static Boolean getSoapSecurityTokenWsaTo_none= null;
+	public boolean isSoapSecurityTokenWsaToSoapAction() throws ProtocolException {
+		if(getSoapSecurityTokenWsaTo_soapAction==null) {
+			getSoapSecurityTokenWsaTo_soapAction = ModICostanti.CONFIG_MODIPA_SOAP_SECURITY_TOKEN_WSA_TO_KEYWORD_SOAP_ACTION.equalsIgnoreCase(getSoapSecurityTokenWsaTo());
+		}
+		return getSoapSecurityTokenWsaTo_soapAction;
+	}
+	public boolean isSoapSecurityTokenWsaToOperation() throws ProtocolException {
+		if(getSoapSecurityTokenWsaTo_operation==null) {
+			getSoapSecurityTokenWsaTo_operation = ModICostanti.CONFIG_MODIPA_SOAP_SECURITY_TOKEN_WSA_TO_KEYWORD_OPERATION.equalsIgnoreCase(getSoapSecurityTokenWsaTo());
+		}
+		return getSoapSecurityTokenWsaTo_operation;
+	}
+	public boolean isSoapSecurityTokenWsaToDisabled() throws ProtocolException {
+		if(getSoapSecurityTokenWsaTo_none==null) {
+			getSoapSecurityTokenWsaTo_none = ModICostanti.CONFIG_MODIPA_SOAP_SECURITY_TOKEN_WSA_TO_KEYWORD_NONE.equalsIgnoreCase(getSoapSecurityTokenWsaTo());
+		}
+		return getSoapSecurityTokenWsaTo_none;
+	}
+	
+	private static Boolean getSoapResponseSecurityTokenAudienceDefault_read= null;
+	private static String getSoapResponseSecurityTokenAudienceDefault= null;
+	public String getSoapResponseSecurityTokenAudienceDefault(String soggettoMittente) throws ProtocolException{
+    	if(ModIProperties.getSoapResponseSecurityTokenAudienceDefault_read==null){
+	    	String name = "org.openspcoop2.protocol.modipa.soap.response.securityToken.audience.default";
+    		try{  
+				String value = this.reader.getValue_convertEnvProperties(name); 
+				if (value != null){
+					value = value.trim();
+					ModIProperties.getSoapResponseSecurityTokenAudienceDefault = value;
+				}
+				
+			}catch(java.lang.Exception e) {
+				String msgErrore = "Proprietà '"+name+"' non impostata, errore:"+e.getMessage(); 
+				this.log.error(msgErrore);
+				throw new ProtocolException(msgErrore,e);
+			}
+    		
+    		getSoapResponseSecurityTokenAudienceDefault_read = true;
+    	}
+    	
+    	if(ModICostanti.CONFIG_MODIPA_SOGGETTO_MITTENTE_KEYWORD.equalsIgnoreCase(ModIProperties.getSoapResponseSecurityTokenAudienceDefault) && soggettoMittente!=null && !StringUtils.isEmpty(soggettoMittente)) {
+			return soggettoMittente;
+		}
+    	else {
+    		return ModIProperties.getSoapResponseSecurityTokenAudienceDefault;
+    	}
 	}
 	
 	// .. PUSH ..

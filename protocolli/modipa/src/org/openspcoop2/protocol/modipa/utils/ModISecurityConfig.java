@@ -273,12 +273,30 @@ public class ModISecurityConfig {
 				}
 			}
 			
-			// 4. Utilizzo quello di default
+			// 4. Utilizzo quello di default associato al 'sa' se identificato
 			if(this.audience==null && sa!=null) {
 				try {
 					this.audience=NamingUtils.getLabelSoggetto(new IDSoggetto(sa.getTipoSoggettoProprietario(), sa.getNomeSoggettoProprietario()))+"/"+sa.getNome();
 				}catch(Exception e) {
 					throw new ProtocolException(e.getMessage(),e);
+				}
+			}
+			
+			// 5. Utilizzo audience anonimo
+			if(this.audience==null) {
+				String soggettoMittente = null;
+				if(soggettoFruitore!=null && soggettoFruitore.getNome()!=null) {
+					try {
+						this.audience=NamingUtils.getLabelSoggetto(soggettoFruitore);
+					}catch(Exception e) {
+						throw new ProtocolException(e.getMessage(),e);
+					}
+				}
+				if(rest) {
+					this.audience=modiProperties.getRestResponseSecurityTokenAudienceDefault(soggettoMittente);
+				}
+				else {
+					this.audience=modiProperties.getSoapResponseSecurityTokenAudienceDefault(soggettoMittente);
 				}
 			}
 			

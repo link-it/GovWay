@@ -322,6 +322,11 @@ public class ModIValidazioneSintattica extends ValidazioneSintattica<AbstractMod
 							}
 							msg.addContextProperty(ModICostanti.MODIPA_OPENSPCOOP2_MSG_CONTEXT_BUILD_SECURITY_REQUEST_TOKEN, buildSecurityTokenInRequest);
 						}
+						else {
+							if(this.context!=null) {
+								this.context.addObject(ModICostanti.MODIPA_OPENSPCOOP2_MSG_CONTEXT_BUILD_SECURITY_REQUEST_TOKEN, processSecurity);
+							}
+						}
 						
 						if(rest) {
 							
@@ -340,10 +345,10 @@ public class ModIValidazioneSintattica extends ValidazioneSintattica<AbstractMod
 							
 						}
 						else {
-							
+
 							SOAPEnvelope token = validatoreSintatticoSoap.validateSecurityProfile(msg, request, securityMessageProfile, corniceSicurezza, includiRequestDigest, bustaRitornata, 
 									erroriValidazione, trustStoreCertificati, securityConfig,
-									buildSecurityTokenInRequest);
+									buildSecurityTokenInRequest );
 							
 							if(token!=null) {
 								
