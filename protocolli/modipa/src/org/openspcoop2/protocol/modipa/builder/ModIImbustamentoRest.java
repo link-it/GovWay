@@ -461,7 +461,14 @@ public class ModIImbustamentoRest {
 			if(Claims.INTROSPECTION_RESPONSE_RFC_7662_ISSUER.equals(claimNameCodiceEnte)) {
 				addIss = false;
 			}
-			String codiceEnte = ModIUtilities.getDynamicValue("CorniceSicurezza-CodiceEnte", securityConfig.getCorniceSicurezzaCodiceEnteRule(), dynamicMap, context);
+			String codiceEnte = null;
+			try {
+				codiceEnte = ModIUtilities.getDynamicValue("CorniceSicurezza-CodiceEnte", securityConfig.getCorniceSicurezzaCodiceEnteRule(), dynamicMap, context);
+			}catch(Exception e) {
+				ProtocolException pe = new ProtocolException(e.getMessage());
+				pe.setInteroperabilityError(true);
+				throw pe;
+			}
 			payloadToken.put(claimNameCodiceEnte, codiceEnte);
 			busta.addProperty(ModICostanti.MODIPA_BUSTA_EXT_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_CORNICE_SICUREZZA_ENTE, codiceEnte);
 			
@@ -469,12 +476,26 @@ public class ModIImbustamentoRest {
 			if(Claims.INTROSPECTION_RESPONSE_RFC_7662_SUBJECT.equals(claimNameUser)) {
 				addSub = false;
 			}
-			String utente = ModIUtilities.getDynamicValue("CorniceSicurezza-User", securityConfig.getCorniceSicurezzaUserRule(), dynamicMap, context);
+			String utente = null;
+			try {
+				utente = ModIUtilities.getDynamicValue("CorniceSicurezza-User", securityConfig.getCorniceSicurezzaUserRule(), dynamicMap, context);
+			}catch(Exception e) {
+				ProtocolException pe = new ProtocolException(e.getMessage());
+				pe.setInteroperabilityError(true);
+				throw pe;
+			}
 			payloadToken.put(claimNameUser, utente);
 			busta.addProperty(ModICostanti.MODIPA_BUSTA_EXT_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_CORNICE_SICUREZZA_USER, utente);
 			
 			String claimNameIpUser = this.modiProperties.getSicurezzaMessaggio_corniceSicurezza_rest_ipuser();
-			String indirizzoIpPostazione = ModIUtilities.getDynamicValue("CorniceSicurezza-IPUser", securityConfig.getCorniceSicurezzaIpUserRule(), dynamicMap, context);
+			String indirizzoIpPostazione = null;
+			try {
+				indirizzoIpPostazione = ModIUtilities.getDynamicValue("CorniceSicurezza-IPUser", securityConfig.getCorniceSicurezzaIpUserRule(), dynamicMap, context);
+			}catch(Exception e) {
+				ProtocolException pe = new ProtocolException(e.getMessage());
+				pe.setInteroperabilityError(true);
+				throw pe;
+			}
 			payloadToken.put(claimNameIpUser, indirizzoIpPostazione);
 			busta.addProperty(ModICostanti.MODIPA_BUSTA_EXT_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_CORNICE_SICUREZZA_USER_IP, indirizzoIpPostazione);
 						

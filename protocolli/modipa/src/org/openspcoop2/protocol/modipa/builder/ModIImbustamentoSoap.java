@@ -578,13 +578,34 @@ public class ModIImbustamentoSoap {
 		Map<String, Object> dynamicMap = DynamicUtils.buildDynamicMap(msg, context, busta, this.log);
 		
 		String attributeNameCodiceEnte = this.modiProperties.getSicurezzaMessaggio_corniceSicurezza_soap_codice_ente();
-		String codiceEnte = ModIUtilities.getDynamicValue("CorniceSicurezza-CodiceEnte", securityConfig.getCorniceSicurezzaCodiceEnteRule(), dynamicMap, context);
+		String codiceEnte = null;
+		try {
+			codiceEnte = ModIUtilities.getDynamicValue("CorniceSicurezza-CodiceEnte", securityConfig.getCorniceSicurezzaCodiceEnteRule(), dynamicMap, context);
+		}catch(Exception e) {
+			ProtocolException pe = new ProtocolException(e.getMessage());
+			pe.setInteroperabilityError(true);
+			throw pe;
+		}
 			
 		String attributeNameUser = this.modiProperties.getSicurezzaMessaggio_corniceSicurezza_soap_user();
-		String utente = ModIUtilities.getDynamicValue("CorniceSicurezza-User", securityConfig.getCorniceSicurezzaUserRule(), dynamicMap, context);
+		String utente = null;
+		try {
+			utente = ModIUtilities.getDynamicValue("CorniceSicurezza-User", securityConfig.getCorniceSicurezzaUserRule(), dynamicMap, context);
+		}catch(Exception e) {
+			ProtocolException pe = new ProtocolException(e.getMessage());
+			pe.setInteroperabilityError(true);
+			throw pe;
+		}
 		
 		String attributeNameIpUser = this.modiProperties.getSicurezzaMessaggio_corniceSicurezza_soap_ipuser();
-		String indirizzoIpPostazione = ModIUtilities.getDynamicValue("CorniceSicurezza-IPUser", securityConfig.getCorniceSicurezzaIpUserRule(), dynamicMap, context);
+		String indirizzoIpPostazione = null;
+		try {
+			indirizzoIpPostazione = ModIUtilities.getDynamicValue("CorniceSicurezza-IPUser", securityConfig.getCorniceSicurezzaIpUserRule(), dynamicMap, context);
+		}catch(Exception e) {
+			ProtocolException pe = new ProtocolException(e.getMessage());
+			pe.setInteroperabilityError(true);
+			throw pe;
+		}
 		
 		Properties pSaml = new Properties();
 		

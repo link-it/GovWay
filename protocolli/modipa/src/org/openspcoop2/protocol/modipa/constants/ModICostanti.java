@@ -160,6 +160,31 @@ public class ModICostanti {
     
     public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_ACTION_MODE = "modipaSecurityMessageProfileActionMode";
     
+    public static final String MODIPA_CONFIGURAZIONE_SICUREZZA_MESSAGGIO_MODE = "modipaSecurityMessageConfig";
+    public static final String MODIPA_CONFIGURAZIONE_SICUREZZA_MESSAGGIO_MODE_VALUE_ENTRAMBI = "entrambi";
+    public static final String MODIPA_CONFIGURAZIONE_SICUREZZA_MESSAGGIO_MODE_VALUE_RICHIESTA = "richiesta";
+    public static final String MODIPA_CONFIGURAZIONE_SICUREZZA_MESSAGGIO_MODE_VALUE_RISPOSTA = "risposta";
+    public static final String MODIPA_CONFIGURAZIONE_SICUREZZA_MESSAGGIO_MODE_VALUE_PERSONALIZZATO = "custom";
+    public static final String MODIPA_CONFIGURAZIONE_SICUREZZA_MESSAGGIO_MODE_VALUE_DEFAULT = MODIPA_CONFIGURAZIONE_SICUREZZA_MESSAGGIO_MODE_VALUE_ENTRAMBI;
+    
+    public static final String MODIPA_CONFIGURAZIONE_SICUREZZA_RICHIESTA_MODE = "modipaSecurityRequest";
+    public static final String MODIPA_CONFIGURAZIONE_SICUREZZA_RICHIESTA_MODE_VALUE_ABILITATO = "true";
+    public static final String MODIPA_CONFIGURAZIONE_SICUREZZA_RICHIESTA_MODE_VALUE_DISABILITATO = "false";
+    public static final String MODIPA_CONFIGURAZIONE_SICUREZZA_RICHIESTA_MODE_VALUE_PERSONALIZZATO = "custom";
+    public static final String MODIPA_CONFIGURAZIONE_SICUREZZA_RICHIESTA_MODE_VALUE_DEFAULT = MODIPA_CONFIGURAZIONE_SICUREZZA_RICHIESTA_MODE_VALUE_ABILITATO;
+    
+    public static final String MODIPA_CONFIGURAZIONE_SICUREZZA_RICHIESTA_CONTENT_TYPE_MODE_ID = "modipaSecurityRequestContentType";
+   
+    public static final String MODIPA_CONFIGURAZIONE_SICUREZZA_RISPOSTA_MODE = "modipaSecurityResponse";
+    public static final String MODIPA_CONFIGURAZIONE_SICUREZZA_RISPOSTA_MODE_VALUE_ABILITATO = "true";
+    public static final String MODIPA_CONFIGURAZIONE_SICUREZZA_RISPOSTA_MODE_VALUE_DISABILITATO = "false";
+    public static final String MODIPA_CONFIGURAZIONE_SICUREZZA_RISPOSTA_MODE_VALUE_PERSONALIZZATO = "custom";
+    public static final String MODIPA_CONFIGURAZIONE_SICUREZZA_RISPOSTA_MODE_VALUE_DEFAULT = MODIPA_CONFIGURAZIONE_SICUREZZA_RISPOSTA_MODE_VALUE_ABILITATO;
+    
+    public static final String MODIPA_CONFIGURAZIONE_SICUREZZA_RISPOSTA_CONTENT_TYPE_MODE_ID = "modipaSecurityResponseContentType";
+
+    public static final String MODIPA_CONFIGURAZIONE_SICUREZZA_RISPOSTA_RETURN_CODE_MODE_ID = "modipaSecurityResponseReturnCode";
+    
     public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_REST_RICHIESTA_ALG = "modipaSecurityMessageRestRequestAlg";
     public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_REST_RISPOSTA_ALG = "modipaSecurityMessageRestResponseAlg";
     public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_REST_ALG_RS256 = org.apache.cxf.rs.security.jose.jwa.SignatureAlgorithm.RS256.name();

@@ -22,6 +22,9 @@
 
 package org.openspcoop2.protocol.modipa.constants;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.openspcoop2.utils.transport.http.HttpConstants;
 
 /**
@@ -183,7 +186,7 @@ public class ModIConsoleCostanti {
     public static final String MODIPA_PROFILO_INTERAZIONE_ASINCRONA_API_CORRELATA_A_RISORSA_LABEL = "Risorsa";
     
 	public static final String MODIPA_API_PROFILO_SICUREZZA_MESSAGGIO_LABEL = "Profilo Sicurezza Messaggio";
-	public static final String MODIPA_API_PROFILO_SICUREZZA_MESSAGGIO_ID = "modipaAzioneProfiloSicurezzaSubTitleId";
+	public static final String MODIPA_API_PROFILO_SICUREZZA_MESSAGGIO_ID = "modipaProfiloSicurezzaSubTitleId";
     	
     public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_LABEL = "Profilo";
     public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_ID = ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO;
@@ -230,18 +233,90 @@ public class ModIConsoleCostanti {
     public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_HEADER_NOT_IDAM03_DEFAULT_VALUE = ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_HEADER_NOT_IDAM03_DEFAULT_VALUE;
     
 	public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_REQUEST_DIGEST_LABEL = "Digest Richiesta"; // Ho levato Includi come prefisso perche' nel caso di fruizione, l'header deve essere ripulito, quindi sarebbe piu' gestisci
+	public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_REQUEST_DIGEST_LABEL_RIGHT = "Non ripudiabilità della trasmissione";
 	public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_REQUEST_DIGEST_ID = ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_RISPOSTA_REQUEST_DIGEST;
 	public static final boolean MODIPA_PROFILO_SICUREZZA_MESSAGGIO_REQUEST_DIGEST_DEFAULT = false;
+	public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_REQUEST_DIGEST_REST_INFO_HEADER = "Questa funzionalità consente di estendere il profilo aggiungendo all’interno del token di sicurezza della risposta il digest della richiesta.<BR/>"+
+			"La funzionalità consente di implementare la soluzione per la non ripudiabilità della trasmissione come suggerito nelle linee guida di interoperabilità<BR/>"+
+			"Il digest della richiesta viene aggiunto nel token della risposta all'interno del claim 'request_digest'.";
+	public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_REQUEST_DIGEST_SOAP_INFO_HEADER = "Questa funzionalità consente di estendere il profilo aggiungendo all’interno dell'header di sicurezza tutti i digest della richiesta.<BR/>"+
+			"La funzionalità consente di implementare la soluzione per la non ripudiabilità della trasmissione come suggerito nelle linee guida di interoperabilità<BR/>"+
+			"I digest della richiesta sono inseriti in un header 'X-RequestDigest' firmato.";
     
     public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_LABEL = "Informazioni Utente";
+    public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_LABEL_RIGHT = "Dati dell'utente che effettua la richiesta";
     public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_ID = ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA;
     public static final boolean MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_DEFAULT_VALUE = false;
+    public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_REST_INFO_HEADER = "Questa funzionalità consente di estendere il profilo aggiungendo all’interno del token di sicurezza le informazioni sull’utente che ha effettuato la richiesta. Le informazioni sono veicolate nei seguenti claims:";
+    public final static List<String> MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_REST_INFO_VALORI = new ArrayList<>();
+	static {
+		MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_REST_INFO_VALORI.add("<b>iss</b>: dominio di appartenenza dell’utente");
+		MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_REST_INFO_VALORI.add("<b>sub</b>: identificativo univoco dell’utente all’interno del dominio indicato nel claim 'iss'");
+		MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_REST_INFO_VALORI.add("<b>user_ip</b>: postazione da cui l’utente ha effettuato la richiesta");
+	}
+    public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_SOAP_INFO_HEADER = "Questa funzionalità consente di estendere il profilo aggiungendo all’interno dell'header di sicurezza un'asserzione SAML firmata contenente le informazioni sull’utente che ha effettuato la richiesta. Le informazioni sono presenti, all'interno dell'asserzione, nelle seguenti posizioni:";
+    public final static List<String> MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_SOAP_INFO_VALORI = new ArrayList<>();
+	static {
+		MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_SOAP_INFO_VALORI.add("<b>saml2:Subject/NameID</b>: dominio di appartenenza dell’utente");
+		MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_SOAP_INFO_VALORI.add("<b>saml2:Attribute/User</b>: identificativo univoco dell’utente all’interno del dominio indicato nel claim 'iss'");
+		MODIPA_PROFILO_SICUREZZA_MESSAGGIO_CORNICE_SICUREZZA_SOAP_INFO_VALORI.add("<b>saml2:Attribute/IP-User</b>: postazione da cui l’utente ha effettuato la richiesta");
+	}
     
     public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_ACTION_MODE_ID = ModICostanti.MODIPA_PROFILO_SICUREZZA_MESSAGGIO_ACTION_MODE;
     public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_ACTION_MODE_DEFAULT_VALUE = ModIConsoleCostanti.MODIPA_PROFILO_MODE_VALUE_DEFAULT;
     public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_ACTION_MODE_LABEL_DEFAULT = "Usa profilo API";
     public static final String MODIPA_PROFILO_SICUREZZA_MESSAGGIO_ACTION_MODE_LABEL_RIDEFINISCI = "Ridefinito";
     
+    public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_MESSAGGIO_MODE_LABEL = "Applicabilità";
+    public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_MESSAGGIO_MODE_ID = ModICostanti.MODIPA_CONFIGURAZIONE_SICUREZZA_MESSAGGIO_MODE;
+    public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_MESSAGGIO_MODE_DEFAULT_VALUE = ModICostanti.MODIPA_CONFIGURAZIONE_SICUREZZA_MESSAGGIO_MODE_VALUE_DEFAULT;
+    public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_MESSAGGIO_MODE_VALUE_ENTRAMBI = ModICostanti.MODIPA_CONFIGURAZIONE_SICUREZZA_MESSAGGIO_MODE_VALUE_ENTRAMBI;
+    public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_MESSAGGIO_MODE_VALUE_RICHIESTA = ModICostanti.MODIPA_CONFIGURAZIONE_SICUREZZA_MESSAGGIO_MODE_VALUE_RICHIESTA;
+    public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_MESSAGGIO_MODE_VALUE_RISPOSTA = ModICostanti.MODIPA_CONFIGURAZIONE_SICUREZZA_MESSAGGIO_MODE_VALUE_RISPOSTA;
+    public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_MESSAGGIO_MODE_VALUE_PERSONALIZZATO = ModICostanti.MODIPA_CONFIGURAZIONE_SICUREZZA_MESSAGGIO_MODE_VALUE_PERSONALIZZATO;
+    public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_MESSAGGIO_MODE_LABEL_ENTRAMBI = "Richiesta e Risposta";
+    public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_MESSAGGIO_MODE_LABEL_RICHIESTA = "Richiesta";
+    public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_MESSAGGIO_MODE_LABEL_RISPOSTA = "Risposta";
+    public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_MESSAGGIO_MODE_LABEL_PERSONALIZZATO = "Personalizza criteri di applicabilità";
+    
+    public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RICHIESTA_LABEL = "Sicurezza Messaggio nella Richiesta";
+	public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RICHIESTA_ID = "modipaSicurezzaRichiestaSubTitleId";
+	
+	public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RICHIESTA_MODE_LABEL = "Stato";
+    public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RICHIESTA_MODE_ID = ModICostanti.MODIPA_CONFIGURAZIONE_SICUREZZA_RICHIESTA_MODE;
+    public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RICHIESTA_MODE_DEFAULT_VALUE = ModICostanti.MODIPA_CONFIGURAZIONE_SICUREZZA_RICHIESTA_MODE_VALUE_DEFAULT;
+    public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RICHIESTA_MODE_VALUE_ABILITATO = ModICostanti.MODIPA_CONFIGURAZIONE_SICUREZZA_RICHIESTA_MODE_VALUE_ABILITATO;
+    public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RICHIESTA_MODE_VALUE_DISABILITATO = ModICostanti.MODIPA_CONFIGURAZIONE_SICUREZZA_RICHIESTA_MODE_VALUE_DISABILITATO;
+    public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RICHIESTA_MODE_VALUE_PERSONALIZZATO = ModICostanti.MODIPA_CONFIGURAZIONE_SICUREZZA_RICHIESTA_MODE_VALUE_PERSONALIZZATO;
+    public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RICHIESTA_MODE_LABEL_ABILITATO = "Abilitato";
+    public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RICHIESTA_MODE_LABEL_DISABILITATO = "Disabilitato";
+    public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RICHIESTA_MODE_LABEL_PERSONALIZZATO = "Personalizza Criteri";
+    
+    public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RICHIESTA_CONTENT_TYPE_MODE_LABEL = "Content-Type";
+    public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RICHIESTA_CONTENT_TYPE_MODE_ID = ModICostanti.MODIPA_CONFIGURAZIONE_SICUREZZA_RICHIESTA_CONTENT_TYPE_MODE_ID;
+    
+    public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RISPOSTA_LABEL = "Sicurezza Messaggio nella Risposta";
+   	public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RISPOSTA_ID = "modipaSicurezzaRispostaSubTitleId";
+   	
+   	public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RISPOSTA_MODE_LABEL = "Stato";
+   	public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RISPOSTA_MODE_ID = ModICostanti.MODIPA_CONFIGURAZIONE_SICUREZZA_RISPOSTA_MODE;
+   	public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RISPOSTA_MODE_DEFAULT_VALUE = ModICostanti.MODIPA_CONFIGURAZIONE_SICUREZZA_RISPOSTA_MODE_VALUE_DEFAULT;
+   	public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RISPOSTA_MODE_VALUE_ABILITATO = ModICostanti.MODIPA_CONFIGURAZIONE_SICUREZZA_RISPOSTA_MODE_VALUE_ABILITATO;
+   	public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RISPOSTA_MODE_VALUE_DISABILITATO = ModICostanti.MODIPA_CONFIGURAZIONE_SICUREZZA_RISPOSTA_MODE_VALUE_DISABILITATO;
+   	public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RISPOSTA_MODE_VALUE_PERSONALIZZATO = ModICostanti.MODIPA_CONFIGURAZIONE_SICUREZZA_RISPOSTA_MODE_VALUE_PERSONALIZZATO;
+   	public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RISPOSTA_MODE_LABEL_ABILITATO = "Abilitato";
+   	public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RISPOSTA_MODE_LABEL_DISABILITATO = "Disabilitato";
+   	public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RISPOSTA_MODE_LABEL_PERSONALIZZATO = "Personalizza Criteri";
+   
+   	public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RISPOSTA_CONTENT_TYPE_MODE_LABEL = "Content-Type";
+   	public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RISPOSTA_CONTENT_TYPE_MODE_ID = ModICostanti.MODIPA_CONFIGURAZIONE_SICUREZZA_RISPOSTA_CONTENT_TYPE_MODE_ID;
+   	
+   	public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RISPOSTA_RETURN_CODE_MODE_LABEL = "Codice Risposta";
+   	public static final String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RISPOSTA_RETURN_CODE_MODE_ID = ModICostanti.MODIPA_CONFIGURAZIONE_SICUREZZA_RISPOSTA_RETURN_CODE_MODE_ID;
+   	public final static String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RISPOSTA_RETURN_CODE_MODE_ID_INFO = "Lista di codici di risposta HTTP per i quali la sicurezza messaggio verrà utilizzata; è possibile indicare un codice http puntuale (es. 200) o un intervallo fornendo due codici separati dal trattino (es. 200-299).";
+   		
+   	public final static String MODIPA_API_CONFIGURAZIONE_SICUREZZA_RICHIESTA_O_RISPOSTA_CONTENT_TYPE_MODE_ID_INFO_CONTENT_TYPE = "Lista di Content-Type per i quali la sicurezza messaggio verrà utilizzata; di seguito i formati utilizzabili:";
+   	
 	// EROGAZIONI / FRUIZIONI
 	
 	public static final String MODIPA_API_IMPL_RICHIESTA_LABEL = MODIPA_TITLE_LABEL+" - Richiesta";
