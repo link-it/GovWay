@@ -617,6 +617,9 @@ public class ModIImbustamentoRest {
 		secProperties.put(SecurityConstants.JOSE_KID, SecurityConstants.JOSE_KID_TRUE); // kid
 		if(securityConfig.isX5c()) {
 			secProperties.put(SecurityConstants.JOSE_INCLUDE_CERT, SecurityConstants.JOSE_INCLUDE_CERT_TRUE);
+			if(!securityConfig.isUseSingleCertificate()) {
+				secProperties.put(SecurityConstants.JOSE_INCLUDE_CERT_CHAIN, SecurityConstants.JOSE_INCLUDE_CERT_CHAIN_TRUE);
+			}
 		}
 		if(securityConfig.isX5t()) {
 			secProperties.put(SecurityConstants.JOSE_INCLUDE_CERT_SHA, SecurityConstants.JOSE_INCLUDE_CERT_SHA_256);

@@ -2565,6 +2565,26 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 		profiloSicurezzaMessaggioRifX509Item.setReloadOnChange(true);
 		configuration.addConsoleItem(profiloSicurezzaMessaggioRifX509Item);
 		
+		String rifX509Xc5ChainId = null;
+		if(fruizione && request) {
+			rifX509Xc5ChainId = ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_RICHIESTA_RIFERIMENTO_X509_X5C_USE_CERTIFICATE_CHAIN_ID;
+		}
+		else if(!fruizione && !request) {
+			rifX509Xc5ChainId = ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_RISPOSTA_RIFERIMENTO_X509_X5C_USE_CERTIFICATE_CHAIN_ID;
+		}
+		if(rifX509Xc5ChainId!=null) {
+			BooleanConsoleItem profiloSicurezzaMessaggioRifX509ItemX5CSingleCertificate = (BooleanConsoleItem) 
+					ProtocolPropertiesFactory.newConsoleItem(ConsoleItemValueType.BOOLEAN,
+					ConsoleItemType.CHECKBOX,
+					rifX509Xc5ChainId,
+					ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_RIFERIMENTO_X509_X5C_USE_CERTIFICATE_CHAIN_LABEL);
+			if(!ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_RIFERIMENTO_X509_X5C_DEFAULT_VALUE) {
+				profiloSicurezzaMessaggioRifX509ItemX5CSingleCertificate.setType(ConsoleItemType.HIDDEN);
+			}
+			profiloSicurezzaMessaggioRifX509ItemX5CSingleCertificate.setDefaultValue(ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_RIFERIMENTO_X509_X5C_USE_CERTIFICATE_CHAIN_DEFAULT_VALUE);
+			configuration.addConsoleItem(profiloSicurezzaMessaggioRifX509ItemX5CSingleCertificate);
+		}
+		
 		String idUrl = null;
 		if(fruizione && request) {
 			idUrl = ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_RICHIESTA_X5U_URL_ID;
@@ -2725,6 +2745,7 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 		if(rest) {
 		
 			boolean x5uRichiesta = false;
+			boolean x5cRichiesta = false;
 			StringProperty profiloSicurezzaMessaggioRequestRifX509ItemValue = (StringProperty) ProtocolPropertiesUtils.getAbstractPropertyById(properties, ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_RICHIESTA_RIFERIMENTO_X509_ID);
 			if(profiloSicurezzaMessaggioRequestRifX509ItemValue.getValue()!=null && !"".equals(profiloSicurezzaMessaggioRequestRifX509ItemValue.getValue())) {
 				List<String> list = ProtocolPropertiesUtils.getListFromMultiSelectValue(profiloSicurezzaMessaggioRequestRifX509ItemValue.getValue());
@@ -2734,9 +2755,16 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 				else {
 					x5uRichiesta = false;
 				}
+				if(list!=null && list.contains(ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_RIFERIMENTO_X509_VALUE_X5C)) {
+					x5cRichiesta = true;
+				}
+				else {
+					x5cRichiesta = false;
+				}
 			}
 			
 			boolean x5uRisposta = false;
+			boolean x5cRisposta = false;
 			if(!request) {
 				StringProperty profiloSicurezzaMessaggioRifX509AsRequestItemValue = (StringProperty) ProtocolPropertiesUtils.getAbstractPropertyById(properties, ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_RIFERIMENTO_X509_AS_REQUEST_ID);
 				AbstractConsoleItem<?> profiloSicurezzaMessaggioResponseX5UItem = 	
@@ -2755,14 +2783,45 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 						else {
 							x5uRisposta = false;
 						}
+						if(list!=null && list.contains(ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_RIFERIMENTO_X509_VALUE_X5C)) {
+							x5cRisposta = true;
+						}
+						else {
+							x5cRisposta = false;
+						}
 					}
 				}
 				else {
 					profiloSicurezzaMessaggioResponseX5UItem.setType(ConsoleItemType.HIDDEN);
 					
 					x5uRisposta = x5uRichiesta;
+					
+					x5cRisposta = x5cRichiesta;
 				}
 			}
+			
+			boolean x5c = false;
+			if(request) {
+				x5c = x5cRichiesta; 
+			}
+			else {
+				x5c = x5cRisposta;
+			}
+			
+			AbstractConsoleItem<?> profiloSicurezzaMessaggioRifX509ItemX5CSingleCertificateItem = 	
+					ProtocolPropertiesUtils.getAbstractConsoleItem(consoleConfiguration.getConsoleItem(),
+							request ? ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_RICHIESTA_RIFERIMENTO_X509_X5C_USE_CERTIFICATE_CHAIN_ID:
+								ModIConsoleCostanti.MODIPA_API_IMPL_PROFILO_SICUREZZA_MESSAGGIO_REST_RISPOSTA_RIFERIMENTO_X509_X5C_USE_CERTIFICATE_CHAIN_ID
+							);
+			if(profiloSicurezzaMessaggioRifX509ItemX5CSingleCertificateItem!=null) {
+				if(x5c) {
+					profiloSicurezzaMessaggioRifX509ItemX5CSingleCertificateItem.setType(ConsoleItemType.CHECKBOX);
+				}
+				else {
+					profiloSicurezzaMessaggioRifX509ItemX5CSingleCertificateItem.setType(ConsoleItemType.HIDDEN);
+				}
+			}
+			
 			
 			if(request) {
 				x5url = x5uRichiesta; 
