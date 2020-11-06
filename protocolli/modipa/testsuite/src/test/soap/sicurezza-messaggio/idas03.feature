@@ -562,5 +562,5 @@ And header GovWay-TestSuite-Test-ID = 'informazioni-utente-header'
 And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
 When method post
 Then status 500
-And match response == read("error-bodies/bad-request.xml")
+And match response == read("error-bodies/no-informazioni-utente-at-fruizione.xml")
 And match header GovWay-Transaction-ErrorType == "BadRequest"
