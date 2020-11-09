@@ -257,6 +257,9 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 				
 				AbstractConsoleItem<?> profiloSicurezzaMessaggioAudienceItem = ProtocolPropertiesUtils.getAbstractConsoleItem(consoleConfiguration.getConsoleItem(), ModIConsoleCostanti.MODIPA_APPLICATIVI_AUDIENCE_RISPOSTA_ID);
 				profiloSicurezzaMessaggioAudienceItem.setType(ConsoleItemType.HIDDEN);
+				
+				AbstractConsoleItem<?> profiloSicurezzaMessaggioX5UItem = ProtocolPropertiesUtils.getAbstractConsoleItem(consoleConfiguration.getConsoleItem(), ModIConsoleCostanti.MODIPA_APPLICATIVI_PROFILO_SICUREZZA_MESSAGGIO_REST_X5U_URL_ID);
+				profiloSicurezzaMessaggioX5UItem.setType(ConsoleItemType.HIDDEN);
 			}
 		
 		}

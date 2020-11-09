@@ -20,12 +20,8 @@
 
 package org.openspcoop2.protocol.basic.registry;
 
-import java.sql.Connection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import org.openspcoop2.core.commons.ErrorsHandlerCostant;
 import org.openspcoop2.core.config.CanaliConfigurazione;
 import org.openspcoop2.core.config.PortaApplicativa;
 import org.openspcoop2.core.config.PortaDelegata;
@@ -33,20 +29,20 @@ import org.openspcoop2.core.config.ServizioApplicativo;
 import org.openspcoop2.core.config.driver.DriverConfigurazioneNotFound;
 import org.openspcoop2.core.config.driver.IDriverConfigurazioneCRUD;
 import org.openspcoop2.core.config.driver.IDriverConfigurazioneGet;
-import org.openspcoop2.core.config.driver.db.DriverConfigurazioneDB;
 import org.openspcoop2.core.id.IDPortaApplicativa;
 import org.openspcoop2.core.id.IDPortaDelegata;
 import org.openspcoop2.core.id.IDServizioApplicativo;
-import org.openspcoop2.protocol.engine.utils.DBOggettiInUsoUtils;
 import org.openspcoop2.protocol.sdk.IProtocolFactory;
 import org.openspcoop2.protocol.sdk.registry.FiltroRicercaPorteApplicative;
 import org.openspcoop2.protocol.sdk.registry.FiltroRicercaPorteDelegate;
 import org.openspcoop2.protocol.sdk.registry.FiltroRicercaServiziApplicativi;
 import org.openspcoop2.protocol.sdk.registry.IConfigIntegrationReader;
+import org.openspcoop2.protocol.sdk.registry.IConfigIntegrationReaderInUso;
 import org.openspcoop2.protocol.sdk.registry.RegistryException;
 import org.openspcoop2.protocol.sdk.registry.RegistryNotFound;
 import org.openspcoop2.utils.certificate.CertificateInfo;
 import org.openspcoop2.utils.crypt.CryptConfig;
+import org.openspcoop2.utils.resources.Loader;
 import org.slf4j.Logger;
 
 /**
@@ -60,6 +56,9 @@ public class ConfigIntegrationReader implements IConfigIntegrationReader {
 
 	private IDriverConfigurazioneGet driverConfigurazioneGET;
 	private IDriverConfigurazioneCRUD driverConfigurazioneCRUD;
+	
+	private IConfigIntegrationReaderInUso inUsoDriver = null;
+	
 	@SuppressWarnings("unused")
 	private Logger log;
 	public ConfigIntegrationReader(IDriverConfigurazioneGet driverConfigurazione,Logger log) throws Exception{
@@ -68,6 +67,10 @@ public class ConfigIntegrationReader implements IConfigIntegrationReader {
 			this.driverConfigurazioneCRUD = (IDriverConfigurazioneCRUD) this.driverConfigurazioneGET;
 		}
 		this.log = log;
+		
+		Loader loader = new Loader();
+		this.inUsoDriver = (IConfigIntegrationReaderInUso) loader.newInstance("org.openspcoop2.protocol.engine.registry.ConfigIntegrationReaderInUso");
+		this.inUsoDriver.init(this.driverConfigurazioneGET, log);
 	}
 	
 
@@ -192,59 +195,12 @@ public class ConfigIntegrationReader implements IConfigIntegrationReader {
 	
 	@Override
 	public boolean inUso(IDServizioApplicativo idServizioApplicativo) throws RegistryException{
-		if(this.driverConfigurazioneGET instanceof DriverConfigurazioneDB) {
-			DriverConfigurazioneDB driverDB = (DriverConfigurazioneDB) this.driverConfigurazioneGET;
-			Connection connection = null;
-			try {
-				connection = driverDB.getConnection("inUso(IDServizioApplicativo)");
-				
-				Map<ErrorsHandlerCostant, List<String>> whereIsInUso = new HashMap<ErrorsHandlerCostant, List<String>>();
-				
-				boolean normalizeObjectIds = true;
-				return DBOggettiInUsoUtils.isServizioApplicativoInUso(connection, driverDB.getTipoDB(), idServizioApplicativo, whereIsInUso, true, normalizeObjectIds);
-				
-			}
-			catch(Exception e) {
-				throw new RegistryException(e.getMessage(),e);
-			}
-			finally {
-				driverDB.releaseConnection(connection);
-			}
-		}
-		else {
-			throw new RuntimeException("Not Implemented");
-		}
+		return this.inUsoDriver.inUso(idServizioApplicativo);
 	}
 	
 	@Override
 	public String getDettagliInUso(IDServizioApplicativo idServizioApplicativo) throws RegistryException{
-		if(this.driverConfigurazioneGET instanceof DriverConfigurazioneDB) {
-			DriverConfigurazioneDB driverDB = (DriverConfigurazioneDB) this.driverConfigurazioneGET;
-			Connection connection = null;
-			try {
-				connection = driverDB.getConnection("getDettagliInUso(IDServizioApplicativo)");
-				
-				Map<ErrorsHandlerCostant, List<String>> whereIsInUso = new HashMap<ErrorsHandlerCostant, List<String>>();
-				
-				boolean normalizeObjectIds = true;
-				boolean inUso = DBOggettiInUsoUtils.isServizioApplicativoInUso(connection, driverDB.getTipoDB(), idServizioApplicativo, whereIsInUso, true, normalizeObjectIds);
-				if(inUso) {
-					return DBOggettiInUsoUtils.toString(idServizioApplicativo , whereIsInUso, false, "\n", normalizeObjectIds);
-				}
-				else {
-					return null;
-				}
-			}
-			catch(Exception e) {
-				throw new RegistryException(e.getMessage(),e);
-			}
-			finally {
-				driverDB.releaseConnection(connection);
-			}
-		}
-		else {
-			throw new RuntimeException("Not Implemented");
-		}
+		return this.inUsoDriver.getDettagliInUso(idServizioApplicativo);
 	}
 	
 	

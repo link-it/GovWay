@@ -460,6 +460,10 @@ public class ModIPropertiesUtils {
 			OpenSPCoop2Message message, boolean rest, ModIProperties modiProperties) throws Exception {
 		boolean processSecurity = false;
 		String securityMessageApplicabilita = ModIPropertiesUtils.readPropertySecurityMessageApplicabilita(aspc, nomePortType, azione);
+		if(securityMessageApplicabilita==null || StringUtils.isEmpty(securityMessageApplicabilita)) {
+			securityMessageApplicabilita = ModICostanti.MODIPA_CONFIGURAZIONE_SICUREZZA_MESSAGGIO_MODE_VALUE_DEFAULT;
+		}
+		
 		boolean configurazionePersonalizzata = false;
 		if(ModICostanti.MODIPA_CONFIGURAZIONE_SICUREZZA_MESSAGGIO_MODE_VALUE_ENTRAMBI.equals(securityMessageApplicabilita)) {
 			processSecurity = true;
@@ -475,6 +479,10 @@ public class ModIPropertiesUtils {
 			if(isRichiesta) {
 				
 				String securityMessageApplicabilitaRichiesta = ModIPropertiesUtils.readPropertySecurityMessageApplicabilitaRichiesta(aspc, nomePortType, azione);
+				if(securityMessageApplicabilitaRichiesta==null || StringUtils.isEmpty(securityMessageApplicabilitaRichiesta)) {
+					securityMessageApplicabilitaRichiesta = ModICostanti.MODIPA_CONFIGURAZIONE_SICUREZZA_RICHIESTA_MODE_VALUE_DEFAULT;
+				}
+				
 				if(ModICostanti.MODIPA_CONFIGURAZIONE_SICUREZZA_RICHIESTA_MODE_VALUE_ABILITATO.equals(securityMessageApplicabilitaRichiesta)) {
 					processSecurity = true;
 				}
@@ -500,6 +508,10 @@ public class ModIPropertiesUtils {
 			else {
 				
 				String securityMessageApplicabilitaRisposta = ModIPropertiesUtils.readPropertySecurityMessageApplicabilitaRisposta(aspc, nomePortType, azione);
+				if(securityMessageApplicabilitaRisposta==null || StringUtils.isEmpty(securityMessageApplicabilitaRisposta)) {
+					securityMessageApplicabilitaRisposta = ModICostanti.MODIPA_CONFIGURAZIONE_SICUREZZA_RISPOSTA_MODE_VALUE_DEFAULT;
+				}
+				
 				if(ModICostanti.MODIPA_CONFIGURAZIONE_SICUREZZA_RISPOSTA_MODE_VALUE_ABILITATO.equals(securityMessageApplicabilitaRisposta)) {
 					processSecurity = true;
 				}
