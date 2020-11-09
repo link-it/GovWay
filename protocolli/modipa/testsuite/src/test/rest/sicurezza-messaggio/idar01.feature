@@ -486,4 +486,5 @@ And header GovWay-TestSuite-Test-ID = 'riferimento-x509-x5u-x5t'
 And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01ExampleClient2NoX5U', password: 'ApplicativoBlockingIDA01ExampleClient2NoX5U' })
 When method post
 Then status 400
-And match response == read('response.json')
+And match response == read('error-bodies/applicativo-senza-x5u.json')
+And match header GovWay-Transaction-ErrorType == 'BadRequest'
