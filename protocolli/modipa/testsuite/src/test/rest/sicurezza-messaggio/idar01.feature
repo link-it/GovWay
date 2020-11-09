@@ -462,3 +462,28 @@ And match header Agid-JWT-Signature == '#notpresent'
 * def tid = responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]
 * call check_traccia ({ tid: tid, tipo: 'Richiesta', token: client_token, x509sub: 'CN=ExampleClient1, O=Example, L=Pisa, ST=Italy, C=IT' })
 * call check_traccia ({ tid: tid, tipo: 'Risposta', token: server_token, x509sub: 'CN=ExampleServer, O=Example, L=Pisa, ST=Italy, C=IT' })
+
+
+@applicativo-senza-sicurezza
+Scenario: Alla fruizione viene presentato un applicativo senza la sicurezza messaggio abilitata
+
+Given url govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01/v1"
+And path 'resources', 1, 'M'
+And request read('request.json')
+And header Authorization = call basic ({ username: 'ApplicativoBlockingNoModipa', password: 'ApplicativoBlockingNoModipa' })
+When method post
+Then status 400
+And match response == read('response.json')
+
+
+@applicativo-senza-x5u
+Scenario: Alla fruizione viene presentato un applicativo che non ha la url x5u del certificato configurata
+
+Given url govway_base_path + "/rest/out/DemoSoggettoFruitore/DemoSoggettoErogatore/RestBlockingIDAR01X5U-X5T/v1"
+And path 'resources', 1, 'M'
+And request read('request.json')
+And header GovWay-TestSuite-Test-ID = 'riferimento-x509-x5u-x5t'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01ExampleClient2NoX5U', password: 'ApplicativoBlockingIDA01ExampleClient2NoX5U' })
+When method post
+Then status 400
+And match response == read('response.json')
