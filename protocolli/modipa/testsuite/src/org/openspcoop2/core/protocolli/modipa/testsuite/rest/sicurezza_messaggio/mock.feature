@@ -111,6 +111,7 @@ Scenario: isTest('connettivita-base-idar03') || isTest('manomissione-header-http
     * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
     * def responseHeaders = { IDAR03TestHeader: "TestHeaderResponse" }
 
+
 Scenario: isTest('connettivita-base-idar03-header-bearer')
 
     * match requestHeaders['Authorization'] == '#notpresent'
@@ -172,6 +173,26 @@ Scenario: isTest('informazioni-utente-header') || isTest('informazioni-utente-qu
 
     * def responseStatus = 200
     * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
+
+
+Scenario: isTest('idar03-token-richiesta') || isTest('idar03-token-risposta')
+
+    * match requestHeaders['Agid-JWT-Signature'] == '#notpresent'
+    * def responseStatus = 200
+    * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
+
+
+Scenario: isTest('idar03-token-azione-puntuale')
+    # TODO Sembra la validazione non parta se gli faccio restituire 200??
+    # Rimetti la logica di sotto quando andrea ha risolto
+    * def responseStatus = 200
+    * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
+
+    # * match requestHeaders['Agid-JWT-Signature'] == '#notpresent'
+    # * def responseStatus = 201
+    # * def response = ''
+    # * def responseHeaders = ({ 'Content-Type': null })
+
 
 
 ##########################################

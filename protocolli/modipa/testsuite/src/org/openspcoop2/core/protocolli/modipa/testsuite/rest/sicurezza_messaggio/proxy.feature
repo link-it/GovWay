@@ -1549,6 +1549,127 @@ Scenario: isTest('connettivita-base-idar03-header-bearer')
     * def responseHeaders = karate.merge(responseHeaders,newHeaders)
 
 
+Scenario: isTest('idar03-token-richiesta')
+
+    * def client_token_match = 
+    """
+    ({
+        header: { kid: 'ExampleClient1' },
+        payload: { 
+            aud: 'testsuite',
+            client_id: 'DemoSoggettoFruitore/ApplicativoBlockingIDA01',
+            iss: 'DemoSoggettoFruitore',
+            sub: 'ApplicativoBlockingIDA01',
+            signed_headers: [
+                { digest: '#string' },
+                { 'content-type': 'application\/json; charset=UTF-8' }
+            ]
+        }
+    })
+    """
+    * call checkToken ({token: requestHeaders['Agid-JWT-Signature'][0], match_to: client_token_match, kind: "AGID" })
+
+    * karate.proceed (govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR03TokenRichiesta/v1')
+    
+    * def request_token = decodeToken(requestHeaders['Agid-JWT-Signature'][0], "AGID")
+    * def request_digest = get request_token $.payload.signed_headers..digest
+
+    * match requestHeaders['Digest'][0] == request_digest[0]
+
+    * match responseHeaders['Agid-JWT-Signature'] == "#notpresent"
+    * match responseHeaders['Digest'] == "#notpresent"
+
+    * def newHeaders = 
+    """
+    ({
+        'GovWay-TestSuite-GovWay-Client-Token': requestHeaders['Agid-JWT-Signature'][0]
+    })
+    """
+    * def responseHeaders = karate.merge(responseHeaders,newHeaders)
+
+
+
+Scenario: isTest('idar03-token-risposta')
+
+    
+    * match requestHeaders['Agid-JWT-Signature'] == '#notpresent'
+    * match requestHeaders['Digest'][0] == '#notpresent'
+
+    * karate.proceed (govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR03TokenRisposta/v1')
+    
+    * def server_token_match =
+    """
+    ({
+        header: { kid: 'ExampleServer'},
+        payload: {
+            aud: 'anonymous',
+            client_id: 'RestBlockingIDAR03TokenRisposta/v1',
+            iss: 'DemoSoggettoErogatore',
+            sub: 'RestBlockingIDAR03TokenRisposta/v1',
+            signed_headers: [
+                { digest: '#string' },
+                { 'content-type': 'application\/json' }
+            ],
+        }
+    })
+    """
+    * call checkToken ({token: responseHeaders['Agid-JWT-Signature'][0], match_to: server_token_match, kind: "AGID"  })
+
+    * def response_token = decodeToken(responseHeaders['Agid-JWT-Signature'][0], "AGID")
+    * def response_digest = get response_token $.payload.signed_headers..digest
+    * match responseHeaders['Digest'][0] == response_digest[0]
+
+    * def newHeaders = 
+    """
+    ({
+        'GovWay-TestSuite-GovWay-Server-Token': responseHeaders['Agid-JWT-Signature'][0],
+    })
+    """
+    * def responseHeaders = karate.merge(responseHeaders,newHeaders)
+
+
+Scenario: isTest('idar03-token-azione-puntuale')
+
+    * def client_token_match = 
+    """
+    ({
+        header: { kid: 'ExampleClient1' },
+        payload: { 
+            aud: 'testsuite',
+            client_id: 'DemoSoggettoFruitore/ApplicativoBlockingIDA01',
+            iss: 'DemoSoggettoFruitore',
+            sub: 'ApplicativoBlockingIDA01',
+            signed_headers: [
+                { digest: '#string' },
+                { 'content-type': 'application\/json; charset=UTF-8' }
+            ]
+        }
+    })
+    """
+    * call checkToken ({token: requestHeaders['Agid-JWT-Signature'][0], match_to: client_token_match, kind: "AGID" })
+
+    * karate.proceed (govway_base_path + '/rest/in/DemoSoggettoErogatore/RestBlockingIDAR03TokenAzionePuntuale/v1')
+    
+    * def request_token = decodeToken(requestHeaders['Agid-JWT-Signature'][0], "AGID")
+    * def request_digest = get request_token $.payload.signed_headers..digest
+
+    * match requestHeaders['Digest'][0] == request_digest[0]
+
+    * match responseHeaders['Agid-JWT-Signature'] == "#notpresent"
+    * match responseHeaders['Digest'] == "#notpresent"
+
+    * def newHeaders = 
+    """
+    ({
+        'GovWay-TestSuite-GovWay-Client-Token': requestHeaders['Agid-JWT-Signature'][0]
+    })
+    """
+
+    # TODO: Rimetti ,  'Content-Type': null nei newHeaders
+    * def responseHeaders = karate.merge(responseHeaders,newHeaders)
+
+
+
 
 ##########################
 #       IDAR0302         #
