@@ -60,6 +60,10 @@ public interface IConfigIntegrationReader {
 	
 	public List<IDServizioApplicativo> findIdServiziApplicativi(FiltroRicercaServiziApplicativi filtroRicerca) throws RegistryNotFound,RegistryException;
 	
+	public boolean inUso(IDServizioApplicativo idServizioApplicativo) throws RegistryException;
+	public String getDettagliInUso(IDServizioApplicativo idServizioApplicativo) throws RegistryException;
+	
+	
 	// PORTA DELEGATA
 	
 	public IDPortaDelegata getIdPortaDelegata(String nome, IProtocolFactory<?> protocolFactory) throws RegistryNotFound,RegistryException;

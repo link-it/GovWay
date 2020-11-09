@@ -25,12 +25,14 @@ import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.apache.commons.lang.StringUtils;
 import org.openspcoop2.core.config.ServizioApplicativo;
 import org.openspcoop2.core.config.constants.CostantiConfigurazione;
 import org.openspcoop2.core.id.IDAccordo;
 import org.openspcoop2.core.id.IDFruizione;
+import org.openspcoop2.core.id.IDPortType;
 import org.openspcoop2.core.id.IDPortTypeAzione;
 import org.openspcoop2.core.id.IDResource;
 import org.openspcoop2.core.id.IDServizio;
@@ -929,6 +931,13 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 		profiloInterazioneItem.setReloadOnChange(true);
 		configuration.addConsoleItem(profiloInterazioneItem);
 		
+		StringConsoleItem profiloInterazioneItemReadOnly = (StringConsoleItem) 
+				ProtocolPropertiesFactory.newConsoleItem(ConsoleItemValueType.STRING,
+				ConsoleItemType.HIDDEN,
+				ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ID_INUSE_READONLY, 
+				ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_LABEL);
+		configuration.addConsoleItem(profiloInterazioneItemReadOnly);
+		
 		StringConsoleItem profiloInterazioneAsincronaItem = (StringConsoleItem) 
 				ProtocolPropertiesFactory.newConsoleItem(ConsoleItemValueType.STRING,
 				ConsoleItemType.HIDDEN,
@@ -938,6 +947,13 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 		profiloInterazioneAsincronaItem.setReloadOnChange(true);
 		configuration.addConsoleItem(profiloInterazioneAsincronaItem);
 		
+		StringConsoleItem profiloInterazioneAsincronaItemReadOnly = (StringConsoleItem) 
+				ProtocolPropertiesFactory.newConsoleItem(ConsoleItemValueType.STRING,
+				ConsoleItemType.HIDDEN,
+				ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_ID_INUSE_READONLY, 
+				ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_LABEL);
+		configuration.addConsoleItem(profiloInterazioneAsincronaItemReadOnly);
+		
 		StringConsoleItem profiloInterazioneAsincronaRelazioneItem = (StringConsoleItem) 
 				ProtocolPropertiesFactory.newConsoleItem(ConsoleItemValueType.STRING,
 				ConsoleItemType.HIDDEN,
@@ -946,6 +962,13 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 		profiloInterazioneAsincronaRelazioneItem.setDefaultValue(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_DEFAULT_VALUE);
 		profiloInterazioneAsincronaRelazioneItem.setReloadOnChange(true);
 		configuration.addConsoleItem(profiloInterazioneAsincronaRelazioneItem);
+		
+		StringConsoleItem profiloInterazioneAsincronaRelazioneItemReadOnly = (StringConsoleItem) 
+				ProtocolPropertiesFactory.newConsoleItem(ConsoleItemValueType.STRING,
+				ConsoleItemType.HIDDEN,
+				ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_ID_INUSE_READONLY, 
+				ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_LABEL);
+		configuration.addConsoleItem(profiloInterazioneAsincronaRelazioneItemReadOnly);
 		
 		StringConsoleItem profiloInterazioneAsincronaCorrelataApiItem = (StringConsoleItem) 
 				ProtocolPropertiesFactory.newConsoleItem(ConsoleItemValueType.STRING,
@@ -979,6 +1002,8 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 	private void updateProfiloInterazione(ConsoleConfiguration consoleConfiguration, ConsoleOperationType consoleOperationType, ProtocolProperties properties,
 			IRegistryReader registryReader, IDAccordo idAccordo, String idPortType, String idAzione, boolean rest, String httpMethod) throws ProtocolException {
 		
+		AbstractConsoleItem<?> profiloInterazioneItem = 	
+				ProtocolPropertiesUtils.getAbstractConsoleItem(consoleConfiguration.getConsoleItem(), ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ID);
 		AbstractConsoleItem<?> profiloInterazioneAsincronaItem = 	
 				ProtocolPropertiesUtils.getAbstractConsoleItem(consoleConfiguration.getConsoleItem(), ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_ID);
 		AbstractConsoleItem<?> profiloInterazioneAsincronaRelazioneItem = 	
@@ -991,6 +1016,7 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 				ProtocolPropertiesUtils.getAbstractConsoleItem(consoleConfiguration.getConsoleItem(), ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_AZIONE_RICHIESTA_CORRELATA_ID);
 		
 		ModIProfiliInterazioneRESTConfig config = null;
+		boolean inUse = false;
 		if(rest) {
 			Resource resource = null;
 			if(ConsoleOperationType.CHANGE.equals(consoleOperationType)) {
@@ -999,11 +1025,30 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 					id.setIdAccordo(idAccordo);
 					id.setNome(idAzione);
 					resource = registryReader.getResourceAccordo(id);
+					
+					inUse = registryReader.inUso(id);
 				}catch(Exception e) {
 					throw new ProtocolException(e.getMessage(), e);
 				}
 			}
 			config = new ModIProfiliInterazioneRESTConfig(this.modiProperties, httpMethod, resource);
+		}
+		else {
+			if(ConsoleOperationType.CHANGE.equals(consoleOperationType)) {
+				try {
+					IDPortType idPT = new IDPortType();
+					idPT.setIdAccordo(idAccordo);
+					idPT.setNome(idPortType);
+					
+					IDPortTypeAzione id = new IDPortTypeAzione();
+					id.setIdPortType(idPT);
+					id.setNome(idAzione);
+					
+					inUse = registryReader.inUso(id);
+				}catch(Exception e) {
+					throw new ProtocolException(e.getMessage(), e);
+				}
+			}
 		}
 		
 		boolean addBloccante = true;
@@ -1022,8 +1067,6 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 			profiloInterazione = profiloInterazioneItemValue.getValue();
 		}	
 		
-		StringConsoleItem profiloInterazioneItem = 	(StringConsoleItem)
-				ProtocolPropertiesUtils.getAbstractConsoleItem(consoleConfiguration.getConsoleItem(), ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ID);
 		if(!addBloccante) {
 			profiloInterazioneItem.removeLabelValue(ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_LABEL_BLOCCANTE);
 		}
@@ -1351,7 +1394,60 @@ public class ModIDynamicConfiguration extends BasicDynamicConfiguration implemen
 			profiloInterazioneAsincronaCorrelataServizioItem.setType(ConsoleItemType.HIDDEN);
 			profiloInterazioneAsincronaCorrelataAzioneItem.setType(ConsoleItemType.HIDDEN);
 		}
+		else if(inUse) {
+			
+			setLabelInUse(consoleConfiguration, properties, profiloInterazioneItem, 
+					ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ID,
+					ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ID_INUSE_READONLY);
+			
+			setLabelInUse(consoleConfiguration, properties, profiloInterazioneAsincronaItem, 
+					ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_ID,
+					ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_ID_INUSE_READONLY);
+			
+			setLabelInUse(consoleConfiguration, properties, profiloInterazioneAsincronaRelazioneItem, 
+					ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_ID,
+					ModIConsoleCostanti.MODIPA_PROFILO_INTERAZIONE_ASINCRONA_RUOLO_ID_INUSE_READONLY);
+
+		}
 		
+	}
+
+	private void setLabelInUse(ConsoleConfiguration consoleConfiguration, ProtocolProperties properties,
+			AbstractConsoleItem<?> item, String id, String idReadOnly) throws ProtocolException {
+		if(!ConsoleItemType.HIDDEN.equals(item.getType())){
+			
+			StringProperty itemValue = (StringProperty) ProtocolPropertiesUtils.getAbstractPropertyById(properties, id);
+						
+			item.setType(ConsoleItemType.HIDDEN);
+			AbstractConsoleItem<?> itemReadOnly = 	
+					ProtocolPropertiesUtils.getAbstractConsoleItem(consoleConfiguration.getConsoleItem(), idReadOnly);
+			itemReadOnly.setType(ConsoleItemType.TEXT);
+			String label = null;
+			String labelDefault = null;
+			if(item instanceof StringConsoleItem) {
+				StringConsoleItem sci = (StringConsoleItem) item;
+				TreeMap<String,String> map = sci.getMapLabelValues();
+				if(map!=null && !map.isEmpty()) {
+					for (String l : map.keySet()) {
+						String v = map.get(l);
+						if(v!=null && v.equals(itemValue.getValue())) {
+							label = l;
+						}
+						if(v!=null && v.equals(item.getDefaultValue())) {
+							labelDefault = l;
+						}
+					}
+				}
+			}
+
+			StringProperty itemValueReadOnly = (StringProperty) ProtocolPropertiesUtils.getAbstractPropertyById(properties, idReadOnly);
+			if(label!=null) {
+				itemValueReadOnly.setValue(label);
+			}
+			else {
+				itemValueReadOnly.setValue(labelDefault);
+			}
+		}
 	}
 		
 	private void validateProfiloInterazione(ConsoleConfiguration consoleConfiguration, ProtocolProperties properties,

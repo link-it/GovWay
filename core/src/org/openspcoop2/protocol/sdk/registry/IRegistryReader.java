@@ -88,6 +88,9 @@ public interface IRegistryReader {
 	public Soggetto getSoggettoByCredenzialiPrincipal(String principal) throws RegistryNotFound,RegistryException;
 	
 	public List<IDSoggetto> findIdSoggetti(FiltroRicercaSoggetti filtro) throws RegistryNotFound,RegistryException;
+	
+	public boolean inUso(IDSoggetto idSoggetto) throws RegistryException;
+	public String getDettagliInUso(IDSoggetto idSoggetto) throws RegistryException;
 		
 	
 	// ACCORDI PARTE COMUNE
@@ -98,20 +101,29 @@ public interface IRegistryReader {
 	public org.openspcoop2.core.registry.wsdl.AccordoServizioWrapper getAccordoServizioParteComuneSoap(IDServizio idService,InformationApiSource infoWsdlSource,boolean buildSchema) throws RegistryNotFound,RegistryException;
 	public org.openspcoop2.core.registry.rest.AccordoServizioWrapper getAccordoServizioParteComuneRest(IDServizio idService,InformationApiSource infoWsdlSource,boolean buildSchema, boolean processIncludeForOpenApi) throws RegistryNotFound,RegistryException;
 	
+	public boolean inUso(IDAccordo idAccordo) throws RegistryException;
+	public String getDettagliInUso(IDAccordo idAccordo) throws RegistryException;
+	
 	
 	// ELEMENTI INTERNI ALL'ACCORDO PARTE COMUNE
 	
 	public PortType getPortType(IDPortType id) throws RegistryNotFound,RegistryException; 
 	public List<IDPortType> findIdPortType(FiltroRicercaPortType filtro) throws RegistryNotFound,RegistryException;
+	public boolean inUso(IDPortType id) throws RegistryException;
+	public String getDettagliInUso(IDPortType id) throws RegistryException;
 	
 	public Operation getAzionePortType(IDPortTypeAzione id) throws RegistryNotFound,RegistryException; 
 	public List<IDPortTypeAzione> findIdAzionePortType(FiltroRicercaPortTypeAzioni filtro) throws RegistryNotFound,RegistryException; 
+	public boolean inUso(IDPortTypeAzione id) throws RegistryException;
+	public String getDettagliInUso(IDPortTypeAzione id) throws RegistryException;
 	
 	public Azione getAzioneAccordo(IDAccordoAzione id) throws RegistryNotFound,RegistryException; 
 	public List<IDAccordoAzione> findIdAzioneAccordo(FiltroRicercaAccordoAzioni filtro) throws RegistryNotFound,RegistryException; 
 	
 	public Resource getResourceAccordo(IDResource id) throws RegistryNotFound,RegistryException; 
 	public List<IDResource> findIdResourceAccordo(FiltroRicercaRisorse filtro) throws RegistryNotFound,RegistryException; 
+	public boolean inUso(IDResource id) throws RegistryException;
+	public String getDettagliInUso(IDResource id) throws RegistryException;
 	
 	
 	// ACCORDI PARTE SPECIFICA
