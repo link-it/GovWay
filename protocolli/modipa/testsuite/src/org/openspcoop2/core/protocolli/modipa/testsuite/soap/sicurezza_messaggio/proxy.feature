@@ -614,6 +614,104 @@ Scenario: isTest('informazioni-utente-custom')
 
 
 
+Scenario: isTest('idas03-token-richiesta')
+    
+    # Salvo la richiesta e la risposta per far controllare la traccia del token
+    # alla feature chiamante
+    * xmlstring client_request = bodyPath('/')
+    * eval karateCache.add("Client-Request", client_request)
+
+    * call check_client_token ({ address: "DemoSoggettoFruitore/ApplicativoBlockingIDA01", to: "testsuite" })
+
+    # Siccome abbiamo un Riferimento X509 DirectReference, controllo che KeyInfo riferisca il BinarySecurityToken
+    * def keyRef = bodyPath('/Envelope/Header/Security/Signature/KeyInfo/SecurityTokenReference/Reference/@URI')
+    * def key = bodyPath('/Envelope/Header/Security/BinarySecurityToken/@Id')
+    * match keyRef == '#' + key
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS03TokenRichiesta/v1')
+
+    * match /Envelope/Header == ''
+
+
+Scenario: isTest('idas03-token-risposta')
+    
+
+    * def c = request
+    * match c/Envelope/Header == '#notpresent'
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS03TokenRisposta/v1')
+    * match responseStatus == 200
+
+    * match /Envelope/Header/Security/Signature == "#present"
+    * match /Envelope/Header/Security/Timestamp/Created == "#string"
+    * match /Envelope/Header/Security/Timestamp/Expires == "#string"
+    * match /Envelope/Header/To == "http://www.w3.org/2005/08/addressing/anonymous"
+    * match /Envelope/Header/From/Address == "SoapBlockingIDAS03TokenRisposta/v1"
+    * match /Envelope/Header/MessageID == "#uuid"
+    * match /Envelope/Header/ReplyTo/Address == "http://www.w3.org/2005/08/addressing/anonymous"
+    * match /Envelope/Header/RelatesTo == "#notpresent"
+
+    * def body = response 
+    * call check_signature [ {element: 'To'}, {element: 'From'}, {element: 'MessageID'}, {element: 'ReplyTo'} ]
+    
+
+    * def keyRef = /Envelope/Header/Security/Signature/KeyInfo/SecurityTokenReference/Reference/@URI
+    * def key = /Envelope/Header/Security/BinarySecurityToken/@Id
+    * match keyRef == '#' + key
+
+    * xmlstring server_response = response
+    * eval karateCache.add("Server-Response", server_response)
+
+
+Scenario: isTest('idas03-token-azione-puntuale')
+    
+    # Salvo la richiesta e la risposta per far controllare la traccia del token
+    # alla feature chiamante
+    * xmlstring client_request = bodyPath('/')
+    * eval karateCache.add("Client-Request", client_request)
+
+    * call check_client_token ({ address: "DemoSoggettoFruitore/ApplicativoBlockingIDA01", to: "testsuite" })
+
+    # Siccome abbiamo un Riferimento X509 DirectReference, controllo che KeyInfo riferisca il BinarySecurityToken
+    * def keyRef = bodyPath('/Envelope/Header/Security/Signature/KeyInfo/SecurityTokenReference/Reference/@URI')
+    * def key = bodyPath('/Envelope/Header/Security/BinarySecurityToken/@Id')
+    * match keyRef == '#' + key
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS03TokenAzionePuntuale/v1')
+
+    * match /Envelope/Header == ''
+
+
+Scenario: isTest('idas03-token-azione-puntuale-default')
+
+    # Salvo la richiesta e la risposta per far controllare la traccia del token
+    # alla feature chiamante
+    * xmlstring client_request = bodyPath('/')
+    * eval karateCache.add("Client-Request", client_request)
+
+    * call check_client_token ({ address: "DemoSoggettoFruitore/ApplicativoBlockingIDA01", to: "testsuite" })
+
+    # Siccome abbiamo un Riferimento X509 DirectReference, controllo che KeyInfo riferisca il BinarySecurityToken
+    * def keyRef = bodyPath('/Envelope/Header/Security/Signature/KeyInfo/SecurityTokenReference/Reference/@URI')
+    * def key = bodyPath('/Envelope/Header/Security/BinarySecurityToken/@Id')
+    * match keyRef == '#' + key
+
+    * karate.proceed (govway_base_path + '/soap/in/DemoSoggettoErogatore/SoapBlockingIDAS03TokenAzionePuntuale/v1')
+    
+    # Controllo nella risposta che non ci sia il digest della richiesta
+    * match /Envelope/Header/X-RequestDigest/Reference/DigestValue == '#notpresent'
+
+    * call check_server_token ({ from: "SoapBlockingIDAS03TokenAzionePuntuale/v1", to: "DemoSoggettoFruitore/ApplicativoBlockingIDA01" })
+
+    * def keyRef = /Envelope/Header/Security/Signature/KeyInfo/SecurityTokenReference/Reference/@URI
+    * def key = /Envelope/Header/Security/BinarySecurityToken/@Id
+    * match keyRef == '#' + key
+    
+    * xmlstring server_response = response
+    * eval karateCache.add("Server-Response", server_response)
+
+
+
 #####################################################
 #                     IDAS0302                      #
 #####################################################

@@ -564,3 +564,171 @@ When method post
 Then status 500
 And match response == read("error-bodies/no-informazioni-utente-at-fruizione.xml")
 And match header GovWay-Transaction-ErrorType == "BadRequest"
+
+
+@idas03-token-richiesta
+Scenario: Giro ok idas03 con il token soltanto nella richiesta
+
+* def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS03TokenRichiesta/v1'
+
+Given url soap_url
+And request read("request.xml")
+And header Content-Type = 'application/soap+xml'
+And header action = soap_url
+And header GovWay-TestSuite-Test-ID = 'idas03-token-richiesta'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method post
+Then status 200
+And match response == read("response.xml")
+
+* def karateCache = Java.type('org.openspcoop2.core.protocolli.modipa.testsuite.KarateCache')
+* xml client_request = karateCache.get("Client-Request")
+
+* def body_reference = get client_request/Envelope/Body/@Id
+* def request_signature = karate.xmlPath(client_request, "/Envelope/Header/Security/Signature/SignedInfo/Reference[@URI='#"+body_reference+"']/DigestValue")
+* def request_id = get client_request/Envelope/Header/MessageID
+
+
+* def checks_richiesta = 
+"""
+([
+    { name: 'ProfiloSicurezzaMessaggio-Digest', value: 'SHA256='+request_signature}
+])
+"""
+
+
+* def tid = responseHeaders['GovWay-Transaction-ID'][0]
+* call check_traccia ({tid: tid, tipo: 'Richiesta', body: client_request, x509sub: x509sub_client1, profilo_sicurezza: "IDAS0301", other_checks: checks_richiesta })
+
+* def tid = responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]
+* call check_traccia ({tid: tid, tipo: 'Richiesta', body: client_request, x509sub: x509sub_client1, profilo_sicurezza: "IDAS0301", other_checks: checks_richiesta })
+
+
+
+@idas03-token-risposta
+Scenario: Giro ok idar03 con il token soltanto nella risposta
+
+* def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS03TokenRisposta/v1'
+
+Given url soap_url
+And request read("request.xml")
+And header Content-Type = 'application/soap+xml'
+And header action = soap_url
+And header GovWay-TestSuite-Test-ID = 'idas03-token-risposta'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method post
+Then status 200
+And match response == read("response.xml")
+
+* def karateCache = Java.type('org.openspcoop2.core.protocolli.modipa.testsuite.KarateCache')
+
+* xml server_response = karateCache.get("Server-Response")
+
+
+* def body_reference = get server_response/Envelope/Body/@Id
+* def response_signature = karate.xmlPath(server_response, "/Envelope/Header/Security/Signature/SignedInfo/Reference[@URI='#"+body_reference+"']/DigestValue")
+
+
+* def checks_risposta = 
+"""
+([
+    { name: 'ProfiloSicurezzaMessaggio-Digest', value: 'SHA256='+response_signature}
+])
+"""
+
+
+* def tid = responseHeaders['GovWay-Transaction-ID'][0]
+* call check_traccia ({tid: tid, tipo: 'Risposta', body: server_response, x509sub: x509sub_server, profilo_sicurezza: "IDAS0301", other_checks: checks_risposta })
+
+* def tid = responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]
+* call check_traccia ({tid: tid, tipo: 'Risposta', body: server_response, x509sub: x509sub_server, profilo_sicurezza: "IDAS0301", other_checks: checks_risposta })
+
+
+@idas03-token-azione-puntuale
+Scenario: Giro ok idar03 con il token abilitato solo sulla richiesta per una specifica azione, globalmente è richiesta/risposta.
+
+* def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS03TokenAzionePuntuale/v1'
+
+Given url soap_url
+And request read("MRequestResponse.xml")
+And header Content-Type = 'application/soap+xml'
+And header action = soap_url
+And header GovWay-TestSuite-Test-ID = 'idas03-token-azione-puntuale'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method post
+Then status 200
+And match response == read("response-op.xml")
+
+* def karateCache = Java.type('org.openspcoop2.core.protocolli.modipa.testsuite.KarateCache')
+* xml client_request = karateCache.get("Client-Request")
+
+* def body_reference = get client_request/Envelope/Body/@Id
+* def request_signature = karate.xmlPath(client_request, "/Envelope/Header/Security/Signature/SignedInfo/Reference[@URI='#"+body_reference+"']/DigestValue")
+* def request_id = get client_request/Envelope/Header/MessageID
+
+
+* def checks_richiesta = 
+"""
+([
+    { name: 'ProfiloSicurezzaMessaggio-Digest', value: 'SHA256='+request_signature}
+])
+"""
+
+
+* def tid = responseHeaders['GovWay-Transaction-ID'][0]
+* call check_traccia ({tid: tid, tipo: 'Richiesta', body: client_request, x509sub: x509sub_client1, profilo_sicurezza: "IDAS0301", other_checks: checks_richiesta })
+
+* def tid = responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]
+* call check_traccia ({tid: tid, tipo: 'Richiesta', body: client_request, x509sub: x509sub_client1, profilo_sicurezza: "IDAS0301", other_checks: checks_richiesta })
+
+
+# Faccio una richiesta su un'azione di default per dimostrare che il flusso normale
+# con il token sia in richiesta che risposta venga rispettato
+
+* def soap_url = govway_base_path + '/soap/out/DemoSoggettoFruitore/DemoSoggettoErogatore/SoapBlockingIDAS03TokenAzionePuntuale/v1'
+
+Given url soap_url
+And request read("MRequestResponse1.xml")
+And header Content-Type = 'application/soap+xml'
+And header action = soap_url
+And header GovWay-TestSuite-Test-ID = 'idas03-token-azione-puntuale-default'
+And header Authorization = call basic ({ username: 'ApplicativoBlockingIDA01', password: 'ApplicativoBlockingIDA01' })
+When method post
+Then status 200
+And match response == read("response-op.xml")
+
+* def karateCache = Java.type('org.openspcoop2.core.protocolli.modipa.testsuite.KarateCache')
+* xml client_request = karateCache.get("Client-Request")
+* xml server_response = karateCache.get("Server-Response")
+
+* def body_reference = get client_request/Envelope/Body/@Id
+* def request_signature = karate.xmlPath(client_request, "/Envelope/Header/Security/Signature/SignedInfo/Reference[@URI='#"+body_reference+"']/DigestValue")
+* def request_id = get client_request/Envelope/Header/MessageID
+
+
+* def body_reference = get server_response/Envelope/Body/@Id
+* def response_signature = karate.xmlPath(server_response, "/Envelope/Header/Security/Signature/SignedInfo/Reference[@URI='#"+body_reference+"']/DigestValue")
+
+* def checks_richiesta = 
+"""
+([
+    { name: 'ProfiloSicurezzaMessaggio-Digest', value: 'SHA256='+request_signature}
+])
+"""
+
+* def checks_risposta = 
+"""
+([
+    { name: 'ProfiloSicurezzaMessaggio-Digest', value: 'SHA256='+response_signature},
+    { name: 'ProfiloSicurezzaMessaggio-RelatesTo', value: request_id}
+])
+"""
+
+
+* def tid = responseHeaders['GovWay-Transaction-ID'][0]
+* call check_traccia ({tid: tid, tipo: 'Richiesta', body: client_request, x509sub: x509sub_client1, profilo_sicurezza: "IDAS0301", other_checks: checks_richiesta })
+* call check_traccia ({tid: tid, tipo: 'Risposta', body: server_response, x509sub: x509sub_server, profilo_sicurezza: "IDAS0301", other_checks: checks_risposta })
+
+* def tid = responseHeaders['GovWay-TestSuite-GovWay-Transaction-ID'][0]
+* call check_traccia ({tid: tid, tipo: 'Richiesta', body: client_request, x509sub: x509sub_client1, profilo_sicurezza: "IDAS0301", other_checks: checks_richiesta })
+* call check_traccia ({tid: tid, tipo: 'Risposta', body: server_response, x509sub: x509sub_server, profilo_sicurezza: "IDAS0301", other_checks: checks_risposta })

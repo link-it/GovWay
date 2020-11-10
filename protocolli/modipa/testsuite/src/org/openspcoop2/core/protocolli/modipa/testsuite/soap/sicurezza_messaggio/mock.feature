@@ -107,6 +107,31 @@ Scenario: isTest('informazioni-utente-header') || isTest('informazioni-utente-qu
     * def responseStatus = 200
     * def response = read('classpath:test/soap/sicurezza-messaggio/response.xml')
 
+Scenario: isTest('idas03-token-richiesta')
+    
+    * def c = request
+    * match c/Envelope/Header == ''
+
+    * def responseStatus = 200
+    * def response = read('classpath:test/soap/sicurezza-messaggio/response.xml')
+
+Scenario: isTest('idas03-token-risposta')
+    
+    * def c = request
+    * match c/Envelope/Header == '#notpresent'
+
+    * def responseStatus = 200
+    * def response = read('classpath:test/soap/sicurezza-messaggio/response.xml')
+
+
+Scenario: isTest('idas03-token-azione-puntuale') || isTest('idas03-token-azione-puntuale-default')
+    
+    * def c = request
+    * match c/Envelope/Header == ''
+    
+    * def responseStatus = 200
+    * def response = read('classpath:test/soap/sicurezza-messaggio/response-op.xml')
+
 
 #####################################################
 #                     IDAS0302                      #
