@@ -2054,6 +2054,88 @@ public class TestOpenApi4j {
 		}
 		
 		System.out.println("Test #15 completato\n\n");
+		
+		
+		
+		
+		
+		
+		
+		System.out.println("Test #16 (Risposte con '/' come casi speciali)");
+		
+		String json16RispostaOK = "{\"esito\": \"OK\"}";
+				
+		List<String> url_test16 = new ArrayList<String>();
+		List<Boolean> esiti_test16 = new ArrayList<Boolean>();
+		
+		url_test16.add("/oggettislashfinale/");esiti_test16.add(true); 
+		url_test16.add("/oggettislashfinale");esiti_test16.add(true);
+		url_test16.add("/");esiti_test16.add(true); 
+		
+		
+		// ** Test sul body **
+		for (int i = 0; i < url_test16.size(); i++) {
+			
+			String urltest = url_test16.get(i);
+			boolean esito = esiti_test16.get(i);
+			
+			String msg = json16RispostaOK;
+			String ct = HttpConstants.CONTENT_TYPE_JSON;
+			int code = 200;
+			
+			TextHttpResponseEntity httpEntityResponseTest16 = new TextHttpResponseEntity();
+			httpEntityResponseTest16.setStatus(code);
+			httpEntityResponseTest16.setMethod(HttpRequestMethod.GET);
+			httpEntityResponseTest16.setUrl(urltest);	
+			Map<String, String> parametersTrasportoRispostaTest16 = new HashMap<>();
+			parametersTrasportoRispostaTest16.put(HttpConstants.CONTENT_TYPE, ct);
+			httpEntityResponseTest16.setParametersTrasporto(parametersTrasportoRispostaTest16);
+			httpEntityResponseTest16.setContentType(ct);
+			httpEntityResponseTest16.setContent(msg);
+			
+			for (int j = 0; j < 2; j++) {
+				
+				boolean openapi4j = (j==0);
+				IApiValidator apiValidator = null;
+				String tipoTest = "Url '"+urltest+"'";
+				if(openapi4j) {
+					apiValidator = apiValidatorOpenApi4j;
+					tipoTest = tipoTest+"[openapi4j]";
+				}
+				else {
+					apiValidator = apiValidatorNoOpenApi4j;
+					tipoTest = tipoTest+"[json]";
+				}
+			
+				try {
+					System.out.println("\t "+tipoTest+" validate ...");
+					apiValidator.validate(httpEntityResponseTest16);
+					if(esito) {
+						System.out.println("\t "+tipoTest+" validate ok");
+					}
+					else {
+						System.out.println("\t "+tipoTest+" ERRORE!");
+						throw new Exception("Errore: Attesa " + ValidatorException.class.getName());
+					}
+				} catch(ValidatorException e) {
+					String error = e.getMessage();
+					if(error.length()>200) {
+						error = error.substring(0, 198)+" ...";
+					}
+					if(!esito) {
+						System.out.println("\t "+tipoTest+" atteso errore di validazione, rilevato: "+error);
+						throw new Exception(""+tipoTest+" rilevato errore di validazione atteso: "+e.getMessage(),e); // gestire se serve
+					}
+					else {
+						System.out.println("\t "+tipoTest+" rilevato errore di validazione non atteso: "+error);
+						throw new Exception(""+tipoTest+" rilevato errore di validazione non atteso: "+e.getMessage(),e);
+					}
+				}
+			}
+			
+		}
+		
+		System.out.println("Test #15 completato\n\n");
 	}
 
 }

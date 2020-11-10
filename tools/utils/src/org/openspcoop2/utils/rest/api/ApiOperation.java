@@ -59,19 +59,26 @@ public class ApiOperation extends BaseBean implements Serializable {
 	
 	private void normalizePath(){
 		if(this.path!=null) {
-			this.path = this.path.trim();
-			if(this.path.startsWith("/")==false){
-				this.path = "/"+this.path;
+			this.path = normalizePath(this.path);
+		}
+	}
+	public static String normalizePath(String pathParam){
+		String path = pathParam;
+		if(path!=null) {
+			path = path.trim();
+			if(path.startsWith("/")==false){
+				path = "/"+path;
 			}
-			while(this.path.contains("${")){
+			while(path.contains("${")){
 				// in wadl viene usato ${xx}
 				// in swagger {xx}
-				this.path = this.path.replace("${", "{");
+				path = path.replace("${", "{");
 			}
-			if(this.path.length()>1 && this.path.endsWith("/")) {
-				this.path = this.path.substring(0, this.path.length()-1);
+			if(path.length()>1 && path.endsWith("/")) {
+				path = path.substring(0, path.length()-1);
 			}
 		}
+		return path;
 	}
 	
 	public String getDescription() {

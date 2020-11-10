@@ -660,6 +660,36 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemInLineModificatoConElementoRequired'
           description: Other
+
+  /oggettislashfinale/:
+    get:
+      tags:
+        - document-retrieve
+      description: Consente di recuperare un oggetto, per il quale si è ricevuto un riferimento
+      operationId: DownloadDocument
+      responses:
+        "200":
+          description: |-
+            L'oggetto richiesto
+          content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/MResponseType'
+
+  /:
+    get:
+      tags:
+        - document-retrieve
+      description: Consente di recuperare un oggetto, per il quale si è ricevuto un riferimento
+      operationId: DownloadDocument
+      responses:
+        "200":
+          description: |-
+            L'oggetto richiesto
+          content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/MResponseType'
           
 components:
 
