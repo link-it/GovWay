@@ -184,14 +184,32 @@ Scenario: isTest('idar03-token-richiesta') || isTest('idar03-token-risposta')
 
 Scenario: isTest('idar03-token-azione-puntuale')
     # TODO Sembra la validazione non parta se gli faccio restituire 200??
-    # Rimetti la logica di sotto quando andrea ha risolto
-    * def responseStatus = 200
-    * def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
+    # Rimetti la logica di sotto per far spuntare il bug
+    
+    #* def responseStatus = 200
+    #* def response = read('classpath:test/rest/sicurezza-messaggio/response.json')
 
-    # * match requestHeaders['Agid-JWT-Signature'] == '#notpresent'
-    # * def responseStatus = 201
-    # * def response = ''
-    # * def responseHeaders = ({ 'Content-Type': null })
+    * match requestHeaders['Agid-JWT-Signature'] == '#notpresent'
+    * def responseStatus = 201
+    * def response = ''
+    * def responseHeaders = ({ 'Content-Type': null })
+
+Scenario: isTest('idar03-token-azione-puntuale-default') || isTest('idar03-token-criteri-personalizzati')
+    
+    * match requestHeaders['Agid-JWT-Signature'] == '#notpresent'
+    * def responseStatus = 200
+
+    * def response =
+    """
+    ({
+         "a" : {
+            "a2": "RGFuJ3MgVG9vbHMgYXJlIGNvb2wh",
+            "a1s": [ 1, 2 ]
+          },
+          "b": "Stringa di esempio"
+    })
+    """
+
 
 
 
