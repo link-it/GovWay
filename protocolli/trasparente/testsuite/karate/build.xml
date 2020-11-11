@@ -2,7 +2,7 @@
 
 	<description>
         	File di Script per la compilazione dei test per il profilo trasparente
-  	</description>
+	</description>
 
 	<import file="./local_env.xml" />
 
@@ -13,8 +13,8 @@
 		</classpath>
 	</taskdef>
 
-	<path id="karate_testsuite" >
-		<fileset dir="${required_lib}/testsuite" >
+	<path id="karate_testsuite">
+		<fileset dir="${required_lib}/testsuite">
 			<include name="hamcrest-core-1.3.jar"/>
 			<include name="junit-4.13.jar"/>
 			<include name="karate-*.jar"/>
@@ -22,34 +22,34 @@
 			<include name="logback-*.jar"/>
 			<include name="spring-jdbc-*.jar"/>
 		</fileset>
-		<fileset dir="${dir_jdbc}" >
+		<fileset dir="${dir_jdbc}">
 			<include name="*.jar"/>
 		</fileset>
-		<fileset dir="${required_lib}/commons" >
+		<fileset dir="${required_lib}/commons">
 			<include name="*.jar"/>
 		</fileset>
-		<fileset dir="${required_lib}/httpcore" >
-	  	    	<include name="*.jar"/>
-		</fileset>
-		<fileset dir="${required_lib}/log" >
+		<fileset dir="${required_lib}/httpcore">
 			<include name="*.jar"/>
 		</fileset>
-		<fileset dir="${required_lib}/json" >
+		<fileset dir="${required_lib}/log">
 			<include name="*.jar"/>
 		</fileset>
-		<fileset dir="${required_lib}/spring" >
+		<fileset dir="${required_lib}/json">
 			<include name="*.jar"/>
 		</fileset>
-                <fileset dir="${required_lib}/shared" >
-                        <include name="snakeyaml-1.25.jar"/>
-                </fileset>
-                <fileset dir="${required_lib}/cxf" >
-                        <include name="asm-7.1.jar"/>
-                </fileset>
-                <fileset dir="${openspcoop2.dist}" >
-                        <include name="*.jar"/>
-                </fileset>
-	</path> 
+		<fileset dir="${required_lib}/spring">
+			<include name="*.jar"/>
+		</fileset>
+		<fileset dir="${required_lib}/shared">
+			<include name="snakeyaml-1.25.jar"/>
+		</fileset>
+		<fileset dir="${required_lib}/cxf">
+			<include name="asm-7.1.jar"/>
+		</fileset>
+		<fileset dir="${openspcoop2.dist}">
+			<include name="*.jar"/>
+		</fileset>
+	</path>
 
 	<property name="src_testsuite" location="src" />
 	<property name="build_testsuite" location="build" />
@@ -65,7 +65,7 @@
 	</target>
 
 	<!-- Compilazione del Client -->
-	<target name="build" depends="clean,init" description="compila" >
+	<target name="build" depends="clean,init" description="compila">
 		<!-- Compile the java code  -->
 		<javac includeantruntime="false" destdir="${build_testsuite}" debug="${debug}">
 			<src path="${src_testsuite}"/>
@@ -86,10 +86,10 @@
 		<echo message="Eliminazione configurazione in corso ..." />
 		<java classname="org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader" fork="true">
 			<arg value="false" />
-		        <classpath>
-		                <path refid="karate_testsuite" />
-		                <pathelement path="${build_testsuite}"/>
-		        </classpath>
+			<classpath>
+				<path refid="karate_testsuite" />
+				<pathelement path="${build_testsuite}"/>
+			</classpath>
 		</java>
 		<echo message="Eliminazione configurazione effettuata" />
 	</target>
@@ -124,18 +124,18 @@
 				<echo message="Caricamento configurazione in corso (delete) ..." />
 				<java classname="org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader" fork="true">
 					<arg value="false" />
-				        <classpath>
-				                <path refid="karate_testsuite" />
-				                <pathelement path="${build_testsuite}"/>
-				        </classpath>
+					<classpath>
+						<path refid="karate_testsuite" />
+						<pathelement path="${build_testsuite}"/>
+					</classpath>
 				</java>
 				<echo message="Caricamento configurazione in corso (create) ..." />
 				<java classname="org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader" fork="true">
 					<arg value="true" />
-				        <classpath>
-				                <path refid="karate_testsuite" />
-				                <pathelement path="${build_testsuite}"/>
-				        </classpath>
+					<classpath>
+						<path refid="karate_testsuite" />
+						<pathelement path="${build_testsuite}"/>
+					</classpath>
 				</java>
 				<echo message="Caricamento configurazione completata" />
 			</then>
@@ -151,9 +151,9 @@
 			</then>
 		</if>
 
-                <fileset dir="${src_testsuite}" id="absoluteTestClassNames">
-                        <include name="**/*Test.java"/>
-                </fileset>
+		<fileset dir="${src_testsuite}" id="absoluteTestClassNames">
+			<include name="**/*Test.java"/>
+		</fileset>
 		<pathconvert property="testClassNames" refid="absoluteTestClassNames" pathsep=",">
 			<chainedmapper>
 				<flattenmapper/>
@@ -187,10 +187,12 @@
 							     (file:.../lib/json/accessors-smart-1.2.jar) to method java.lang.ClassLoader.defineClass(java.lang.String,byte[],int,int) -->
 							<jvmarg value="-Djdk.module.illegalAccess=deny"/>
 
+							<sysproperty key="wait" value="${wait}"/>
+
 							<classpath refid="karate_testsuite" />
 							<classpath location="${build_testsuite}" />
 
-							<formatter type="plain"/>			
+							<formatter type="plain"/>
 							<formatter type="xml" />
 
 							<batchtest fork="yes" todir="${output}/@{karateTipoTest}">
@@ -198,8 +200,8 @@
 									<include name="**/@{karateTipoTest}.java" />
 								</fileset>
 							</batchtest>
-				
-						 </junit>
+
+						</junit>
 					</then>
 					<else>
 						<junit printsummary="yes" haltonfailure="${haltOnFailure}" showoutput="${showOutput}">
@@ -213,10 +215,12 @@
 							     (file:.../lib/json/accessors-smart-1.2.jar) to method java.lang.ClassLoader.defineClass(java.lang.String,byte[],int,int) -->
 							<jvmarg value="-Djdk.module.illegalAccess=deny"/>
 
+							<sysproperty key="wait" value="${wait}"/>
+
 							<classpath refid="karate_testsuite" />
 							<classpath location="${build_testsuite}" />
 
-							<formatter type="plain"/>			
+							<formatter type="plain"/>
 							<formatter type="xml" />
 
 							<batchtest fork="yes" todir="${output}/@{karateTipoTest}">
@@ -224,23 +228,23 @@
 									<include name="**/@{karateTipoTest}.java" />
 								</fileset>
 							</batchtest>
-				
-						 </junit>				
+
+						</junit>
 					</else>
 				</if>
 			</sequential>
 		</for>
 
-                <if>
+		<if>
 			<equals arg1="${deleteEnabled}" arg2="true"/>
 			<then>
 				<echo message="Eliminazione configurazione in corso ..." />
 				<java classname="org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader" fork="true">
 					<arg value="false" />
-				        <classpath>
-				                <path refid="karate_testsuite" />
-				                <pathelement path="${build_testsuite}"/>
-				        </classpath>
+					<classpath>
+						<path refid="karate_testsuite" />
+						<pathelement path="${build_testsuite}"/>
+					</classpath>
 				</java>
 				<echo message="Eliminazione configurazione effettuata" />
 			</then>
