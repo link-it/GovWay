@@ -94,7 +94,7 @@ public class RateLimitingTest {
 	}
     
     
-    public void testParallel() throws Exception {
+    /*public void testParallel() throws Exception {
        
     	Config config = new Config();
     	
@@ -138,6 +138,6 @@ public class RateLimitingTest {
     	
         assertTrue(results.getFailureCount() == 1);
         assertTrue(results.getSuccessCount() == 10);
-    }
+    }*/
     
 }

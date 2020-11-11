@@ -1,0 +1,6 @@
+Per eseguire i test:
+	ant run_test
+
+E' possibile indicare se caricare o meno la configurazione di govway presente in <src/configurazioni-govway/trasparenteTestBundle.zip>
+
+	ant run_test -Dload=false -Ddelete=false
