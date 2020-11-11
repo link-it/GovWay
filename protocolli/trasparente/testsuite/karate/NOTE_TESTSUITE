@@ -1,8 +1,0 @@
-fare la sottocartella karate, per fare i test in karate farci lo scheletro come fatto per modipaa
-
-Qui abbiamo O erogazione (soggetti esterni che vogliono integrarsi nel nostro dominio) O la fruizione (soggetti interni che vogliono integrarsi su servizi esterni)
-
-Primo test:
-	Sia su erogazione che su fruizione abilitare il rate-limiting (E.g: numero richieste entro il minuto, e l'altra con richieste parallele)
-
-Per vedere come fare le richieste parallele vado a guardare il client example/pdd/client/Benchmark
