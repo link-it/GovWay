@@ -86,8 +86,8 @@ public class RateLimitingTest {
 		HttpResponse failedResponse = responses.stream().filter(r -> r.getResultHTTPOperation() == 429).findAny()
 				.orElse(null);
 		assertTrue(failedResponse != null);
-		assertEquals("0", failedResponse.getHeader("X-RateLimit-Reset"));
-		assertEquals("LimitExcedeed", failedResponse.getHeader("GovWay-Transaction-ErrorType"));
+		assertEquals("0", failedResponse.getHeader("X-RateLimit-Remaining"));
+		assertEquals("LimitExceeded", failedResponse.getHeader("GovWay-Transaction-ErrorType"));
 		assertEquals("HTTP/1.1 429 Too Many Requests", failedResponse.getHeader("ReturnCode"));
 		assertNotEquals(null, failedResponse.getHeader("Retry-After"));
 
