@@ -17,5 +17,5 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/openspcoop2_3.3_lib_karate"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/openspcoop2_3.3_lib_stub"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/openspcoop2_3.3_lib_stub_axis14"/>
-	<classpathentry kind="output" path="bin"/>
+	 <classpathentry kind="output" path="bin"/>
 </classpath>
