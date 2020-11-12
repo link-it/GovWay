@@ -121,6 +121,7 @@
 		<if>
 			<equals arg1="${loadEnabled}" arg2="true"/>
 			<then>
+
 				<echo message="Caricamento configurazione in corso (delete) ..." />
 				<java classname="org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader" fork="true">
 					<arg value="false" />
@@ -129,6 +130,7 @@
 						<pathelement path="${build_testsuite}"/>
 					</classpath>
 				</java>
+
 				<echo message="Caricamento configurazione in corso (create) ..." />
 				<java classname="org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader" fork="true">
 					<arg value="true" />
@@ -172,64 +174,145 @@
 		</if>
 		<echo message="Esecuzione delle seguenti classi di test: ${karatetest}"/>
 
+		<if>
+			<not>
+				<equals arg1="${methods}" arg2="$${methods}"/>
+			</not>
+			<then>
+				<var name="karatemethods" value="${methods}"/>
+				<echo message="Esecuzione solamente dei seguenti metodi: ${karatemethods}"/>
+			</then>
+		</if>
+
+		<var name="karatepackage" value="org.openspcoop2.core.protocolli.trasparente.testsuite"/>
+		<if>
+			<not>
+				<equals arg1="${package}" arg2="$${package}"/>
+			</not>
+			<then>
+				<var name="karatepackage" value="org.openspcoop2.core.protocolli.trasparente.testsuite.${package}"/>
+				<echo message="Esecuzione solamente delle classi di test appartenenti al package: ${karatepackage}"/>
+			</then>
+		</if>
+
 		<for list="${karatetest}" param="karateTipoTest">
 			<sequential>
 				<mkdir dir="${output}/@{karateTipoTest}"/>
+
 				<if>
-					<equals arg1="${karateparams}" arg2=""/>
+					<not>
+						<equals arg1="${karatemethods}" arg2="$${karatemethods}"/>
+					</not>
 					<then>
-						<junit printsummary="yes" haltonfailure="${haltOnFailure}" showoutput="${showOutput}">
+						<echo message="!! WARN: Esecuzione singoli metodi '${karatemethods}' della class '${karatepackage}.@{karateTipoTest}'"/>
+						<if>
+							<equals arg1="${karateparams}" arg2=""/>
+							<then>
+								<junit printsummary="yes" haltonfailure="${haltOnFailure}" showoutput="${showOutput}">
 
-							<!-- Per non far comparire il Warning: Nashorn engine is planned to be removed from a future JDK release -->
-							<jvmarg value="-Dnashorn.args=--no-deprecation-warning"/>
+									<!-- Per non far comparire il Warning: Nashorn engine is planned to be removed from a future JDK release -->
+									<jvmarg value="-Dnashorn.args=--no-deprecation-warning"/>
 
-							<!-- Per non far comparire il WARNING: Illegal reflective access by net.minidev.asm.DynamicClassLoader 
-							     (file:.../lib/json/accessors-smart-1.2.jar) to method java.lang.ClassLoader.defineClass(java.lang.String,byte[],int,int) -->
-							<jvmarg value="-Djdk.module.illegalAccess=deny"/>
+									<!-- Per non far comparire il WARNING: Illegal reflective access by net.minidev.asm.DynamicClassLoader 
+									     (file:.../lib/json/accessors-smart-1.2.jar) to method java.lang.ClassLoader.defineClass(java.lang.String,byte[],int,int) -->
+									<jvmarg value="-Djdk.module.illegalAccess=deny"/>
 
-							<sysproperty key="wait" value="${wait}"/>
+									<sysproperty key="wait" value="${wait}"/>
 
-							<classpath refid="karate_testsuite" />
-							<classpath location="${build_testsuite}" />
+									<classpath refid="karate_testsuite" />
+									<classpath location="${build_testsuite}" />
 
-							<formatter type="plain"/>
-							<formatter type="xml" />
+									<formatter type="plain"/>
+									<formatter type="xml" />
 
-							<batchtest fork="yes" todir="${output}/@{karateTipoTest}">
-								<fileset dir="${src_testsuite}">
-									<include name="**/@{karateTipoTest}.java" />
-								</fileset>
-							</batchtest>
+									<test fork="yes" name="${karatepackage}.@{karateTipoTest}" methods="${karatemethods}"/>
 
-						</junit>
+								</junit>
+							</then>
+							<else>
+								<junit printsummary="yes" haltonfailure="${haltOnFailure}" showoutput="${showOutput}">
+
+									<jvmarg value="${karateparams}"/>
+
+									<!-- Per non far comparire il Warning: Nashorn engine is planned to be removed from a future JDK release -->
+									<jvmarg value="-Dnashorn.args=--no-deprecation-warning"/>
+
+									<!-- Per non far comparire il WARNING: Illegal reflective access by net.minidev.asm.DynamicClassLoader 
+									     (file:.../lib/json/accessors-smart-1.2.jar) to method java.lang.ClassLoader.defineClass(java.lang.String,byte[],int,int) -->
+									<jvmarg value="-Djdk.module.illegalAccess=deny"/>
+
+									<sysproperty key="wait" value="${wait}"/>
+
+									<classpath refid="karate_testsuite" />
+									<classpath location="${build_testsuite}" />
+
+									<formatter type="plain"/>
+									<formatter type="xml" />
+
+									<test fork="yes" name="${karatepackage}.@{karateTipoTest}" methods="${karatemethods}"/>
+
+								</junit>
+							</else>
+						</if>
 					</then>
 					<else>
-						<junit printsummary="yes" haltonfailure="${haltOnFailure}" showoutput="${showOutput}">
+						<if>
+							<equals arg1="${karateparams}" arg2=""/>
+							<then>
+								<junit printsummary="yes" haltonfailure="${haltOnFailure}" showoutput="${showOutput}">
 
-							<jvmarg value="${karateparams}"/>
+									<!-- Per non far comparire il Warning: Nashorn engine is planned to be removed from a future JDK release -->
+									<jvmarg value="-Dnashorn.args=--no-deprecation-warning"/>
 
-							<!-- Per non far comparire il Warning: Nashorn engine is planned to be removed from a future JDK release -->
-							<jvmarg value="-Dnashorn.args=--no-deprecation-warning"/>
+									<!-- Per non far comparire il WARNING: Illegal reflective access by net.minidev.asm.DynamicClassLoader 
+									     (file:.../lib/json/accessors-smart-1.2.jar) to method java.lang.ClassLoader.defineClass(java.lang.String,byte[],int,int) -->
+									<jvmarg value="-Djdk.module.illegalAccess=deny"/>
 
-							<!-- Per non far comparire il WARNING: Illegal reflective access by net.minidev.asm.DynamicClassLoader 
-							     (file:.../lib/json/accessors-smart-1.2.jar) to method java.lang.ClassLoader.defineClass(java.lang.String,byte[],int,int) -->
-							<jvmarg value="-Djdk.module.illegalAccess=deny"/>
+									<sysproperty key="wait" value="${wait}"/>
 
-							<sysproperty key="wait" value="${wait}"/>
+									<classpath refid="karate_testsuite" />
+									<classpath location="${build_testsuite}" />
 
-							<classpath refid="karate_testsuite" />
-							<classpath location="${build_testsuite}" />
+									<formatter type="plain"/>
+									<formatter type="xml" />
 
-							<formatter type="plain"/>
-							<formatter type="xml" />
+									<batchtest fork="yes" todir="${output}/@{karateTipoTest}" >
+										<fileset dir="${src_testsuite}">
+											<include name="**/@{karateTipoTest}.java" />
+										</fileset>
+									</batchtest>
 
-							<batchtest fork="yes" todir="${output}/@{karateTipoTest}">
-								<fileset dir="${src_testsuite}">
-									<include name="**/@{karateTipoTest}.java" />
-								</fileset>
-							</batchtest>
+								</junit>
+							</then>
+							<else>
+								<junit printsummary="yes" haltonfailure="${haltOnFailure}" showoutput="${showOutput}">
 
-						</junit>
+									<jvmarg value="${karateparams}"/>
+
+									<!-- Per non far comparire il Warning: Nashorn engine is planned to be removed from a future JDK release -->
+									<jvmarg value="-Dnashorn.args=--no-deprecation-warning"/>
+
+									<!-- Per non far comparire il WARNING: Illegal reflective access by net.minidev.asm.DynamicClassLoader 
+									     (file:.../lib/json/accessors-smart-1.2.jar) to method java.lang.ClassLoader.defineClass(java.lang.String,byte[],int,int) -->
+									<jvmarg value="-Djdk.module.illegalAccess=deny"/>
+
+									<sysproperty key="wait" value="${wait}"/>
+
+									<classpath refid="karate_testsuite" />
+									<classpath location="${build_testsuite}" />
+
+									<formatter type="plain"/>
+									<formatter type="xml" />
+
+									<batchtest fork="yes" todir="${output}/@{karateTipoTest}" >
+										<fileset dir="${src_testsuite}">
+											<include name="**/@{karateTipoTest}.java" />
+										</fileset>
+									</batchtest>
+
+								</junit>
+							</else>
+						</if>
 					</else>
 				</if>
 			</sequential>
