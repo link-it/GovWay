@@ -225,7 +225,7 @@
 									<formatter type="plain"/>
 									<formatter type="xml" />
 
-									<test fork="yes" name="${karatepackage}.@{karateTipoTest}" methods="${karatemethods}"/>
+									<test fork="yes" name="${karatepackage}.@{karateTipoTest}" methods="${karatemethods}" todir="${output}/@{karateTipoTest}"/>
 
 								</junit>
 							</then>
@@ -249,7 +249,7 @@
 									<formatter type="plain"/>
 									<formatter type="xml" />
 
-									<test fork="yes" name="${karatepackage}.@{karateTipoTest}" methods="${karatemethods}"/>
+									<test fork="yes" name="${karatepackage}.@{karateTipoTest}" methods="${karatemethods}" todir="${output}/@{karateTipoTest}"/>
 
 								</junit>
 							</else>
