@@ -20,8 +20,12 @@
 
 package org.openspcoop2.core.protocolli.trasparente.testsuite;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
+
+import org.openspcoop2.core.controllo_traffico.AttivazionePolicy;
+import org.openspcoop2.core.controllo_traffico.beans.UniqueIdentifierUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -40,7 +44,7 @@ public class DbUtils {
 
     private final JdbcTemplate jdbc;
 
-    public DbUtils(Map<String, Object> config) {
+    public DbUtils(Map<String, String> config) {
         String url = (String) config.get("url");
         String username = (String) config.get("username");
         String password = (String) config.get("password");
@@ -68,6 +72,38 @@ public class DbUtils {
 
     public int update(String query) {
         return this.jdbc.update(query);
+    }
+    
+
+    public String getPolicyIdErogazione(String erogatore, String api) {
+    	final String filtroPorta = "gw_" + erogatore + "/gw_" + api + "/v1";
+    	String query = "select active_policy_id,POLICY_UPDATE_TIME from ct_active_policy WHERE POLICY_ALIAS='RichiestePerMinuto' AND FILTRO_PORTA='"+filtroPorta+"' AND FILTRO_RUOLO='applicativa' AND filtro_protocollo='trasparente'";
+    	var result = readRow(query);
+    	    	
+    	String active_policy_id = (String) result.get("active_policy_id");
+    	Timestamp policy_update_time = (Timestamp) result.get("policy_update_time");   	
+    	
+       	AttivazionePolicy policy = new AttivazionePolicy();
+    	policy.setIdActivePolicy(active_policy_id);
+    	policy.setUpdateTime(policy_update_time);
+       	
+       	return UniqueIdentifierUtilities.getUniqueId(policy);
+    }
+    
+    public String getPolicyIdFruizione(String fruitore, String erogatore, String api) {
+    	final String filtroPorta = "gw_" + fruitore + "/gw_" + erogatore + "/gw_" + api + "/v1";
+    	
+    	String query = "select active_policy_id,POLICY_UPDATE_TIME from ct_active_policy WHERE POLICY_ALIAS='RichiestePerMinuto' AND FILTRO_PORTA='"+filtroPorta+"' AND FILTRO_RUOLO='delegata' AND filtro_protocollo='trasparente'";
+      	var result = readRow(query);
+    	
+    	String active_policy_id = (String) result.get("active_policy_id");
+    	Timestamp policy_update_time = (Timestamp) result.get("policy_update_time");   	
+    	
+       	AttivazionePolicy policy = new AttivazionePolicy();
+    	policy.setIdActivePolicy(active_policy_id);
+    	policy.setUpdateTime(policy_update_time);
+       	
+       	return UniqueIdentifierUtilities.getUniqueId(policy);
     }
 
 }

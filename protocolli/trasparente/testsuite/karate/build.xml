@@ -49,6 +49,10 @@
 		<fileset dir="${openspcoop2.dist}">
 			<include name="*.jar"/>
 		</fileset>
+		<fileset dir="${required_lib}/shared">
+			<include name="joda-time-2.10.5.jar"/>
+		</fileset>
+		
 	</path>
 
 	<property name="src_testsuite" location="src" />
