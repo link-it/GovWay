@@ -67,7 +67,7 @@ Per la console di gestione sono stati risolti i seguenti bug:
 
 - La selezione di un 'Servizio' in una erogazione o fruizione di API SOAP è adesso obbligatoria anche utilizzando la console in modalità avanzata. 
 
-- Corretta una errata visualizzazione delle informazioni presenti nella maschera di creazione di una fruizione, utilizzando la console in modalità avanzata: la scelta dell'erogatore risiedeva tra i dati dell'API e venivano quindi visualizzati due campi consecutivi con la medesima denominazione 'Nome'.
+- Corretta una errata visualizzazione delle informazioni presenti nella maschera di creazione di una fruizione, utilizzando la console in modalità avanzata: la scelta dell'erogatore risiedeva tra i dati dell'API e venivano quindi visualizzati due campi consecutivi con la stessa denominazione 'Nome'.
 
 - Risolto problema che provocava uno stallo sulla console quando si selezionava ripetutamente da una select list il valore già scelto in precedenza.
 
