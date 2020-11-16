@@ -14,10 +14,6 @@ import java.util.stream.IntStream;
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
 import org.openspcoop2.utils.UtilsException;
-import org.openspcoop2.utils.json.JsonPathException;
-import org.openspcoop2.utils.json.JsonPathExpressionEngine;
-import org.openspcoop2.utils.json.JsonPathNotFoundException;
-import org.openspcoop2.utils.json.JsonPathNotValidException;
 import org.openspcoop2.utils.transport.TransportUtils;
 import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
@@ -25,10 +21,8 @@ import org.openspcoop2.utils.transport.http.HttpResponse;
 import org.openspcoop2.utils.transport.http.HttpUtilities;
 import org.openspcoop2.utils.transport.http.HttpUtilsException;
 
-import net.minidev.json.JSONObject;
-
-public class RateLimitingTest extends ConfigLoader {
-
+public class RateLimitingSoapTest extends ConfigLoader {
+	
 	@Test
 	public void testRichiestePerMinuto() throws InterruptedException, UtilsException, HttpUtilsException {
 		System.out.println("Test richieste per minuto");
@@ -55,10 +49,19 @@ public class RateLimitingTest extends ConfigLoader {
 			java.lang.Thread.sleep(to_wait);
 		}
 		
+		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
+				"    <soap:Body>\n" + 
+				"        <ns2:RichiestePerMinuto xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
+				"        </ns2:RichiestePerMinuto>\n" + 
+				"    </soap:Body>\n" + 
+				"</soap:Envelope>";
+		
+		
 		HttpRequest request = new HttpRequest();
-		request.setContentType("application/json");
-		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RLRichiestePerMinuto/v1/resource");
+		request.setContentType("application/soap+xml");
+		request.setMethod(HttpRequestMethod.POST);
+		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestSoap/v1");
+		request.setContent(body.getBytes());
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 
@@ -93,47 +96,4 @@ public class RateLimitingTest extends ConfigLoader {
 		assertTrue(IntStream.range(0, maxRequests).allMatch(v -> counters.contains(v)));
 	}
 
-	@Test
-	public void testRichiesteSimultanee() throws UtilsException, InterruptedException, JsonPathException, JsonPathNotFoundException, JsonPathNotValidException {
-
-		final int maxConcurrentRequests = 10;
-
-		HttpRequest request = new HttpRequest();
-		request.setContentType("application/json");
-		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/ApiTrasparenteTest/v1/resource?sleep=5000");
-		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxConcurrentRequests + 1);
-
-		// Tutte le richieste tranne 1 devono restituire 200
-		
-		assertTrue(responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count() == maxConcurrentRequests);
-
-		// Tutte le richieste devono avere lo header GovWay-RateLimit-ConcurrentRequest-Limit=10
-		// Tutte le richieste devono avere lo header ConcurrentRequestsRemaining impostato ad un numero positivo		
-		
-		responses.forEach(r -> {
-			assertTrue(r.getHeader(Headers.ConcurrentRequestsLimit).equals(String.valueOf(maxConcurrentRequests)));
-			assertTrue(Integer.valueOf(r.getHeader(Headers.ConcurrentRequestsRemaining)) >= 0);
-		});
-			
-		// La richiesta fallita deve avere status code 429
-		
-		HttpResponse failedResponse = responses.stream().filter(r -> r.getResultHTTPOperation() == 429).findAny()
-				.orElse(null);
-		assertTrue(failedResponse != null);
-		
-		JSONObject jsonResp = JsonPathExpressionEngine.getJSONObject(new String(failedResponse.getContent()));
-		JsonPathExpressionEngine jsonPath = new JsonPathExpressionEngine();
-		//List<String> title = jsonPath.getStringMatchPattern(jsonResp, "$.title");
-		//System.out.println("Il titolo dell'errore è: " + title.get(0) );
-		
-
-		assertEquals("0", failedResponse.getHeader(Headers.ConcurrentRequestsRemaining));
-		assertEquals(HeaderValues.TooManyRequests, failedResponse.getHeader(Headers.GovWayTransactionErrorType));
-		assertEquals(HeaderValues.ReturnCodeTooManyRequests, failedResponse.getHeader(Headers.ReturnCode));
-		assertNotEquals(null, failedResponse.getHeader(Headers.RetryAfter));
-
-	}
-
-	
 }

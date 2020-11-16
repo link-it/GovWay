@@ -23,6 +23,7 @@ package org.openspcoop2.core.protocolli.trasparente.testsuite;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.Map;
 import java.util.Properties;
 import org.junit.BeforeClass;
 
@@ -40,10 +41,23 @@ public class ConfigLoader {
 
     private static final String propFileName = "testsuite.properties";
     private static final String trasparenteBundlePath = "src/configurazioni-govway/trasparenteTestBundle.zip";
+    
     protected static Properties prop = new Properties();
-	
     static {
         setupProperties();
+	}
+    
+	protected static DbUtils dbUtils;
+	
+	@BeforeClass
+	public static void setupDbUtils() {
+		var dbConfig = Map.of(
+				"username", System.getProperty("db_username"),
+				"password", System.getProperty("db_password"),
+				"url", System.getProperty("db_url"),
+				"driverClassName", System.getProperty("db_driverClassName")
+			);
+		dbUtils = new DbUtils(dbConfig);
 	}
 
     @BeforeClass
