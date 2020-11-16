@@ -148,6 +148,13 @@ public class RateLimitingRestTest extends ConfigLoader {
 		assertNotEquals(null, failedResponse.getHeader(Headers.RetryAfter));
 
 	}
+	
+	@Test
+	public void richiesteSimultaneeInfinito() throws Exception {
+		while(true) {
+			testRichiesteSimultanee();
+		}
+	}
 
 	
 }
