@@ -122,7 +122,7 @@ public class PorteDelegateGestioneCanale extends Action {
 			// carico i canali
 			CanaliConfigurazione gestioneCanali = confCore.getCanaliConfigurazione(false);
 			List<CanaleConfigurazione> canaleList = gestioneCanali != null ? gestioneCanali.getCanaleList() : new ArrayList<>();
-			boolean gestioneCanaliEnabled = gestioneCanali != null && gestioneCanali.getStato().equals(org.openspcoop2.core.config.constants.StatoFunzionalita.ABILITATO);
+			boolean gestioneCanaliEnabled = gestioneCanali != null && org.openspcoop2.core.config.constants.StatoFunzionalita.ABILITATO.equals(gestioneCanali.getStato());
 			
 			String postBackElementName = porteDelegateHelper.getPostBackElementName();
 			if(postBackElementName != null ){
@@ -205,7 +205,7 @@ public class PorteDelegateGestioneCanale extends Action {
 			}
 			
 			// canale
-			if(canaleStato.equals(AccordiServizioParteComuneCostanti.DEFAULT_VALUE_PARAMETRO_APC_CANALE_STATO_RIDEFINITO)) {
+			if(AccordiServizioParteComuneCostanti.DEFAULT_VALUE_PARAMETRO_APC_CANALE_STATO_RIDEFINITO.equals(canaleStato)) {
 				portaDelegata.setCanale(canale);
 			} else {
 				portaDelegata.setCanale(null);

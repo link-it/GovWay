@@ -262,7 +262,7 @@ public final class AccordiServizioParteComuneAdd extends Action {
 			// carico i canali
 			CanaliConfigurazione gestioneCanali = confCore.getCanaliConfigurazione(false);
 			List<CanaleConfigurazione> canaleList = gestioneCanali != null ? gestioneCanali.getCanaleList() : new ArrayList<>();
-			boolean gestioneCanaliEnabled = gestioneCanali != null && gestioneCanali.getStato().equals(org.openspcoop2.core.config.constants.StatoFunzionalita.ABILITATO);
+			boolean gestioneCanaliEnabled = gestioneCanali != null && org.openspcoop2.core.config.constants.StatoFunzionalita.ABILITATO.equals(gestioneCanali.getStato());
 			
 			// Tipi protocollo supportati
 			// Controllo comunque quelli operativi, almeno uno deve esistere
@@ -907,7 +907,7 @@ public final class AccordiServizioParteComuneAdd extends Action {
 			
 			// canale
 			if(gestioneCanaliEnabled) {
-				if(this.canaleStato.equals(AccordiServizioParteComuneCostanti.DEFAULT_VALUE_PARAMETRO_APC_CANALE_STATO_RIDEFINITO)) {
+				if(AccordiServizioParteComuneCostanti.DEFAULT_VALUE_PARAMETRO_APC_CANALE_STATO_RIDEFINITO.equals(this.canaleStato)) {
 					as.setCanale(this.canale);
 				} else {
 					as.setCanale(null);

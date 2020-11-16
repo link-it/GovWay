@@ -66,6 +66,7 @@ import org.openspcoop2.core.registry.beans.OperationSintetica;
 import org.openspcoop2.core.registry.beans.PortTypeSintetico;
 import org.openspcoop2.core.registry.beans.ResourceSintetica;
 import org.openspcoop2.core.registry.constants.CostantiRegistroServizi;
+import org.openspcoop2.core.registry.constants.HttpMethod;
 import org.openspcoop2.core.registry.constants.ParameterType;
 import org.openspcoop2.core.registry.constants.ProfiloCollaborazione;
 import org.openspcoop2.core.registry.constants.RepresentationType;
@@ -4461,7 +4462,7 @@ public class AccordiServizioParteComuneHelper extends ConnettoriHelper {
 			de.setPostBack(true);
 			dati.addElement(de);
 			
-			if(canaleStato.equals(AccordiServizioParteComuneCostanti.DEFAULT_VALUE_PARAMETRO_APC_CANALE_STATO_RIDEFINITO)) {
+			if(AccordiServizioParteComuneCostanti.DEFAULT_VALUE_PARAMETRO_APC_CANALE_STATO_RIDEFINITO.equals(canaleStato)) {
 				de = new DataElement();
 				de.setLabel(""); //(AccordiServizioParteComuneCostanti.LABEL_PARAMETRO_APC_CANALE);
 				de.setValue(canale);
@@ -4590,7 +4591,7 @@ public class AccordiServizioParteComuneHelper extends ConnettoriHelper {
 		de.setSize(this.getSize());
 		dati.addElement(de);
 		
-		if(canaleStato.equals(AccordiServizioParteComuneCostanti.DEFAULT_VALUE_PARAMETRO_APC_CANALE_STATO_RIDEFINITO)) {
+		if(AccordiServizioParteComuneCostanti.DEFAULT_VALUE_PARAMETRO_APC_CANALE_STATO_RIDEFINITO.equals(canaleStato)) {
 			de = new DataElement();
 			de.setLabel(AccordiServizioParteComuneCostanti.LABEL_PARAMETRO_APC_CANALE);
 			de.setValue(canale);
@@ -7023,6 +7024,14 @@ public class AccordiServizioParteComuneHelper extends ConnettoriHelper {
 					return false;
 				}
 			}
+			else {
+				HttpMethod http = HttpMethod.toEnumConstant(httpMethod);
+				if(http==null) {
+					this.pd.setMessage("Dati incompleti. E' necessario indicare un Nome");
+					return false;
+				}
+			}
+			
 			if(descr!=null && !"".equals(descr)) {
 				if(this.checkLength255(descr, AccordiServizioParteComuneCostanti.LABEL_PARAMETRO_APC_RESOURCES_DESCRIZIONE)==false) {
 					return false;
