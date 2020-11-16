@@ -27,7 +27,7 @@ import org.openspcoop2.utils.transport.http.HttpUtilsException;
 
 import net.minidev.json.JSONObject;
 
-public class RateLimitingTest extends ConfigLoader {
+public class RateLimitingRestTest extends ConfigLoader {
 
 	@Test
 	public void testRichiestePerMinuto() throws InterruptedException, UtilsException, HttpUtilsException {
@@ -124,8 +124,12 @@ public class RateLimitingTest extends ConfigLoader {
 		
 		JSONObject jsonResp = JsonPathExpressionEngine.getJSONObject(new String(failedResponse.getContent()));
 		JsonPathExpressionEngine jsonPath = new JsonPathExpressionEngine();
-		//List<String> title = jsonPath.getStringMatchPattern(jsonResp, "$.title");
-		//System.out.println("Il titolo dell'errore è: " + title.get(0) );
+		
+		assertEquals("https://govway.org/handling-errors/429/TooManyRequests.html", jsonPath.getStringMatchPattern(jsonResp, "$.type").get(0));
+		assertEquals("TooManyRequests", jsonPath.getStringMatchPattern(jsonResp, "$.title").get(0));
+		assertEquals("429", jsonPath.getStringMatchPattern(jsonResp, "$.status").get(0));
+		assertEquals("Too many requests detected", jsonPath.getStringMatchPattern(jsonResp, "$.detail").get(0));
+		assertNotEquals(null, jsonPath.getStringMatchPattern(jsonResp, "$.govway_id").get(0));
 		
 
 		assertEquals("0", failedResponse.getHeader(Headers.ConcurrentRequestsRemaining));
