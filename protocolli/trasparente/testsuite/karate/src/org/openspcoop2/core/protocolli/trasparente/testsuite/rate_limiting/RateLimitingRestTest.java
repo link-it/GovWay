@@ -30,7 +30,7 @@ import net.minidev.json.JSONObject;
 public class RateLimitingRestTest extends ConfigLoader {
 
 	@Test
-	public void testRichiestePerMinuto() throws InterruptedException, UtilsException, HttpUtilsException {
+	public void testRichiestePerMinuto() throws InterruptedException, UtilsException, HttpUtilsException, JsonPathException, JsonPathNotFoundException, JsonPathNotValidException {
 		System.out.println("Test richieste per minuto");
 		final int maxRequests = 5;
 
@@ -81,6 +81,16 @@ public class RateLimitingRestTest extends ConfigLoader {
 		HttpResponse failedResponse = responses.stream().filter(r -> r.getResultHTTPOperation() == 429).findAny()
 				.orElse(null);
 		assertTrue(failedResponse != null);
+		
+		JSONObject jsonResp = JsonPathExpressionEngine.getJSONObject(new String(failedResponse.getContent()));
+		JsonPathExpressionEngine jsonPath = new JsonPathExpressionEngine();
+		
+		assertEquals("https://govway.org/handling-errors/429/LimitExceeded.html", jsonPath.getStringMatchPattern(jsonResp, "$.type").get(0));
+		assertEquals("LimitExceeded", jsonPath.getStringMatchPattern(jsonResp, "$.title").get(0));
+		assertEquals(429, jsonPath.getNumberMatchPattern(jsonResp, "$.status").get(0));
+		assertEquals("Limit exceeded detected", jsonPath.getStringMatchPattern(jsonResp, "$.detail").get(0));
+		assertNotEquals(null, jsonPath.getStringMatchPattern(jsonResp, "$.govway_id").get(0));
+		
 		assertEquals("0", failedResponse.getHeader(Headers.RateLimitRemaining));
 		assertEquals(HeaderValues.LimitExceeded, failedResponse.getHeader(Headers.GovWayTransactionErrorType));
 		assertEquals(HeaderValues.ReturnCodeTooManyRequests, failedResponse.getHeader(Headers.ReturnCode));
@@ -127,7 +137,7 @@ public class RateLimitingRestTest extends ConfigLoader {
 		
 		assertEquals("https://govway.org/handling-errors/429/TooManyRequests.html", jsonPath.getStringMatchPattern(jsonResp, "$.type").get(0));
 		assertEquals("TooManyRequests", jsonPath.getStringMatchPattern(jsonResp, "$.title").get(0));
-		assertEquals("429", jsonPath.getStringMatchPattern(jsonResp, "$.status").get(0));
+		assertEquals(429, jsonPath.getNumberMatchPattern(jsonResp, "$.status").get(0));
 		assertEquals("Too many requests detected", jsonPath.getStringMatchPattern(jsonResp, "$.detail").get(0));
 		assertNotEquals(null, jsonPath.getStringMatchPattern(jsonResp, "$.govway_id").get(0));
 		

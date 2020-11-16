@@ -28,13 +28,12 @@ public class RateLimitingSoapTest extends ConfigLoader {
 		System.out.println("Test richieste per minuto");
 		final int maxRequests = 5;
 
-		
 		// Resetto la policy di RL
 		
 		Map<String,String> queryParams = Map.of(
 				"resourceName", "ControlloTraffico",
 				"methodName", "resetPolicyCounters",
-				"paramValue", dbUtils.getPolicyIdErogazione("SoggettoInternoTest", "RLRichiestePerMinuto")
+				"paramValue", dbUtils.getPolicyIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap")
 			);
 		String jmxUrl = TransportUtils.buildLocationWithURLBasedParameter(queryParams, System.getProperty("govway_base_path") + "/check");
 		System.out.println("Resetto la policy di rate limiting sulla url: " + jmxUrl );
