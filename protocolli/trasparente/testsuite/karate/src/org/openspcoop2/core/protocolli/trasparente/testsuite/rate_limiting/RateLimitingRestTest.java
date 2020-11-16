@@ -40,7 +40,7 @@ public class RateLimitingRestTest extends ConfigLoader {
 		Map<String,String> queryParams = Map.of(
 				"resourceName", "ControlloTraffico",
 				"methodName", "resetPolicyCounters",
-				"paramValue", dbUtils.getPolicyIdErogazione("SoggettoInternoTest", "RLRichiestePerMinuto")
+				"paramValue", dbUtils.getPolicyIdErogazione("SoggettoInternoTest", "RateLimitingTestRest")
 			);
 		String jmxUrl = TransportUtils.buildLocationWithURLBasedParameter(queryParams, System.getProperty("govway_base_path") + "/check");
 		System.out.println("Resetto la policy di rate limiting sulla url: " + jmxUrl );
@@ -58,7 +58,7 @@ public class RateLimitingRestTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RLRichiestePerMinuto/v1/resource");
+		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestRest/v1/richieste-per-minuto");
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 
@@ -111,7 +111,7 @@ public class RateLimitingRestTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/ApiTrasparenteTest/v1/resource?sleep=5000");
+		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestRest/v1/richieste-simultanee?sleep=5000");
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxConcurrentRequests + 1);
 
 		// Tutte le richieste tranne 1 devono restituire 200
