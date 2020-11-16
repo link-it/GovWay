@@ -8,16 +8,11 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
-import org.openspcoop2.core.protocolli.trasparente.testsuite.DbUtils;
 import org.openspcoop2.utils.UtilsException;
 import org.openspcoop2.utils.json.JsonPathException;
 import org.openspcoop2.utils.json.JsonPathExpressionEngine;
@@ -32,73 +27,10 @@ import org.openspcoop2.utils.transport.http.HttpUtilsException;
 
 import net.minidev.json.JSONObject;
 
-public class RateLimitingTest extends ConfigLoader {
-	
-	private static DbUtils dbUtils;
-
-	
-	public static class Headers {
-		public static final String RateLimitReset = "X-RateLimit-Reset";
-		public static final String RateLimitRemaining = "X-RateLimit-Remaining";
-		public static final String ReturnCode = "ReturnCode";
-		public static final String RetryAfter = "Retry-After";
-		public static final String ConcurrentRequestsLimit = "GovWay-RateLimit-ConcurrentRequest-Limit";
-		public static final String ConcurrentRequestsRemaining = "GovWay-RateLimit-ConcurrentRequest-Remaining";
-		public static final String GovWayTransactionErrorType = "GovWay-Transaction-ErrorType";
-	}
-	
-	public static class HeaderValues {
-		public static final String LimitExceeded = "LimitExceeded";
-		public static final String ReturnCodeTooManyRequests = "HTTP/1.1 429 Too Many Requests";
-		public static final String TooManyRequests = "TooManyRequests";		 
-	}
-		
-	@BeforeClass
-	public static void setupDbUtils() {
-		var dbConfig = Map.of(
-				"username", System.getProperty("db_username"),
-				"password", System.getProperty("db_password"),
-				"url", System.getProperty("db_url"),
-				"driverClassName", System.getProperty("db_driverClassName")
-			);
-		dbUtils = new DbUtils(dbConfig);
-	}
-	
-
-	private Vector<HttpResponse> makeParallelRequests(HttpRequest request, int count) throws InterruptedException {
-
-		final Vector<HttpResponse> responses = new Vector<>();
-		ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(count);
-
-		for (int i = 0; i < count; i++) {
-			executor.execute(() -> {
-				try {
-					System.out.println(request.getMethod() + " " + request.getUrl());
-					responses.add(HttpUtilities.httpInvoke(request));
-					System.out.println("Richiesta effettuata..");
-				} catch (UtilsException e) {
-					e.printStackTrace();
-					throw new RuntimeException(e);
-				}
-			});
-		}
-
-		executor.shutdown();
-		executor.awaitTermination(20, TimeUnit.SECONDS);
-		System.out.println("RESPONSES: ");
-
-		responses.forEach(r -> {
-			System.out.println("statusCode: " + r.getResultHTTPOperation());
-			System.out.println("headers: " + r.getHeaders());
-		});
-
-		return responses;
-	}
-	
-	
+public class RateLimitingRestTest extends ConfigLoader {
 
 	@Test
-	public void testRichiestePerMinuto() throws InterruptedException, UtilsException, HttpUtilsException {
+	public void testRichiestePerMinuto() throws InterruptedException, UtilsException, HttpUtilsException, JsonPathException, JsonPathNotFoundException, JsonPathNotValidException {
 		System.out.println("Test richieste per minuto");
 		final int maxRequests = 5;
 
@@ -108,7 +40,7 @@ public class RateLimitingTest extends ConfigLoader {
 		Map<String,String> queryParams = Map.of(
 				"resourceName", "ControlloTraffico",
 				"methodName", "resetPolicyCounters",
-				"paramValue", dbUtils.getPolicyIdErogazione("SoggettoInternoTest", "RLRichiestePerMinuto")
+				"paramValue", dbUtils.getPolicyIdErogazione("SoggettoInternoTest", "RateLimitingTestRest")
 			);
 		String jmxUrl = TransportUtils.buildLocationWithURLBasedParameter(queryParams, System.getProperty("govway_base_path") + "/check");
 		System.out.println("Resetto la policy di rate limiting sulla url: " + jmxUrl );
@@ -126,9 +58,9 @@ public class RateLimitingTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RLRichiestePerMinuto/v1/resource");
+		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestRest/v1/richieste-per-minuto");
 						
-		Vector<HttpResponse> responses = makeParallelRequests(request, maxRequests + 1);
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 
 		// Tutte le richieste devono avere lo header X-RateLimit-Reset impostato ad un numero
 		// Tutte le richieste devono avere lo header X-RateLimit-Limit
@@ -149,6 +81,16 @@ public class RateLimitingTest extends ConfigLoader {
 		HttpResponse failedResponse = responses.stream().filter(r -> r.getResultHTTPOperation() == 429).findAny()
 				.orElse(null);
 		assertTrue(failedResponse != null);
+		
+		JSONObject jsonResp = JsonPathExpressionEngine.getJSONObject(new String(failedResponse.getContent()));
+		JsonPathExpressionEngine jsonPath = new JsonPathExpressionEngine();
+		
+		assertEquals("https://govway.org/handling-errors/429/LimitExceeded.html", jsonPath.getStringMatchPattern(jsonResp, "$.type").get(0));
+		assertEquals("LimitExceeded", jsonPath.getStringMatchPattern(jsonResp, "$.title").get(0));
+		assertEquals(429, jsonPath.getNumberMatchPattern(jsonResp, "$.status").get(0));
+		assertEquals("Limit exceeded detected", jsonPath.getStringMatchPattern(jsonResp, "$.detail").get(0));
+		assertNotEquals(null, jsonPath.getStringMatchPattern(jsonResp, "$.govway_id").get(0));
+		
 		assertEquals("0", failedResponse.getHeader(Headers.RateLimitRemaining));
 		assertEquals(HeaderValues.LimitExceeded, failedResponse.getHeader(Headers.GovWayTransactionErrorType));
 		assertEquals(HeaderValues.ReturnCodeTooManyRequests, failedResponse.getHeader(Headers.ReturnCode));
@@ -169,8 +111,8 @@ public class RateLimitingTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/ApiTrasparenteTest/v1/resource?sleep=5000");
-		Vector<HttpResponse> responses = makeParallelRequests(request, maxConcurrentRequests + 1);
+		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestRest/v1/richieste-simultanee?sleep=5000");
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxConcurrentRequests + 1);
 
 		// Tutte le richieste tranne 1 devono restituire 200
 		
@@ -192,8 +134,12 @@ public class RateLimitingTest extends ConfigLoader {
 		
 		JSONObject jsonResp = JsonPathExpressionEngine.getJSONObject(new String(failedResponse.getContent()));
 		JsonPathExpressionEngine jsonPath = new JsonPathExpressionEngine();
-		List<String> title = jsonPath.getStringMatchPattern(jsonResp, "$.title");
-		System.out.println("Il titolo dell'errore è: " + title.get(0) );
+		
+		assertEquals("https://govway.org/handling-errors/429/TooManyRequests.html", jsonPath.getStringMatchPattern(jsonResp, "$.type").get(0));
+		assertEquals("TooManyRequests", jsonPath.getStringMatchPattern(jsonResp, "$.title").get(0));
+		assertEquals(429, jsonPath.getNumberMatchPattern(jsonResp, "$.status").get(0));
+		assertEquals("Too many requests detected", jsonPath.getStringMatchPattern(jsonResp, "$.detail").get(0));
+		assertNotEquals(null, jsonPath.getStringMatchPattern(jsonResp, "$.govway_id").get(0));
 		
 
 		assertEquals("0", failedResponse.getHeader(Headers.ConcurrentRequestsRemaining));
