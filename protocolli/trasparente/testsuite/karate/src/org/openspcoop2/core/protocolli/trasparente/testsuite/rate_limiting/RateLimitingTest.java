@@ -19,11 +19,18 @@ import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.DbUtils;
 import org.openspcoop2.utils.UtilsException;
+import org.openspcoop2.utils.json.JsonPathException;
+import org.openspcoop2.utils.json.JsonPathExpressionEngine;
+import org.openspcoop2.utils.json.JsonPathNotFoundException;
+import org.openspcoop2.utils.json.JsonPathNotValidException;
+import org.openspcoop2.utils.transport.TransportUtils;
 import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpResponse;
 import org.openspcoop2.utils.transport.http.HttpUtilities;
 import org.openspcoop2.utils.transport.http.HttpUtilsException;
+
+import net.minidev.json.JSONObject;
 
 public class RateLimitingTest extends ConfigLoader {
 	
@@ -94,13 +101,21 @@ public class RateLimitingTest extends ConfigLoader {
 	public void testRichiestePerMinuto() throws InterruptedException, UtilsException, HttpUtilsException {
 		System.out.println("Test richieste per minuto");
 		final int maxRequests = 5;
+
 		
 		// Resetto la policy di RL
-		String jmx_url = System.getProperty("govway_base_path") + 
-				"/check?resourceName=ControlloTraffico&methodName=resetPolicyCounters&paramValue=" + dbUtils.getPolicyIdErogazione("SoggettoInternoTest", "RLRichiestePerMinuto");
-		HttpUtilities.check(jmx_url, System.getProperty("jmx_username"), System.getProperty("jmx_password"));
+		
+		Map<String,String> queryParams = Map.of(
+				"resourceName", "ControlloTraffico",
+				"methodName", "resetPolicyCounters",
+				"paramValue", dbUtils.getPolicyIdErogazione("SoggettoInternoTest", "RLRichiestePerMinuto")
+			);
+		String jmxUrl = TransportUtils.buildLocationWithURLBasedParameter(queryParams, System.getProperty("govway_base_path") + "/check");
+		System.out.println("Resetto la policy di rate limiting sulla url: " + jmxUrl );
+		HttpUtilities.check(jmxUrl, System.getProperty("jmx_username"), System.getProperty("jmx_password"));
 		
 		// Aspetto lo scoccare del minuto
+		
 		if (!"false".equals(System.getProperty("wait"))) {
 			Calendar now = Calendar.getInstance();
 			int to_wait = (63 - now.get(Calendar.SECOND)) *1000;
@@ -117,17 +132,20 @@ public class RateLimitingTest extends ConfigLoader {
 
 		// Tutte le richieste devono avere lo header X-RateLimit-Reset impostato ad un numero
 		// Tutte le richieste devono avere lo header X-RateLimit-Limit
+		
 		responses.forEach(r -> { 			
 				assertTrue( Integer.valueOf(r.getHeader(Headers.RateLimitReset)) != null);
-				// assertNotEquals(null,r.getHeader("X-RateLimit-Limit")); TODO: Debugga con andrea e vedi perchè non te lo genera
+				assertNotEquals(null,r.getHeader("X-RateLimit-Limit"));
 			});
 
 		
-		// Tutte le richieste tranne 1 devono restituire 200
+		// Tutte le richieste tranne una devono restituire 200
+		
 		assertTrue(responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count() == maxRequests);
 
 		
 		// La richiesta fallita deve avere status code 429
+		
 		HttpResponse failedResponse = responses.stream().filter(r -> r.getResultHTTPOperation() == 429).findAny()
 				.orElse(null);
 		assertTrue(failedResponse != null);
@@ -144,43 +162,45 @@ public class RateLimitingTest extends ConfigLoader {
 	}
 
 	@Test
-	public void testParallellV2() throws UtilsException, InterruptedException {
-		// TODO: Testa anche la fruizione quando andrea ha risolto le segnalazioni nelle
-		// mail
+	public void testRichiesteSimultanee() throws UtilsException, InterruptedException, JsonPathException, JsonPathNotFoundException, JsonPathNotValidException {
+
 		final int maxConcurrentRequests = 10;
 
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/ApiTrasparenteTest/v1/resource");
+		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/ApiTrasparenteTest/v1/resource?sleep=5000");
 		Vector<HttpResponse> responses = makeParallelRequests(request, maxConcurrentRequests + 1);
 
 		// Tutte le richieste tranne 1 devono restituire 200
+		
 		assertTrue(responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count() == maxConcurrentRequests);
 
 		// Tutte le richieste devono avere lo header GovWay-RateLimit-ConcurrentRequest-Limit=10
-		responses.forEach(r -> assertTrue(
-				r.getHeader(Headers.ConcurrentRequestsLimit).equals(String.valueOf(maxConcurrentRequests))));
-
+		// Tutte le richieste devono avere lo header ConcurrentRequestsRemaining impostato ad un numero positivo		
+		
+		responses.forEach(r -> {
+			assertTrue(r.getHeader(Headers.ConcurrentRequestsLimit).equals(String.valueOf(maxConcurrentRequests)));
+			assertTrue(Integer.valueOf(r.getHeader(Headers.ConcurrentRequestsRemaining)) >= 0);
+		});
+			
 		// La richiesta fallita deve avere status code 429
+		
 		HttpResponse failedResponse = responses.stream().filter(r -> r.getResultHTTPOperation() == 429).findAny()
 				.orElse(null);
 		assertTrue(failedResponse != null);
+		
+		JSONObject jsonResp = JsonPathExpressionEngine.getJSONObject(new String(failedResponse.getContent()));
+		JsonPathExpressionEngine jsonPath = new JsonPathExpressionEngine();
+		List<String> title = jsonPath.getStringMatchPattern(jsonResp, "$.title");
+		System.out.println("Il titolo dell'errore è: " + title.get(0) );
+		
 
 		assertEquals("0", failedResponse.getHeader(Headers.ConcurrentRequestsRemaining));
 		assertEquals(HeaderValues.TooManyRequests, failedResponse.getHeader(Headers.GovWayTransactionErrorType));
 		assertEquals(HeaderValues.ReturnCodeTooManyRequests, failedResponse.getHeader(Headers.ReturnCode));
 		assertNotEquals(null, failedResponse.getHeader(Headers.RetryAfter));
 
-		// Lo header GovWay-RateLimit-ConcurrentRequest-Remaining deve assumere tutti i
-		// i valori possibili da 0 a maxConcurrentRequests-1
-		List<Integer> counters = responses.stream()
-				.map(resp -> Integer.parseInt(resp.getHeader(Headers.ConcurrentRequestsRemaining)))
-				.collect(Collectors.toList());
-
-		assertTrue(IntStream.range(0, maxConcurrentRequests).allMatch(v -> counters.contains(v)));
-
-		System.out.println("Threads eseguiti!");
 	}
 
 	

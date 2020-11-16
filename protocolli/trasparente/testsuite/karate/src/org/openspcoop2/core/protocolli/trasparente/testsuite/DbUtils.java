@@ -87,6 +87,7 @@ public class DbUtils {
     	policy.setIdActivePolicy(active_policy_id);
     	policy.setUpdateTime(policy_update_time);
        	
+    	// TODO: Il reset non mi funziona perchè per qualche motivo non mi appende il time alla url
        	return UniqueIdentifierUtilities.getUniqueId(policy);
     }
     

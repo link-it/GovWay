@@ -52,9 +52,14 @@
 		<fileset dir="${required_lib}/shared">
 			<include name="joda-time-2.10.5.jar"/>
 		</fileset>
-		
-	</path>
+		<fileset dir="${required_lib}/jax">
+			<include name="jaxb-*.jar"/>
+		</fileset>	
+		<fileset dir="${required_lib}/jackson">
+			<include name="jackson-*.jar"/>
+		</fileset>	
 
+	</path>
 	<property name="src_testsuite" location="src" />
 	<property name="build_testsuite" location="build" />
 
