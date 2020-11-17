@@ -17,9 +17,11 @@ import org.openspcoop2.utils.transport.http.HttpResponse;
 
 public class RateLimitingSoapTest extends ConfigLoader {
 	
+
+	
 	@Test
 	public void richiestePerMinuto() throws Exception {
-		System.out.println("Test richieste per minuto");
+		System.out.println("Test richieste per minuto erogazione...");
 		final int maxRequests = 5;
 
 		// Resetto la policy di RL
@@ -43,8 +45,47 @@ public class RateLimitingSoapTest extends ConfigLoader {
 		request.setMethod(HttpRequestMethod.POST);
 		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestSoap/v1");
 		request.setContent(body.getBytes());
-						
+		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
+
+		checkAssertionsRichiestePerMinuto(responses, maxRequests);		
+	}
+	
+	
+	@Test
+	public void richiestePerMinutoFruizione() throws Exception {
+		System.out.println("Test richieste per minuto fruizione...");
+		final int maxRequests = 5;
+
+		// Resetto la policy di RL
+		
+		Utils.resetAllCountersFruizione(dbUtils, "SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap");
+		
+		// Aspetto lo scoccare del minuto
+
+		Utils.waitForNewMinute();		
+		
+		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
+				"    <soap:Body>\n" + 
+				"        <ns2:RichiestePerMinuto xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
+				"        </ns2:RichiestePerMinuto>\n" + 
+				"    </soap:Body>\n" + 
+				"</soap:Envelope>";
+		
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/soap+xml");
+		request.setMethod(HttpRequestMethod.POST);
+		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/RateLimitingTestSoap/v1");
+		request.setContent(body.getBytes());
+		
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
+
+		checkAssertionsRichiestePerMinuto(responses, maxRequests);		
+	}
+	
+	
+	private void checkAssertionsRichiestePerMinuto(Vector<HttpResponse> responses, int maxRequests) {
 
 		// Tutte le richieste devono avere lo header X-RateLimit-Reset impostato ad un numero
 		// Tutte le richieste devono avere lo header X-RateLimit-Limit
@@ -74,7 +115,7 @@ public class RateLimitingSoapTest extends ConfigLoader {
 		// i valori possibili da 0 a maxRequests-1
 		List<Integer> counters = responses.stream()
 				.map(resp -> Integer.parseInt(resp.getHeader(Headers.RateLimitRemaining))).collect(Collectors.toList());
-		assertTrue(IntStream.range(0, maxRequests).allMatch(v -> counters.contains(v)));
+		assertTrue(IntStream.range(0, maxRequests).allMatch(v -> counters.contains(v)));		
 	}
 
 }
