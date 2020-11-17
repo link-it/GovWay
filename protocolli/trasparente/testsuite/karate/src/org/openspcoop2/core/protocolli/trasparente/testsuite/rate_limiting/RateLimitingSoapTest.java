@@ -4,49 +4,31 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Calendar;
 import java.util.List;
-import java.util.Map;
 import java.util.Vector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
-import org.openspcoop2.utils.UtilsException;
-import org.openspcoop2.utils.transport.TransportUtils;
 import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpResponse;
-import org.openspcoop2.utils.transport.http.HttpUtilities;
-import org.openspcoop2.utils.transport.http.HttpUtilsException;
 
 public class RateLimitingSoapTest extends ConfigLoader {
 	
 	@Test
-	public void testRichiestePerMinuto() throws InterruptedException, UtilsException, HttpUtilsException {
+	public void richiestePerMinuto() throws Exception {
 		System.out.println("Test richieste per minuto");
 		final int maxRequests = 5;
 
 		// Resetto la policy di RL
 		
-		Map<String,String> queryParams = Map.of(
-				"resourceName", "ControlloTraffico",
-				"methodName", "resetPolicyCounters",
-				"paramValue", dbUtils.getPolicyIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap")
-			);
-		String jmxUrl = TransportUtils.buildLocationWithURLBasedParameter(queryParams, System.getProperty("govway_base_path") + "/check");
-		System.out.println("Resetto la policy di rate limiting sulla url: " + jmxUrl );
-		HttpUtilities.check(jmxUrl, System.getProperty("jmx_username"), System.getProperty("jmx_password"));
+		Utils.resetAllCountersErogazione(dbUtils, "SoggettoInternoTest", "RateLimitingTestSoap");
 		
 		// Aspetto lo scoccare del minuto
-		
-		if (!"false".equals(System.getProperty("wait"))) {
-			Calendar now = Calendar.getInstance();
-			int to_wait = (63 - now.get(Calendar.SECOND)) *1000;
-			System.out.println("Aspetto " + to_wait/1000 + " secondi per lo scoccare del minuto..");
-			java.lang.Thread.sleep(to_wait);
-		}
+
+		Utils.waitForNewMinute();		
 		
 		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
 				"    <soap:Body>\n" + 

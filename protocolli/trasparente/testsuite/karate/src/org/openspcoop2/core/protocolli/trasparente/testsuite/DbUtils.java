@@ -23,6 +23,7 @@ package org.openspcoop2.core.protocolli.trasparente.testsuite;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.openspcoop2.core.controllo_traffico.AttivazionePolicy;
 import org.openspcoop2.core.controllo_traffico.beans.UniqueIdentifierUtilities;
@@ -73,7 +74,7 @@ public class DbUtils {
     public int update(String query) {
         return this.jdbc.update(query);
     }
-    
+     
 
     public String getPolicyIdErogazione(String erogatore, String api) {
     	final String filtroPorta = "gw_" + erogatore + "/gw_" + api + "/v1";
@@ -87,9 +88,9 @@ public class DbUtils {
     	policy.setIdActivePolicy(active_policy_id);
     	policy.setUpdateTime(policy_update_time);
        	
-    	// TODO: Il reset non mi funziona perchè per qualche motivo non mi appende il time alla url
        	return UniqueIdentifierUtilities.getUniqueId(policy);
     }
+    
     
     public String getPolicyIdFruizione(String fruitore, String erogatore, String api) {
     	final String filtroPorta = "gw_" + fruitore + "/gw_" + erogatore + "/gw_" + api + "/v1";
@@ -106,5 +107,45 @@ public class DbUtils {
        	
        	return UniqueIdentifierUtilities.getUniqueId(policy);
     }
+    
+    public List<String> getAllPoliciesIdErogazione(String erogatore, String erogazione) {
+    	
+    	final String filtroPorta = "%gw_" + erogatore + "/gw_" + erogazione + "/v1%";
+    	String query = "select active_policy_id,POLICY_UPDATE_TIME from ct_active_policy WHERE POLICY_ALIAS='RichiestePerMinuto' AND FILTRO_PORTA LIKE '"+filtroPorta+"' AND FILTRO_RUOLO='applicativa' AND filtro_protocollo='trasparente'";
+    	List<Map<String, Object>> results = readRows(query);
+    	    	
+    	return results.stream()
+    		.map( r -> {
+    			String active_policy_id = (String) r.get("active_policy_id");
+    	    	Timestamp policy_update_time = (Timestamp) r.get("policy_update_time");
+    	    	AttivazionePolicy policy = new AttivazionePolicy();
+    	    	policy.setIdActivePolicy(active_policy_id);
+    	    	policy.setUpdateTime(policy_update_time);
+    	    	return UniqueIdentifierUtilities.getUniqueId(policy);
+    			
+    		})
+    		.collect(Collectors.toList());    	   
+    }
+    
+    public List<String> getAllPoliciesIdFruizione(String fruitore, String erogatore, String fruizione) {
+    	
+    	final String filtroPorta = "%gw_" + fruitore + "/gw_" + erogatore + "/gw_" + fruizione + "/v1%";
+    	String query = "select active_policy_id,POLICY_UPDATE_TIME from ct_active_policy WHERE POLICY_ALIAS='RichiestePerMinuto' AND FILTRO_PORTA LIKE '"+filtroPorta+"' AND FILTRO_RUOLO='applicativa' AND filtro_protocollo='trasparente'";
+    	List<Map<String, Object>> results = readRows(query);
+    	    	
+    	return results.stream()
+    		.map( r -> {
+    			String active_policy_id = (String) r.get("active_policy_id");
+    	    	Timestamp policy_update_time = (Timestamp) r.get("policy_update_time");
+    	    	AttivazionePolicy policy = new AttivazionePolicy();
+    	    	policy.setIdActivePolicy(active_policy_id);
+    	    	policy.setUpdateTime(policy_update_time);
+    	    	return UniqueIdentifierUtilities.getUniqueId(policy);
+    			
+    		})
+    		.collect(Collectors.toList());    	   
+    }
+    
+
 
 }
