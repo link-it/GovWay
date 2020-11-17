@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 
 import org.openspcoop2.core.controllo_traffico.AttivazionePolicy;
 import org.openspcoop2.core.controllo_traffico.beans.UniqueIdentifierUtilities;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -76,9 +77,9 @@ public class DbUtils {
     }
      
 
-    public String getPolicyIdErogazione(String erogatore, String api) {
+    public String getPolicyIdErogazione(String erogatore, String api, Utils.TipoPolicy tipoPolicy) {
     	final String filtroPorta = "gw_" + erogatore + "/gw_" + api + "/v1";
-    	String query = "select active_policy_id,POLICY_UPDATE_TIME from ct_active_policy WHERE POLICY_ALIAS='RichiestePerMinuto' AND FILTRO_PORTA='"+filtroPorta+"' AND FILTRO_RUOLO='applicativa' AND filtro_protocollo='trasparente'";
+    	String query = "select active_policy_id,POLICY_UPDATE_TIME from ct_active_policy WHERE POLICY_ALIAS='"+tipoPolicy+"' AND FILTRO_PORTA='"+filtroPorta+"' AND FILTRO_RUOLO='applicativa' AND filtro_protocollo='trasparente'";
     	var result = readRow(query);
     	    	
     	String active_policy_id = (String) result.get("active_policy_id");
@@ -92,10 +93,10 @@ public class DbUtils {
     }
     
     
-    public String getPolicyIdFruizione(String fruitore, String erogatore, String api) {
+    public String getPolicyIdFruizione(String fruitore, String erogatore, String api, Utils.TipoPolicy tipoPolicy) {
     	final String filtroPorta = "gw_" + fruitore + "/gw_" + erogatore + "/gw_" + api + "/v1";
     	
-    	String query = "select active_policy_id,POLICY_UPDATE_TIME from ct_active_policy WHERE POLICY_ALIAS='RichiestePerMinuto' AND FILTRO_PORTA='"+filtroPorta+"' AND FILTRO_RUOLO='delegata' AND filtro_protocollo='trasparente'";
+    	String query = "select active_policy_id,POLICY_UPDATE_TIME from ct_active_policy WHERE POLICY_ALIAS='"+tipoPolicy+"' AND FILTRO_PORTA='"+filtroPorta+"' AND FILTRO_RUOLO='delegata' AND filtro_protocollo='trasparente'";
       	var result = readRow(query);
     	
     	String active_policy_id = (String) result.get("active_policy_id");
@@ -108,10 +109,10 @@ public class DbUtils {
        	return UniqueIdentifierUtilities.getUniqueId(policy);
     }
     
-    public List<String> getAllPoliciesIdErogazione(String erogatore, String erogazione) {
+    public List<String> getAllPoliciesIdErogazione(String erogatore, String erogazione, Utils.TipoPolicy tipoPolicy) {
     	
     	final String filtroPorta = "%gw_" + erogatore + "/gw_" + erogazione + "/v1%";
-    	String query = "select active_policy_id,POLICY_UPDATE_TIME from ct_active_policy WHERE POLICY_ALIAS='RichiestePerMinuto' AND FILTRO_PORTA LIKE '"+filtroPorta+"' AND FILTRO_RUOLO='applicativa' AND filtro_protocollo='trasparente'";
+    	String query = "select active_policy_id,POLICY_UPDATE_TIME from ct_active_policy WHERE POLICY_ALIAS='"+tipoPolicy+"' AND FILTRO_PORTA LIKE '"+filtroPorta+"' AND FILTRO_RUOLO='applicativa' AND filtro_protocollo='trasparente'";
     	List<Map<String, Object>> results = readRows(query);
     	    	
     	return results.stream()
@@ -127,10 +128,10 @@ public class DbUtils {
     		.collect(Collectors.toList());    	   
     }
     
-    public List<String> getAllPoliciesIdFruizione(String fruitore, String erogatore, String fruizione) {
+    public List<String> getAllPoliciesIdFruizione(String fruitore, String erogatore, String fruizione, Utils.TipoPolicy tipoPolicy) {
     	
     	final String filtroPorta = "%gw_" + fruitore + "/gw_" + erogatore + "/gw_" + fruizione + "/v1%";
-    	String query = "select active_policy_id,POLICY_UPDATE_TIME from ct_active_policy WHERE POLICY_ALIAS='RichiestePerMinuto' AND FILTRO_PORTA LIKE '"+filtroPorta+"' AND FILTRO_RUOLO='delegata' AND filtro_protocollo='trasparente'";
+    	String query = "select active_policy_id,POLICY_UPDATE_TIME from ct_active_policy WHERE POLICY_ALIAS='"+tipoPolicy+"' AND FILTRO_PORTA LIKE '"+filtroPorta+"' AND FILTRO_RUOLO='delegata' AND filtro_protocollo='trasparente'";
     	List<Map<String, Object>> results = readRows(query);
     	    	
     	return results.stream()

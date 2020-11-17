@@ -11,6 +11,7 @@ import java.util.stream.IntStream;
 
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.TipoPolicy;
 import org.openspcoop2.utils.json.JsonPathExpressionEngine;
 import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
@@ -27,7 +28,7 @@ public class RateLimitingRestTest extends ConfigLoader {
 		System.out.println("Test richieste per minuto");
 		final int maxRequests = 5;
 
-		Utils.resetCountersErogazione(dbUtils, "SoggettoInternoTest", "RateLimitingTestRest");
+		Utils.resetCountersErogazione(dbUtils, "SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_MINUTO);
 		
 		// Aspetto lo scoccare del minuto
 		
@@ -48,7 +49,7 @@ public class RateLimitingRestTest extends ConfigLoader {
 		System.out.println("Test richieste per minuto fruizione");
 		final int maxRequests = 5;
 
-		Utils.resetCountersFruizione(dbUtils,"SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestRest");
+		Utils.resetCountersFruizione(dbUtils,"SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_MINUTO);
 		
 		// Aspetto lo scoccare del minuto
 		
@@ -63,6 +64,43 @@ public class RateLimitingRestTest extends ConfigLoader {
 
 		checkAssertionsRichiestePerMinuto(responses, maxRequests);
 	}
+	
+	@Test
+	public void richiesteOrarieErogazione() throws Exception {
+		System.out.println("Test richieste per ora");
+		final int maxRequests = 10;
+
+		Utils.resetCountersErogazione(dbUtils, "SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_ORARIE);
+		
+		Utils.waitForNewHour();
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/json");
+		request.setMethod(HttpRequestMethod.GET);
+		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestRest/v1/richieste-orarie");
+						
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
+		checkAssertionsRichiestePerMinuto(responses, maxRequests);
+	}
+	
+	
+	@Test
+	public void richiesteGiornaliereErogazione() throws Exception {
+		System.out.println("Test richieste per ora");
+		final int maxRequests = 10;
+
+		Utils.resetCountersErogazione(dbUtils, "SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_GIORNALIERE);
+		
+		Utils.waitForNewDay();
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/json");
+		request.setMethod(HttpRequestMethod.GET);
+		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestRest/v1/richieste-giornaliere");
+						
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
+		checkAssertionsRichiestePerMinuto(responses, maxRequests);
+	}	
 	
 
 	@Test

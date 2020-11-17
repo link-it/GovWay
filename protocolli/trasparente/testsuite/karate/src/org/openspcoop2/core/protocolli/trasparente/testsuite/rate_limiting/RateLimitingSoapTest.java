@@ -11,6 +11,7 @@ import java.util.stream.IntStream;
 
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.TipoPolicy;
 import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpResponse;
@@ -72,7 +73,7 @@ public class RateLimitingSoapTest extends ConfigLoader {
 
 		// Resetto la policy di RL
 		
-		Utils.resetAllCountersErogazione(dbUtils, "SoggettoInternoTest", "RateLimitingTestSoap");
+		Utils.resetAllCountersErogazione(dbUtils, "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_MINUTO);
 		
 		// Aspetto lo scoccare del minuto
 
@@ -105,7 +106,7 @@ public class RateLimitingSoapTest extends ConfigLoader {
 
 		// Resetto la policy di RL
 		
-		Utils.resetAllCountersFruizione(dbUtils, "SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap");
+		Utils.resetAllCountersFruizione(dbUtils, "SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_MINUTO);
 		
 		// Aspetto lo scoccare del minuto
 
