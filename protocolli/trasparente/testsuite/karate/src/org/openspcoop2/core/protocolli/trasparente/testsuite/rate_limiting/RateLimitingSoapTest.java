@@ -17,6 +17,52 @@ import org.openspcoop2.utils.transport.http.HttpResponse;
 
 public class RateLimitingSoapTest extends ConfigLoader {
 	
+	
+	@Test 
+	public void richiesteSimultaneeErogazione() throws Exception {
+		final int maxConcurrentRequests = 10;
+		
+		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
+				"    <soap:Body>\n" + 
+				"        <ns2:RichiesteSimultanee xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
+				"        </ns2:RichiesteSimultanee>\n" + 
+				"    </soap:Body>\n" + 
+				"</soap:Envelope>";
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/soap+xml");
+		request.setMethod(HttpRequestMethod.POST);
+		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestSoap/v1");
+		request.setContent(body.getBytes());
+		
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxConcurrentRequests + 1);
+		
+		checkAssertionsRichiesteSimultanee(responses, maxConcurrentRequests);
+	}
+	
+	@Test
+	public void richiesteSimultaneeFruizione() throws Exception {
+		
+		final int maxConcurrentRequests = 10;
+		
+		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
+				"    <soap:Body>\n" + 
+				"        <ns2:RichiesteSimultanee xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
+				"        </ns2:RichiesteSimultanee>\n" + 
+				"    </soap:Body>\n" + 
+				"</soap:Envelope>";
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/soap+xml");
+		request.setMethod(HttpRequestMethod.POST);
+		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/RateLimitingTestSoap/v1");
+		request.setContent(body.getBytes());
+		
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxConcurrentRequests + 1);
+		
+		checkAssertionsRichiesteSimultanee(responses, maxConcurrentRequests);
+	}
+	
 
 	
 	@Test
@@ -110,12 +156,42 @@ public class RateLimitingSoapTest extends ConfigLoader {
 		assertEquals(HeaderValues.LimitExceeded, failedResponse.getHeader(Headers.GovWayTransactionErrorType));
 		assertEquals(HeaderValues.ReturnCodeTooManyRequests, failedResponse.getHeader(Headers.ReturnCode));
 		assertNotEquals(null, failedResponse.getHeader(Headers.RetryAfter));
+		
+		// TODO: XPATH SUL BODY DELLA RICHIESTA FALLITA
 
 		// Lo header X-RateLimit-Remaining deve assumere tutti i
 		// i valori possibili da 0 a maxRequests-1
 		List<Integer> counters = responses.stream()
 				.map(resp -> Integer.parseInt(resp.getHeader(Headers.RateLimitRemaining))).collect(Collectors.toList());
 		assertTrue(IntStream.range(0, maxRequests).allMatch(v -> counters.contains(v)));		
+	}
+	
+	
+	private void checkAssertionsRichiesteSimultanee(Vector<HttpResponse> responses, int maxConcurrentRequests) throws Exception {
+		// Tutte le richieste tranne 1 devono restituire 200
+		
+		assertTrue(responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count() == maxConcurrentRequests);
+
+		// Tutte le richieste devono avere lo header GovWay-RateLimit-ConcurrentRequest-Limit=10
+		// Tutte le richieste devono avere lo header ConcurrentRequestsRemaining impostato ad un numero positivo		
+		
+		responses.forEach(r -> {
+			assertTrue(r.getHeader(Headers.ConcurrentRequestsLimit).equals(String.valueOf(maxConcurrentRequests)));
+			assertTrue(Integer.valueOf(r.getHeader(Headers.ConcurrentRequestsRemaining)) >= 0);
+		});
+			
+		// La richiesta fallita deve avere status code 429
+		
+		HttpResponse failedResponse = responses.stream().filter(r -> r.getResultHTTPOperation() == 429).findAny()
+				.orElse(null);
+		assertTrue(failedResponse != null);
+		
+		// TODO: XPATH SUL BODY DELLA RICHIESTA FALLITA
+
+		assertEquals("0", failedResponse.getHeader(Headers.ConcurrentRequestsRemaining));
+		assertEquals(HeaderValues.TooManyRequests, failedResponse.getHeader(Headers.GovWayTransactionErrorType));
+		assertEquals(HeaderValues.ReturnCodeTooManyRequests, failedResponse.getHeader(Headers.ReturnCode));
+		assertNotEquals(null, failedResponse.getHeader(Headers.RetryAfter));
 	}
 
 }
