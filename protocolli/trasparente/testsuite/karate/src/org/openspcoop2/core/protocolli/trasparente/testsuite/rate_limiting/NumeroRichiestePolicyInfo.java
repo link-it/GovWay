@@ -6,9 +6,7 @@ public class NumeroRichiestePolicyInfo {
 	public Integer richiesteConteggiate = null;
 	public Integer richiesteBloccate = null;
 	
-	public NumeroRichiestePolicyInfo(String jmxPolicyInfo) {
-		System.out.println(jmxPolicyInfo);
-		
+	public NumeroRichiestePolicyInfo(String jmxPolicyInfo) {		
 		String[] lines = jmxPolicyInfo.split(System.lineSeparator());
 		for (String l : lines) {
 			l = l.strip();

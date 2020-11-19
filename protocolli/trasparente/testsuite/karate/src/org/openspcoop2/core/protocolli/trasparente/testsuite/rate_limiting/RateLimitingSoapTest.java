@@ -41,6 +41,7 @@ public class RateLimitingSoapTest extends ConfigLoader {
 		checkAssertionsRichiesteSimultanee(responses, maxConcurrentRequests);
 	}
 	
+	
 	@Test
 	public void richiesteSimultaneeFruizione() throws Exception {
 		
@@ -73,7 +74,11 @@ public class RateLimitingSoapTest extends ConfigLoader {
 
 		// Resetto la policy di RL
 		
-		Utils.resetAllCountersErogazione(dbUtils, "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_MINUTO);
+		List<String> idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_MINUTO);
+		Utils.resetCounters(idPolicies);
+		
+		idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_MINUTO);
+		Utils.checkPreConditionsNumeroRichieste(idPolicies);
 		
 		// Aspetto lo scoccare del minuto
 
@@ -95,7 +100,8 @@ public class RateLimitingSoapTest extends ConfigLoader {
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 
-		checkAssertionsNumeroRichieste(responses, maxRequests);		
+		checkAssertionsNumeroRichieste(responses, maxRequests);
+		Utils.checkPostConditionsNumeroRichieste(idPolicies, maxRequests);				
 	}
 	
 	
@@ -106,7 +112,12 @@ public class RateLimitingSoapTest extends ConfigLoader {
 
 		// Resetto la policy di RL
 		
-		Utils.resetAllCountersErogazione(dbUtils, "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_ORARIE);
+		List<String> idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_ORARIE);
+		Utils.resetCounters(idPolicies);
+		
+		idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_ORARIE);
+		Utils.checkPreConditionsNumeroRichieste(idPolicies);
+
 		
 		// Aspetto lo scoccare del minuto
 
@@ -128,7 +139,8 @@ public class RateLimitingSoapTest extends ConfigLoader {
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 
-		checkAssertionsNumeroRichieste(responses, maxRequests);		
+		checkAssertionsNumeroRichieste(responses, maxRequests);	
+		Utils.checkPostConditionsNumeroRichieste(idPolicies, maxRequests);
 	}
 	
 	
@@ -139,7 +151,12 @@ public class RateLimitingSoapTest extends ConfigLoader {
 
 		// Resetto la policy di RL
 		
-		Utils.resetAllCountersErogazione(dbUtils, "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_ORARIE);
+		List<String> idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_GIORNALIERE);
+		Utils.resetCounters(idPolicies);
+		
+		idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_GIORNALIERE);
+		Utils.checkPreConditionsNumeroRichieste(idPolicies);
+
 		
 		// Aspetto lo scoccare del minuto
 
@@ -161,7 +178,8 @@ public class RateLimitingSoapTest extends ConfigLoader {
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 
-		checkAssertionsNumeroRichieste(responses, maxRequests);		
+		checkAssertionsNumeroRichieste(responses, maxRequests);
+		Utils.checkPostConditionsNumeroRichieste(idPolicies, maxRequests);				
 	}
 	
 	
@@ -172,7 +190,12 @@ public class RateLimitingSoapTest extends ConfigLoader {
 
 		// Resetto la policy di RL
 		
-		Utils.resetAllCountersFruizione(dbUtils, "SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_MINUTO);
+		List<String> idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_MINUTO);
+		Utils.resetCounters(idPolicies);
+		
+		idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_MINUTO);
+		Utils.checkPreConditionsNumeroRichieste(idPolicies);
+
 		
 		// Aspetto lo scoccare del minuto
 
@@ -194,7 +217,8 @@ public class RateLimitingSoapTest extends ConfigLoader {
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 
-		checkAssertionsNumeroRichieste(responses, maxRequests);		
+		checkAssertionsNumeroRichieste(responses, maxRequests);
+		Utils.checkPostConditionsNumeroRichieste(idPolicies, maxRequests);
 	}
 	
 	
@@ -205,9 +229,14 @@ public class RateLimitingSoapTest extends ConfigLoader {
 
 		// Resetto la policy di RL
 		
-		Utils.resetAllCountersFruizione(dbUtils, "SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_ORARIE);
+		List<String> idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_ORARIE);
+		Utils.resetCounters(idPolicies);
 		
-		// Aspetto lo scoccare del minuto
+		idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_ORARIE);
+		Utils.checkPreConditionsNumeroRichieste(idPolicies);
+
+		
+		// Aspetto lo scoccare dell'ora
 
 		Utils.waitForNewHour();		
 		
@@ -228,6 +257,8 @@ public class RateLimitingSoapTest extends ConfigLoader {
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 
 		checkAssertionsNumeroRichieste(responses, maxRequests);
+		Utils.checkPostConditionsNumeroRichieste(idPolicies, maxRequests);
+
 		// TODO: Dovrei testare che lo header X-RateLimit-Reset è in un range giusto, 
 		// nel caso di richieste orarie, deve indicare il numero di secondi allo scoccare della prossima ora
 		// ecc..
@@ -241,9 +272,14 @@ public class RateLimitingSoapTest extends ConfigLoader {
 
 		// Resetto la policy di RL
 		
-		Utils.resetAllCountersFruizione(dbUtils, "SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_GIORNALIERE);
+		List<String> idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_GIORNALIERE);
+		Utils.resetCounters(idPolicies);
 		
-		// Aspetto lo scoccare del minuto
+		idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_GIORNALIERE);
+		Utils.checkPreConditionsNumeroRichieste(idPolicies);
+
+
+		// Aspetto lo scoccare del nuovo giorno
 
 		Utils.waitForNewDay();		
 		
@@ -263,11 +299,9 @@ public class RateLimitingSoapTest extends ConfigLoader {
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 
-		checkAssertionsNumeroRichieste(responses, maxRequests);		
+		checkAssertionsNumeroRichieste(responses, maxRequests);
+		Utils.checkPostConditionsNumeroRichieste(idPolicies, maxRequests);
 	}
-	
-	
-	
 	
 	
 	private void checkAssertionsNumeroRichieste(Vector<HttpResponse> responses, int maxRequests) {
@@ -300,6 +334,7 @@ public class RateLimitingSoapTest extends ConfigLoader {
 
 		// Lo header X-RateLimit-Remaining deve assumere tutti i
 		// i valori possibili da 0 a maxRequests-1
+		
 		List<Integer> counters = responses.stream()
 				.map(resp -> Integer.parseInt(resp.getHeader(Headers.RateLimitRemaining))).collect(Collectors.toList());
 		assertTrue(IntStream.range(0, maxRequests).allMatch(v -> counters.contains(v)));		
