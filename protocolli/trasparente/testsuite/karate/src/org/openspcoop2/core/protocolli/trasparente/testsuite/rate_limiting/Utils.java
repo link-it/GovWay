@@ -2,6 +2,9 @@ package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
@@ -10,12 +13,19 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.openspcoop2.utils.UtilsException;
 import org.openspcoop2.utils.transport.TransportUtils;
 import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpResponse;
 import org.openspcoop2.utils.transport.http.HttpUtilities;
 import org.openspcoop2.utils.transport.http.HttpUtilsException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
 public class Utils {
 	
@@ -36,6 +46,19 @@ public class Utils {
 			return this.value;
 		}
 	}
+	
+	private static final DocumentBuilder docBuilder;
+	static {
+		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+		try {
+			docBuilder = dbf.newDocumentBuilder();
+			
+		} catch (ParserConfigurationException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
+	
 	
 	/**
 	 * Esege `count` richieste `request` parallele 
@@ -71,6 +94,17 @@ public class Utils {
 		return responses;
 	}
 	
+	
+	public static Element buildXmlElement(byte[] content) {
+		InputStream is = new ByteArrayInputStream(content);
+		Document doc;
+		try {
+			doc = docBuilder.parse(is);
+			return doc.getDocumentElement();
+		} catch (SAXException | IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
 	
 	
 	static void resetCounters(List<String> idPolicies) {
@@ -250,8 +284,12 @@ public class Utils {
 	}
 
 
+	public static void checkPreConditionsRichiesteSimultanee(List<String> idPolicies) {
+		idPolicies.forEach( id -> checkPreConditionsRichiesteSimultanee(id));
+	}
 
-	public static void checkPreConditionsRichiesteSimultanee(String idPolicy) throws UtilsException {
+	
+	public static void checkPreConditionsRichiesteSimultanee(String idPolicy) {
 		String jmxPolicyInfo = getPolicy(idPolicy);
 		System.out.println(jmxPolicyInfo);
 		

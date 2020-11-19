@@ -42,6 +42,9 @@
 		</fileset>
 		<fileset dir="${required_lib}/shared">
 			<include name="snakeyaml-1.25.jar"/>
+			<include name="xercesImpl-*.jar"/>
+			<include name="xalan-*.jar"/>
+			<include name="joda-time-2.10.5.jar"/>
 		</fileset>
 		<fileset dir="${required_lib}/cxf">
 			<include name="asm-7.1.jar"/>
@@ -49,16 +52,16 @@
 		<fileset dir="${openspcoop2.dist}">
 			<include name="*.jar"/>
 		</fileset>
-		<fileset dir="${required_lib}/shared">
-			<include name="joda-time-2.10.5.jar"/>
-		</fileset>
 		<fileset dir="${required_lib}/jax">
 			<include name="jaxb-*.jar"/>
 		</fileset>	
 		<fileset dir="${required_lib}/jackson">
 			<include name="jackson-*.jar"/>
 		</fileset>	
-
+		<fileset dir="${required_lib}/saaj">
+			<include name="javax.xml.soap-api-1.4.0.jar"/>
+			<include name="saaj-impl-1.5.1-gov4j-2.jar"/>
+		</fileset>	
 	</path>
 	<property name="src_testsuite" location="src" />
 	<property name="build_testsuite" location="build" />

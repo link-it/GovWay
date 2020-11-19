@@ -12,9 +12,14 @@ import java.util.stream.IntStream;
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.TipoPolicy;
+import org.openspcoop2.message.OpenSPCoop2MessageFactory;
+import org.openspcoop2.pdd.core.dynamic.DynamicException;
+import org.openspcoop2.pdd.core.dynamic.PatternExtractor;
+import org.openspcoop2.utils.LoggerWrapperFactory;
 import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpResponse;
+import org.w3c.dom.Element;
 
 public class RateLimitingSoapTest extends ConfigLoader {
 	
@@ -22,6 +27,9 @@ public class RateLimitingSoapTest extends ConfigLoader {
 	@Test 
 	public void richiesteSimultaneeErogazione() throws Exception {
 		final int maxConcurrentRequests = 10;
+		
+		List<String> idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_SIMULTANEE);
+		Utils.checkPreConditionsRichiesteSimultanee(idPolicies);
 		
 		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
 				"    <soap:Body>\n" + 
@@ -43,9 +51,11 @@ public class RateLimitingSoapTest extends ConfigLoader {
 	
 	
 	@Test
-	public void richiesteSimultaneeFruizione() throws Exception {
-		
+	public void richiesteSimultaneeFruizione() throws Exception {		
 		final int maxConcurrentRequests = 10;
+		
+		List<String> idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_SIMULTANEE);
+		Utils.checkPreConditionsRichiesteSimultanee(idPolicies);
 		
 		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
 				"    <soap:Body>\n" + 
@@ -164,8 +174,8 @@ public class RateLimitingSoapTest extends ConfigLoader {
 		
 		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
 				"    <soap:Body>\n" + 
-				"        <ns2:RichiesteOrarie xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
-				"        </ns2:RichiesteOrarie>\n" + 
+				"        <ns2:RichiesteGiornaliere xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
+				"        </ns2:RichiesteGiornaliere>\n" + 
 				"    </soap:Body>\n" + 
 				"</soap:Envelope>";
 		
@@ -304,7 +314,7 @@ public class RateLimitingSoapTest extends ConfigLoader {
 	}
 	
 	
-	private void checkAssertionsNumeroRichieste(Vector<HttpResponse> responses, int maxRequests) {
+	private void checkAssertionsNumeroRichieste(Vector<HttpResponse> responses, int maxRequests) throws DynamicException {
 
 		// Tutte le richieste devono avere lo header X-RateLimit-Reset impostato ad un numero
 		// Tutte le richieste devono avere lo header X-RateLimit-Limit
@@ -317,20 +327,29 @@ public class RateLimitingSoapTest extends ConfigLoader {
 		
 		// Tutte le richieste tranne una devono restituire 200
 		
-		assertTrue(responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count() == maxRequests);
+		assertEquals(maxRequests, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
 		
 		// La richiesta fallita deve avere status code 429
 		
 		HttpResponse failedResponse = responses.stream().filter(r -> r.getResultHTTPOperation() == 429).findAny()
 				.orElse(null);
+		
+		String body = new String(failedResponse.getContent());
+		System.out.println(body);
+		
+		Element element = Utils.buildXmlElement(failedResponse.getContent());
+		
+		PatternExtractor matcher = new PatternExtractor(OpenSPCoop2MessageFactory.getDefaultMessageFactory(), element, LoggerWrapperFactory.getLogger(getClass()));
+		assertEquals("Limit Exceeded", matcher.read("/html/head/title/text()"));
+		assertEquals("Limit Exceeded", matcher.read("/html/body/h1/text()"));
+		assertEquals("Limit exceeded detected", matcher.read("/html/body/p/text()"));		
+		
 		assertTrue(failedResponse != null);
 		assertEquals("0", failedResponse.getHeader(Headers.RateLimitRemaining));
 		assertEquals(HeaderValues.LimitExceeded, failedResponse.getHeader(Headers.GovWayTransactionErrorType));
 		assertEquals(HeaderValues.ReturnCodeTooManyRequests, failedResponse.getHeader(Headers.ReturnCode));
 		assertNotEquals(null, failedResponse.getHeader(Headers.RetryAfter));
 		
-		// TODO: XPATH SUL BODY DELLA RICHIESTA FALLITA
-
 		// Lo header X-RateLimit-Remaining deve assumere tutti i
 		// i valori possibili da 0 a maxRequests-1
 		
@@ -343,7 +362,7 @@ public class RateLimitingSoapTest extends ConfigLoader {
 	private void checkAssertionsRichiesteSimultanee(Vector<HttpResponse> responses, int maxConcurrentRequests) throws Exception {
 		// Tutte le richieste tranne 1 devono restituire 200
 		
-		assertTrue(responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count() == maxConcurrentRequests);
+		assertEquals(maxConcurrentRequests, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
 
 		// Tutte le richieste devono avere lo header GovWay-RateLimit-ConcurrentRequest-Limit=10
 		// Tutte le richieste devono avere lo header ConcurrentRequestsRemaining impostato ad un numero positivo		
@@ -357,10 +376,17 @@ public class RateLimitingSoapTest extends ConfigLoader {
 		
 		HttpResponse failedResponse = responses.stream().filter(r -> r.getResultHTTPOperation() == 429).findAny()
 				.orElse(null);
-		assertTrue(failedResponse != null);
+		assertNotEquals(null, failedResponse);
 		
-		// TODO: XPATH SUL BODY DELLA RICHIESTA FALLITA
-
+		String body = new String(failedResponse.getContent());
+		System.out.println(body);
+		
+		Element element = Utils.buildXmlElement(failedResponse.getContent());
+		PatternExtractor matcher = new PatternExtractor(OpenSPCoop2MessageFactory.getDefaultMessageFactory(), element, LoggerWrapperFactory.getLogger(getClass()));
+		assertEquals("Too Many Requests", matcher.read("/html/head/title/text()"));
+		assertEquals("Too Many Requests", matcher.read("/html/body/h1/text()"));
+		assertEquals("Too many requests detected", matcher.read("/html/body/p/text()"));
+		
 		assertEquals("0", failedResponse.getHeader(Headers.ConcurrentRequestsRemaining));
 		assertEquals(HeaderValues.TooManyRequests, failedResponse.getHeader(Headers.GovWayTransactionErrorType));
 		assertEquals(HeaderValues.ReturnCodeTooManyRequests, failedResponse.getHeader(Headers.ReturnCode));
