@@ -213,7 +213,7 @@
 						<equals arg1="${karatemethods}" arg2="$${karatemethods}"/>
 					</not>
 					<then>
-						<echo message="!! WARN: Esecuzione singoli metodi '${karatemethods}' della class '${karatepackage}.@{karateTipoTest}'"/>
+						<echo message="!! WARN: Esecuzione singoli metodi '${karatemethods}' della classe '${karatepackage}.@{karateTipoTest}'"/>
 						<if>
 							<equals arg1="${karateparams}" arg2=""/>
 							<then>
@@ -265,6 +265,7 @@
 						</if>
 					</then>
 					<else>
+						<echo message="Esecuzione della classe '${karatepackage}.@{karateTipoTest}'"/>
 						<if>
 							<equals arg1="${karateparams}" arg2=""/>
 							<then>
