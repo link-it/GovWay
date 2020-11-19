@@ -318,7 +318,6 @@ public class RateLimitingSoapTest extends ConfigLoader {
 		// Tutte le richieste tranne una devono restituire 200
 		
 		assertTrue(responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count() == maxRequests);
-
 		
 		// La richiesta fallita deve avere status code 429
 		

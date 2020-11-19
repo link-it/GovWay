@@ -57,7 +57,7 @@ public class RateLimitingRestTest extends ConfigLoader {
 		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_ORARIE);
 		Utils.resetCounters(idPolicy);
 		
-		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_MINUTO);
+		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_ORARIE);
 		Utils.checkPreConditionsNumeroRichieste(idPolicy);
 		
 		Utils.waitForNewHour();
@@ -81,7 +81,7 @@ public class RateLimitingRestTest extends ConfigLoader {
 		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_GIORNALIERE);
 		Utils.resetCounters(idPolicy);
 		
-		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_MINUTO);
+		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_GIORNALIERE);
 		Utils.checkPreConditionsNumeroRichieste(idPolicy);
 		
 		Utils.waitForNewDay();
@@ -105,7 +105,7 @@ public class RateLimitingRestTest extends ConfigLoader {
 		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_MINUTO);
 		Utils.resetCounters(idPolicy);
 		
-		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_MINUTO);
+		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_MINUTO);
 		Utils.checkPreConditionsNumeroRichieste(idPolicy);
 		
 		// Aspetto lo scoccare del minuto
@@ -132,7 +132,7 @@ public class RateLimitingRestTest extends ConfigLoader {
 		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_ORARIE);
 		Utils.resetCounters(idPolicy);
 		
-		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_MINUTO);
+		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_ORARIE);
 		Utils.checkPreConditionsNumeroRichieste(idPolicy);
 		
 		// Aspetto lo scoccare del minuto
@@ -158,7 +158,7 @@ public class RateLimitingRestTest extends ConfigLoader {
 		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_GIORNALIERE);
 		Utils.resetCounters(idPolicy);
 		
-		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_MINUTO);
+		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_GIORNALIERE);
 		Utils.checkPreConditionsNumeroRichieste(idPolicy);
 		
 		// Aspetto lo scoccare del minuto
@@ -216,7 +216,7 @@ public class RateLimitingRestTest extends ConfigLoader {
 	}
 	
 	
-	@Test
+	/*@Test
 	public void richiesteSimultaneeRipetuto() throws Exception {
 		for(int i=0;i<20;i++) {
 			richiesteSimultaneeErogazione();
@@ -225,7 +225,7 @@ public class RateLimitingRestTest extends ConfigLoader {
 		for(int i=0;i<20;i++) {
 			richiesteSimultaneeFruizione();
 		}
-	}
+	}*/
 
 	
 	private void checkAssertionsRichiesteSimultanee(Vector<HttpResponse> responses, int maxConcurrentRequests) throws Exception {

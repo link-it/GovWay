@@ -201,32 +201,52 @@ public class Utils {
 
 	
 	public static void checkPostConditionsNumeroRichieste(String idPolicy, int maxRequests) {
+				
+		int remainingChecks = Integer.valueOf(System.getProperty("rl_post_conditions_retry"));
 		
-		String jmxPolicyInfo = getPolicy(idPolicy);
-		System.out.println(jmxPolicyInfo);
-		
-		NumeroRichiestePolicyInfo polInfo = new NumeroRichiestePolicyInfo(jmxPolicyInfo);
-	
-		assertEquals(Integer.valueOf(0), polInfo.richiesteAttive);
-		assertEquals(Integer.valueOf(maxRequests), polInfo.richiesteConteggiate);
-		assertEquals(Integer.valueOf(1), polInfo.richiesteBloccate);
+		while(true) {
+			try {
+				String jmxPolicyInfo = getPolicy(idPolicy);
+				System.out.println(jmxPolicyInfo);
+				
+				NumeroRichiestePolicyInfo polInfo = new NumeroRichiestePolicyInfo(jmxPolicyInfo);
+			
+				assertEquals(Integer.valueOf(0), polInfo.richiesteAttive);
+				assertEquals(Integer.valueOf(maxRequests), polInfo.richiesteConteggiate);
+				assertEquals(Integer.valueOf(1), polInfo.richiesteBloccate);
+				break;
+			} catch (AssertionError e) {
+				if(remainingChecks == 0) {
+					throw e;
+				}
+				remainingChecks--;
+				org.openspcoop2.utils.Utilities.sleep(500);
+			}
+		}
 	}
 
 
 
 	public static void checkPostConditionsRichiesteSimultanee(String idPolicy, int maxRequests) throws UtilsException {
-		String jmxPolicyInfo = getPolicy(idPolicy);
-		System.out.println(jmxPolicyInfo);
 		
-		// Se non sono mai state fatte richieste che attivano la policy, ottengo questa
-		// risposta, e le precondizioni sono soddisfatte
-				
-		if (jmxPolicyInfo.equals("Informazioni sulla Policy non disponibili; non sono ancora transitate richieste che soddisfano i criteri di filtro impostati")) {
-			return;
-		}
+		int remainingChecks = Integer.valueOf(System.getProperty("rl_post_conditions_retry"));
 		
-		RichiesteSimultaneePolicyInfo polInfo = new RichiesteSimultaneePolicyInfo(jmxPolicyInfo);
-		assertEquals(Integer.valueOf(0), polInfo.richiesteAttive);
+		while(true) {
+			try {
+				String jmxPolicyInfo = getPolicy(idPolicy);
+				System.out.println(jmxPolicyInfo);
+				RichiesteSimultaneePolicyInfo polInfo = new RichiesteSimultaneePolicyInfo(jmxPolicyInfo);
+				assertEquals(Integer.valueOf(0), polInfo.richiesteAttive);
+				break;
+			} catch (AssertionError e) {
+				if(remainingChecks == 0) {
+					throw e;
+				}
+				remainingChecks--;
+				org.openspcoop2.utils.Utilities.sleep(500);
+			}
+		} 
+		
 	}
 
 
@@ -234,6 +254,13 @@ public class Utils {
 	public static void checkPreConditionsRichiesteSimultanee(String idPolicy) throws UtilsException {
 		String jmxPolicyInfo = getPolicy(idPolicy);
 		System.out.println(jmxPolicyInfo);
+		
+		// Se non sono mai state fatte richieste che attivano la policy, ottengo questa
+		// risposta, e le precondizioni sono soddisfatte
+		if (jmxPolicyInfo.equals("Informazioni sulla Policy non disponibili; non sono ancora transitate richieste che soddisfano i criteri di filtro impostati")) {
+			return;
+		}
+		
 		RichiesteSimultaneePolicyInfo polInfo = new RichiesteSimultaneePolicyInfo(jmxPolicyInfo);
 		assertEquals(Integer.valueOf(0), polInfo.richiesteAttive);
 	}

@@ -80,7 +80,8 @@ public class ConfigLoader {
             System.setProperty("db_driverClassName", prop.getProperty("db_driverClassName"));
             System.setProperty("db_sleep_before_read", prop.getProperty("db_sleep_before_read"));
             System.setProperty("jmx_username", prop.getProperty("jmx_cache_username"));
-            System.setProperty("jmx_password", prop.getProperty("jmx_cache_password")); 
+            System.setProperty("jmx_password", prop.getProperty("jmx_cache_password"));
+            System.setProperty("rl_post_conditions_retry", prop.getProperty("rl_post_conditions_retry"));
 
         }catch(Throwable t) {
             throw new RuntimeException(t.getMessage(),t);
