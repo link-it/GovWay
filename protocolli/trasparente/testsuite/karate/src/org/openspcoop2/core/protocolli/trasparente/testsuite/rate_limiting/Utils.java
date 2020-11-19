@@ -118,6 +118,29 @@ public class Utils {
 		});
 	}
 
+	
+	static void resetCounters(String idPolicy) throws UtilsException, HttpUtilsException {
+		Map<String,String> queryParams = Map.of(
+				"resourceName", "ControlloTraffico",
+				"methodName", "resetPolicyCounters",
+				"paramValue", idPolicy
+			);
+		String jmxUrl = TransportUtils.buildLocationWithURLBasedParameter(queryParams, System.getProperty("govway_base_path") + "/check");
+		System.out.println("Resetto la policy di rate limiting sulla url: " + jmxUrl );
+		HttpUtilities.check(jmxUrl, System.getProperty("jmx_username"), System.getProperty("jmx_password"));
+	}
+	
+	
+	static HttpResponse getPolicy(String idPolicy) throws UtilsException {
+		Map<String,String> queryParams = Map.of(
+				"resourceName", "ControlloTraffico",
+				"methodName", "getPolicy",
+				"paramValue", idPolicy
+			);
+		String jmxUrl = TransportUtils.buildLocationWithURLBasedParameter(queryParams, System.getProperty("govway_base_path") + "/check");
+		System.out.println("Ottengo le informazioni sullo stato della policy: " + jmxUrl );
+		return HttpUtilities.getHTTPResponse(jmxUrl, System.getProperty("jmx_username"), System.getProperty("jmx_password"));
+	}
 
 	
 	/**
