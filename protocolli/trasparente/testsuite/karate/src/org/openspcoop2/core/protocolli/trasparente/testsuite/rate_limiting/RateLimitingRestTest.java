@@ -28,7 +28,11 @@ public class RateLimitingRestTest extends ConfigLoader {
 		System.out.println("Test richieste per minuto");
 		final int maxRequests = 5;
 
-		Utils.resetCountersErogazione(dbUtils, "SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_MINUTO);
+		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_MINUTO);
+		Utils.resetCounters(idPolicy);
+		
+		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_MINUTO);
+		Utils.checkPreConditionsNumeroRichieste(idPolicy);
 		
 		// Aspetto lo scoccare del minuto
 		
@@ -40,8 +44,57 @@ public class RateLimitingRestTest extends ConfigLoader {
 		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestRest/v1/richieste-per-minuto");
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
-		checkAssertionsRichiestePerMinuto(responses, maxRequests);
+		checkAssertionsNumeroRichieste(responses, maxRequests);
+		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
 	}
+	
+	
+	@Test
+	public void richiesteOrarieErogazione() throws Exception {
+		System.out.println("Test richieste per ora");
+		final int maxRequests = 10;
+
+		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_ORARIE);
+		Utils.resetCounters(idPolicy);
+		
+		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_MINUTO);
+		Utils.checkPreConditionsNumeroRichieste(idPolicy);
+		
+		Utils.waitForNewHour();
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/json");
+		request.setMethod(HttpRequestMethod.GET);
+		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestRest/v1/richieste-orarie");
+						
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
+		checkAssertionsNumeroRichieste(responses, maxRequests);
+		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
+	}
+	
+	
+	@Test
+	public void richiesteGiornaliereErogazione() throws Exception {
+		System.out.println("Test richieste per ora");
+		final int maxRequests = 10;
+
+		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_GIORNALIERE);
+		Utils.resetCounters(idPolicy);
+		
+		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_MINUTO);
+		Utils.checkPreConditionsNumeroRichieste(idPolicy);
+		
+		Utils.waitForNewDay();
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/json");
+		request.setMethod(HttpRequestMethod.GET);
+		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestRest/v1/richieste-giornaliere");
+						
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
+		checkAssertionsNumeroRichieste(responses, maxRequests);
+		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
+	}	
 	
 	
 	@Test
@@ -49,7 +102,11 @@ public class RateLimitingRestTest extends ConfigLoader {
 		System.out.println("Test richieste per minuto fruizione");
 		final int maxRequests = 5;
 
-		Utils.resetCountersFruizione(dbUtils,"SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_MINUTO);
+		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_MINUTO);
+		Utils.resetCounters(idPolicy);
+		
+		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_MINUTO);
+		Utils.checkPreConditionsNumeroRichieste(idPolicy);
 		
 		// Aspetto lo scoccare del minuto
 		
@@ -62,51 +119,73 @@ public class RateLimitingRestTest extends ConfigLoader {
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 
-		checkAssertionsRichiestePerMinuto(responses, maxRequests);
+		checkAssertionsNumeroRichieste(responses, maxRequests);
+		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
 	}
 	
 	@Test
-	public void richiesteOrarieErogazione() throws Exception {
-		System.out.println("Test richieste per ora");
+	public void richiesteOrarieFruizione() throws Exception {
+		System.out.println("Test richieste orarie fruizione");
 		final int maxRequests = 10;
 
-		Utils.resetCountersErogazione(dbUtils, "SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_ORARIE);
+		
+		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_ORARIE);
+		Utils.resetCounters(idPolicy);
+		
+		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_MINUTO);
+		Utils.checkPreConditionsNumeroRichieste(idPolicy);
+		
+		// Aspetto lo scoccare del minuto
 		
 		Utils.waitForNewHour();
 		
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestRest/v1/richieste-orarie");
+		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/RateLimitingTestRest/v1/richieste-orarie");
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
-		checkAssertionsRichiestePerMinuto(responses, maxRequests);
+
+		checkAssertionsNumeroRichieste(responses, maxRequests);
+		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
 	}
 	
-	
 	@Test
-	public void richiesteGiornaliereErogazione() throws Exception {
-		System.out.println("Test richieste per ora");
+	public void richiesteGiornaliereFruizione() throws Exception {
+		System.out.println("Test richieste giornaliere fruizione");
 		final int maxRequests = 10;
 
-		Utils.resetCountersErogazione(dbUtils, "SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_GIORNALIERE);
+		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_GIORNALIERE);
+		Utils.resetCounters(idPolicy);
+		
+		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_MINUTO);
+		Utils.checkPreConditionsNumeroRichieste(idPolicy);
+		
+		// Aspetto lo scoccare del minuto
 		
 		Utils.waitForNewDay();
 		
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestRest/v1/richieste-giornaliere");
+		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/RateLimitingTestRest/v1/richieste-giornaliere");
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
-		checkAssertionsRichiestePerMinuto(responses, maxRequests);
-	}	
+
+		checkAssertionsNumeroRichieste(responses, maxRequests);
+		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
+	}
+	
+	
 	
 
 	@Test
 	public void richiesteSimultaneeErogazione() throws Exception {
 		final int maxConcurrentRequests = 10;
-
+		
+		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_SIMULTANEE);
+		Utils.checkPreConditionsRichiesteSimultanee(idPolicy);
+		
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
@@ -115,31 +194,40 @@ public class RateLimitingRestTest extends ConfigLoader {
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxConcurrentRequests + 1);
 		
 		checkAssertionsRichiesteSimultanee(responses, maxConcurrentRequests);
+		Utils.checkPostConditionsRichiesteSimultanee(idPolicy, maxConcurrentRequests);
 	}
 	
 	
 	@Test
 	public void richiesteSimultaneeFruizione() throws Exception {
 		final int maxConcurrentRequests = 10;
+		
+		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestRest", TipoPolicy.RICHIESTE_SIMULTANEE);
+		Utils.checkPreConditionsRichiesteSimultanee(idPolicy);
 
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
 		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/RateLimitingTestRest/v1/richieste-simultanee?sleep=5000");
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxConcurrentRequests + 1);
-		checkAssertionsRichiesteSimultanee(responses, maxConcurrentRequests);		
+		
+		checkAssertionsRichiesteSimultanee(responses, maxConcurrentRequests);
+		Utils.checkPostConditionsRichiesteSimultanee(idPolicy, maxConcurrentRequests);
 	}
 	
 	
 	@Test
-	public void richiesteSimultaneeInfinito() throws Exception {
-		while(true) {
+	public void richiesteSimultaneeRipetuto() throws Exception {
+		for(int i=0;i<20;i++) {
 			richiesteSimultaneeErogazione();
 		}
+		
+		for(int i=0;i<20;i++) {
+			richiesteSimultaneeFruizione();
+		}
 	}
-	
-	
 
+	
 	private void checkAssertionsRichiesteSimultanee(Vector<HttpResponse> responses, int maxConcurrentRequests) throws Exception {
 		// Tutte le richieste tranne 1 devono restituire 200
 		
@@ -175,7 +263,8 @@ public class RateLimitingRestTest extends ConfigLoader {
 		assertNotEquals(null, failedResponse.getHeader(Headers.RetryAfter));
 	}
 
-	private void checkAssertionsRichiestePerMinuto(Vector<HttpResponse> responses, int maxRequests) throws Exception {
+	
+	private void checkAssertionsNumeroRichieste(Vector<HttpResponse> responses, int maxRequests) throws Exception {
 
 		// Tutte le richieste devono avere lo header X-RateLimit-Reset impostato ad un numero
 		// Tutte le richieste devono avere lo header X-RateLimit-Limit

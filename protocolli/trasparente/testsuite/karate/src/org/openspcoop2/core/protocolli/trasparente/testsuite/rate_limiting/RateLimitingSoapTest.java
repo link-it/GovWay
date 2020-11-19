@@ -41,6 +41,7 @@ public class RateLimitingSoapTest extends ConfigLoader {
 		checkAssertionsRichiesteSimultanee(responses, maxConcurrentRequests);
 	}
 	
+	
 	@Test
 	public void richiesteSimultaneeFruizione() throws Exception {
 		
@@ -67,13 +68,17 @@ public class RateLimitingSoapTest extends ConfigLoader {
 
 	
 	@Test
-	public void richiestePerMinuto() throws Exception {
+	public void richiestePerMinutoErogazione() throws Exception {
 		System.out.println("Test richieste per minuto erogazione...");
 		final int maxRequests = 5;
 
 		// Resetto la policy di RL
 		
-		Utils.resetAllCountersErogazione(dbUtils, "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_MINUTO);
+		List<String> idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_MINUTO);
+		Utils.resetCounters(idPolicies);
+		
+		idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_MINUTO);
+		Utils.checkPreConditionsNumeroRichieste(idPolicies);
 		
 		// Aspetto lo scoccare del minuto
 
@@ -95,7 +100,86 @@ public class RateLimitingSoapTest extends ConfigLoader {
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 
-		checkAssertionsRichiestePerMinuto(responses, maxRequests);		
+		checkAssertionsNumeroRichieste(responses, maxRequests);
+		Utils.checkPostConditionsNumeroRichieste(idPolicies, maxRequests);				
+	}
+	
+	
+	@Test
+	public void richiesteOrarieErogazione() throws Exception {
+		System.out.println("Test richieste orarie erogazione...");
+		final int maxRequests = 10;
+
+		// Resetto la policy di RL
+		
+		List<String> idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_ORARIE);
+		Utils.resetCounters(idPolicies);
+		
+		idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_ORARIE);
+		Utils.checkPreConditionsNumeroRichieste(idPolicies);
+
+		
+		// Aspetto lo scoccare del minuto
+
+		Utils.waitForNewHour();		
+		
+		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
+				"    <soap:Body>\n" + 
+				"        <ns2:RichiesteOrarie xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
+				"        </ns2:RichiesteOrarie>\n" + 
+				"    </soap:Body>\n" + 
+				"</soap:Envelope>";
+		
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/soap+xml");
+		request.setMethod(HttpRequestMethod.POST);
+		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestSoap/v1");
+		request.setContent(body.getBytes());
+		
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
+
+		checkAssertionsNumeroRichieste(responses, maxRequests);	
+		Utils.checkPostConditionsNumeroRichieste(idPolicies, maxRequests);
+	}
+	
+	
+	@Test
+	public void richiesteGiornaliereErogazione() throws Exception {
+		System.out.println("Test richieste giornaliere erogazione...");
+		final int maxRequests = 10;
+
+		// Resetto la policy di RL
+		
+		List<String> idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_GIORNALIERE);
+		Utils.resetCounters(idPolicies);
+		
+		idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_GIORNALIERE);
+		Utils.checkPreConditionsNumeroRichieste(idPolicies);
+
+		
+		// Aspetto lo scoccare del minuto
+
+		Utils.waitForNewMinute();		
+		
+		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
+				"    <soap:Body>\n" + 
+				"        <ns2:RichiesteOrarie xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
+				"        </ns2:RichiesteOrarie>\n" + 
+				"    </soap:Body>\n" + 
+				"</soap:Envelope>";
+		
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/soap+xml");
+		request.setMethod(HttpRequestMethod.POST);
+		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestSoap/v1");
+		request.setContent(body.getBytes());
+		
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
+
+		checkAssertionsNumeroRichieste(responses, maxRequests);
+		Utils.checkPostConditionsNumeroRichieste(idPolicies, maxRequests);				
 	}
 	
 	
@@ -106,7 +190,12 @@ public class RateLimitingSoapTest extends ConfigLoader {
 
 		// Resetto la policy di RL
 		
-		Utils.resetAllCountersFruizione(dbUtils, "SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_MINUTO);
+		List<String> idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_MINUTO);
+		Utils.resetCounters(idPolicies);
+		
+		idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_MINUTO);
+		Utils.checkPreConditionsNumeroRichieste(idPolicies);
+
 		
 		// Aspetto lo scoccare del minuto
 
@@ -128,11 +217,94 @@ public class RateLimitingSoapTest extends ConfigLoader {
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 
-		checkAssertionsRichiestePerMinuto(responses, maxRequests);		
+		checkAssertionsNumeroRichieste(responses, maxRequests);
+		Utils.checkPostConditionsNumeroRichieste(idPolicies, maxRequests);
 	}
 	
 	
-	private void checkAssertionsRichiestePerMinuto(Vector<HttpResponse> responses, int maxRequests) {
+	@Test
+	public void richiesteOrarieFruizione() throws Exception {
+		System.out.println("Test richieste orarie fruizione...");
+		final int maxRequests = 10;
+
+		// Resetto la policy di RL
+		
+		List<String> idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_ORARIE);
+		Utils.resetCounters(idPolicies);
+		
+		idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_ORARIE);
+		Utils.checkPreConditionsNumeroRichieste(idPolicies);
+
+		
+		// Aspetto lo scoccare dell'ora
+
+		Utils.waitForNewHour();		
+		
+		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
+				"    <soap:Body>\n" + 
+				"        <ns2:RichiesteOrarie xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
+				"        </ns2:RichiesteOrarie>\n" + 
+				"    </soap:Body>\n" + 
+				"</soap:Envelope>";
+		
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/soap+xml");
+		request.setMethod(HttpRequestMethod.POST);
+		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/RateLimitingTestSoap/v1");
+		request.setContent(body.getBytes());
+		
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
+
+		checkAssertionsNumeroRichieste(responses, maxRequests);
+		Utils.checkPostConditionsNumeroRichieste(idPolicies, maxRequests);
+
+		// TODO: Dovrei testare che lo header X-RateLimit-Reset è in un range giusto, 
+		// nel caso di richieste orarie, deve indicare il numero di secondi allo scoccare della prossima ora
+		// ecc..
+	}
+	
+	
+	@Test
+	public void richiesteGiornaliereFruizione() throws Exception {
+		System.out.println("Test richieste giornaliere fruizione...");
+		final int maxRequests = 10;
+
+		// Resetto la policy di RL
+		
+		List<String> idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_GIORNALIERE);
+		Utils.resetCounters(idPolicies);
+		
+		idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_GIORNALIERE);
+		Utils.checkPreConditionsNumeroRichieste(idPolicies);
+
+
+		// Aspetto lo scoccare del nuovo giorno
+
+		Utils.waitForNewDay();		
+		
+		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
+				"    <soap:Body>\n" + 
+				"        <ns2:RichiesteGiornaliere xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
+				"        </ns2:RichiesteGiornaliere>\n" + 
+				"    </soap:Body>\n" + 
+				"</soap:Envelope>";
+		
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/soap+xml");
+		request.setMethod(HttpRequestMethod.POST);
+		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/RateLimitingTestSoap/v1");
+		request.setContent(body.getBytes());
+		
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
+
+		checkAssertionsNumeroRichieste(responses, maxRequests);
+		Utils.checkPostConditionsNumeroRichieste(idPolicies, maxRequests);
+	}
+	
+	
+	private void checkAssertionsNumeroRichieste(Vector<HttpResponse> responses, int maxRequests) {
 
 		// Tutte le richieste devono avere lo header X-RateLimit-Reset impostato ad un numero
 		// Tutte le richieste devono avere lo header X-RateLimit-Limit
@@ -162,6 +334,7 @@ public class RateLimitingSoapTest extends ConfigLoader {
 
 		// Lo header X-RateLimit-Remaining deve assumere tutti i
 		// i valori possibili da 0 a maxRequests-1
+		
 		List<Integer> counters = responses.stream()
 				.map(resp -> Integer.parseInt(resp.getHeader(Headers.RateLimitRemaining))).collect(Collectors.toList());
 		assertTrue(IntStream.range(0, maxRequests).allMatch(v -> counters.contains(v)));		

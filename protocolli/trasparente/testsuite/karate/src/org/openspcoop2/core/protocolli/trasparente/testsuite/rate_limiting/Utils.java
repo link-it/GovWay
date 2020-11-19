@@ -1,5 +1,7 @@
 package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
@@ -8,7 +10,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.openspcoop2.core.protocolli.trasparente.testsuite.DbUtils;
 import org.openspcoop2.utils.UtilsException;
 import org.openspcoop2.utils.transport.TransportUtils;
 import org.openspcoop2.utils.transport.http.HttpRequest;
@@ -21,7 +22,8 @@ public class Utils {
 	public enum TipoPolicy {
 		RICHIESTE_MINUTO("RichiestePerMinuto"),
 		RICHIESTE_ORARIE("RichiesteOrarie"),
-		RICHIESTE_GIORNALIERE("RichiesteGiornaliere");
+		RICHIESTE_GIORNALIERE("RichiesteGiornaliere"),
+		RICHIESTE_SIMULTANEE("RichiesteSimultanee");
 		
 		public final String value;
 		
@@ -69,85 +71,44 @@ public class Utils {
 		return responses;
 	}
 	
-	/**
-	 * Resetta i counters delle policy di rate limiting di tutti i gruppi della erogazione
-	 * 
-	 */
-	static void resetAllCountersErogazione(DbUtils dbUtils, String erogatore, String erogazione, TipoPolicy p) throws Exception {
-		List<String> idPolicies = dbUtils.getAllPoliciesIdErogazione(erogatore, erogazione, p);
-		
-		idPolicies.forEach( idPolicy -> {
-			Map<String,String> queryParams = Map.of(
-					"resourceName", "ControlloTraffico",
-					"methodName", "resetPolicyCounters",
-					"paramValue", idPolicy
-				);
-			String jmxUrl = TransportUtils.buildLocationWithURLBasedParameter(queryParams, System.getProperty("govway_base_path") + "/check");
-			System.out.println("Resetto la policy di rate limiting sulla url: " + jmxUrl );
-			try {
-				HttpUtilities.check(jmxUrl, System.getProperty("jmx_username"), System.getProperty("jmx_password"));
-			} catch (Exception e) {
-				e.printStackTrace();
-				throw new RuntimeException(e);
-			}
-		});
-	}
 	
 	
-	/**
-	 * Resetta i counters delle policy di rate limiting di tutti i gruppi della erogazione
-	 * 
-	 */
-	static void resetAllCountersFruizione(DbUtils dbUtils, String fruitore, String erogatore, String fruizione, TipoPolicy p) throws Exception {
-		List<String> idPolicies = dbUtils.getAllPoliciesIdFruizione(fruitore, erogatore, fruizione, p);
-		
+	static void resetCounters(List<String> idPolicies) {
 		idPolicies.forEach( idPolicy -> {
-			Map<String,String> queryParams = Map.of(
-					"resourceName", "ControlloTraffico",
-					"methodName", "resetPolicyCounters",
-					"paramValue", idPolicy
-				);
-			String jmxUrl = TransportUtils.buildLocationWithURLBasedParameter(queryParams, System.getProperty("govway_base_path") + "/check");
-			System.out.println("Resetto la policy di rate limiting sulla url: " + jmxUrl );
 			try {
-				HttpUtilities.check(jmxUrl, System.getProperty("jmx_username"), System.getProperty("jmx_password"));
+				resetCounters(idPolicy);
 			} catch (Exception e) {
-				e.printStackTrace();
 				throw new RuntimeException(e);
 			}
 		});
 	}
 
-
 	
-	/**
-	 *  Resetta il counter delle policy di rate limiting per una erogazione con un solo gruppo
-	 *
-	 */
-	static void resetCountersErogazione(DbUtils dbUtils, String erogatore, String erogazione, TipoPolicy p) throws UtilsException, HttpUtilsException {
+	static void resetCounters(String idPolicy) throws UtilsException, HttpUtilsException {
 		Map<String,String> queryParams = Map.of(
 				"resourceName", "ControlloTraffico",
 				"methodName", "resetPolicyCounters",
-				"paramValue", dbUtils.getPolicyIdErogazione(erogatore, erogazione, p)
+				"paramValue", idPolicy
 			);
 		String jmxUrl = TransportUtils.buildLocationWithURLBasedParameter(queryParams, System.getProperty("govway_base_path") + "/check");
 		System.out.println("Resetto la policy di rate limiting sulla url: " + jmxUrl );
 		HttpUtilities.check(jmxUrl, System.getProperty("jmx_username"), System.getProperty("jmx_password"));
 	}
-
-	/**
-	 *  Resetta il counter delle policy di rate limiting per una fruizione con un solo gruppo
-	 *
-	 */
-	static void resetCountersFruizione(DbUtils dbUtils, String fruitore, String erogatore, String erogazione, TipoPolicy p) throws UtilsException, HttpUtilsException {
+	
+	
+	static String getPolicy(String idPolicy) {
 		Map<String,String> queryParams = Map.of(
 				"resourceName", "ControlloTraffico",
-				"methodName", "resetPolicyCounters",
-				"paramValue", dbUtils.getPolicyIdFruizione(fruitore, erogatore, erogazione, p)
+				"methodName", "getPolicy",
+				"paramValue", idPolicy
 			);
 		String jmxUrl = TransportUtils.buildLocationWithURLBasedParameter(queryParams, System.getProperty("govway_base_path") + "/check");
-		System.out.println("Resetto la policy di rate limiting sulla url: " + jmxUrl );
-		HttpUtilities.check(jmxUrl, System.getProperty("jmx_username"), System.getProperty("jmx_password"));
+		System.out.println("Ottengo le informazioni sullo stato della policy: " + jmxUrl );
+		try {
+			return new String(HttpUtilities.getHTTPResponse(jmxUrl, System.getProperty("jmx_username"), System.getProperty("jmx_password")).getContent());
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	
@@ -207,6 +168,74 @@ public class Utils {
 				java.lang.Thread.sleep(to_wait);
 			}							
 		}			
+	}
+
+
+	public static void checkPreConditionsNumeroRichieste(List<String> idPolicies) {
+		idPolicies.forEach( id -> checkPreConditionsNumeroRichieste(id));
+	}
+
+	
+	public static void checkPreConditionsNumeroRichieste(String idPolicy)  {
+		String jmxPolicyInfo = getPolicy(idPolicy);
+		System.out.println(jmxPolicyInfo);
+		
+		// Se non sono mai state fatte richieste che attivano la policy, ottengo questa
+		// risposta, e le precondizioni sono soddisfatte
+		
+		if (jmxPolicyInfo.equals("Informazioni sulla Policy non disponibili; non sono ancora transitate richieste che soddisfano i criteri di filtro impostati")) {
+			return;
+		}
+		
+		NumeroRichiestePolicyInfo polInfo = new NumeroRichiestePolicyInfo(jmxPolicyInfo);
+		
+		assertEquals(Integer.valueOf(0), polInfo.richiesteAttive);
+		assertEquals(Integer.valueOf(0), polInfo.richiesteConteggiate);
+		assertEquals(Integer.valueOf(0), polInfo.richiesteBloccate);
+	}
+
+
+	public static void checkPostConditionsNumeroRichieste(List<String> idPolicies, int maxRequests) {
+		idPolicies.forEach( id -> checkPostConditionsNumeroRichieste(id, maxRequests));
+	}
+
+	
+	public static void checkPostConditionsNumeroRichieste(String idPolicy, int maxRequests) {
+		
+		String jmxPolicyInfo = getPolicy(idPolicy);
+		System.out.println(jmxPolicyInfo);
+		
+		NumeroRichiestePolicyInfo polInfo = new NumeroRichiestePolicyInfo(jmxPolicyInfo);
+	
+		assertEquals(Integer.valueOf(0), polInfo.richiesteAttive);
+		assertEquals(Integer.valueOf(maxRequests), polInfo.richiesteConteggiate);
+		assertEquals(Integer.valueOf(1), polInfo.richiesteBloccate);
+	}
+
+
+
+	public static void checkPostConditionsRichiesteSimultanee(String idPolicy, int maxRequests) throws UtilsException {
+		String jmxPolicyInfo = getPolicy(idPolicy);
+		System.out.println(jmxPolicyInfo);
+		
+		// Se non sono mai state fatte richieste che attivano la policy, ottengo questa
+		// risposta, e le precondizioni sono soddisfatte
+				
+		if (jmxPolicyInfo.equals("Informazioni sulla Policy non disponibili; non sono ancora transitate richieste che soddisfano i criteri di filtro impostati")) {
+			return;
+		}
+		
+		RichiesteSimultaneePolicyInfo polInfo = new RichiesteSimultaneePolicyInfo(jmxPolicyInfo);
+		assertEquals(Integer.valueOf(0), polInfo.richiesteAttive);
+	}
+
+
+
+	public static void checkPreConditionsRichiesteSimultanee(String idPolicy) throws UtilsException {
+		String jmxPolicyInfo = getPolicy(idPolicy);
+		System.out.println(jmxPolicyInfo);
+		RichiesteSimultaneePolicyInfo polInfo = new RichiesteSimultaneePolicyInfo(jmxPolicyInfo);
+		assertEquals(Integer.valueOf(0), polInfo.richiesteAttive);
 	}
 	
 

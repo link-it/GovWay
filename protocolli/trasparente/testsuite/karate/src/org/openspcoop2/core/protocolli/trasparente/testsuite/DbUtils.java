@@ -77,8 +77,8 @@ public class DbUtils {
     }
      
 
-    public String getPolicyIdErogazione(String erogatore, String api, Utils.TipoPolicy tipoPolicy) {
-    	final String filtroPorta = "gw_" + erogatore + "/gw_" + api + "/v1";
+    public String getIdPolicyErogazione(String erogatore, String erogazione, Utils.TipoPolicy tipoPolicy) {
+    	final String filtroPorta = "gw_" + erogatore + "/gw_" + erogazione + "/v1";
     	String query = "select active_policy_id,POLICY_UPDATE_TIME from ct_active_policy WHERE POLICY_ALIAS='"+tipoPolicy+"' AND FILTRO_PORTA='"+filtroPorta+"' AND FILTRO_RUOLO='applicativa' AND filtro_protocollo='trasparente'";
     	var result = readRow(query);
     	    	
@@ -93,8 +93,8 @@ public class DbUtils {
     }
     
     
-    public String getPolicyIdFruizione(String fruitore, String erogatore, String api, Utils.TipoPolicy tipoPolicy) {
-    	final String filtroPorta = "gw_" + fruitore + "/gw_" + erogatore + "/gw_" + api + "/v1";
+    public String getIdPolicyFruizione(String fruitore, String erogatore, String fruizione, Utils.TipoPolicy tipoPolicy) {
+    	final String filtroPorta = "gw_" + fruitore + "/gw_" + erogatore + "/gw_" + fruizione + "/v1";
     	
     	String query = "select active_policy_id,POLICY_UPDATE_TIME from ct_active_policy WHERE POLICY_ALIAS='"+tipoPolicy+"' AND FILTRO_PORTA='"+filtroPorta+"' AND FILTRO_RUOLO='delegata' AND filtro_protocollo='trasparente'";
       	var result = readRow(query);
