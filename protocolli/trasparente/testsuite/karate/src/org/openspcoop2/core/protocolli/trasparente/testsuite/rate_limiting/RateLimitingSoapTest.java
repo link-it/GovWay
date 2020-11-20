@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -110,7 +111,7 @@ public class RateLimitingSoapTest extends ConfigLoader {
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 
-		checkAssertionsNumeroRichieste(responses, maxRequests);
+		checkAssertionsNumeroRichieste(responses, maxRequests, 60);
 		Utils.checkPostConditionsNumeroRichieste(idPolicies, maxRequests);				
 	}
 	
@@ -149,7 +150,7 @@ public class RateLimitingSoapTest extends ConfigLoader {
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 
-		checkAssertionsNumeroRichieste(responses, maxRequests);	
+		checkAssertionsNumeroRichieste(responses, maxRequests, 3600);	
 		Utils.checkPostConditionsNumeroRichieste(idPolicies, maxRequests);
 	}
 	
@@ -188,7 +189,7 @@ public class RateLimitingSoapTest extends ConfigLoader {
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 
-		checkAssertionsNumeroRichieste(responses, maxRequests);
+		checkAssertionsNumeroRichieste(responses, maxRequests, 86400);
 		Utils.checkPostConditionsNumeroRichieste(idPolicies, maxRequests);				
 	}
 	
@@ -227,7 +228,7 @@ public class RateLimitingSoapTest extends ConfigLoader {
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 
-		checkAssertionsNumeroRichieste(responses, maxRequests);
+		checkAssertionsNumeroRichieste(responses, maxRequests, 60);
 		Utils.checkPostConditionsNumeroRichieste(idPolicies, maxRequests);
 	}
 	
@@ -266,7 +267,7 @@ public class RateLimitingSoapTest extends ConfigLoader {
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 
-		checkAssertionsNumeroRichieste(responses, maxRequests);
+		checkAssertionsNumeroRichieste(responses, maxRequests, 3600);
 		Utils.checkPostConditionsNumeroRichieste(idPolicies, maxRequests);
 
 		// TODO: Dovrei testare che lo header X-RateLimit-Reset è in un range giusto, 
@@ -309,19 +310,24 @@ public class RateLimitingSoapTest extends ConfigLoader {
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 
-		checkAssertionsNumeroRichieste(responses, maxRequests);
+		checkAssertionsNumeroRichieste(responses, maxRequests, 86400);
 		Utils.checkPostConditionsNumeroRichieste(idPolicies, maxRequests);
 	}
 	
 	
-	private void checkAssertionsNumeroRichieste(Vector<HttpResponse> responses, int maxRequests) throws DynamicException {
+	private void checkAssertionsNumeroRichieste(Vector<HttpResponse> responses, int maxRequests, int windowSize) throws DynamicException {
 
 		// Tutte le richieste devono avere lo header X-RateLimit-Reset impostato ad un numero
 		// Tutte le richieste devono avere lo header X-RateLimit-Limit
 		
 		responses.forEach(r -> { 			
 				assertTrue( Integer.valueOf(r.getHeader(Headers.RateLimitReset)) != null);
-				assertNotEquals(null,r.getHeader("X-RateLimit-Limit"));
+				assertNotEquals(null,r.getHeader(Headers.RateLimitLimit));
+				
+				if ("true".equals(prop.getProperty("rl_check_limit_windows"))) {
+					Map<Integer,Integer> windowMap = Map.of(windowSize,maxRequests);							
+					Utils.checkXLimitWindows(r.getHeader(Headers.RateLimitLimit), maxRequests, windowMap);
+				}
 			});
 
 		

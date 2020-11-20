@@ -302,6 +302,22 @@ public class Utils {
 		RichiesteSimultaneePolicyInfo polInfo = new RichiesteSimultaneePolicyInfo(jmxPolicyInfo);
 		assertEquals(Integer.valueOf(0), polInfo.richiesteAttive);
 	}
+
+
+	public static void checkXLimitWindows(String header, Integer currentValue, Map<Integer, Integer> windowMap) {
+		String[] values = header.split(",");
+		assertEquals(currentValue, Integer.valueOf(values[0]));
+		for(int i=1;i<values.length;i++) {
+			String[] window = values[i].trim().split(";");
+			String windowSize = window[1].split("=")[1];
+			assertEquals(
+					windowMap.get(Integer.valueOf(windowSize)),
+					Integer.valueOf(window[0])
+				);
+		}
+		
+		
+	}
 	
 
 }

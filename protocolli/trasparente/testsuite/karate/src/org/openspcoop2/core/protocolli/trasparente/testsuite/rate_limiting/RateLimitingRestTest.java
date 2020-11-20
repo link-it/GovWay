@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -44,7 +45,7 @@ public class RateLimitingRestTest extends ConfigLoader {
 		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestRest/v1/richieste-per-minuto");
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
-		checkAssertionsNumeroRichieste(responses, maxRequests);
+		checkAssertionsNumeroRichieste(responses, maxRequests, 60);
 		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
 	}
 	
@@ -68,7 +69,7 @@ public class RateLimitingRestTest extends ConfigLoader {
 		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestRest/v1/richieste-orarie");
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
-		checkAssertionsNumeroRichieste(responses, maxRequests);
+		checkAssertionsNumeroRichieste(responses, maxRequests,3600);
 		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
 	}
 	
@@ -92,7 +93,7 @@ public class RateLimitingRestTest extends ConfigLoader {
 		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestRest/v1/richieste-giornaliere");
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
-		checkAssertionsNumeroRichieste(responses, maxRequests);
+		checkAssertionsNumeroRichieste(responses, maxRequests, 86400);
 		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
 	}	
 	
@@ -119,7 +120,7 @@ public class RateLimitingRestTest extends ConfigLoader {
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 
-		checkAssertionsNumeroRichieste(responses, maxRequests);
+		checkAssertionsNumeroRichieste(responses, maxRequests, 60);
 		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
 	}
 	
@@ -146,7 +147,7 @@ public class RateLimitingRestTest extends ConfigLoader {
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 
-		checkAssertionsNumeroRichieste(responses, maxRequests);
+		checkAssertionsNumeroRichieste(responses, maxRequests, 3600);
 		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
 	}
 	
@@ -172,7 +173,7 @@ public class RateLimitingRestTest extends ConfigLoader {
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 
-		checkAssertionsNumeroRichieste(responses, maxRequests);
+		checkAssertionsNumeroRichieste(responses, maxRequests, 86400);
 		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
 	}
 	
@@ -264,14 +265,19 @@ public class RateLimitingRestTest extends ConfigLoader {
 	}
 
 	
-	private void checkAssertionsNumeroRichieste(Vector<HttpResponse> responses, int maxRequests) throws Exception {
+	private void checkAssertionsNumeroRichieste(Vector<HttpResponse> responses, int maxRequests, int windowSize) throws Exception {
 
 		// Tutte le richieste devono avere lo header X-RateLimit-Reset impostato ad un numero
 		// Tutte le richieste devono avere lo header X-RateLimit-Limit
 		
 		responses.forEach(r -> { 			
 				assertTrue( Integer.valueOf(r.getHeader(Headers.RateLimitReset)) != null);
-				assertNotEquals(null,r.getHeader("X-RateLimit-Limit"));
+				assertNotEquals(null,r.getHeader(Headers.RateLimitLimit));
+				
+				if ("true".equals(prop.getProperty("rl_check_limit_windows"))) {
+					Map<Integer,Integer> windowMap = Map.of(windowSize,maxRequests);							
+					Utils.checkXLimitWindows(r.getHeader(Headers.RateLimitLimit), maxRequests, windowMap);
+				}
 			});
 
 		// Tutte le richieste tranne una devono restituire 200
