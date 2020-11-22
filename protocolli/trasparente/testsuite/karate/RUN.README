@@ -1,3 +1,9 @@
+- Impostare a <15> il massimo numero di richieste simultanee generali nella console di govway sotto Configurazione->Controllo del Traffico->Limitazione Numero di Richieste Complessive
+
+
+
+
+
 Per eseguire i test:
 	ant run_test
 

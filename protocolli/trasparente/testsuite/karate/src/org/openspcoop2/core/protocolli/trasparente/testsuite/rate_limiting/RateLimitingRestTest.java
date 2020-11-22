@@ -24,8 +24,7 @@ public class RateLimitingRestTest extends ConfigLoader {
 	
 	
 
-	@Test
-	public void richiestePerMinutoErogazione() throws Exception {
+	public void richiestePerMinutoErogazione(boolean disclosure) throws Exception {
 		System.out.println("Test richieste per minuto");
 		final int maxRequests = 5;
 
@@ -45,13 +44,27 @@ public class RateLimitingRestTest extends ConfigLoader {
 		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestRest/v1/richieste-per-minuto");
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
-		checkAssertionsNumeroRichieste(responses, maxRequests, 60);
-		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
+		
+		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);		
+		checkAssertionsNumeroRichieste(responses, maxRequests, 60, disclosure);
 	}
 	
 	
 	@Test
-	public void richiesteOrarieErogazione() throws Exception {
+	public void richiestePerMinutoErogazioneNoDisclosure() throws Exception {
+		Utils.toggleErrorDisclosure(false);
+		this.richiestePerMinutoErogazione(false);
+	}
+	
+	@Test
+	public void richiestePerMinutoErogazioneDisclosure() throws Exception {
+		Utils.toggleErrorDisclosure(true);
+		this.richiestePerMinutoErogazione(true);
+		Utils.toggleErrorDisclosure(false);
+	}
+	
+	
+	public void richiesteOrarieErogazione(boolean disclosure) throws Exception {
 		System.out.println("Test richieste per ora");
 		final int maxRequests = 10;
 
@@ -69,13 +82,26 @@ public class RateLimitingRestTest extends ConfigLoader {
 		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestRest/v1/richieste-orarie");
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
-		checkAssertionsNumeroRichieste(responses, maxRequests,3600);
+		checkAssertionsNumeroRichieste(responses, maxRequests,3600, disclosure);
 		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
+	}
+	
+	@Test
+	public void richiesteOrarieErogazioneNoDisclosure() throws Exception {
+		Utils.toggleErrorDisclosure(false);
+		this.richiesteOrarieErogazione(false);
 	}
 	
 	
 	@Test
-	public void richiesteGiornaliereErogazione() throws Exception {
+	public void richiesteOrarieErogazioneDisclosure() throws Exception {
+		Utils.toggleErrorDisclosure(true);
+		this.richiesteOrarieErogazione(true);
+		Utils.toggleErrorDisclosure(false);
+	}
+	
+	
+	public void richiesteGiornaliereErogazione(boolean disclosure) throws Exception {
 		System.out.println("Test richieste per ora");
 		final int maxRequests = 10;
 
@@ -93,13 +119,27 @@ public class RateLimitingRestTest extends ConfigLoader {
 		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestRest/v1/richieste-giornaliere");
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
-		checkAssertionsNumeroRichieste(responses, maxRequests, 86400);
+		checkAssertionsNumeroRichieste(responses, maxRequests, 86400, disclosure);
 		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
-	}	
+	}
 	
 	
 	@Test
-	public void richiestePerMinutoFruizione() throws Exception {
+	public void richiesteGiornaliereErogazioneNoDisclosure() throws Exception {
+		Utils.toggleErrorDisclosure(false);
+		this.richiesteGiornaliereErogazione(false);
+	}
+	
+	
+	@Test
+	public void richiesteGiornaliereErogazioneDisclosure() throws Exception {
+		Utils.toggleErrorDisclosure(true);
+		this.richiesteGiornaliereErogazione(true);
+		Utils.toggleErrorDisclosure(false);
+	}
+	
+	
+	public void richiestePerMinutoFruizione(boolean disclosure) throws Exception {
 		System.out.println("Test richieste per minuto fruizione");
 		final int maxRequests = 5;
 
@@ -120,12 +160,27 @@ public class RateLimitingRestTest extends ConfigLoader {
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 
-		checkAssertionsNumeroRichieste(responses, maxRequests, 60);
+		checkAssertionsNumeroRichieste(responses, maxRequests, 60, disclosure);
 		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
 	}
 	
+	
 	@Test
-	public void richiesteOrarieFruizione() throws Exception {
+	public void richiestePerMinutoFruizioneNoDisclosure() throws Exception {
+		Utils.toggleErrorDisclosure(false);
+		this.richiestePerMinutoFruizione(false);
+	}
+	
+	
+	@Test
+	public void richiestePerMinutoFruizioneDisclosure() throws Exception {
+		Utils.toggleErrorDisclosure(true);
+		this.richiestePerMinutoFruizione(true);
+		Utils.toggleErrorDisclosure(false);
+	}
+	
+	
+	public void richiesteOrarieFruizione(boolean disclosure) throws Exception {
 		System.out.println("Test richieste orarie fruizione");
 		final int maxRequests = 10;
 
@@ -147,12 +202,27 @@ public class RateLimitingRestTest extends ConfigLoader {
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 
-		checkAssertionsNumeroRichieste(responses, maxRequests, 3600);
+		checkAssertionsNumeroRichieste(responses, maxRequests, 3600, disclosure);
 		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
 	}
 	
+	
 	@Test
-	public void richiesteGiornaliereFruizione() throws Exception {
+	public void richiesteOrarieFruizioneNoDisclosure() throws Exception {
+		Utils.toggleErrorDisclosure(false);
+		this.richiesteOrarieFruizione(false);
+	}
+	
+	
+	@Test
+	public void richiesteOrarieFruizioneDisclosure() throws Exception {
+		Utils.toggleErrorDisclosure(true);
+		this.richiesteOrarieFruizione(true);
+		Utils.toggleErrorDisclosure(false);
+	}
+	
+	
+	public void richiesteGiornaliereFruizione(boolean disclosure) throws Exception {
 		System.out.println("Test richieste giornaliere fruizione");
 		final int maxRequests = 10;
 
@@ -173,10 +243,24 @@ public class RateLimitingRestTest extends ConfigLoader {
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 
-		checkAssertionsNumeroRichieste(responses, maxRequests, 86400);
+		checkAssertionsNumeroRichieste(responses, maxRequests, 86400, disclosure);
 		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
 	}
 	
+	
+	@Test
+	public void richiesteGiornaliereFruizioneNoDisclosure() throws Exception {
+		Utils.toggleErrorDisclosure(false);
+		this.richiesteGiornaliereFruizione(false);
+	}
+	
+	
+	@Test
+	public void richiesteGiornaliereFruizioneDisclosure() throws Exception {
+		Utils.toggleErrorDisclosure(true);
+		this.richiesteGiornaliereFruizione(true);
+		Utils.toggleErrorDisclosure(false);
+	}
 	
 	
 
@@ -195,7 +279,7 @@ public class RateLimitingRestTest extends ConfigLoader {
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxConcurrentRequests + 1);
 		
 		checkAssertionsRichiesteSimultanee(responses, maxConcurrentRequests);
-		Utils.checkPostConditionsRichiesteSimultanee(idPolicy, maxConcurrentRequests);
+		Utils.checkPostConditionsRichiesteSimultanee(idPolicy);
 	}
 	
 	
@@ -213,7 +297,45 @@ public class RateLimitingRestTest extends ConfigLoader {
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxConcurrentRequests + 1);
 		
 		checkAssertionsRichiesteSimultanee(responses, maxConcurrentRequests);
-		Utils.checkPostConditionsRichiesteSimultanee(idPolicy, maxConcurrentRequests);
+		Utils.checkPostConditionsRichiesteSimultanee(idPolicy);
+	}
+	
+	@Test
+	public void richiesteSimultaneeGlobali() throws Exception {
+		final int maxConcurrentRequests = 15;
+		
+		// TODO: Meglio coinvolgere anche la fruizione.
+		
+		// Aspetto che i threads attivi sul server siano 0
+		Utils.waitForZeroGovWayThreads();
+		
+		// Effettuo le n richieste
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/json");
+		request.setMethod(HttpRequestMethod.GET);
+		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/RateLimitingTestRest/v1/no-policy?sleep=5000");
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxConcurrentRequests + 1);
+		
+		HttpResponse failedResponse = responses.stream().filter(r -> r.getResultHTTPOperation() == 429).findAny()
+				.orElse(null);
+		assertTrue(failedResponse != null);
+		
+		JSONObject jsonResp = JsonPathExpressionEngine.getJSONObject(new String(failedResponse.getContent()));
+		JsonPathExpressionEngine jsonPath = new JsonPathExpressionEngine();
+		
+		assertEquals("https://govway.org/handling-errors/429/TooManyRequests.html", jsonPath.getStringMatchPattern(jsonResp, "$.type").get(0));
+		assertEquals("TooManyRequests", jsonPath.getStringMatchPattern(jsonResp, "$.title").get(0));
+		assertEquals(429, jsonPath.getNumberMatchPattern(jsonResp, "$.status").get(0));
+		assertEquals("Too many requests detected", jsonPath.getStringMatchPattern(jsonResp, "$.detail").get(0));
+		assertNotEquals(null, jsonPath.getStringMatchPattern(jsonResp, "$.govway_id").get(0));
+		
+		assertNotEquals(null, failedResponse.getHeader(Headers.RetryAfter));
+		assertEquals(HeaderValues.TooManyRequests, failedResponse.getHeader(Headers.GovWayTransactionErrorType));
+		assertEquals(HeaderValues.ReturnCodeTooManyRequests, failedResponse.getHeader(Headers.ReturnCode));
+
+		
+		Utils.waitForZeroGovWayThreads();		
 	}
 	
 	
@@ -265,7 +387,7 @@ public class RateLimitingRestTest extends ConfigLoader {
 	}
 
 	
-	private void checkAssertionsNumeroRichieste(Vector<HttpResponse> responses, int maxRequests, int windowSize) throws Exception {
+	private void checkAssertionsNumeroRichieste(Vector<HttpResponse> responses, int maxRequests, int windowSize, boolean disclosure) throws Exception {
 
 		// Tutte le richieste devono avere lo header X-RateLimit-Reset impostato ad un numero
 		// Tutte le richieste devono avere lo header X-RateLimit-Limit
@@ -293,12 +415,19 @@ public class RateLimitingRestTest extends ConfigLoader {
 		
 		JSONObject jsonResp = JsonPathExpressionEngine.getJSONObject(new String(failedResponse.getContent()));
 		JsonPathExpressionEngine jsonPath = new JsonPathExpressionEngine();
+		System.out.println(new String(failedResponse.getContent()));
 		
 		assertEquals("https://govway.org/handling-errors/429/LimitExceeded.html", jsonPath.getStringMatchPattern(jsonResp, "$.type").get(0));
 		assertEquals("LimitExceeded", jsonPath.getStringMatchPattern(jsonResp, "$.title").get(0));
 		assertEquals(429, jsonPath.getNumberMatchPattern(jsonResp, "$.status").get(0));
-		assertEquals("Limit exceeded detected", jsonPath.getStringMatchPattern(jsonResp, "$.detail").get(0));
 		assertNotEquals(null, jsonPath.getStringMatchPattern(jsonResp, "$.govway_id").get(0));
+		
+		if (disclosure) {
+			assertEquals("Servizio Temporaneamente Non Erogabile [CP02]", jsonPath.getStringMatchPattern(jsonResp, "$.detail").get(0));			
+		}
+		else {
+			assertEquals("Limit exceeded detected", jsonPath.getStringMatchPattern(jsonResp, "$.detail").get(0));
+		}
 		
 		assertEquals("0", failedResponse.getHeader(Headers.RateLimitRemaining));
 		assertEquals(HeaderValues.LimitExceeded, failedResponse.getHeader(Headers.GovWayTransactionErrorType));

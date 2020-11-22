@@ -10,6 +10,7 @@ import java.util.Vector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.TipoPolicy;
@@ -24,6 +25,10 @@ import org.w3c.dom.Element;
 
 public class RateLimitingSoapTest extends ConfigLoader {
 	
+	@BeforeClass
+	public static void setup() {
+		Utils.toggleErrorDisclosure(false);
+	}
 	
 	@Test 
 	public void richiesteSimultaneeErogazione() throws Exception {
@@ -48,6 +53,7 @@ public class RateLimitingSoapTest extends ConfigLoader {
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxConcurrentRequests + 1);
 		
 		checkAssertionsRichiesteSimultanee(responses, maxConcurrentRequests);
+		Utils.checkPostConditionsRichiesteSimultanee(idPolicies);
 	}
 	
 	
@@ -74,8 +80,55 @@ public class RateLimitingSoapTest extends ConfigLoader {
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxConcurrentRequests + 1);
 		
 		checkAssertionsRichiesteSimultanee(responses, maxConcurrentRequests);
+		Utils.checkPostConditionsRichiesteSimultanee(idPolicies);
 	}
 	
+	@Test
+	public void richiesteSimultaneeGlobali() throws Exception {
+		final int maxConcurrentRequests = 15;
+		
+		// TODO: Meglio coinvolgere anche la fruizione nelle richieste.
+		
+		// Aspetto che i threads attivi sul server siano 0
+		Utils.waitForZeroGovWayThreads();
+		
+		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
+				"    <soap:Body>\n" + 
+				"        <ns2:NoPolicy xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
+				"        </ns2:NoPolicy>\n" + 
+				"    </soap:Body>\n" + 
+				"</soap:Envelope>";
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/soap+xml");
+		request.setMethod(HttpRequestMethod.POST);
+		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/RateLimitingTestSoap/v1");
+		request.setContent(body.getBytes());
+		
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxConcurrentRequests + 1);
+
+		assertEquals(maxConcurrentRequests, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
+		// La richiesta fallita deve avere status code 429
+		
+		HttpResponse failedResponse = responses.stream().filter(r -> r.getResultHTTPOperation() == 429).findAny()
+				.orElse(null);
+		assertNotEquals(null, failedResponse);
+		
+		String bodyResp = new String(failedResponse.getContent());
+		System.out.println(bodyResp);
+		
+		Element element = Utils.buildXmlElement(failedResponse.getContent());
+		PatternExtractor matcher = new PatternExtractor(OpenSPCoop2MessageFactory.getDefaultMessageFactory(), element, LoggerWrapperFactory.getLogger(getClass()));
+		assertEquals("Too Many Requests", matcher.read("/html/head/title/text()"));
+		assertEquals("Too Many Requests", matcher.read("/html/body/h1/text()"));
+		assertEquals("Too many requests detected", matcher.read("/html/body/p/text()"));
+		
+		assertEquals(HeaderValues.TooManyRequests, failedResponse.getHeader(Headers.GovWayTransactionErrorType));
+		assertEquals(HeaderValues.ReturnCodeTooManyRequests, failedResponse.getHeader(Headers.ReturnCode));
+		assertNotEquals(null, failedResponse.getHeader(Headers.RetryAfter));		
+		
+		Utils.waitForZeroGovWayThreads();		
+	}
 
 	
 	@Test

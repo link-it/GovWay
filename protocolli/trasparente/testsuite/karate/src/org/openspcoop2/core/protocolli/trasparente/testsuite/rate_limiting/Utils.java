@@ -29,11 +29,18 @@ import org.xml.sax.SAXException;
 
 public class Utils {
 	
+	// TODO: Questi valori dipendono dall'erogazione, non sono generici di govway. 
+	// Spezzettare e spostare l'enum nelle classi che lo usano
+	// Anzi meglio, utilizzare sempre e solo le costanti Minuto, Orario, Giornaliero,
+	// anche nella configurazione di govway
 	public enum TipoPolicy {
 		RICHIESTE_MINUTO("RichiestePerMinuto"),
 		RICHIESTE_ORARIE("RichiesteOrarie"),
 		RICHIESTE_GIORNALIERE("RichiesteGiornaliere"),
-		RICHIESTE_SIMULTANEE("RichiesteSimultanee");
+		RICHIESTE_SIMULTANEE("RichiesteSimultanee"), 
+		TEMPO_RISPOSTA_MINUTO("Minuto"),	
+		TEMPO_RISPOSTA_ORARIO("Orario"),
+		TEMPO_RISPOSTA_GIORNALIERO("Giornaliero");
 		
 		public final String value;
 		
@@ -144,6 +151,63 @@ public class Utils {
 			throw new RuntimeException(e);
 		}
 	}
+	
+	
+	static void toggleErrorDisclosure(boolean enabled) {
+	
+		String value = "false";
+		if (enabled) {
+			value = "true";
+		}
+		
+		List<Map<String, String>> requestsParams = List.of(
+				Map.of(
+						"resourceName", "ConfigurazionePdD",
+						"attributeName", "transactionErrorForceSpecificTypeInternalResponseError",
+						"attributeBooleanValue", value
+					),
+				Map.of(
+						"resourceName", "ConfigurazionePdD",
+						"attributeName", "transactionErrorForceSpecificTypeBadResponse",
+						"attributeBooleanValue", value
+					),
+				Map.of(
+						"resourceName", "ConfigurazionePdD",
+						"attributeName", "transactionErrorForceSpecificDetails",
+						"attributeBooleanValue", value
+					)
+				);
+				
+		requestsParams.forEach( queryParams -> {
+			String jmxUrl = TransportUtils.buildLocationWithURLBasedParameter(queryParams, System.getProperty("govway_base_path") + "/check");
+			System.out.println("Imposto la error disclosure: " + jmxUrl );
+				
+			try {
+				HttpUtilities.check(jmxUrl, System.getProperty("jmx_username"), System.getProperty("jmx_password"));
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		});
+	}
+		
+	
+	static Integer getThreadsAttiviGovWay() {
+		
+		Map<String,String> queryParams = Map.of(
+				"resourceName", "ControlloTraffico",
+				"attributeName", "threadsAttivi"
+			);
+		
+		String jmxUrl = TransportUtils.buildLocationWithURLBasedParameter(queryParams, System.getProperty("govway_base_path") + "/check");
+		System.out.println("Ottengo le informazioni sul numero dei threads attivi: " + jmxUrl );
+		try {
+			return Integer.valueOf(
+					new String(HttpUtilities.getHTTPResponse(jmxUrl, System.getProperty("jmx_username"), System.getProperty("jmx_password")).getContent())
+				);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}		
+	}
 
 	
 	/**
@@ -151,7 +215,7 @@ public class Utils {
 	 * 
 	 * @throws InterruptedException
 	 */
-	static void waitForNewMinute() throws InterruptedException {
+	static void waitForNewMinute() {
 		if ("false".equals(System.getProperty("wait"))) {
 			return;
 		}
@@ -159,7 +223,7 @@ public class Utils {
 		Calendar now = Calendar.getInstance();
 		int to_wait = (63 - now.get(Calendar.SECOND)) *1000;
 		System.out.println("Aspetto " + to_wait/1000 + " secondi per lo scoccare del minuto..");
-		java.lang.Thread.sleep(to_wait);		
+		org.openspcoop2.utils.Utilities.sleep(to_wait);		
 	}
 	
 	/**
@@ -204,6 +268,25 @@ public class Utils {
 		}			
 	}
 
+	public static void waitForZeroGovWayThreads() {
+		
+		int remainingChecks = Integer.valueOf(System.getProperty("rl_post_conditions_retry"));
+		
+		while(true) {
+			try {
+				Integer threadAttivi = getThreadsAttiviGovWay();
+				assertEquals(Integer.valueOf(0), threadAttivi);
+				break;
+			} catch (AssertionError e) {
+				if(remainingChecks == 0) {
+					throw e;
+				}
+				remainingChecks--;
+				org.openspcoop2.utils.Utilities.sleep(500);
+			}
+		}
+		
+	}
 
 	public static void checkPreConditionsNumeroRichieste(List<String> idPolicies) {
 		idPolicies.forEach( id -> checkPreConditionsNumeroRichieste(id));
@@ -259,9 +342,13 @@ public class Utils {
 		}
 	}
 
+	
+	public static void checkPostConditionsRichiesteSimultanee(List<String> idPolicies) {
+		idPolicies.forEach( id -> checkPostConditionsRichiesteSimultanee(id));
+	}
 
 
-	public static void checkPostConditionsRichiesteSimultanee(String idPolicy, int maxRequests) throws UtilsException {
+	public static void checkPostConditionsRichiesteSimultanee(String idPolicy) {
 		
 		int remainingChecks = Integer.valueOf(System.getProperty("rl_post_conditions_retry"));
 		
