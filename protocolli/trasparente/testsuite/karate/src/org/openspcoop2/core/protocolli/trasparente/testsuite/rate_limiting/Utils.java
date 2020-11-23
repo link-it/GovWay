@@ -17,12 +17,15 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
+import org.openspcoop2.utils.LoggerWrapperFactory;
 import org.openspcoop2.utils.UtilsException;
 import org.openspcoop2.utils.transport.TransportUtils;
 import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpResponse;
 import org.openspcoop2.utils.transport.http.HttpUtilities;
 import org.openspcoop2.utils.transport.http.HttpUtilsException;
+import org.slf4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -62,12 +65,15 @@ public class Utils {
 		}
 	}
 	
+	public static Logger logRateLimiting = ConfigLoader.getLogger();
+
 	
 	/**
 	 * Esege `count` richieste `request` parallele 
 	 * 
 	 */
 	public static Vector<HttpResponse> makeParallelRequests(HttpRequest request, int count) throws InterruptedException {
+		logRateLimiting = ConfigLoader.getLogger();
 
 		final Vector<HttpResponse> responses = new Vector<>();
 		ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(count);
@@ -75,9 +81,9 @@ public class Utils {
 		for (int i = 0; i < count; i++) {
 			executor.execute(() -> {
 				try {
-					System.out.println(request.getMethod() + " " + request.getUrl());
+					logRateLimiting.info(request.getMethod() + " " + request.getUrl());
 					responses.add(HttpUtilities.httpInvoke(request));
-					System.out.println("Richiesta effettuata..");
+					logRateLimiting.info("Richiesta effettuata..");
 				} catch (UtilsException e) {
 					e.printStackTrace();
 					throw new RuntimeException(e);
@@ -88,10 +94,10 @@ public class Utils {
 		executor.shutdown();
 		executor.awaitTermination(20, TimeUnit.SECONDS);
 		
-		System.out.println("RESPONSES: ");
+		logRateLimiting.info("RESPONSES: ");
 		responses.forEach(r -> {
-			System.out.println("statusCode: " + r.getResultHTTPOperation());
-			System.out.println("headers: " + r.getHeaders());
+			logRateLimiting.info("statusCode: " + r.getResultHTTPOperation());
+			logRateLimiting.info("headers: " + r.getHeaders());
 		});
 
 		return responses;
@@ -110,7 +116,7 @@ public class Utils {
 	}
 	
 	
-	static void resetCounters(List<String> idPolicies) {
+	public static void resetCounters(List<String> idPolicies) {
 		idPolicies.forEach( idPolicy -> {
 			try {
 				resetCounters(idPolicy);
@@ -128,7 +134,7 @@ public class Utils {
 				"paramValue", idPolicy
 			);
 		String jmxUrl = TransportUtils.buildLocationWithURLBasedParameter(queryParams, System.getProperty("govway_base_path") + "/check");
-		System.out.println("Resetto la policy di rate limiting sulla url: " + jmxUrl );
+		logRateLimiting.info("Resetto la policy di rate limiting sulla url: " + jmxUrl );
 		HttpUtilities.check(jmxUrl, System.getProperty("jmx_username"), System.getProperty("jmx_password"));
 	}
 	
@@ -140,7 +146,7 @@ public class Utils {
 				"paramValue", idPolicy
 			);
 		String jmxUrl = TransportUtils.buildLocationWithURLBasedParameter(queryParams, System.getProperty("govway_base_path") + "/check");
-		System.out.println("Ottengo le informazioni sullo stato della policy: " + jmxUrl );
+		logRateLimiting.info("Ottengo le informazioni sullo stato della policy: " + jmxUrl );
 		try {
 			return new String(HttpUtilities.getHTTPResponse(jmxUrl, System.getProperty("jmx_username"), System.getProperty("jmx_password")).getContent());
 		} catch (Exception e) {
@@ -176,7 +182,7 @@ public class Utils {
 				
 		requestsParams.forEach( queryParams -> {
 			String jmxUrl = TransportUtils.buildLocationWithURLBasedParameter(queryParams, System.getProperty("govway_base_path") + "/check");
-			System.out.println("Imposto la error disclosure: " + jmxUrl );
+			logRateLimiting.info("Imposto la error disclosure: " + jmxUrl );
 				
 			try {
 				HttpUtilities.check(jmxUrl, System.getProperty("jmx_username"), System.getProperty("jmx_password"));
@@ -195,7 +201,7 @@ public class Utils {
 			);
 		
 		String jmxUrl = TransportUtils.buildLocationWithURLBasedParameter(queryParams, System.getProperty("govway_base_path") + "/check");
-		System.out.println("Ottengo le informazioni sul numero dei threads attivi: " + jmxUrl );
+		logRateLimiting.info("Ottengo le informazioni sul numero dei threads attivi: " + jmxUrl );
 		try {
 			return Integer.valueOf(
 					new String(HttpUtilities.getHTTPResponse(jmxUrl, System.getProperty("jmx_username"), System.getProperty("jmx_password")).getContent())
@@ -218,7 +224,7 @@ public class Utils {
 		
 		Calendar now = Calendar.getInstance();
 		int to_wait = (63 - now.get(Calendar.SECOND)) *1000;
-		System.out.println("Aspetto " + to_wait/1000 + " secondi per lo scoccare del minuto..");
+		logRateLimiting.info("Aspetto " + to_wait/1000 + " secondi per lo scoccare del minuto..");
 		org.openspcoop2.utils.Utilities.sleep(to_wait);		
 	}
 	
@@ -237,7 +243,7 @@ public class Utils {
 		int remaining = 60 - now.get(Calendar.MINUTE); 
 		if (remaining <= 2) {
 			int to_wait = (remaining+1) * 60 * 1000;
-			System.out.println("Aspetto " + to_wait/1000 + " secondi per lo scoccare del minuto..");
+			logRateLimiting.info("Aspetto " + to_wait/1000 + " secondi per lo scoccare del minuto..");
 			java.lang.Thread.sleep(to_wait);
 		}					
 	}
@@ -258,7 +264,7 @@ public class Utils {
 			int remaining = 60 - now.get(Calendar.MINUTE); 
 			if (remaining <= 2) {
 				int to_wait = (remaining+1) * 60 * 1000;
-				System.out.println("Aspetto " + to_wait/1000 + " secondi per lo scoccare del minuto..");
+				logRateLimiting.info("Aspetto " + to_wait/1000 + " secondi per lo scoccare del minuto..");
 				java.lang.Thread.sleep(to_wait);
 			}							
 		}			
@@ -291,7 +297,7 @@ public class Utils {
 	
 	public static void checkPreConditionsNumeroRichieste(String idPolicy)  {
 		String jmxPolicyInfo = getPolicy(idPolicy);
-		System.out.println(jmxPolicyInfo);
+		logRateLimiting.info(jmxPolicyInfo);
 		
 		// Se non sono mai state fatte richieste che attivano la policy, ottengo questa
 		// risposta, e le precondizioni sono soddisfatte
@@ -320,7 +326,7 @@ public class Utils {
 		while(true) {
 			try {
 				String jmxPolicyInfo = getPolicy(idPolicy);
-				System.out.println(jmxPolicyInfo);
+				logRateLimiting.info(jmxPolicyInfo);
 				
 				NumeroRichiestePolicyInfo polInfo = new NumeroRichiestePolicyInfo(jmxPolicyInfo);
 			
@@ -351,7 +357,7 @@ public class Utils {
 		while(true) {
 			try {
 				String jmxPolicyInfo = getPolicy(idPolicy);
-				System.out.println(jmxPolicyInfo);
+				logRateLimiting.info(jmxPolicyInfo);
 				RichiesteSimultaneePolicyInfo polInfo = new RichiesteSimultaneePolicyInfo(jmxPolicyInfo);
 				assertEquals(Integer.valueOf(0), polInfo.richiesteAttive);
 				break;
@@ -374,7 +380,7 @@ public class Utils {
 	
 	public static void checkPreConditionsRichiesteSimultanee(String idPolicy) {
 		String jmxPolicyInfo = getPolicy(idPolicy);
-		System.out.println(jmxPolicyInfo);
+		logRateLimiting.info(jmxPolicyInfo);
 		
 		// Se non sono mai state fatte richieste che attivano la policy, ottengo questa
 		// risposta, e le precondizioni sono soddisfatte

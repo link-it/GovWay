@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.junit.BeforeClass;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
 import org.openspcoop2.utils.LoggerWrapperFactory;
 import org.slf4j.Logger;
 
@@ -50,6 +51,10 @@ public class ConfigLoader {
 	}
     
 	protected static Logger logRateLimiting = null;
+	
+	public static Logger getLogger() {
+		return logRateLimiting;
+	}
 		
 	@BeforeClass
 	public static void setupLogger()throws Exception {

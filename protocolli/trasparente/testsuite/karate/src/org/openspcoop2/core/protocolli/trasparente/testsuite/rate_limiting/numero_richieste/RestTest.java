@@ -1,4 +1,4 @@
-package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting;
+package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -12,6 +12,9 @@ import java.util.stream.IntStream;
 
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.HeaderValues;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Headers;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.PolicyAlias;
 import org.openspcoop2.utils.json.JsonPathExpressionEngine;
 import org.openspcoop2.utils.transport.http.HttpRequest;
@@ -20,12 +23,12 @@ import org.openspcoop2.utils.transport.http.HttpResponse;
 
 import net.minidev.json.JSONObject;
 
-public class RateLimitingRestTest extends ConfigLoader {
+public class RestTest extends ConfigLoader {
 	
 	
 
 	public void richiestePerMinutoErogazione(boolean disclosure) throws Exception {
-		System.out.println("Test richieste per minuto");
+		logRateLimiting.info("Test richieste per minuto");
 		final int maxRequests = 5;
 
 		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RateLimitingTestRest", PolicyAlias.RICHIESTE_MINUTO);
@@ -65,7 +68,7 @@ public class RateLimitingRestTest extends ConfigLoader {
 	
 	
 	public void richiesteOrarieErogazione(boolean disclosure) throws Exception {
-		System.out.println("Test richieste per ora");
+		logRateLimiting.info("Test richieste per ora");
 		final int maxRequests = 10;
 
 		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RateLimitingTestRest", PolicyAlias.RICHIESTE_ORARIE);
@@ -102,7 +105,7 @@ public class RateLimitingRestTest extends ConfigLoader {
 	
 	
 	public void richiesteGiornaliereErogazione(boolean disclosure) throws Exception {
-		System.out.println("Test richieste per ora");
+		logRateLimiting.info("Test richieste per ora");
 		final int maxRequests = 10;
 
 		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RateLimitingTestRest", PolicyAlias.RICHIESTE_GIORNALIERE);
@@ -140,7 +143,7 @@ public class RateLimitingRestTest extends ConfigLoader {
 	
 	
 	public void richiestePerMinutoFruizione(boolean disclosure) throws Exception {
-		System.out.println("Test richieste per minuto fruizione");
+		logRateLimiting.info("Test richieste per minuto fruizione");
 		final int maxRequests = 5;
 
 		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestRest", PolicyAlias.RICHIESTE_MINUTO);
@@ -181,7 +184,7 @@ public class RateLimitingRestTest extends ConfigLoader {
 	
 	
 	public void richiesteOrarieFruizione(boolean disclosure) throws Exception {
-		System.out.println("Test richieste orarie fruizione");
+		logRateLimiting.info("Test richieste orarie fruizione");
 		final int maxRequests = 10;
 
 		
@@ -223,7 +226,7 @@ public class RateLimitingRestTest extends ConfigLoader {
 	
 	
 	public void richiesteGiornaliereFruizione(boolean disclosure) throws Exception {
-		System.out.println("Test richieste giornaliere fruizione");
+		logRateLimiting.info("Test richieste giornaliere fruizione");
 		final int maxRequests = 10;
 
 		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestRest", PolicyAlias.RICHIESTE_GIORNALIERE);
@@ -354,7 +357,7 @@ public class RateLimitingRestTest extends ConfigLoader {
 	private void checkAssertionsRichiesteSimultanee(Vector<HttpResponse> responses, int maxConcurrentRequests) throws Exception {
 		// Tutte le richieste tranne 1 devono restituire 200
 		
-		assertTrue(responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count() == maxConcurrentRequests);
+		assertEquals(maxConcurrentRequests, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
 
 		// Tutte le richieste devono avere lo header GovWay-RateLimit-ConcurrentRequest-Limit=10
 		// Tutte le richieste devono avere lo header ConcurrentRequestsRemaining impostato ad un numero positivo		
@@ -415,7 +418,7 @@ public class RateLimitingRestTest extends ConfigLoader {
 		
 		JSONObject jsonResp = JsonPathExpressionEngine.getJSONObject(new String(failedResponse.getContent()));
 		JsonPathExpressionEngine jsonPath = new JsonPathExpressionEngine();
-		System.out.println(new String(failedResponse.getContent()));
+		logRateLimiting.info(new String(failedResponse.getContent()));
 		
 		assertEquals("https://govway.org/handling-errors/429/LimitExceeded.html", jsonPath.getStringMatchPattern(jsonResp, "$.type").get(0));
 		assertEquals("LimitExceeded", jsonPath.getStringMatchPattern(jsonResp, "$.title").get(0));

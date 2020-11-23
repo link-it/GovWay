@@ -1,4 +1,4 @@
-package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting;
+package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -13,6 +13,9 @@ import java.util.stream.IntStream;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.HeaderValues;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Headers;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.PolicyAlias;
 import org.openspcoop2.message.OpenSPCoop2MessageFactory;
 import org.openspcoop2.pdd.core.dynamic.DynamicException;
@@ -23,7 +26,7 @@ import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpResponse;
 import org.w3c.dom.Element;
 
-public class RateLimitingSoapTest extends ConfigLoader {
+public class SoapTest extends ConfigLoader {
 	
 	@BeforeClass
 	public static void setup() {
@@ -115,7 +118,7 @@ public class RateLimitingSoapTest extends ConfigLoader {
 		assertNotEquals(null, failedResponse);
 		
 		String bodyResp = new String(failedResponse.getContent());
-		System.out.println(bodyResp);
+		logRateLimiting.info(bodyResp);
 		
 		Element element = Utils.buildXmlElement(failedResponse.getContent());
 		PatternExtractor matcher = new PatternExtractor(OpenSPCoop2MessageFactory.getDefaultMessageFactory(), element, LoggerWrapperFactory.getLogger(getClass()));
@@ -133,7 +136,7 @@ public class RateLimitingSoapTest extends ConfigLoader {
 	
 	@Test
 	public void richiestePerMinutoErogazione() throws Exception {
-		System.out.println("Test richieste per minuto erogazione...");
+		logRateLimiting.info("Test richieste per minuto erogazione...");
 		final int maxRequests = 5;
 
 		// Resetto la policy di RL
@@ -171,7 +174,7 @@ public class RateLimitingSoapTest extends ConfigLoader {
 	
 	@Test
 	public void richiesteOrarieErogazione() throws Exception {
-		System.out.println("Test richieste orarie erogazione...");
+		logRateLimiting.info("Test richieste orarie erogazione...");
 		final int maxRequests = 10;
 
 		// Resetto la policy di RL
@@ -210,7 +213,7 @@ public class RateLimitingSoapTest extends ConfigLoader {
 	
 	@Test
 	public void richiesteGiornaliereErogazione() throws Exception {
-		System.out.println("Test richieste giornaliere erogazione...");
+		logRateLimiting.info("Test richieste giornaliere erogazione...");
 		final int maxRequests = 10;
 
 		// Resetto la policy di RL
@@ -249,7 +252,7 @@ public class RateLimitingSoapTest extends ConfigLoader {
 	
 	@Test
 	public void richiestePerMinutoFruizione() throws Exception {
-		System.out.println("Test richieste per minuto fruizione...");
+		logRateLimiting.info("Test richieste per minuto fruizione...");
 		final int maxRequests = 5;
 
 		// Resetto la policy di RL
@@ -288,7 +291,7 @@ public class RateLimitingSoapTest extends ConfigLoader {
 	
 	@Test
 	public void richiesteOrarieFruizione() throws Exception {
-		System.out.println("Test richieste orarie fruizione...");
+		logRateLimiting.info("Test richieste orarie fruizione...");
 		final int maxRequests = 10;
 
 		// Resetto la policy di RL
@@ -331,7 +334,7 @@ public class RateLimitingSoapTest extends ConfigLoader {
 	
 	@Test
 	public void richiesteGiornaliereFruizione() throws Exception {
-		System.out.println("Test richieste giornaliere fruizione...");
+		logRateLimiting.info("Test richieste giornaliere fruizione...");
 		final int maxRequests = 10;
 
 		// Resetto la policy di RL
@@ -394,7 +397,7 @@ public class RateLimitingSoapTest extends ConfigLoader {
 				.orElse(null);
 		
 		String body = new String(failedResponse.getContent());
-		System.out.println(body);
+		logRateLimiting.info(body);
 		
 		Element element = Utils.buildXmlElement(failedResponse.getContent());
 		
@@ -438,7 +441,7 @@ public class RateLimitingSoapTest extends ConfigLoader {
 		assertNotEquals(null, failedResponse);
 		
 		String body = new String(failedResponse.getContent());
-		System.out.println(body);
+		logRateLimiting.info(body);
 		
 		Element element = Utils.buildXmlElement(failedResponse.getContent());
 		PatternExtractor matcher = new PatternExtractor(OpenSPCoop2MessageFactory.getDefaultMessageFactory(), element, LoggerWrapperFactory.getLogger(getClass()));
