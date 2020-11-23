@@ -165,8 +165,27 @@
 			</then>
 		</if>
 
+		<var name="karatepackage" value="org.openspcoop2.core.protocolli.trasparente.testsuite"/>
+		<var name="karatefilepackage" value="**"/>
+		<if>
+			<not>
+				<equals arg1="${package}" arg2="$${package}"/>
+			</not>
+			<then>
+				<var name="karatepackage" value="org.openspcoop2.core.protocolli.trasparente.testsuite.${package}"/>
+				<echo message="Esecuzione solamente delle classi di test appartenenti al package: ${karatepackage}"/>
+				<propertyregex property="karatefilepackageRel"
+					  input="${package}"
+					  regexp="\."
+					  replace="/"
+					  casesensitive="false" />
+				<var name="karatefilepackage" value="org/openspcoop2/core/protocolli/trasparente/testsuite/${karatefilepackageRel}"/>
+				<echo message="Ricerco classi di test in: ${karatefilepackage}"/>
+			</then>
+		</if>
+
 		<fileset dir="${src_testsuite}" id="absoluteTestClassNames">
-			<include name="**/*Test.java"/>
+			<include name="${karatefilepackage}/*Test.java"/>
 		</fileset>
 		<pathconvert property="testClassNames" refid="absoluteTestClassNames" pathsep=",">
 			<chainedmapper>
@@ -174,6 +193,7 @@
 				<globmapper from="*.java" to="*" casesensitive="no"/>
 			</chainedmapper>
 		</pathconvert>
+		<!-- <echo message="Test Class Names: ${testClassNames}"/> -->
 
 		<var name="karatetest" value="${testClassNames}"/>
 		<if>
@@ -193,17 +213,6 @@
 			<then>
 				<var name="karatemethods" value="${methods}"/>
 				<echo message="Esecuzione solamente dei seguenti metodi: ${karatemethods}"/>
-			</then>
-		</if>
-
-		<var name="karatepackage" value="org.openspcoop2.core.protocolli.trasparente.testsuite"/>
-		<if>
-			<not>
-				<equals arg1="${package}" arg2="$${package}"/>
-			</not>
-			<then>
-				<var name="karatepackage" value="org.openspcoop2.core.protocolli.trasparente.testsuite.${package}"/>
-				<echo message="Esecuzione solamente delle classi di test appartenenti al package: ${karatepackage}"/>
 			</then>
 		</if>
 
@@ -291,7 +300,7 @@
 
 									<batchtest fork="yes" todir="${output}/@{karateTipoTest}" >
 										<fileset dir="${src_testsuite}">
-											<include name="**/@{karateTipoTest}.java" />
+											<include name="${karatefilepackage}/@{karateTipoTest}.java" />
 										</fileset>
 									</batchtest>
 
@@ -319,7 +328,7 @@
 
 									<batchtest fork="yes" todir="${output}/@{karateTipoTest}" >
 										<fileset dir="${src_testsuite}">
-											<include name="**/@{karateTipoTest}.java" />
+											<include name="${karatefilepackage}/@{karateTipoTest}.java" />
 										</fileset>
 									</batchtest>
 
