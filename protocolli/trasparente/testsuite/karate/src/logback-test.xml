@@ -22,7 +22,8 @@
     </appender>
 
     <logger name="testsuite.rate_limiting" level="debug" additivity="false">
-         <appender-ref ref="fileLoggerRateLimiting" />
+		<appender-ref ref="fileLoggerRateLimiting" />
+		<appender-ref ref="STDOUT" />
     </logger>
    
     <logger name="com.intuit.karate" level="DEBUG"/>

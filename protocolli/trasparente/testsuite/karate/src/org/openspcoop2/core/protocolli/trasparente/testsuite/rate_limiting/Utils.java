@@ -6,6 +6,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -18,7 +19,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
-import org.openspcoop2.utils.LoggerWrapperFactory;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste.NumeroRichiestePolicyInfo;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste.RichiesteSimultaneePolicyInfo;
 import org.openspcoop2.utils.UtilsException;
 import org.openspcoop2.utils.transport.TransportUtils;
 import org.openspcoop2.utils.transport.http.HttpRequest;
@@ -33,9 +35,6 @@ import org.xml.sax.SAXException;
 public class Utils {
 	
 	public enum PolicyAlias {
-		RICHIESTE_MINUTO("RichiestePerMinuto"),
-		RICHIESTE_ORARIE("RichiesteOrarie"),
-		RICHIESTE_GIORNALIERE("RichiesteGiornaliere"),
 		RICHIESTE_SIMULTANEE("RichiesteSimultanee"), 
 		MINUTO("Minuto"),	
 		ORARIO("Orario"),
@@ -272,7 +271,7 @@ public class Utils {
 
 	public static void waitForZeroGovWayThreads() {
 		
-		int remainingChecks = Integer.valueOf(System.getProperty("rl_post_conditions_retry"));
+		int remainingChecks = Integer.valueOf(System.getProperty("rl_check_policy_conditions_retry"));
 		
 		while(true) {
 			try {
@@ -321,7 +320,7 @@ public class Utils {
 	
 	public static void checkPostConditionsNumeroRichieste(String idPolicy, int maxRequests) {
 				
-		int remainingChecks = Integer.valueOf(System.getProperty("rl_post_conditions_retry"));
+		int remainingChecks = Integer.valueOf(System.getProperty("rl_check_policy_conditions_retry"));
 		
 		while(true) {
 			try {
@@ -352,11 +351,16 @@ public class Utils {
 
 	public static void checkPostConditionsRichiesteSimultanee(String idPolicy) {
 		
-		int remainingChecks = Integer.valueOf(System.getProperty("rl_post_conditions_retry"));
+		int remainingChecks = Integer.valueOf(System.getProperty("rl_check_policy_conditions_retry"));
 		
 		while(true) {
 			try {
 				String jmxPolicyInfo = getPolicy(idPolicy);
+				
+				if (jmxPolicyInfo.equals("Informazioni sulla Policy non disponibili; non sono ancora transitate richieste che soddisfano i criteri di filtro impostati")) {
+					break;
+				}
+				
 				logRateLimiting.info(jmxPolicyInfo);
 				RichiesteSimultaneePolicyInfo polInfo = new RichiesteSimultaneePolicyInfo(jmxPolicyInfo);
 				assertEquals(Integer.valueOf(0), polInfo.richiesteAttive);
@@ -379,17 +383,27 @@ public class Utils {
 
 	
 	public static void checkPreConditionsRichiesteSimultanee(String idPolicy) {
-		String jmxPolicyInfo = getPolicy(idPolicy);
-		logRateLimiting.info(jmxPolicyInfo);
 		
-		// Se non sono mai state fatte richieste che attivano la policy, ottengo questa
-		// risposta, e le precondizioni sono soddisfatte
-		if (jmxPolicyInfo.equals("Informazioni sulla Policy non disponibili; non sono ancora transitate richieste che soddisfano i criteri di filtro impostati")) {
-			return;
-		}
-		
-		RichiesteSimultaneePolicyInfo polInfo = new RichiesteSimultaneePolicyInfo(jmxPolicyInfo);
-		assertEquals(Integer.valueOf(0), polInfo.richiesteAttive);
+		int remainingChecks = Integer.valueOf(System.getProperty("rl_check_policy_conditions_retry"));
+		while(true) {
+			try {
+				String jmxPolicyInfo = getPolicy(idPolicy);
+				if (jmxPolicyInfo.equals("Informazioni sulla Policy non disponibili; non sono ancora transitate richieste che soddisfano i criteri di filtro impostati")) {
+					break;
+				}
+				
+				logRateLimiting.info(jmxPolicyInfo);
+				RichiesteSimultaneePolicyInfo polInfo = new RichiesteSimultaneePolicyInfo(jmxPolicyInfo);
+				assertEquals(Integer.valueOf(0), polInfo.richiesteAttive);
+				break;
+			} catch (AssertionError e) {
+				if(remainingChecks == 0) {
+					throw e;
+				}
+				remainingChecks--;
+				org.openspcoop2.utils.Utilities.sleep(500);
+			}
+		} 
 	}
 
 
@@ -406,6 +420,27 @@ public class Utils {
 		}
 		
 		
+	}
+
+
+	/**
+	 * Parsa le informazioni sulla policy ottenute tramite jmx in una map di propietà. 
+	 * 
+	 * @param idPolicy
+	 * @return
+	 */
+	public static Map<String,String> parsePolicy(String jmxPolicyInfo) {
+		Map<String, String> ret = new HashMap<>();
+		
+		String[] lines = jmxPolicyInfo.split(System.lineSeparator());
+		for (String l : lines) {
+			l = l.strip();
+			String[] keyValue = l.split(":");
+			if(keyValue.length == 2) {
+				ret.put(keyValue[0].strip(), keyValue[1].strip());
+			}
+		}
+		return ret;
 	}
 	
 

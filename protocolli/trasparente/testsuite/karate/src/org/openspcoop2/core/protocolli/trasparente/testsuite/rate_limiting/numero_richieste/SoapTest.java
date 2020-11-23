@@ -37,7 +37,7 @@ public class SoapTest extends ConfigLoader {
 	public void richiesteSimultaneeErogazione() throws Exception {
 		final int maxConcurrentRequests = 10;
 		
-		List<String> idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", PolicyAlias.RICHIESTE_SIMULTANEE);
+		List<String> idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.RICHIESTE_SIMULTANEE);
 		Utils.checkPreConditionsRichiesteSimultanee(idPolicies);
 		
 		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
@@ -50,7 +50,7 @@ public class SoapTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/soap+xml");
 		request.setMethod(HttpRequestMethod.POST);
-		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestSoap/v1");
+		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/NumeroRichiesteSoap/v1");
 		request.setContent(body.getBytes());
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxConcurrentRequests + 1);
@@ -64,7 +64,7 @@ public class SoapTest extends ConfigLoader {
 	public void richiesteSimultaneeFruizione() throws Exception {		
 		final int maxConcurrentRequests = 10;
 		
-		List<String> idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", PolicyAlias.RICHIESTE_SIMULTANEE);
+		List<String> idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.RICHIESTE_SIMULTANEE);
 		Utils.checkPreConditionsRichiesteSimultanee(idPolicies);
 		
 		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
@@ -77,7 +77,7 @@ public class SoapTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/soap+xml");
 		request.setMethod(HttpRequestMethod.POST);
-		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/RateLimitingTestSoap/v1");
+		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1");
 		request.setContent(body.getBytes());
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxConcurrentRequests + 1);
@@ -105,7 +105,7 @@ public class SoapTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/soap+xml");
 		request.setMethod(HttpRequestMethod.POST);
-		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/RateLimitingTestSoap/v1");
+		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1");
 		request.setContent(body.getBytes());
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxConcurrentRequests + 1);
@@ -141,10 +141,10 @@ public class SoapTest extends ConfigLoader {
 
 		// Resetto la policy di RL
 		
-		List<String> idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", PolicyAlias.RICHIESTE_MINUTO);
+		List<String> idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.MINUTO);
 		Utils.resetCounters(idPolicies);
 		
-		idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", PolicyAlias.RICHIESTE_MINUTO);
+		idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.MINUTO);
 		Utils.checkPreConditionsNumeroRichieste(idPolicies);
 		
 		// Aspetto lo scoccare del minuto
@@ -153,8 +153,8 @@ public class SoapTest extends ConfigLoader {
 		
 		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
 				"    <soap:Body>\n" + 
-				"        <ns2:RichiestePerMinuto xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
-				"        </ns2:RichiestePerMinuto>\n" + 
+				"        <ns2:Minuto xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
+				"        </ns2:Minuto>\n" + 
 				"    </soap:Body>\n" + 
 				"</soap:Envelope>";
 		
@@ -162,7 +162,7 @@ public class SoapTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/soap+xml");
 		request.setMethod(HttpRequestMethod.POST);
-		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestSoap/v1");
+		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/NumeroRichiesteSoap/v1");
 		request.setContent(body.getBytes());
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
@@ -179,10 +179,10 @@ public class SoapTest extends ConfigLoader {
 
 		// Resetto la policy di RL
 		
-		List<String> idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", PolicyAlias.RICHIESTE_ORARIE);
+		List<String> idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.ORARIO);
 		Utils.resetCounters(idPolicies);
 		
-		idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", PolicyAlias.RICHIESTE_ORARIE);
+		idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.ORARIO);
 		Utils.checkPreConditionsNumeroRichieste(idPolicies);
 
 		
@@ -192,8 +192,8 @@ public class SoapTest extends ConfigLoader {
 		
 		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
 				"    <soap:Body>\n" + 
-				"        <ns2:RichiesteOrarie xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
-				"        </ns2:RichiesteOrarie>\n" + 
+				"        <ns2:Orario xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
+				"        </ns2:Orario>\n" + 
 				"    </soap:Body>\n" + 
 				"</soap:Envelope>";
 		
@@ -201,7 +201,7 @@ public class SoapTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/soap+xml");
 		request.setMethod(HttpRequestMethod.POST);
-		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestSoap/v1");
+		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/NumeroRichiesteSoap/v1");
 		request.setContent(body.getBytes());
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
@@ -218,10 +218,10 @@ public class SoapTest extends ConfigLoader {
 
 		// Resetto la policy di RL
 		
-		List<String> idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", PolicyAlias.RICHIESTE_GIORNALIERE);
+		List<String> idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.GIORNALIERO);
 		Utils.resetCounters(idPolicies);
 		
-		idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", PolicyAlias.RICHIESTE_GIORNALIERE);
+		idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.GIORNALIERO);
 		Utils.checkPreConditionsNumeroRichieste(idPolicies);
 
 		
@@ -231,8 +231,8 @@ public class SoapTest extends ConfigLoader {
 		
 		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
 				"    <soap:Body>\n" + 
-				"        <ns2:RichiesteGiornaliere xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
-				"        </ns2:RichiesteGiornaliere>\n" + 
+				"        <ns2:Giornaliero xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
+				"        </ns2:Giornaliero>\n" + 
 				"    </soap:Body>\n" + 
 				"</soap:Envelope>";
 		
@@ -240,7 +240,7 @@ public class SoapTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/soap+xml");
 		request.setMethod(HttpRequestMethod.POST);
-		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestSoap/v1");
+		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/NumeroRichiesteSoap/v1");
 		request.setContent(body.getBytes());
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
@@ -257,10 +257,10 @@ public class SoapTest extends ConfigLoader {
 
 		// Resetto la policy di RL
 		
-		List<String> idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", PolicyAlias.RICHIESTE_MINUTO);
+		List<String> idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.MINUTO);
 		Utils.resetCounters(idPolicies);
 		
-		idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", PolicyAlias.RICHIESTE_MINUTO);
+		idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.MINUTO);
 		Utils.checkPreConditionsNumeroRichieste(idPolicies);
 
 		
@@ -270,8 +270,8 @@ public class SoapTest extends ConfigLoader {
 		
 		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
 				"    <soap:Body>\n" + 
-				"        <ns2:RichiestePerMinuto xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
-				"        </ns2:RichiestePerMinuto>\n" + 
+				"        <ns2:Minuto xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
+				"        </ns2:Minuto>\n" + 
 				"    </soap:Body>\n" + 
 				"</soap:Envelope>";
 		
@@ -279,7 +279,7 @@ public class SoapTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/soap+xml");
 		request.setMethod(HttpRequestMethod.POST);
-		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/RateLimitingTestSoap/v1");
+		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1");
 		request.setContent(body.getBytes());
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
@@ -296,10 +296,10 @@ public class SoapTest extends ConfigLoader {
 
 		// Resetto la policy di RL
 		
-		List<String> idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", PolicyAlias.RICHIESTE_ORARIE);
+		List<String> idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.ORARIO);
 		Utils.resetCounters(idPolicies);
 		
-		idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", PolicyAlias.RICHIESTE_ORARIE);
+		idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.ORARIO);
 		Utils.checkPreConditionsNumeroRichieste(idPolicies);
 
 		
@@ -309,8 +309,8 @@ public class SoapTest extends ConfigLoader {
 		
 		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
 				"    <soap:Body>\n" + 
-				"        <ns2:RichiesteOrarie xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
-				"        </ns2:RichiesteOrarie>\n" + 
+				"        <ns2:Orario xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
+				"        </ns2:Orario>\n" + 
 				"    </soap:Body>\n" + 
 				"</soap:Envelope>";
 		
@@ -318,7 +318,7 @@ public class SoapTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/soap+xml");
 		request.setMethod(HttpRequestMethod.POST);
-		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/RateLimitingTestSoap/v1");
+		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1");
 		request.setContent(body.getBytes());
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
@@ -339,10 +339,10 @@ public class SoapTest extends ConfigLoader {
 
 		// Resetto la policy di RL
 		
-		List<String> idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", PolicyAlias.RICHIESTE_GIORNALIERE);
+		List<String> idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.GIORNALIERO);
 		Utils.resetCounters(idPolicies);
 		
-		idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", PolicyAlias.RICHIESTE_GIORNALIERE);
+		idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.GIORNALIERO);
 		Utils.checkPreConditionsNumeroRichieste(idPolicies);
 
 
@@ -352,8 +352,8 @@ public class SoapTest extends ConfigLoader {
 		
 		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
 				"    <soap:Body>\n" + 
-				"        <ns2:RichiesteGiornaliere xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
-				"        </ns2:RichiesteGiornaliere>\n" + 
+				"        <ns2:Giornaliero xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
+				"        </ns2:Giornaliero>\n" + 
 				"    </soap:Body>\n" + 
 				"</soap:Envelope>";
 		
@@ -361,7 +361,7 @@ public class SoapTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/soap+xml");
 		request.setMethod(HttpRequestMethod.POST);
-		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/RateLimitingTestSoap/v1");
+		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1");
 		request.setContent(body.getBytes());
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);

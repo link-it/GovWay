@@ -1,9 +1,10 @@
-package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting;
+package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.completate_con_successo;
 
 import java.util.Vector;
 
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.PolicyAlias;
 import org.openspcoop2.utils.UtilsException;
 import org.openspcoop2.utils.transport.http.HttpRequest;
@@ -11,7 +12,7 @@ import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpResponse;
 import org.openspcoop2.utils.transport.http.HttpUtilsException;
 
-public class NumeroRichiesteCompletateConSuccessoRestTest extends ConfigLoader {
+public class RestTest extends ConfigLoader {
 	
 	@Test
 	public void perMinutoErogazione() throws UtilsException, HttpUtilsException, InterruptedException {

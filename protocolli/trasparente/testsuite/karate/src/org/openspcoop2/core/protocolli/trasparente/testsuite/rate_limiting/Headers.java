@@ -9,4 +9,8 @@ public class Headers {
 	public static final String ConcurrentRequestsLimit = "GovWay-RateLimit-ConcurrentRequest-Limit";
 	public static final String ConcurrentRequestsRemaining = "GovWay-RateLimit-ConcurrentRequest-Remaining";
 	public static final String GovWayTransactionErrorType = "GovWay-Transaction-ErrorType";
+	
+	public static final String RateLimitTimeResponseQuotaReset = "GovWay-RateLimit-TimeResponseQuota-Reset";
+	public static final String RateLimitTimeResponseQuotaLimit = "GovWay-RateLimit-TimeResponseQuota-Limit";
+	public static final String RateLimitTimeResponseQuotaRemaining =  "GovWay-RateLimit-TimeResponseQuota-Remaining";
 }

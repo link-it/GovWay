@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.junit.BeforeClass;
-import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
 import org.openspcoop2.utils.LoggerWrapperFactory;
 import org.slf4j.Logger;
 
@@ -95,7 +94,7 @@ public class ConfigLoader {
             System.setProperty("db_sleep_before_read", prop.getProperty("db_sleep_before_read"));
             System.setProperty("jmx_username", prop.getProperty("jmx_cache_username"));
             System.setProperty("jmx_password", prop.getProperty("jmx_cache_password"));
-            System.setProperty("rl_post_conditions_retry", prop.getProperty("rl_post_conditions_retry"));
+            System.setProperty("rl_check_policy_conditions_retry", prop.getProperty("rl_check_policy_conditions_retry"));
 
         }catch(Throwable t) {
             throw new RuntimeException(t.getMessage(),t);

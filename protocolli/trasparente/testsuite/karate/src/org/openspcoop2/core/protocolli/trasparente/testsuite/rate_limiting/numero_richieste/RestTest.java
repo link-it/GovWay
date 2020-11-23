@@ -31,10 +31,10 @@ public class RestTest extends ConfigLoader {
 		logRateLimiting.info("Test richieste per minuto");
 		final int maxRequests = 5;
 
-		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RateLimitingTestRest", PolicyAlias.RICHIESTE_MINUTO);
+		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "NumeroRichiesteRest", PolicyAlias.MINUTO);
 		Utils.resetCounters(idPolicy);
 		
-		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RateLimitingTestRest", PolicyAlias.RICHIESTE_MINUTO);
+		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "NumeroRichiesteRest", PolicyAlias.MINUTO);
 		Utils.checkPreConditionsNumeroRichieste(idPolicy);
 		
 		// Aspetto lo scoccare del minuto
@@ -44,7 +44,7 @@ public class RestTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestRest/v1/richieste-per-minuto");
+		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/NumeroRichiesteRest/v1/minuto");
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 		
@@ -71,10 +71,10 @@ public class RestTest extends ConfigLoader {
 		logRateLimiting.info("Test richieste per ora");
 		final int maxRequests = 10;
 
-		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RateLimitingTestRest", PolicyAlias.RICHIESTE_ORARIE);
+		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "NumeroRichiesteRest", PolicyAlias.ORARIO);
 		Utils.resetCounters(idPolicy);
 		
-		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RateLimitingTestRest", PolicyAlias.RICHIESTE_ORARIE);
+		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "NumeroRichiesteRest", PolicyAlias.ORARIO);
 		Utils.checkPreConditionsNumeroRichieste(idPolicy);
 		
 		Utils.waitForNewHour();
@@ -82,7 +82,7 @@ public class RestTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestRest/v1/richieste-orarie");
+		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/NumeroRichiesteRest/v1/orario");
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 		checkAssertionsNumeroRichieste(responses, maxRequests,3600, disclosure);
@@ -108,10 +108,10 @@ public class RestTest extends ConfigLoader {
 		logRateLimiting.info("Test richieste per ora");
 		final int maxRequests = 10;
 
-		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RateLimitingTestRest", PolicyAlias.RICHIESTE_GIORNALIERE);
+		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "NumeroRichiesteRest", PolicyAlias.GIORNALIERO);
 		Utils.resetCounters(idPolicy);
 		
-		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RateLimitingTestRest", PolicyAlias.RICHIESTE_GIORNALIERE);
+		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "NumeroRichiesteRest", PolicyAlias.GIORNALIERO);
 		Utils.checkPreConditionsNumeroRichieste(idPolicy);
 		
 		Utils.waitForNewDay();
@@ -119,7 +119,7 @@ public class RestTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestRest/v1/richieste-giornaliere");
+		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/NumeroRichiesteRest/v1/giornaliero");
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 		checkAssertionsNumeroRichieste(responses, maxRequests, 86400, disclosure);
@@ -146,10 +146,10 @@ public class RestTest extends ConfigLoader {
 		logRateLimiting.info("Test richieste per minuto fruizione");
 		final int maxRequests = 5;
 
-		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestRest", PolicyAlias.RICHIESTE_MINUTO);
+		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteRest", PolicyAlias.MINUTO);
 		Utils.resetCounters(idPolicy);
 		
-		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestRest", PolicyAlias.RICHIESTE_MINUTO);
+		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteRest", PolicyAlias.MINUTO);
 		Utils.checkPreConditionsNumeroRichieste(idPolicy);
 		
 		// Aspetto lo scoccare del minuto
@@ -159,7 +159,7 @@ public class RestTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/RateLimitingTestRest/v1/richieste-per-minuto");
+		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteRest/v1/minuto");
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 
@@ -188,10 +188,10 @@ public class RestTest extends ConfigLoader {
 		final int maxRequests = 10;
 
 		
-		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestRest", PolicyAlias.RICHIESTE_ORARIE);
+		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteRest", PolicyAlias.ORARIO);
 		Utils.resetCounters(idPolicy);
 		
-		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestRest", PolicyAlias.RICHIESTE_ORARIE);
+		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteRest", PolicyAlias.ORARIO);
 		Utils.checkPreConditionsNumeroRichieste(idPolicy);
 		
 		// Aspetto lo scoccare del minuto
@@ -201,7 +201,7 @@ public class RestTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/RateLimitingTestRest/v1/richieste-orarie");
+		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteRest/v1/orario");
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 
@@ -229,10 +229,10 @@ public class RestTest extends ConfigLoader {
 		logRateLimiting.info("Test richieste giornaliere fruizione");
 		final int maxRequests = 10;
 
-		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestRest", PolicyAlias.RICHIESTE_GIORNALIERE);
+		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteRest", PolicyAlias.GIORNALIERO);
 		Utils.resetCounters(idPolicy);
 		
-		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestRest", PolicyAlias.RICHIESTE_GIORNALIERE);
+		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteRest", PolicyAlias.GIORNALIERO);
 		Utils.checkPreConditionsNumeroRichieste(idPolicy);
 		
 		// Aspetto lo scoccare del minuto
@@ -242,7 +242,7 @@ public class RestTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/RateLimitingTestRest/v1/richieste-giornaliere");
+		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteRest/v1/giornaliero");
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
 
@@ -271,13 +271,16 @@ public class RestTest extends ConfigLoader {
 	public void richiesteSimultaneeErogazione() throws Exception {
 		final int maxConcurrentRequests = 10;
 		
-		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RateLimitingTestRest", PolicyAlias.RICHIESTE_SIMULTANEE);
+		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "NumeroRichiesteRest", PolicyAlias.RICHIESTE_SIMULTANEE);
+		Utils.resetCounters(idPolicy);
+		
+		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "NumeroRichiesteRest", PolicyAlias.RICHIESTE_SIMULTANEE);
 		Utils.checkPreConditionsRichiesteSimultanee(idPolicy);
 		
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/RateLimitingTestRest/v1/richieste-simultanee?sleep=5000");
+		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/NumeroRichiesteRest/v1/richieste-simultanee?sleep=5000");
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxConcurrentRequests + 1);
 		
@@ -290,13 +293,17 @@ public class RestTest extends ConfigLoader {
 	public void richiesteSimultaneeFruizione() throws Exception {
 		final int maxConcurrentRequests = 10;
 		
-		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestRest", PolicyAlias.RICHIESTE_SIMULTANEE);
+		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteRest", PolicyAlias.RICHIESTE_SIMULTANEE);
+		Utils.resetCounters(idPolicy);
+
+		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteRest", PolicyAlias.RICHIESTE_SIMULTANEE);
 		Utils.checkPreConditionsRichiesteSimultanee(idPolicy);
 
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/RateLimitingTestRest/v1/richieste-simultanee?sleep=5000");
+		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteRest/v1/richieste-simultanee?sleep=5000");
+		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxConcurrentRequests + 1);
 		
 		checkAssertionsRichiesteSimultanee(responses, maxConcurrentRequests);
@@ -317,12 +324,12 @@ public class RestTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/RateLimitingTestRest/v1/no-policy?sleep=5000");
+		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=5000");
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxConcurrentRequests + 1);
 		
 		HttpResponse failedResponse = responses.stream().filter(r -> r.getResultHTTPOperation() == 429).findAny()
 				.orElse(null);
-		assertTrue(failedResponse != null);
+		assertNotEquals(null,failedResponse);
 		
 		JSONObject jsonResp = JsonPathExpressionEngine.getJSONObject(new String(failedResponse.getContent()));
 		JsonPathExpressionEngine jsonPath = new JsonPathExpressionEngine();
@@ -363,7 +370,7 @@ public class RestTest extends ConfigLoader {
 		// Tutte le richieste devono avere lo header ConcurrentRequestsRemaining impostato ad un numero positivo		
 		
 		responses.forEach(r -> {
-			assertTrue(r.getHeader(Headers.ConcurrentRequestsLimit).equals(String.valueOf(maxConcurrentRequests)));
+			assertEquals(String.valueOf(maxConcurrentRequests), r.getHeader(Headers.ConcurrentRequestsLimit));
 			assertTrue(Integer.valueOf(r.getHeader(Headers.ConcurrentRequestsRemaining)) >= 0);
 		});
 			
@@ -371,7 +378,7 @@ public class RestTest extends ConfigLoader {
 		
 		HttpResponse failedResponse = responses.stream().filter(r -> r.getResultHTTPOperation() == 429).findAny()
 				.orElse(null);
-		assertTrue(failedResponse != null);
+		assertNotEquals(null,failedResponse);
 		
 		JSONObject jsonResp = JsonPathExpressionEngine.getJSONObject(new String(failedResponse.getContent()));
 		JsonPathExpressionEngine jsonPath = new JsonPathExpressionEngine();
@@ -396,7 +403,7 @@ public class RestTest extends ConfigLoader {
 		// Tutte le richieste devono avere lo header X-RateLimit-Limit
 		
 		responses.forEach(r -> { 			
-				assertTrue( Integer.valueOf(r.getHeader(Headers.RateLimitReset)) != null);
+				assertNotEquals(null,Integer.valueOf(r.getHeader(Headers.RateLimitReset)));
 				assertNotEquals(null,r.getHeader(Headers.RateLimitLimit));
 				
 				if ("true".equals(prop.getProperty("rl_check_limit_windows"))) {
@@ -407,14 +414,14 @@ public class RestTest extends ConfigLoader {
 
 		// Tutte le richieste tranne una devono restituire 200
 		
-		assertTrue(responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count() == maxRequests);
+		assertEquals(maxRequests,responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
 
 		
 		// La richiesta fallita deve avere status code 429
 		
 		HttpResponse failedResponse = responses.stream().filter(r -> r.getResultHTTPOperation() == 429).findAny()
 				.orElse(null);
-		assertTrue(failedResponse != null);
+		assertNotEquals(null,failedResponse);
 		
 		JSONObject jsonResp = JsonPathExpressionEngine.getJSONObject(new String(failedResponse.getContent()));
 		JsonPathExpressionEngine jsonPath = new JsonPathExpressionEngine();

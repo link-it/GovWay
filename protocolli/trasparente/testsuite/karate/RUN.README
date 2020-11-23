@@ -7,10 +7,15 @@
 Per eseguire i test:
 	ant run_test
 
-E' possibile indicare se caricare o meno la configurazione di govway presente in <src/configurazioni-govway/trasparenteTestBundle.zip>
+	Parametri:
+		-Dload=false 	Carica la configurazione di govway all'inizio del test	
+		-Ddelete=false	Elimina la configurazione di govway alla fine del test
+		-Dwait=false	aspetta lo scoccare della nuova finestra di tempo nei test di rate limiting
 
-	ant run_test -Dload=false -Ddelete=false
+Per eseguire solo una classe, indicare il package e il metodo:
 
-E' possibile anche indicare se i test devono aspettare lo scoccare del minuto o meno
-	
-	ant run_test -Dwait=false
+    ant run_test -Dpackage=rate_limiting.numero_richieste -Dtest=SoapTest
+
+Per eseguire solo un metodo, indicare il nome del metodo e il sottopackage+classe
+
+	ant run_test -Dmethods=richiesteSimultaneeGlobali -Dtest=rate_limiting.numero_richieste.SoapTest 
