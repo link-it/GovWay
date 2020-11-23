@@ -13,7 +13,7 @@ import java.util.stream.IntStream;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
-import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.TipoPolicy;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.PolicyAlias;
 import org.openspcoop2.message.OpenSPCoop2MessageFactory;
 import org.openspcoop2.pdd.core.dynamic.DynamicException;
 import org.openspcoop2.pdd.core.dynamic.PatternExtractor;
@@ -34,7 +34,7 @@ public class RateLimitingSoapTest extends ConfigLoader {
 	public void richiesteSimultaneeErogazione() throws Exception {
 		final int maxConcurrentRequests = 10;
 		
-		List<String> idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_SIMULTANEE);
+		List<String> idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", PolicyAlias.RICHIESTE_SIMULTANEE);
 		Utils.checkPreConditionsRichiesteSimultanee(idPolicies);
 		
 		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
@@ -61,7 +61,7 @@ public class RateLimitingSoapTest extends ConfigLoader {
 	public void richiesteSimultaneeFruizione() throws Exception {		
 		final int maxConcurrentRequests = 10;
 		
-		List<String> idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_SIMULTANEE);
+		List<String> idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", PolicyAlias.RICHIESTE_SIMULTANEE);
 		Utils.checkPreConditionsRichiesteSimultanee(idPolicies);
 		
 		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
@@ -138,10 +138,10 @@ public class RateLimitingSoapTest extends ConfigLoader {
 
 		// Resetto la policy di RL
 		
-		List<String> idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_MINUTO);
+		List<String> idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", PolicyAlias.RICHIESTE_MINUTO);
 		Utils.resetCounters(idPolicies);
 		
-		idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_MINUTO);
+		idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", PolicyAlias.RICHIESTE_MINUTO);
 		Utils.checkPreConditionsNumeroRichieste(idPolicies);
 		
 		// Aspetto lo scoccare del minuto
@@ -176,10 +176,10 @@ public class RateLimitingSoapTest extends ConfigLoader {
 
 		// Resetto la policy di RL
 		
-		List<String> idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_ORARIE);
+		List<String> idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", PolicyAlias.RICHIESTE_ORARIE);
 		Utils.resetCounters(idPolicies);
 		
-		idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_ORARIE);
+		idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", PolicyAlias.RICHIESTE_ORARIE);
 		Utils.checkPreConditionsNumeroRichieste(idPolicies);
 
 		
@@ -215,10 +215,10 @@ public class RateLimitingSoapTest extends ConfigLoader {
 
 		// Resetto la policy di RL
 		
-		List<String> idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_GIORNALIERE);
+		List<String> idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", PolicyAlias.RICHIESTE_GIORNALIERE);
 		Utils.resetCounters(idPolicies);
 		
-		idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_GIORNALIERE);
+		idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "RateLimitingTestSoap", PolicyAlias.RICHIESTE_GIORNALIERE);
 		Utils.checkPreConditionsNumeroRichieste(idPolicies);
 
 		
@@ -254,10 +254,10 @@ public class RateLimitingSoapTest extends ConfigLoader {
 
 		// Resetto la policy di RL
 		
-		List<String> idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_MINUTO);
+		List<String> idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", PolicyAlias.RICHIESTE_MINUTO);
 		Utils.resetCounters(idPolicies);
 		
-		idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_MINUTO);
+		idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", PolicyAlias.RICHIESTE_MINUTO);
 		Utils.checkPreConditionsNumeroRichieste(idPolicies);
 
 		
@@ -293,10 +293,10 @@ public class RateLimitingSoapTest extends ConfigLoader {
 
 		// Resetto la policy di RL
 		
-		List<String> idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_ORARIE);
+		List<String> idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", PolicyAlias.RICHIESTE_ORARIE);
 		Utils.resetCounters(idPolicies);
 		
-		idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_ORARIE);
+		idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", PolicyAlias.RICHIESTE_ORARIE);
 		Utils.checkPreConditionsNumeroRichieste(idPolicies);
 
 		
@@ -336,10 +336,10 @@ public class RateLimitingSoapTest extends ConfigLoader {
 
 		// Resetto la policy di RL
 		
-		List<String> idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_GIORNALIERE);
+		List<String> idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", PolicyAlias.RICHIESTE_GIORNALIERE);
 		Utils.resetCounters(idPolicies);
 		
-		idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", TipoPolicy.RICHIESTE_GIORNALIERE);
+		idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "RateLimitingTestSoap", PolicyAlias.RICHIESTE_GIORNALIERE);
 		Utils.checkPreConditionsNumeroRichieste(idPolicies);
 
 

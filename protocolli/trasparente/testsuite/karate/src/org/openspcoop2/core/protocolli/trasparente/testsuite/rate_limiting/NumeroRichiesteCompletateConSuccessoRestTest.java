@@ -4,7 +4,7 @@ import java.util.Vector;
 
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
-import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.TipoPolicy;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.PolicyAlias;
 import org.openspcoop2.utils.UtilsException;
 import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
@@ -17,10 +17,10 @@ public class NumeroRichiesteCompletateConSuccessoRestTest extends ConfigLoader {
 	public void perMinutoErogazione() throws UtilsException, HttpUtilsException, InterruptedException {
 		final int maxRequests = 5;
 
-		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RichiesteCompletateConSuccesso", TipoPolicy.TEMPO_RISPOSTA_MINUTO);
+		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RichiesteCompletateConSuccesso", PolicyAlias.MINUTO);
 		Utils.resetCounters(idPolicy);
 		
-		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RichiesteCompletateConSuccesso", TipoPolicy.TEMPO_RISPOSTA_MINUTO);
+		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RichiesteCompletateConSuccesso", PolicyAlias.MINUTO);
 		// Utils.checkPreConditionsNumeroRichieste(idPolicy); TODO
 		
 		// Aspetto lo scoccare del minuto

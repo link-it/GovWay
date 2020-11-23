@@ -29,22 +29,18 @@ import org.xml.sax.SAXException;
 
 public class Utils {
 	
-	// TODO: Questi valori dipendono dall'erogazione, non sono generici di govway. 
-	// Spezzettare e spostare l'enum nelle classi che lo usano
-	// Anzi meglio, utilizzare sempre e solo le costanti Minuto, Orario, Giornaliero,
-	// anche nella configurazione di govway
-	public enum TipoPolicy {
+	public enum PolicyAlias {
 		RICHIESTE_MINUTO("RichiestePerMinuto"),
 		RICHIESTE_ORARIE("RichiesteOrarie"),
 		RICHIESTE_GIORNALIERE("RichiesteGiornaliere"),
 		RICHIESTE_SIMULTANEE("RichiesteSimultanee"), 
-		TEMPO_RISPOSTA_MINUTO("Minuto"),	
-		TEMPO_RISPOSTA_ORARIO("Orario"),
-		TEMPO_RISPOSTA_GIORNALIERO("Giornaliero");
+		MINUTO("Minuto"),	
+		ORARIO("Orario"),
+		GIORNALIERO("Giornaliero");
 		
 		public final String value;
 		
-		TipoPolicy(String value) {
+		PolicyAlias(String value) {
 			this.value = value;
 		}
 		
@@ -125,7 +121,7 @@ public class Utils {
 	}
 
 	
-	static void resetCounters(String idPolicy) throws UtilsException, HttpUtilsException {
+	public static void resetCounters(String idPolicy) throws UtilsException, HttpUtilsException {
 		Map<String,String> queryParams = Map.of(
 				"resourceName", "ControlloTraffico",
 				"methodName", "resetPolicyCounters",
@@ -137,7 +133,7 @@ public class Utils {
 	}
 	
 	
-	static String getPolicy(String idPolicy) {
+	public static String getPolicy(String idPolicy) {
 		Map<String,String> queryParams = Map.of(
 				"resourceName", "ControlloTraffico",
 				"methodName", "getPolicy",
@@ -153,7 +149,7 @@ public class Utils {
 	}
 	
 	
-	static void toggleErrorDisclosure(boolean enabled) {
+	public static void toggleErrorDisclosure(boolean enabled) {
 	
 		String value = "false";
 		if (enabled) {
@@ -191,7 +187,7 @@ public class Utils {
 	}
 		
 	
-	static Integer getThreadsAttiviGovWay() {
+	public static Integer getThreadsAttiviGovWay() {
 		
 		Map<String,String> queryParams = Map.of(
 				"resourceName", "ControlloTraffico",
@@ -215,7 +211,7 @@ public class Utils {
 	 * 
 	 * @throws InterruptedException
 	 */
-	static void waitForNewMinute() {
+	public static void waitForNewMinute() {
 		if ("false".equals(System.getProperty("wait"))) {
 			return;
 		}
@@ -232,7 +228,7 @@ public class Utils {
 	 * 
 	 * @throws InterruptedException
 	 */
-	static void waitForNewHour() throws InterruptedException {
+	public static void waitForNewHour() throws InterruptedException {
 		if ("false".equals(System.getProperty("wait"))) {
 			return;
 		}
@@ -252,7 +248,7 @@ public class Utils {
 	 * 
 	 * @throws InterruptedException
 	 */
-	static void waitForNewDay() throws InterruptedException {
+	public static void waitForNewDay() throws InterruptedException {
 		if ("false".equals(System.getProperty("wait"))) {
 			return;
 		}
