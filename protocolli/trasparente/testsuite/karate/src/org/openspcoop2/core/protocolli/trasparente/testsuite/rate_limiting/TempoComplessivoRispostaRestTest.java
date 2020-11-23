@@ -4,6 +4,7 @@ import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.TipoPolicy;
 import org.openspcoop2.utils.LoggerWrapperFactory;
+import org.openspcoop2.utils.Utilities;
 import org.openspcoop2.utils.UtilsException;
 import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
@@ -13,8 +14,6 @@ import org.openspcoop2.utils.transport.http.HttpUtilsException;
 import org.slf4j.Logger;
 
 public class TempoComplessivoRispostaRestTest extends ConfigLoader {
-	
-	private final static Logger log = LoggerWrapperFactory.getLogger(TempoComplessivoRispostaRestTest.class);
 	
 	@Test
 	public void perMinutoErogazione() throws UtilsException, HttpUtilsException, InterruptedException {
@@ -35,6 +34,7 @@ public class TempoComplessivoRispostaRestTest extends ConfigLoader {
 		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/TempoComplessivoRisposta/v1/minuto?sleep=500");
 		
 		// TODO: Perchè il logger non mi logga?
+		logRateLimiting.info("Ora si ....");
 						
 		HttpResponse response = HttpUtilities.httpInvoke(request);
 		System.out.println("ResponseStatus: " + response.getResultHTTPOperation());

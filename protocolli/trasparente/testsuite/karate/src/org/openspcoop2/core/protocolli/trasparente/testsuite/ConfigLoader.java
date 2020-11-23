@@ -25,9 +25,11 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.Properties;
-import org.junit.BeforeClass;
 
+import org.junit.BeforeClass;
 import org.openspcoop2.utils.LoggerWrapperFactory;
+import org.slf4j.Logger;
+
 import com.intuit.karate.FileUtils;
 
 /**
@@ -47,6 +49,13 @@ public class ConfigLoader {
         setupProperties();
 	}
     
+	protected static Logger logRateLimiting = null;
+		
+	@BeforeClass
+	public static void setupLogger()throws Exception {
+		logRateLimiting =  LoggerWrapperFactory.getLogger("testsuite.rate_limiting");
+	}
+	
 	protected static DbUtils dbUtils;
 	
 	@BeforeClass
