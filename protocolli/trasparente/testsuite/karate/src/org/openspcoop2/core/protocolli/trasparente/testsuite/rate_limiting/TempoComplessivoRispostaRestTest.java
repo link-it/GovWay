@@ -32,11 +32,21 @@ public class TempoComplessivoRispostaRestTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/TempoComplessivoRisposta/v1/minuto?sleep=5000");
+		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/TempoComplessivoRisposta/v1/minuto?sleep=500");
 		
 		// TODO: Perchè il logger non mi logga?
 						
 		HttpResponse response = HttpUtilities.httpInvoke(request);
+		System.out.println("ResponseStatus: " + response.getResultHTTPOperation());
+		System.out.println("ResponseHeaders: " + response.getHeaders());
+		System.out.println("ResponseBody: " + new String(response.getContent()));
+		
+		request = new HttpRequest();
+		request.setContentType("application/json");
+		request.setMethod(HttpRequestMethod.GET);
+		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/TempoComplessivoRisposta/v1/minuto?sleep=500");
+						
+		response = HttpUtilities.httpInvoke(request);
 		System.out.println("ResponseStatus: " + response.getResultHTTPOperation());
 		System.out.println("ResponseHeaders: " + response.getHeaders());
 		System.out.println("ResponseBody: " + new String(response.getContent()));
