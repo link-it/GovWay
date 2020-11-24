@@ -20,7 +20,6 @@ import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils
 import org.openspcoop2.message.OpenSPCoop2MessageFactory;
 import org.openspcoop2.pdd.core.dynamic.DynamicException;
 import org.openspcoop2.pdd.core.dynamic.PatternExtractor;
-import org.openspcoop2.utils.LoggerWrapperFactory;
 import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpResponse;
@@ -127,7 +126,7 @@ public class SoapTest extends ConfigLoader {
 		logRateLimiting.info(bodyResp);
 		
 		Element element = Utils.buildXmlElement(failedResponse.getContent());
-		PatternExtractor matcher = new PatternExtractor(OpenSPCoop2MessageFactory.getDefaultMessageFactory(), element, LoggerWrapperFactory.getLogger(getClass()));
+		PatternExtractor matcher = new PatternExtractor(OpenSPCoop2MessageFactory.getDefaultMessageFactory(), element, logRateLimiting);
 		assertEquals("Too Many Requests", matcher.read("/html/head/title/text()"));
 		assertEquals("Too Many Requests", matcher.read("/html/body/h1/text()"));
 		assertEquals("Too many requests detected", matcher.read("/html/body/p/text()"));
@@ -408,7 +407,7 @@ public class SoapTest extends ConfigLoader {
 		
 		Element element = Utils.buildXmlElement(failedResponse.getContent());
 		
-		PatternExtractor matcher = new PatternExtractor(OpenSPCoop2MessageFactory.getDefaultMessageFactory(), element, LoggerWrapperFactory.getLogger(getClass()));
+		PatternExtractor matcher = new PatternExtractor(OpenSPCoop2MessageFactory.getDefaultMessageFactory(), element, logRateLimiting);
 		assertEquals("Limit Exceeded", matcher.read("/html/head/title/text()"));
 		assertEquals("Limit Exceeded", matcher.read("/html/body/h1/text()"));
 		assertEquals("Limit exceeded detected", matcher.read("/html/body/p/text()"));		
@@ -450,7 +449,7 @@ public class SoapTest extends ConfigLoader {
 		logRateLimiting.info(body);
 		
 		Element element = Utils.buildXmlElement(failedResponse.getContent());
-		PatternExtractor matcher = new PatternExtractor(OpenSPCoop2MessageFactory.getDefaultMessageFactory(), element, LoggerWrapperFactory.getLogger(getClass()));
+		PatternExtractor matcher = new PatternExtractor(OpenSPCoop2MessageFactory.getDefaultMessageFactory(), element, logRateLimiting);
 		assertEquals("Too Many Requests", matcher.read("/html/head/title/text()"));
 		assertEquals("Too Many Requests", matcher.read("/html/body/h1/text()"));
 		assertEquals("Too many requests detected", matcher.read("/html/body/p/text()"));
