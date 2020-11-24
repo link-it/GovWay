@@ -38,6 +38,9 @@ public class SoapTest extends ConfigLoader {
 		final int maxConcurrentRequests = 10;
 		
 		List<String> idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.RICHIESTE_SIMULTANEE);
+		Utils.resetCounters(idPolicies);
+		
+		idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.RICHIESTE_SIMULTANEE);
 		Utils.checkPreConditionsRichiesteSimultanee(idPolicies);
 		
 		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
@@ -65,6 +68,9 @@ public class SoapTest extends ConfigLoader {
 		final int maxConcurrentRequests = 10;
 		
 		List<String> idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.RICHIESTE_SIMULTANEE);
+		Utils.resetCounters(idPolicies);
+		
+		idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.RICHIESTE_SIMULTANEE);
 		Utils.checkPreConditionsRichiesteSimultanee(idPolicies);
 		
 		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
@@ -395,6 +401,7 @@ public class SoapTest extends ConfigLoader {
 		
 		HttpResponse failedResponse = responses.stream().filter(r -> r.getResultHTTPOperation() == 429).findAny()
 				.orElse(null);
+		assertNotEquals(null, failedResponse);
 		
 		String body = new String(failedResponse.getContent());
 		logRateLimiting.info(body);
@@ -406,7 +413,6 @@ public class SoapTest extends ConfigLoader {
 		assertEquals("Limit Exceeded", matcher.read("/html/body/h1/text()"));
 		assertEquals("Limit exceeded detected", matcher.read("/html/body/p/text()"));		
 		
-		assertTrue(failedResponse != null);
 		assertEquals("0", failedResponse.getHeader(Headers.RateLimitRemaining));
 		assertEquals(HeaderValues.LimitExceeded, failedResponse.getHeader(Headers.GovWayTransactionErrorType));
 		assertEquals(HeaderValues.ReturnCodeTooManyRequests, failedResponse.getHeader(Headers.ReturnCode));

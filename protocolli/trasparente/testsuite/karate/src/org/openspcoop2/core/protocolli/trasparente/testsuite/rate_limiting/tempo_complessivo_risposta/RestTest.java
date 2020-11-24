@@ -31,7 +31,7 @@ public class RestTest extends ConfigLoader {
 		Utils.resetCounters(idPolicy);
 		
 		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "TempoComplessivoRisposta", PolicyAlias.MINUTO);
-		checkPreConditionsTempoComplessivoRisposta(idPolicy); 
+		Commons.checkPreConditionsTempoComplessivoRisposta(idPolicy); 
 		
 		// Aspetto lo scoccare del minuto
 		
@@ -41,7 +41,7 @@ public class RestTest extends ConfigLoader {
 		
 		checkAssertions(responses, 1, 60);
 		
-		checkPostConditionsTempoComplessivoRisposta(idPolicy);		
+		Commons.checkPostConditionsTempoComplessivoRisposta(idPolicy);		
 	}
 	
 	
@@ -52,7 +52,7 @@ public class RestTest extends ConfigLoader {
 		Utils.resetCounters(idPolicy);
 		
 		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "TempoComplessivoRisposta", PolicyAlias.ORARIO);
-		checkPreConditionsTempoComplessivoRisposta(idPolicy); 
+		Commons.checkPreConditionsTempoComplessivoRisposta(idPolicy); 
 				
 		Utils.waitForNewHour();
 		
@@ -60,7 +60,7 @@ public class RestTest extends ConfigLoader {
 
 		checkAssertions(responses, 1, 3600);
 		
-		checkPostConditionsTempoComplessivoRisposta(idPolicy);		
+		Commons.checkPostConditionsTempoComplessivoRisposta(idPolicy);		
 	}
 	
 	
@@ -71,7 +71,7 @@ public class RestTest extends ConfigLoader {
 		Utils.resetCounters(idPolicy);
 		
 		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "TempoComplessivoRisposta", PolicyAlias.GIORNALIERO);
-		checkPreConditionsTempoComplessivoRisposta(idPolicy); 
+		Commons.checkPreConditionsTempoComplessivoRisposta(idPolicy); 
 				
 		Utils.waitForNewDay();
 		
@@ -79,7 +79,7 @@ public class RestTest extends ConfigLoader {
 
 		checkAssertions(responses, 1, 86400);
 		
-		checkPostConditionsTempoComplessivoRisposta(idPolicy);		
+		Commons.checkPostConditionsTempoComplessivoRisposta(idPolicy);		
 	}
 	
 	
@@ -90,7 +90,7 @@ public class RestTest extends ConfigLoader {
 		Utils.resetCounters(idPolicy);
 		
 		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "TempoComplessivoRisposta", PolicyAlias.MINUTO);
-		checkPreConditionsTempoComplessivoRisposta(idPolicy); 
+		Commons.checkPreConditionsTempoComplessivoRisposta(idPolicy); 
 				
 		Utils.waitForNewMinute();
 	
@@ -98,7 +98,7 @@ public class RestTest extends ConfigLoader {
 		
 		checkAssertions(responses, 1, 60);
 		
-		checkPostConditionsTempoComplessivoRisposta(idPolicy);		
+		Commons.checkPostConditionsTempoComplessivoRisposta(idPolicy);		
 	}
 	
 	
@@ -109,7 +109,7 @@ public class RestTest extends ConfigLoader {
 		Utils.resetCounters(idPolicy);
 		
 		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "TempoComplessivoRisposta", PolicyAlias.ORARIO);
-		checkPreConditionsTempoComplessivoRisposta(idPolicy); 
+		Commons.checkPreConditionsTempoComplessivoRisposta(idPolicy); 
 				
 		Utils.waitForNewMinute();
 	
@@ -117,7 +117,7 @@ public class RestTest extends ConfigLoader {
 		
 		checkAssertions(responses, 1, 3600);
 		
-		checkPostConditionsTempoComplessivoRisposta(idPolicy);		
+		Commons.checkPostConditionsTempoComplessivoRisposta(idPolicy);		
 	}
 	
 	
@@ -128,7 +128,7 @@ public class RestTest extends ConfigLoader {
 		Utils.resetCounters(idPolicy);
 		
 		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "TempoComplessivoRisposta", PolicyAlias.GIORNALIERO);
-		checkPreConditionsTempoComplessivoRisposta(idPolicy); 
+		Commons.checkPreConditionsTempoComplessivoRisposta(idPolicy); 
 				
 		Utils.waitForNewMinute();
 	
@@ -136,70 +136,11 @@ public class RestTest extends ConfigLoader {
 		
 		checkAssertions(responses, 1, 86400);
 		
-		checkPostConditionsTempoComplessivoRisposta(idPolicy);		
+		Commons.checkPostConditionsTempoComplessivoRisposta(idPolicy);		
 	}
 
 
 		
-	private static void checkPreConditionsTempoComplessivoRisposta(String idPolicy)  {
-		
-		int remainingChecks = Integer.valueOf(System.getProperty("rl_check_policy_conditions_retry"));
-		while(true) {
-			try {
-				String jmxPolicyInfo = Utils.getPolicy(idPolicy);
-				if (jmxPolicyInfo.equals("Informazioni sulla Policy non disponibili; non sono ancora transitate richieste che soddisfano i criteri di filtro impostati")) {
-					break;
-				}				
-				logRateLimiting.info(jmxPolicyInfo);
-				Map<String, String> policyValues = Utils.parsePolicy(jmxPolicyInfo);
-				
-				assertEquals("0", policyValues.get("Richieste Attive"));
-				assertEquals("0", policyValues.get("Numero Richieste Conteggiate"));
-				assertEquals("0 secondi (0 ms)", policyValues.get("Contatore"));
-				assertEquals("0 secondi (0 ms)", policyValues.get("Valore Medio"));
-				assertEquals("0", policyValues.get("Numero Richieste Bloccate"));
-				break;
-			} catch (AssertionError e) {
-				if(remainingChecks == 0) {
-					throw e;
-				}
-				remainingChecks--;
-				org.openspcoop2.utils.Utilities.sleep(500);
-			}
-		} 
-	}
-	
-	
-	private static void checkPostConditionsTempoComplessivoRisposta(String idPolicy)  {
-		
-		int remainingChecks = Integer.valueOf(System.getProperty("rl_check_policy_conditions_retry"));
-		while(true) {
-			try {
-				String jmxPolicyInfo = Utils.getPolicy(idPolicy);
-				if (jmxPolicyInfo.equals("Informazioni sulla Policy non disponibili; non sono ancora transitate richieste che soddisfano i criteri di filtro impostati")) {
-					break;
-				}				
-				logRateLimiting.info(jmxPolicyInfo);
-				Map<String, String> policyValues = Utils.parsePolicy(jmxPolicyInfo);
-				
-				assertEquals("0", policyValues.get("Richieste Attive"));
-				assertEquals("1", policyValues.get("Numero Richieste Conteggiate"));
-				assertEquals("1", policyValues.get("Numero Richieste Bloccate"));
-				
-				String secondiContatore = policyValues.get("Contatore").split(" ")[0];
-				assertEquals("2", secondiContatore);
-				
-				break;
-			} catch (AssertionError e) {
-				if(remainingChecks == 0) {
-					throw e;
-				}
-				remainingChecks--;
-				org.openspcoop2.utils.Utilities.sleep(500);
-			}
-		} 
-	}
-	
 	private Vector<HttpResponse> makeRequests(String url) throws UtilsException {
 		
 		Vector<HttpResponse> responses = new Vector<>();

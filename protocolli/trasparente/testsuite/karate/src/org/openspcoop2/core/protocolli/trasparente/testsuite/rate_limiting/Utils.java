@@ -103,6 +103,28 @@ public class Utils {
 	}
 	
 	
+	public static Vector<HttpResponse> makeSequentialRequests(HttpRequest request, int count) {
+		final Vector<HttpResponse> responses = new Vector<>();
+
+		for(int i=0; i<count;i++) {
+			logRateLimiting.info(request.getMethod() + " " + request.getUrl());
+			try {
+				responses.add(HttpUtilities.httpInvoke(request));
+				logRateLimiting.info("Richiesta effettuata..");
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}		
+		}
+		
+		logRateLimiting.info("RESPONSES: ");
+		responses.forEach(r -> {
+			logRateLimiting.info("statusCode: " + r.getResultHTTPOperation());
+			logRateLimiting.info("headers: " + r.getHeaders());
+		});
+		
+		return responses;		
+	}
+	
 	public static Element buildXmlElement(byte[] content) {
 		InputStream is = new ByteArrayInputStream(content);
 		Document doc;
