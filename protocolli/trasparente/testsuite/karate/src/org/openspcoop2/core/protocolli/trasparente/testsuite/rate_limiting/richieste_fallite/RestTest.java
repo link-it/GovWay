@@ -14,10 +14,10 @@ import org.openspcoop2.utils.transport.http.HttpUtilsException;
 
 public class RestTest extends ConfigLoader {
 	
+	final static int maxRequests = 5;
 	
 	@Test
 	public void perMinutoErogazione() throws UtilsException, HttpUtilsException, InterruptedException {
-		final int maxRequests = 5;
 
 		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RichiesteFalliteRest", PolicyAlias.MINUTO);
 		Utils.resetCounters(idPolicy);
@@ -34,7 +34,7 @@ public class RestTest extends ConfigLoader {
 		request.setMethod(HttpRequestMethod.GET);
 		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/RichiesteFalliteRest/v1/minuto?returnCode=500");
 						
-		Vector<HttpResponse> responses = Utils.makeSequentialRequests(request, maxRequests);
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests);
 		
 		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
 		
