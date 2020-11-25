@@ -52,7 +52,7 @@ public class SoapTest extends ConfigLoader {
 		request.setContent(body.getBytes());
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, 3);
-		
+		Utils.waitForZeroActiveRequests(idPolicy, 3);
 		responses.addAll(Utils.makeSequentialRequests(request, 1));
 
 		checkAssertions(responses, 5, 60);		
@@ -88,7 +88,7 @@ public class SoapTest extends ConfigLoader {
 		request.setContent(body.getBytes());
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, 3);
-		
+		Utils.waitForZeroActiveRequests(idPolicy, 3);
 		responses.addAll(Utils.makeSequentialRequests(request, 1));
 
 		checkAssertions(responses, 5, 3600);		
@@ -125,7 +125,7 @@ public class SoapTest extends ConfigLoader {
 		request.setContent(body.getBytes());
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, 3);
-		
+		Utils.waitForZeroActiveRequests(idPolicy, 3);
 		responses.addAll(Utils.makeSequentialRequests(request, 1));
 
 		checkAssertions(responses, 5, 86400);		
@@ -163,7 +163,7 @@ public class SoapTest extends ConfigLoader {
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, 3);
 		
 		responses.addAll(Utils.makeSequentialRequests(request, 1));
-
+		Utils.waitForZeroActiveRequests(idPolicy, 3);
 		checkAssertions(responses, 5, 60);		
 		
 		Commons.checkPostConditionsOccupazioneBanda(idPolicy);		
@@ -197,7 +197,7 @@ public class SoapTest extends ConfigLoader {
 		request.setContent(body.getBytes());
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, 3);
-		
+		Utils.waitForZeroActiveRequests(idPolicy, 3);
 		responses.addAll(Utils.makeSequentialRequests(request, 1));
 
 		checkAssertions(responses, 5, 3600);		
@@ -234,7 +234,7 @@ public class SoapTest extends ConfigLoader {
 		request.setContent(body.getBytes());
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, 3);
-		
+		Utils.waitForZeroActiveRequests(idPolicy, 3);
 		responses.addAll(Utils.makeSequentialRequests(request, 1));
 
 		checkAssertions(responses, 5, 86400);		

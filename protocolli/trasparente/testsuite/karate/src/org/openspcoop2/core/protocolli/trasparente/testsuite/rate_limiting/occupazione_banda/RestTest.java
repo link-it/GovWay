@@ -22,16 +22,7 @@ import net.minidev.json.JSONObject;
 
 public class RestTest extends ConfigLoader {
 	
-	/**
-	 * TODO: I test per l'occupazione banda hanno la seguente logica.
-	 * Se la soglia è a 5 Kb allora di sicuro non posso inviare più di 5 richieste
-	 * da 512 b (Il payload della richiesta viene messo nella risposta).
-	 * Le richieste possibili saranno di meno perchè la grandezza del messaggio non è data solo dal 
-	 * payload.
-	 */
-
 	private static final int requestSizeBytes = 512;
-	//private static final int maxTotalBandwith = 5120;
 
 	@Test
 	public void perMinutoErogazione() throws Exception {
@@ -55,6 +46,8 @@ public class RestTest extends ConfigLoader {
 		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/OccupazioneBandaRest/v1/minuto");
 
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, 3);
+		
+		Utils.waitForZeroActiveRequests(idPolicy, 3);
 		
 		responses.addAll(Utils.makeSequentialRequests(request, 1));
 
@@ -81,7 +74,7 @@ public class RestTest extends ConfigLoader {
 		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/OccupazioneBandaRest/v1/orario");
 
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, 3);
-		
+		Utils.waitForZeroActiveRequests(idPolicy, 3);
 		responses.addAll(Utils.makeSequentialRequests(request, 1));
 
 		checkAssertions(responses, 5, 3600);
@@ -107,7 +100,7 @@ public class RestTest extends ConfigLoader {
 		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/OccupazioneBandaRest/v1/giornaliero");
 
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, 3);
-		
+		Utils.waitForZeroActiveRequests(idPolicy, 3);
 		responses.addAll(Utils.makeSequentialRequests(request, 1));
 
 		checkAssertions(responses, 5, 86400);
@@ -133,7 +126,7 @@ public class RestTest extends ConfigLoader {
 		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/OccupazioneBandaRest/v1/minuto");
 
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, 3);
-		
+		Utils.waitForZeroActiveRequests(idPolicy, 3);
 		responses.addAll(Utils.makeSequentialRequests(request, 1));
 
 		checkAssertions(responses, 5, 60);
@@ -159,7 +152,7 @@ public class RestTest extends ConfigLoader {
 		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/OccupazioneBandaRest/v1/orario");
 
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, 3);
-		
+		Utils.waitForZeroActiveRequests(idPolicy, 3);
 		responses.addAll(Utils.makeSequentialRequests(request, 1));
 
 		checkAssertions(responses, 5, 3600);
@@ -185,7 +178,7 @@ public class RestTest extends ConfigLoader {
 		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/OccupazioneBandaRest/v1/giornaliero");
 
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, 3);
-		
+		Utils.waitForZeroActiveRequests(idPolicy, 3);
 		responses.addAll(Utils.makeSequentialRequests(request, 1));
 
 		checkAssertions(responses, 5, 86400);

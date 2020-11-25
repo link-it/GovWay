@@ -19,10 +19,10 @@ public class RestTest extends ConfigLoader {
 	public void perMinutoErogazione() throws UtilsException, HttpUtilsException, InterruptedException {
 		final int maxRequests = 5;
 
-		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RichiesteFallite", PolicyAlias.MINUTO);
+		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RichiesteFalliteRest", PolicyAlias.MINUTO);
 		Utils.resetCounters(idPolicy);
 		
-		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RichiesteFallite", PolicyAlias.MINUTO);
+		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RichiesteFalliteRest", PolicyAlias.MINUTO);
 		// Utils.checkPreConditionsNumeroRichieste(idPolicy); TODO
 		
 		// Aspetto lo scoccare del minuto
@@ -32,9 +32,15 @@ public class RestTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RichiesteFallite/v1/minuto?returnCode=500");
+		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/RichiesteFalliteRest/v1/minuto?returnCode=500");
 						
-		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
+		Vector<HttpResponse> responses = Utils.makeSequentialRequests(request, maxRequests);
+		
+		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
+		
+		
+		// TODO: Trasformalo in makeParallelRequests quando andrea ha fixato il conteggio
+		responses.addAll(Utils.makeSequentialRequests(request, 3));
 		
 		// Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests); TODO		
 		
