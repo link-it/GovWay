@@ -33,7 +33,7 @@ public class RestTest extends ConfigLoader {
 		request.setMethod(HttpRequestMethod.GET);
 		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RichiesteCompletateConSuccessoRest/v1/minuto");
 						
-		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
+		Vector<HttpResponse> responses = Utils.makeSequentialRequests(request, maxRequests + 1);
 		
 		// Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests); TODO		
 		
