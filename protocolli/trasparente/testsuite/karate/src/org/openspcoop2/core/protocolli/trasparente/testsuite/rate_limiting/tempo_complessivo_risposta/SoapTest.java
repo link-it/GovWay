@@ -15,12 +15,42 @@ import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils
 import org.openspcoop2.message.OpenSPCoop2MessageFactory;
 import org.openspcoop2.pdd.core.dynamic.DynamicException;
 import org.openspcoop2.pdd.core.dynamic.PatternExtractor;
+import org.openspcoop2.utils.UtilsException;
 import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpResponse;
+import org.openspcoop2.utils.transport.http.HttpUtilities;
 import org.w3c.dom.Element;
 
 public class SoapTest extends ConfigLoader {
+	
+	/**
+	 * I test in generale seguono lo stesso schema: faccio n richieste che so che vanno bene
+	 * e poi faccio la richiesta che fa fallire la policy. Tra le richieste andate a buon fine
+	 * e quella che fa scattare la policy metto un'attesa sui contatori tramite jmx. 
+	 * 
+	 */
+	private Vector<HttpResponse> makeRequests(HttpRequest request, String idPolicy) throws UtilsException {
+		Vector<HttpResponse> responses = new Vector<>();
+		
+		HttpResponse response = HttpUtilities.httpInvoke(request);
+		responses.add(response);
+		logRateLimiting.info("Request: " + request.getUrl());
+		logRateLimiting.info("ResponseStatus: " + response.getResultHTTPOperation());
+		logRateLimiting.info("ResponseHeaders:\n" + response.getHeaders());
+		logRateLimiting.info("ResponseBody: " + new String(response.getContent()));
+		
+		Utils.waitForZeroActiveRequests(idPolicy, 1);
+		
+		response = HttpUtilities.httpInvoke(request);
+		responses.add(response);
+		logRateLimiting.info("Request: " + request.getUrl());
+		logRateLimiting.info("ResponseStatus: " + response.getResultHTTPOperation());
+		logRateLimiting.info("ResponseHeaders:\n" + response.getHeaders());
+		logRateLimiting.info("ResponseBody: " + new String(response.getContent()));
+		
+		return responses;
+	}
 	
 
 	@Test
@@ -48,7 +78,7 @@ public class SoapTest extends ConfigLoader {
 		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/TempoComplessivoRispostaSoap/v1");
 		request.setContent(body.getBytes());
 		
-		Vector<HttpResponse> responses = Utils.makeSequentialRequests(request, 2);
+		Vector<HttpResponse> responses = makeRequests(request,idPolicy);
 
 		checkAssertions(responses, 1, 60);		
 		
@@ -81,7 +111,7 @@ public class SoapTest extends ConfigLoader {
 		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/TempoComplessivoRispostaSoap/v1");
 		request.setContent(body.getBytes());
 		
-		Vector<HttpResponse> responses = Utils.makeSequentialRequests(request, 2);
+		Vector<HttpResponse> responses = makeRequests(request,idPolicy);
 
 		checkAssertions(responses, 1, 3600);		
 		
@@ -114,7 +144,7 @@ public class SoapTest extends ConfigLoader {
 		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/TempoComplessivoRispostaSoap/v1");
 		request.setContent(body.getBytes());
 		
-		Vector<HttpResponse> responses = Utils.makeSequentialRequests(request, 2);
+		Vector<HttpResponse> responses = makeRequests(request,idPolicy);
 
 		checkAssertions(responses, 1, 86400);		
 		
@@ -147,7 +177,7 @@ public class SoapTest extends ConfigLoader {
 		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/TempoComplessivoRispostaSoap/v1");
 		request.setContent(body.getBytes());
 		
-		Vector<HttpResponse> responses = Utils.makeSequentialRequests(request, 2);
+		Vector<HttpResponse> responses = makeRequests(request,idPolicy);
 
 		checkAssertions(responses, 1, 60);		
 		
@@ -180,7 +210,7 @@ public class SoapTest extends ConfigLoader {
 		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/TempoComplessivoRispostaSoap/v1");
 		request.setContent(body.getBytes());
 		
-		Vector<HttpResponse> responses = Utils.makeSequentialRequests(request, 2);
+		Vector<HttpResponse> responses = makeRequests(request,idPolicy);
 
 		checkAssertions(responses, 1, 3600);		
 		
@@ -213,7 +243,7 @@ public class SoapTest extends ConfigLoader {
 		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/TempoComplessivoRispostaSoap/v1");
 		request.setContent(body.getBytes());
 		
-		Vector<HttpResponse> responses = Utils.makeSequentialRequests(request, 2);
+		Vector<HttpResponse> responses = makeRequests(request,idPolicy);
 
 		checkAssertions(responses, 1, 86400);		
 		
@@ -226,7 +256,7 @@ public class SoapTest extends ConfigLoader {
 	
 		responses.forEach(r -> { 			
 			assertNotEquals(null,Integer.valueOf(r.getHeader(Headers.RateLimitTimeResponseQuotaReset)));
-			assertNotEquals(null,r.getHeader(Headers.RateLimitTimeResponseQuotaLimit));
+			Utils.checkXLimitHeader(r.getHeader(Headers.RateLimitTimeResponseQuotaLimit), maxSeconds);
 			
 			if ("true".equals(prop.getProperty("rl_check_limit_windows"))) {
 				Map<Integer,Integer> windowMap = Map.of(windowSize,maxSeconds);							

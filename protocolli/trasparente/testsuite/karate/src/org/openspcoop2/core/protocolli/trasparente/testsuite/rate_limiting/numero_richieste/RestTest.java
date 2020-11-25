@@ -46,7 +46,11 @@ public class RestTest extends ConfigLoader {
 		request.setMethod(HttpRequestMethod.GET);
 		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/NumeroRichiesteRest/v1/minuto");
 						
-		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests);
+		
+		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
+		
+		responses.addAll(Utils.makeParallelRequests(request, 1));
 		
 		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);		
 		checkAssertionsNumeroRichieste(responses, maxRequests, 60, disclosure);
@@ -84,7 +88,12 @@ public class RestTest extends ConfigLoader {
 		request.setMethod(HttpRequestMethod.GET);
 		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/NumeroRichiesteRest/v1/orario");
 						
-		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests);
+		
+		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
+		
+		responses.addAll(Utils.makeParallelRequests(request, 1));
+		
 		checkAssertionsNumeroRichieste(responses, maxRequests,3600, disclosure);
 		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
 	}
@@ -121,7 +130,12 @@ public class RestTest extends ConfigLoader {
 		request.setMethod(HttpRequestMethod.GET);
 		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/NumeroRichiesteRest/v1/giornaliero");
 						
-		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests);
+		
+		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
+		
+		responses.addAll(Utils.makeParallelRequests(request, 1));
+		
 		checkAssertionsNumeroRichieste(responses, maxRequests, 86400, disclosure);
 		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
 	}
@@ -161,8 +175,12 @@ public class RestTest extends ConfigLoader {
 		request.setMethod(HttpRequestMethod.GET);
 		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteRest/v1/minuto");
 						
-		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
-
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests);
+		
+		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
+		
+		responses.addAll(Utils.makeParallelRequests(request, 1));
+		
 		checkAssertionsNumeroRichieste(responses, maxRequests, 60, disclosure);
 		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
 	}
@@ -203,8 +221,12 @@ public class RestTest extends ConfigLoader {
 		request.setMethod(HttpRequestMethod.GET);
 		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteRest/v1/orario");
 						
-		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
-
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests);
+		
+		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
+		
+		responses.addAll(Utils.makeParallelRequests(request, 1));
+		
 		checkAssertionsNumeroRichieste(responses, maxRequests, 3600, disclosure);
 		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
 	}
@@ -244,8 +266,12 @@ public class RestTest extends ConfigLoader {
 		request.setMethod(HttpRequestMethod.GET);
 		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteRest/v1/giornaliero");
 						
-		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
-
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests);
+		
+		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
+		
+		responses.addAll(Utils.makeParallelRequests(request, 1));
+		
 		checkAssertionsNumeroRichieste(responses, maxRequests, 86400, disclosure);
 		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
 	}
@@ -404,7 +430,7 @@ public class RestTest extends ConfigLoader {
 		
 		responses.forEach(r -> { 			
 				assertNotEquals(null,Integer.valueOf(r.getHeader(Headers.RateLimitReset)));
-				assertNotEquals(null,r.getHeader(Headers.RateLimitLimit));
+				Utils.checkXLimitHeader(r.getHeader(Headers.RateLimitLimit), maxRequests);
 				
 				if ("true".equals(prop.getProperty("rl_check_limit_windows"))) {
 					Map<Integer,Integer> windowMap = Map.of(windowSize,maxRequests);							

@@ -37,7 +37,7 @@ public class RestTest extends ConfigLoader {
 		
 		Utils.waitForNewMinute();
 	
-		Vector<HttpResponse> responses = makeRequests(System.getProperty("govway_base_path") + "/SoggettoInternoTest/TempoComplessivoRisposta/v1/minuto?sleep=2000");
+		Vector<HttpResponse> responses = makeRequests(System.getProperty("govway_base_path") + "/SoggettoInternoTest/TempoComplessivoRisposta/v1/minuto?sleep=2000", idPolicy);
 		
 		checkAssertions(responses, 1, 60);
 		
@@ -56,7 +56,7 @@ public class RestTest extends ConfigLoader {
 				
 		Utils.waitForNewHour();
 		
-		Vector<HttpResponse> responses = makeRequests(System.getProperty("govway_base_path") + "/SoggettoInternoTest/TempoComplessivoRisposta/v1/orario?sleep=2000");
+		Vector<HttpResponse> responses = makeRequests(System.getProperty("govway_base_path") + "/SoggettoInternoTest/TempoComplessivoRisposta/v1/orario?sleep=2000", idPolicy);
 
 		checkAssertions(responses, 1, 3600);
 		
@@ -75,7 +75,7 @@ public class RestTest extends ConfigLoader {
 				
 		Utils.waitForNewDay();
 		
-		Vector<HttpResponse> responses = makeRequests(System.getProperty("govway_base_path") + "/SoggettoInternoTest/TempoComplessivoRisposta/v1/giornaliero?sleep=2000");
+		Vector<HttpResponse> responses = makeRequests(System.getProperty("govway_base_path") + "/SoggettoInternoTest/TempoComplessivoRisposta/v1/giornaliero?sleep=2000",idPolicy);
 
 		checkAssertions(responses, 1, 86400);
 		
@@ -94,7 +94,7 @@ public class RestTest extends ConfigLoader {
 				
 		Utils.waitForNewMinute();
 	
-		Vector<HttpResponse> responses = makeRequests(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/TempoComplessivoRisposta/v1/minuto?sleep=2000");
+		Vector<HttpResponse> responses = makeRequests(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/TempoComplessivoRisposta/v1/minuto?sleep=2000",idPolicy);
 		
 		checkAssertions(responses, 1, 60);
 		
@@ -113,7 +113,7 @@ public class RestTest extends ConfigLoader {
 				
 		Utils.waitForNewMinute();
 	
-		Vector<HttpResponse> responses = makeRequests(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/TempoComplessivoRisposta/v1/orario?sleep=2000");
+		Vector<HttpResponse> responses = makeRequests(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/TempoComplessivoRisposta/v1/orario?sleep=2000",idPolicy);
 		
 		checkAssertions(responses, 1, 3600);
 		
@@ -132,7 +132,7 @@ public class RestTest extends ConfigLoader {
 				
 		Utils.waitForNewMinute();
 	
-		Vector<HttpResponse> responses = makeRequests(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/TempoComplessivoRisposta/v1/giornaliero?sleep=2000");
+		Vector<HttpResponse> responses = makeRequests(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/TempoComplessivoRisposta/v1/giornaliero?sleep=2000", idPolicy);
 		
 		checkAssertions(responses, 1, 86400);
 		
@@ -141,7 +141,7 @@ public class RestTest extends ConfigLoader {
 
 
 		
-	private Vector<HttpResponse> makeRequests(String url) throws UtilsException {
+	private Vector<HttpResponse> makeRequests(String url, String idPolicy) throws UtilsException {
 		
 		Vector<HttpResponse> responses = new Vector<>();
 		
@@ -157,11 +157,8 @@ public class RestTest extends ConfigLoader {
 		logRateLimiting.info("ResponseHeaders:\n" + response.getHeaders());
 		logRateLimiting.info("ResponseBody: " + new String(response.getContent()));
 		
-		request = new HttpRequest();
-		request.setContentType("application/json");
-		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl( url );
-						
+		Utils.waitForZeroActiveRequests(idPolicy, 1);
+		
 		response = HttpUtilities.httpInvoke(request);
 		responses.add(response);
 		logRateLimiting.info("Request: " + request.getUrl());
@@ -176,7 +173,7 @@ public class RestTest extends ConfigLoader {
 				
 		responses.forEach(r -> { 			
 				assertNotEquals(null,Integer.valueOf(r.getHeader(Headers.RateLimitTimeResponseQuotaReset)));
-				assertNotEquals(null,r.getHeader(Headers.RateLimitTimeResponseQuotaLimit));
+				Utils.checkXLimitHeader(r.getHeader(Headers.RateLimitTimeResponseQuotaLimit), maxSeconds);
 				
 				if ("true".equals(prop.getProperty("rl_check_limit_windows"))) {
 					Map<Integer,Integer> windowMap = Map.of(windowSize,maxSeconds);							
