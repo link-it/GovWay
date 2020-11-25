@@ -94,9 +94,7 @@ public class SoapTest extends ConfigLoader {
 	@Test
 	public void richiesteSimultaneeGlobali() throws Exception {
 		final int maxConcurrentRequests = 15;
-		
-		// TODO: Meglio coinvolgere anche la fruizione nelle richieste.
-		
+				
 		// Aspetto che i threads attivi sul server siano 0
 		Utils.waitForZeroGovWayThreads();
 		
