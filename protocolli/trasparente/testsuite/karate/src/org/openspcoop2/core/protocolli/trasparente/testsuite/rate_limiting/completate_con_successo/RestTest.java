@@ -22,7 +22,7 @@ public class RestTest extends ConfigLoader {
 		Utils.resetCounters(idPolicy);
 		
 		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RichiesteCompletateConSuccessoRest", PolicyAlias.MINUTO);
-		// Utils.checkPreConditionsNumeroRichieste(idPolicy); TODO
+		Commons.checkPreConditionsRichiesteCompletateConSuccesso(idPolicy);
 		
 		// Aspetto lo scoccare del minuto
 		
@@ -33,10 +33,15 @@ public class RestTest extends ConfigLoader {
 		request.setMethod(HttpRequestMethod.GET);
 		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/RichiesteCompletateConSuccessoRest/v1/minuto");
 						
-		Vector<HttpResponse> responses = Utils.makeSequentialRequests(request, maxRequests + 1);
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests);
 		
-		// Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests); TODO		
+		org.openspcoop2.utils.Utilities.sleep(1000);
+		responses.addAll(Utils.makeSequentialRequests(request, 1));
 		
+
+		
+		Commons.checkPostConditionsRichiesteCompletateConSuccesso(idPolicy);
 	}
+	
 
 }
