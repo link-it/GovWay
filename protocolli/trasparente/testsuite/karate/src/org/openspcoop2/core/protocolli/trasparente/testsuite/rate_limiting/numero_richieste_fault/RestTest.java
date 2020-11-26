@@ -26,12 +26,6 @@ public class RestTest extends ConfigLoader {
 	final static int toFailRequests = 4;
 	final static int totalRequests = maxRequests + toFailRequests;
 	
-	// Qui inizio la nuova versione dei test, con cui poi estendere anche gli altri e cioè:
-	// Faccio più di una richiesta che fa scattare la policy, invece che una sola.
-	// 	- un test che spara le prime n parallele e poi n parallele che devono fallire
-	// 	- un test che spare le prime n sequenziali, controllando i contatori tra una e l'altra oltre allo header *Remaining 
-	// 		e poi n parallele che devono fallire
-	
 	@Test
 	public void perMinutoErogazione() throws Exception {
 		testErogazione("RichiesteFaultRest", PolicyAlias.MINUTO);

@@ -95,6 +95,7 @@ public class ConfigLoader {
             System.setProperty("jmx_username", prop.getProperty("jmx_cache_username"));
             System.setProperty("jmx_password", prop.getProperty("jmx_cache_password"));
             System.setProperty("rl_check_policy_conditions_retry", prop.getProperty("rl_check_policy_conditions_retry"));
+            System.setProperty("rl_check_policy_conditions_delay", prop.getProperty("rl_check_policy_conditions_delay"));
 
         }catch(Throwable t) {
             throw new RuntimeException(t.getMessage(),t);

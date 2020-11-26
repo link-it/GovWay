@@ -299,25 +299,6 @@ public class Utils {
 		}			
 	}
 
-	public static void waitForZeroGovWayThreads() {
-		
-		int remainingChecks = Integer.valueOf(System.getProperty("rl_check_policy_conditions_retry"));
-		
-		while(true) {
-			try {
-				Integer threadAttivi = getThreadsAttiviGovWay();
-				assertEquals(Integer.valueOf(0), threadAttivi);
-				break;
-			} catch (AssertionError e) {
-				if(remainingChecks == 0) {
-					throw e;
-				}
-				remainingChecks--;
-				org.openspcoop2.utils.Utilities.sleep(500);
-			}
-		}
-		
-	}
 
 	
 	public static void checkPreConditionsNumeroRichieste(String idPolicy)  {
@@ -338,11 +319,34 @@ public class Utils {
 		assertEquals(Integer.valueOf(0), polInfo.richiesteBloccate);
 	}
 	
+	public static void waitForZeroGovWayThreads() {
+		
+		int remainingChecks = Integer.valueOf(System.getProperty("rl_check_policy_conditions_retry"));
+		int delay = Integer.valueOf(System.getProperty("rl_check_policy_conditions_delay"));
+		
+		while(true) {
+			try {
+				Integer threadAttivi = getThreadsAttiviGovWay();
+				assertEquals(Integer.valueOf(0), threadAttivi);
+				break;
+			} catch (AssertionError e) {
+				if(remainingChecks == 0) {
+					throw e;
+				}
+				remainingChecks--;
+				org.openspcoop2.utils.Utilities.sleep(delay);
+			}
+		}
+		
+	}
+
+	
 	// TODO: scrivere gli altri metodi check*NumeroRichieste in funzione di questo,
 	//	o utilizzare direttamente questo.
 	
 	public static void checkConditionsNumeroRichieste(String idPolicy, Integer attive, Integer conteggiate, Integer bloccate) {
 		int remainingChecks = Integer.valueOf(System.getProperty("rl_check_policy_conditions_retry"));
+		int delay = Integer.valueOf(System.getProperty("rl_check_policy_conditions_delay"));
 		
 		while(true) {
 			try {
@@ -364,7 +368,7 @@ public class Utils {
 					throw e;
 				}
 				remainingChecks--;
-				org.openspcoop2.utils.Utilities.sleep(500);
+				org.openspcoop2.utils.Utilities.sleep(delay);
 			}
 		}		
 	}
@@ -373,6 +377,8 @@ public class Utils {
 	public static void checkPostConditionsNumeroRichieste(String idPolicy, int maxRequests) {
 				
 		int remainingChecks = Integer.valueOf(System.getProperty("rl_check_policy_conditions_retry"));
+		int delay = Integer.valueOf(System.getProperty("rl_check_policy_conditions_delay"));
+
 		
 		while(true) {
 			try {
@@ -390,7 +396,7 @@ public class Utils {
 					throw e;
 				}
 				remainingChecks--;
-				org.openspcoop2.utils.Utilities.sleep(500);
+				org.openspcoop2.utils.Utilities.sleep(delay);
 			}
 		}
 	}
@@ -399,6 +405,7 @@ public class Utils {
 	public static void checkPostConditionsRichiesteSimultanee(String idPolicy) {
 		
 		int remainingChecks = Integer.valueOf(System.getProperty("rl_check_policy_conditions_retry"));
+		int delay = Integer.valueOf(System.getProperty("rl_check_policy_conditions_delay"));
 		
 		while(true) {
 			try {
@@ -417,7 +424,7 @@ public class Utils {
 					throw e;
 				}
 				remainingChecks--;
-				org.openspcoop2.utils.Utilities.sleep(500);
+				org.openspcoop2.utils.Utilities.sleep(delay);
 			}
 		} 
 		
@@ -427,6 +434,8 @@ public class Utils {
 	public static void checkPreConditionsRichiesteSimultanee(String idPolicy) {
 		
 		int remainingChecks = Integer.valueOf(System.getProperty("rl_check_policy_conditions_retry"));
+		int delay = Integer.valueOf(System.getProperty("rl_check_policy_conditions_delay"));
+
 		while(true) {
 			try {
 				String jmxPolicyInfo = getPolicy(idPolicy);
@@ -443,7 +452,37 @@ public class Utils {
 					throw e;
 				}
 				remainingChecks--;
-				org.openspcoop2.utils.Utilities.sleep(500);
+				org.openspcoop2.utils.Utilities.sleep(delay);
+			}
+		} 
+	}
+	
+	
+	// TODO: Questo deve andare via in favore del più preciso (controlla anche le richieste bloccate) checkConditionsNumeroRichieste(0,maxRequests,0)
+	public static void waitForZeroActiveRequests(String idPolicy, int richiesteConteggiate) {
+		Logger logRateLimiting = LoggerWrapperFactory.getLogger("testsuite.rate_limiting");
+		
+		int remainingChecks = Integer.valueOf(System.getProperty("rl_check_policy_conditions_retry"));
+		int delay = Integer.valueOf(System.getProperty("rl_check_policy_conditions_delay"));
+
+		while(true) {
+			try {
+				String jmxPolicyInfo = getPolicy(idPolicy);
+				if (jmxPolicyInfo.equals("Informazioni sulla Policy non disponibili; non sono ancora transitate richieste che soddisfano i criteri di filtro impostati")) {
+					break;
+				}				
+				logRateLimiting.info(jmxPolicyInfo);
+				Map<String, String> policyValues = parsePolicy(jmxPolicyInfo);
+				assertEquals("0", policyValues.get("Richieste Attive"));
+				assertEquals(Integer.valueOf(richiesteConteggiate), Integer.valueOf(policyValues.get("Numero Richieste Conteggiate")));
+	
+				break;
+			} catch (AssertionError e) {
+				if(remainingChecks == 0) {
+					throw e;
+				}
+				remainingChecks--;
+				org.openspcoop2.utils.Utilities.sleep(delay);
 			}
 		} 
 	}
@@ -460,10 +499,7 @@ public class Utils {
 					Integer.valueOf(window[0])
 				);
 		}
-		
-		
 	}
-
 
 	/**
 	 * Parsa le informazioni sulla policy ottenute tramite jmx in una map di propietà. 
@@ -483,34 +519,6 @@ public class Utils {
 			}
 		}
 		return ret;
-	}
-
-
-	// TODO: Questo deve andare via in favore del più preciso (controlla anche le richieste bloccate) checkConditionsNumeroRichieste(0,maxRequests,0)
-	public static void waitForZeroActiveRequests(String idPolicy, int richiesteConteggiate) {
-		Logger logRateLimiting = LoggerWrapperFactory.getLogger("testsuite.rate_limiting");
-		
-		int remainingChecks = Integer.valueOf(System.getProperty("rl_check_policy_conditions_retry"));
-		while(true) {
-			try {
-				String jmxPolicyInfo = getPolicy(idPolicy);
-				if (jmxPolicyInfo.equals("Informazioni sulla Policy non disponibili; non sono ancora transitate richieste che soddisfano i criteri di filtro impostati")) {
-					break;
-				}				
-				logRateLimiting.info(jmxPolicyInfo);
-				Map<String, String> policyValues = parsePolicy(jmxPolicyInfo);
-				assertEquals("0", policyValues.get("Richieste Attive"));
-				assertEquals(Integer.valueOf(richiesteConteggiate), Integer.valueOf(policyValues.get("Numero Richieste Conteggiate")));
-	
-				break;
-			} catch (AssertionError e) {
-				if(remainingChecks == 0) {
-					throw e;
-				}
-				remainingChecks--;
-				org.openspcoop2.utils.Utilities.sleep(500);
-			}
-		} 
 	}
 
 
