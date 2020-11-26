@@ -27,6 +27,130 @@ public class RestTest extends ConfigLoader {
 	final static int totalRequests = maxRequests + toFailRequests;
 	
 	@Test
+	public void conteggioCorrettoErogazione() throws Exception {
+		// Testo che non vengano conteggiate le richieste fallite e quelle completate con successo
+
+		final PolicyAlias policy = PolicyAlias.GIORNALIERO;
+		String erogazione = "RichiesteFaultRest";		
+		int windowSize = Utils.getPolicyWindowSize(policy);
+		String path = Utils.getPolicyPath(policy);
+		
+		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy);
+		Utils.resetCounters(idPolicy);
+		
+		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
+				
+		Utils.waitForPolicy(policy);
+		
+		int firstBatch = maxRequests/2;
+		int secondBatch = maxRequests - firstBatch;
+		
+		// Faccio il primo batch di richieste che devono essere conteggiate
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/json");
+		request.setMethod(HttpRequestMethod.GET);
+		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/RichiesteFaultRest/v1/"+path+"?problem=true");
+						
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, firstBatch);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, firstBatch, 0);
+
+		
+		// Faccio un batch di richieste che non devono essere conteggiate
+		
+		HttpRequest okRequest = new HttpRequest();
+		okRequest.setContentType("application/json");
+		okRequest.setMethod(HttpRequestMethod.GET);
+		okRequest.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/RichiesteFaultRest/v1/"+path);
+		
+		Utils.makeParallelRequests(okRequest, maxRequests);
+		
+		HttpRequest failRequest = new HttpRequest();
+		failRequest.setContentType("application/json");
+		failRequest.setMethod(HttpRequestMethod.GET);
+		failRequest.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/RichiesteFaultRest/v1/"+path+"?returnCode=500");
+		
+		Utils.makeParallelRequests(failRequest, maxRequests);
+		
+		// Faccio l'ultimo batch di richieste che devono essere conteggiate
+		
+		responses.addAll(Utils.makeParallelRequests(request, secondBatch));
+
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 0);
+		
+		Vector<HttpResponse>  failedResponses = Utils.makeParallelRequests(request, toFailRequests);
+
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, toFailRequests);
+		
+		checkOkRequests(responses, windowSize);
+		checkFailedRequests(failedResponses, windowSize);		
+	}
+	
+	
+	@Test
+	public void conteggioCorrettoFruizione() throws Exception {
+		// Testo che non vengano conteggiate le richieste fallite e quelle completate con successo
+
+		final PolicyAlias policy = PolicyAlias.GIORNALIERO;
+		String erogazione = "RichiesteFaultRest";		
+		int windowSize = Utils.getPolicyWindowSize(policy);
+		String path = Utils.getPolicyPath(policy);
+		
+		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
+		Utils.resetCounters(idPolicy);
+		
+		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
+				
+		Utils.waitForPolicy(policy);
+		
+		int firstBatch = maxRequests/2;
+		int secondBatch = maxRequests - firstBatch;
+		
+		// Faccio il primo batch di richieste che devono essere conteggiate
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/json");
+		request.setMethod(HttpRequestMethod.GET);
+		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/RichiesteFaultRest/v1/"+path+"?problem=true");
+						
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, firstBatch);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, firstBatch, 0);
+
+		
+		// Faccio un batch di richieste che non devono essere conteggiate
+		
+		HttpRequest okRequest = new HttpRequest();
+		okRequest.setContentType("application/json");
+		okRequest.setMethod(HttpRequestMethod.GET);
+		okRequest.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/RichiesteFaultRest/v1/"+path);
+		
+		Utils.makeParallelRequests(okRequest, maxRequests);
+		
+		HttpRequest failRequest = new HttpRequest();
+		failRequest.setContentType("application/json");
+		failRequest.setMethod(HttpRequestMethod.GET);
+		failRequest.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/RichiesteFaultRest/v1/"+path+"?returnCode=500");
+		
+		Utils.makeParallelRequests(failRequest, maxRequests);
+		
+		// Faccio l'ultimo batch di richieste che devono essere conteggiate
+		
+		responses.addAll(Utils.makeParallelRequests(request, secondBatch));
+
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 0);
+		
+		Vector<HttpResponse>  failedResponses = Utils.makeParallelRequests(request, toFailRequests);
+
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, toFailRequests);
+		
+		checkOkRequests(responses, windowSize);
+		checkFailedRequests(failedResponses, windowSize);		
+	}
+	
+	
+	@Test
 	public void perMinutoErogazione() throws Exception {
 		testErogazione("RichiesteFaultRest", PolicyAlias.MINUTO);
 	}
