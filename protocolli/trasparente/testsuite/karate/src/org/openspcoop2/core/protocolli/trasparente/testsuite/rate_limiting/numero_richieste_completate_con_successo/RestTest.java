@@ -1,4 +1,4 @@
-package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.completate_con_successo;
+package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -21,7 +21,7 @@ import net.minidev.json.JSONObject;
 
 public class RestTest extends ConfigLoader {
 	
-	final static int maxRequests = 6;
+	final static int maxRequests = 5;
 	
 	@Test
 	public void perMinutoErogazione() throws Exception {

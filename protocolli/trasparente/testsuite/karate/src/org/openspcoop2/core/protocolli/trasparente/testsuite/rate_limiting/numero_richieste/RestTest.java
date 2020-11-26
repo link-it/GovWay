@@ -471,7 +471,7 @@ public class RestTest extends ConfigLoader {
 		assertNotEquals(null, failedResponse.getHeader(Headers.RetryAfter));
 
 		// Lo header X-RateLimit-Remaining deve assumere tutti i
-		// i valori possibili da 0 a maxRequests-1
+		// i valori possibili da 0 a maxRequests-1 TODO questo mettilo nel test a parte
 		List<Integer> counters = responses.stream()
 				.map(resp -> Integer.parseInt(resp.getHeader(Headers.RateLimitRemaining))).collect(Collectors.toList());
 		assertTrue(IntStream.range(0, maxRequests).allMatch(v -> counters.contains(v)));	

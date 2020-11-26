@@ -138,17 +138,6 @@ public class Utils {
 	}
 	
 	
-	public static void resetCounters(List<String> idPolicies) {
-		idPolicies.forEach( idPolicy -> {
-			try {
-				resetCounters(idPolicy);
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
-		});
-	}
-
-	
 	public static void resetCounters(String idPolicy) throws UtilsException, HttpUtilsException {
 		Map<String,String> queryParams = Map.of(
 				"resourceName", "ControlloTraffico",
@@ -233,6 +222,23 @@ public class Utils {
 		}		
 	}
 
+
+	public static void waitForPolicy(PolicyAlias policy) {
+		switch (policy) {
+		case MINUTO:
+			waitForNewMinute();
+			break;
+		case ORARIO:
+			waitForNewHour();
+			break;
+		case GIORNALIERO:
+			waitForNewDay();
+			break;
+		case RICHIESTE_SIMULTANEE:
+			break;
+		}
+		
+	}	
 	
 	/**
 	 * Sospende il thread corrente finchè non è scoccato il prossimo minuto
@@ -257,7 +263,7 @@ public class Utils {
 	 * 
 	 * @throws InterruptedException
 	 */
-	public static void waitForNewHour() throws InterruptedException {
+	public static void waitForNewHour() {
 		if ("false".equals(System.getProperty("wait"))) {
 			return;
 		}
@@ -267,7 +273,7 @@ public class Utils {
 		if (remaining <= 2) {
 			int to_wait = (remaining+1) * 60 * 1000;
 			logRateLimiting.info("Aspetto " + to_wait/1000 + " secondi per lo scoccare del minuto..");
-			java.lang.Thread.sleep(to_wait);
+			org.openspcoop2.utils.Utilities.sleep(to_wait);
 		}					
 	}
 	
@@ -277,7 +283,7 @@ public class Utils {
 	 * 
 	 * @throws InterruptedException
 	 */
-	public static void waitForNewDay() throws InterruptedException {
+	public static void waitForNewDay() {
 		if ("false".equals(System.getProperty("wait"))) {
 			return;
 		}
@@ -288,7 +294,7 @@ public class Utils {
 			if (remaining <= 2) {
 				int to_wait = (remaining+1) * 60 * 1000;
 				logRateLimiting.info("Aspetto " + to_wait/1000 + " secondi per lo scoccare del minuto..");
-				java.lang.Thread.sleep(to_wait);
+				org.openspcoop2.utils.Utilities.sleep(to_wait);
 			}							
 		}			
 	}
@@ -313,10 +319,6 @@ public class Utils {
 		
 	}
 
-	public static void checkPreConditionsNumeroRichieste(List<String> idPolicies) {
-		idPolicies.forEach( id -> checkPreConditionsNumeroRichieste(id));
-	}
-
 	
 	public static void checkPreConditionsNumeroRichieste(String idPolicy)  {
 		String jmxPolicyInfo = getPolicy(idPolicy);
@@ -335,12 +337,38 @@ public class Utils {
 		assertEquals(Integer.valueOf(0), polInfo.richiesteConteggiate);
 		assertEquals(Integer.valueOf(0), polInfo.richiesteBloccate);
 	}
-
-
-	public static void checkPostConditionsNumeroRichieste(List<String> idPolicies, int maxRequests) {
-		idPolicies.forEach( id -> checkPostConditionsNumeroRichieste(id, maxRequests));
+	
+	// TODO: scrivere gli altri metodi check*NumeroRichieste in funzione di questo,
+	//	o utilizzare direttamente questo.
+	
+	public static void checkConditionsNumeroRichieste(String idPolicy, Integer attive, Integer conteggiate, Integer bloccate) {
+		int remainingChecks = Integer.valueOf(System.getProperty("rl_check_policy_conditions_retry"));
+		
+		while(true) {
+			try {
+				String jmxPolicyInfo = getPolicy(idPolicy);
+				logRateLimiting.info(jmxPolicyInfo);
+				
+				if (jmxPolicyInfo.equals("Informazioni sulla Policy non disponibili; non sono ancora transitate richieste che soddisfano i criteri di filtro impostati")) {
+					break;
+				}
+				
+				NumeroRichiestePolicyInfo polInfo = new NumeroRichiestePolicyInfo(jmxPolicyInfo);
+			
+				assertEquals(attive, polInfo.richiesteAttive);
+				assertEquals(conteggiate, polInfo.richiesteConteggiate);
+				assertEquals(bloccate, polInfo.richiesteBloccate);
+				break;
+			} catch (AssertionError e) {
+				if(remainingChecks == 0) {
+					throw e;
+				}
+				remainingChecks--;
+				org.openspcoop2.utils.Utilities.sleep(500);
+			}
+		}		
 	}
-
+	
 	
 	public static void checkPostConditionsNumeroRichieste(String idPolicy, int maxRequests) {
 				
@@ -365,11 +393,6 @@ public class Utils {
 				org.openspcoop2.utils.Utilities.sleep(500);
 			}
 		}
-	}
-
-	
-	public static void checkPostConditionsRichiesteSimultanee(List<String> idPolicies) {
-		idPolicies.forEach( id -> checkPostConditionsRichiesteSimultanee(id));
 	}
 
 
@@ -398,11 +421,6 @@ public class Utils {
 			}
 		} 
 		
-	}
-
-
-	public static void checkPreConditionsRichiesteSimultanee(List<String> idPolicies) {
-		idPolicies.forEach( id -> checkPreConditionsRichiesteSimultanee(id));
 	}
 
 	
@@ -468,6 +486,7 @@ public class Utils {
 	}
 
 
+	// TODO: Questo deve andare via in favore del più preciso (controlla anche le richieste bloccate) checkConditionsNumeroRichieste(0,maxRequests,0)
 	public static void waitForZeroActiveRequests(String idPolicy, int richiesteConteggiate) {
 		Logger logRateLimiting = LoggerWrapperFactory.getLogger("testsuite.rate_limiting");
 		
@@ -499,10 +518,43 @@ public class Utils {
 		// La configurazione di govway potrebbe utilizzare le window anche se nel test la proprietà
 		// è disabilitata. Scriviamo un test che sia indipendente da questa cosa, e che controlli
 		// in ogni caso il primo valore.
-		
 		String limit = header.split(",")[0].trim();
 		assertEquals(String.valueOf(maxLimit),limit);
 	}
-	
+
+
+	public static int getPolicyWindowSize(PolicyAlias policy) {
+		switch (policy) {
+		case GIORNALIERO:
+			return 86400;
+		case MINUTO:
+			return 60;
+		case ORARIO:
+			return 3600;
+		case RICHIESTE_SIMULTANEE:
+			return 0;
+		default:
+			return 0;		
+		}
+	}
+
+
+	public static String getPolicyPath(PolicyAlias policy) {
+		switch (policy) {
+		case GIORNALIERO:
+			return "giornaliero";
+		case MINUTO:
+			return "minuto";
+		case ORARIO:
+			return "orario";
+		case RICHIESTE_SIMULTANEE:
+			return "richieste-simultanee";
+		default:
+			return "";
+		
+		}
+	}
+
+
 
 }

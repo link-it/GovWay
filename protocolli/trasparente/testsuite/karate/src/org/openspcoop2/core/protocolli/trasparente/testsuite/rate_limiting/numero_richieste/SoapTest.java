@@ -36,11 +36,11 @@ public class SoapTest extends ConfigLoader {
 	public void richiesteSimultaneeErogazione() throws Exception {
 		final int maxConcurrentRequests = 10;
 		
-		List<String> idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.RICHIESTE_SIMULTANEE);
-		Utils.resetCounters(idPolicies);
+		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.RICHIESTE_SIMULTANEE);
+		Utils.resetCounters(idPolicy);
 		
-		idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.RICHIESTE_SIMULTANEE);
-		Utils.checkPreConditionsRichiesteSimultanee(idPolicies);
+		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.RICHIESTE_SIMULTANEE);
+		Utils.checkPreConditionsRichiesteSimultanee(idPolicy);
 		
 		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
 				"    <soap:Body>\n" + 
@@ -58,7 +58,7 @@ public class SoapTest extends ConfigLoader {
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxConcurrentRequests + 1);
 		
 		checkAssertionsRichiesteSimultanee(responses, maxConcurrentRequests);
-		Utils.checkPostConditionsRichiesteSimultanee(idPolicies);
+		Utils.checkPostConditionsRichiesteSimultanee(idPolicy);
 	}
 	
 	
@@ -66,11 +66,11 @@ public class SoapTest extends ConfigLoader {
 	public void richiesteSimultaneeFruizione() throws Exception {		
 		final int maxConcurrentRequests = 10;
 		
-		List<String> idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.RICHIESTE_SIMULTANEE);
-		Utils.resetCounters(idPolicies);
+		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.RICHIESTE_SIMULTANEE);
+		Utils.resetCounters(idPolicy);
 		
-		idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.RICHIESTE_SIMULTANEE);
-		Utils.checkPreConditionsRichiesteSimultanee(idPolicies);
+		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.RICHIESTE_SIMULTANEE);
+		Utils.checkPreConditionsRichiesteSimultanee(idPolicy);
 		
 		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
 				"    <soap:Body>\n" + 
@@ -88,7 +88,7 @@ public class SoapTest extends ConfigLoader {
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxConcurrentRequests + 1);
 		
 		checkAssertionsRichiesteSimultanee(responses, maxConcurrentRequests);
-		Utils.checkPostConditionsRichiesteSimultanee(idPolicies);
+		Utils.checkPostConditionsRichiesteSimultanee(idPolicy);
 	}
 	
 	@Test

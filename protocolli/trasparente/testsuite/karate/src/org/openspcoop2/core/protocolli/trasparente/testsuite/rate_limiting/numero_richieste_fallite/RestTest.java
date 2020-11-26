@@ -1,4 +1,4 @@
-package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.richieste_fallite;
+package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_fallite;
 
 import java.util.Vector;
 
@@ -24,8 +24,6 @@ public class RestTest extends ConfigLoader {
 		
 		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RichiesteFalliteRest", PolicyAlias.MINUTO);
 		// Utils.checkPreConditionsNumeroRichieste(idPolicy); TODO
-		
-		// Aspetto lo scoccare del minuto
 		
 		Utils.waitForNewMinute();
 		

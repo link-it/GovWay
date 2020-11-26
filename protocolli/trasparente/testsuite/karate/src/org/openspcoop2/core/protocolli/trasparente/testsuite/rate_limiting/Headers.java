@@ -22,4 +22,7 @@ public class Headers {
 	public static final String RequestSuccesfulLimit = "GovWay-RateLimit-RequestSuccessful-Limit";
 	public static final String RequestSuccesfulRemaining = "GovWay-RateLimit-RequestSuccessful-Remaining";
 	
+	public static final String FaultReset = "GovWay-RateLimit-Fault-Reset";
+	public static final String FaultLimit = "GovWay-RateLimit-Fault-Limit";
+	public static final String FaultRemaining = "GovWay-RateLimit-Fault-Remaining";	
 }
