@@ -21,6 +21,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste.NumeroRichiestePolicyInfo;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste.RichiesteSimultaneePolicyInfo;
+import org.openspcoop2.utils.LoggerWrapperFactory;
 import org.openspcoop2.utils.UtilsException;
 import org.openspcoop2.utils.transport.TransportUtils;
 import org.openspcoop2.utils.transport.http.HttpRequest;
@@ -246,7 +247,8 @@ public class Utils {
 		Calendar now = Calendar.getInstance();
 		int to_wait = (63 - now.get(Calendar.SECOND)) *1000;
 		logRateLimiting.info("Aspetto " + to_wait/1000 + " secondi per lo scoccare del minuto..");
-		org.openspcoop2.utils.Utilities.sleep(to_wait);		
+		org.openspcoop2.utils.Utilities.sleep(to_wait);
+				
 	}
 	
 	/**
@@ -463,6 +465,43 @@ public class Utils {
 			}
 		}
 		return ret;
+	}
+
+
+	public static void waitForZeroActiveRequests(String idPolicy, int richiesteConteggiate) {
+		Logger logRateLimiting = LoggerWrapperFactory.getLogger("testsuite.rate_limiting");
+		
+		int remainingChecks = Integer.valueOf(System.getProperty("rl_check_policy_conditions_retry"));
+		while(true) {
+			try {
+				String jmxPolicyInfo = getPolicy(idPolicy);
+				if (jmxPolicyInfo.equals("Informazioni sulla Policy non disponibili; non sono ancora transitate richieste che soddisfano i criteri di filtro impostati")) {
+					break;
+				}				
+				logRateLimiting.info(jmxPolicyInfo);
+				Map<String, String> policyValues = parsePolicy(jmxPolicyInfo);
+				assertEquals("0", policyValues.get("Richieste Attive"));
+				assertEquals(Integer.valueOf(richiesteConteggiate), Integer.valueOf(policyValues.get("Numero Richieste Conteggiate")));
+	
+				break;
+			} catch (AssertionError e) {
+				if(remainingChecks == 0) {
+					throw e;
+				}
+				remainingChecks--;
+				org.openspcoop2.utils.Utilities.sleep(500);
+			}
+		} 
+	}
+
+
+	public static void checkXLimitHeader(String header, int maxLimit) {
+		// La configurazione di govway potrebbe utilizzare le window anche se nel test la proprietà
+		// è disabilitata. Scriviamo un test che sia indipendente da questa cosa, e che controlli
+		// in ogni caso il primo valore.
+		
+		String limit = header.split(",")[0].trim();
+		assertEquals(String.valueOf(maxLimit),limit);
 	}
 	
 

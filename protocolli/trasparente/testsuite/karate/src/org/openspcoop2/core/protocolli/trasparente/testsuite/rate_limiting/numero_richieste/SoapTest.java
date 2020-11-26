@@ -94,9 +94,7 @@ public class SoapTest extends ConfigLoader {
 	@Test
 	public void richiesteSimultaneeGlobali() throws Exception {
 		final int maxConcurrentRequests = 15;
-		
-		// TODO: Meglio coinvolgere anche la fruizione nelle richieste.
-		
+				
 		// Aspetto che i threads attivi sul server siano 0
 		Utils.waitForZeroGovWayThreads();
 		
@@ -146,11 +144,11 @@ public class SoapTest extends ConfigLoader {
 
 		// Resetto la policy di RL
 		
-		List<String> idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.MINUTO);
-		Utils.resetCounters(idPolicies);
+		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.MINUTO);
+		Utils.resetCounters(idPolicy);
 		
-		idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.MINUTO);
-		Utils.checkPreConditionsNumeroRichieste(idPolicies);
+		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.MINUTO);
+		Utils.checkPreConditionsNumeroRichieste(idPolicy);
 		
 		// Aspetto lo scoccare del minuto
 
@@ -170,10 +168,14 @@ public class SoapTest extends ConfigLoader {
 		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/NumeroRichiesteSoap/v1");
 		request.setContent(body.getBytes());
 		
-		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
-
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests);
+		
+		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
+		
+		responses.addAll(Utils.makeParallelRequests(request, 1));
+		
 		checkAssertionsNumeroRichieste(responses, maxRequests, 60);
-		Utils.checkPostConditionsNumeroRichieste(idPolicies, maxRequests);				
+		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);				
 	}
 	
 	
@@ -184,11 +186,11 @@ public class SoapTest extends ConfigLoader {
 
 		// Resetto la policy di RL
 		
-		List<String> idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.ORARIO);
-		Utils.resetCounters(idPolicies);
+		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.ORARIO);
+		Utils.resetCounters(idPolicy);
 		
-		idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.ORARIO);
-		Utils.checkPreConditionsNumeroRichieste(idPolicies);
+		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.ORARIO);
+		Utils.checkPreConditionsNumeroRichieste(idPolicy);
 
 		
 		// Aspetto lo scoccare del minuto
@@ -209,10 +211,14 @@ public class SoapTest extends ConfigLoader {
 		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/NumeroRichiesteSoap/v1");
 		request.setContent(body.getBytes());
 		
-		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
-
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests);
+		
+		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
+		
+		responses.addAll(Utils.makeParallelRequests(request, 1));
+		
 		checkAssertionsNumeroRichieste(responses, maxRequests, 3600);	
-		Utils.checkPostConditionsNumeroRichieste(idPolicies, maxRequests);
+		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
 	}
 	
 	
@@ -223,11 +229,11 @@ public class SoapTest extends ConfigLoader {
 
 		// Resetto la policy di RL
 		
-		List<String> idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.GIORNALIERO);
-		Utils.resetCounters(idPolicies);
+		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.GIORNALIERO);
+		Utils.resetCounters(idPolicy);
 		
-		idPolicies = dbUtils.getAllPoliciesIdErogazione("SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.GIORNALIERO);
-		Utils.checkPreConditionsNumeroRichieste(idPolicies);
+		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.GIORNALIERO);
+		Utils.checkPreConditionsNumeroRichieste(idPolicy);
 
 		
 		// Aspetto lo scoccare del minuto
@@ -248,10 +254,14 @@ public class SoapTest extends ConfigLoader {
 		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/NumeroRichiesteSoap/v1");
 		request.setContent(body.getBytes());
 		
-		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
-
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests);
+		
+		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
+		
+		responses.addAll(Utils.makeParallelRequests(request, 1));
+		
 		checkAssertionsNumeroRichieste(responses, maxRequests, 86400);
-		Utils.checkPostConditionsNumeroRichieste(idPolicies, maxRequests);				
+		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);				
 	}
 	
 	
@@ -262,11 +272,11 @@ public class SoapTest extends ConfigLoader {
 
 		// Resetto la policy di RL
 		
-		List<String> idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.MINUTO);
-		Utils.resetCounters(idPolicies);
+		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.MINUTO);
+		Utils.resetCounters(idPolicy);
 		
-		idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.MINUTO);
-		Utils.checkPreConditionsNumeroRichieste(idPolicies);
+		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.MINUTO);
+		Utils.checkPreConditionsNumeroRichieste(idPolicy);
 
 		
 		// Aspetto lo scoccare del minuto
@@ -287,10 +297,14 @@ public class SoapTest extends ConfigLoader {
 		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1");
 		request.setContent(body.getBytes());
 		
-		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
-
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests);
+		
+		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
+		
+		responses.addAll(Utils.makeParallelRequests(request, 1));
+		
 		checkAssertionsNumeroRichieste(responses, maxRequests, 60);
-		Utils.checkPostConditionsNumeroRichieste(idPolicies, maxRequests);
+		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
 	}
 	
 	
@@ -301,11 +315,11 @@ public class SoapTest extends ConfigLoader {
 
 		// Resetto la policy di RL
 		
-		List<String> idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.ORARIO);
-		Utils.resetCounters(idPolicies);
+		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.ORARIO);
+		Utils.resetCounters(idPolicy);
 		
-		idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.ORARIO);
-		Utils.checkPreConditionsNumeroRichieste(idPolicies);
+		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.ORARIO);
+		Utils.checkPreConditionsNumeroRichieste(idPolicy);
 
 		
 		// Aspetto lo scoccare dell'ora
@@ -326,10 +340,14 @@ public class SoapTest extends ConfigLoader {
 		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1");
 		request.setContent(body.getBytes());
 		
-		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
-
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests);
+		
+		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
+		
+		responses.addAll(Utils.makeParallelRequests(request, 1));
+		
 		checkAssertionsNumeroRichieste(responses, maxRequests, 3600);
-		Utils.checkPostConditionsNumeroRichieste(idPolicies, maxRequests);
+		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
 
 		// TODO: Dovrei testare che lo header X-RateLimit-Reset è in un range giusto, 
 		// nel caso di richieste orarie, deve indicare il numero di secondi allo scoccare della prossima ora
@@ -344,11 +362,11 @@ public class SoapTest extends ConfigLoader {
 
 		// Resetto la policy di RL
 		
-		List<String> idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.GIORNALIERO);
-		Utils.resetCounters(idPolicies);
+		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.GIORNALIERO);
+		Utils.resetCounters(idPolicy);
 		
-		idPolicies = dbUtils.getAllPoliciesIdFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.GIORNALIERO);
-		Utils.checkPreConditionsNumeroRichieste(idPolicies);
+		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.GIORNALIERO);
+		Utils.checkPreConditionsNumeroRichieste(idPolicy);
 
 
 		// Aspetto lo scoccare del nuovo giorno
@@ -369,10 +387,14 @@ public class SoapTest extends ConfigLoader {
 		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1");
 		request.setContent(body.getBytes());
 		
-		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests + 1);
-
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests);
+		
+		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
+		
+		responses.addAll(Utils.makeParallelRequests(request, 1));
+		
 		checkAssertionsNumeroRichieste(responses, maxRequests, 86400);
-		Utils.checkPostConditionsNumeroRichieste(idPolicies, maxRequests);
+		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
 	}
 	
 	
@@ -383,7 +405,8 @@ public class SoapTest extends ConfigLoader {
 		
 		responses.forEach(r -> { 			
 				assertTrue( Integer.valueOf(r.getHeader(Headers.RateLimitReset)) != null);
-				assertNotEquals(null,r.getHeader(Headers.RateLimitLimit));
+				Utils.checkXLimitHeader(r.getHeader(Headers.RateLimitLimit), maxRequests);
+				
 				
 				if ("true".equals(prop.getProperty("rl_check_limit_windows"))) {
 					Map<Integer,Integer> windowMap = Map.of(windowSize,maxRequests);							

@@ -52,7 +52,7 @@ public class SoapTest extends ConfigLoader {
 		request.setContent(body.getBytes());
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, 3);
-		
+		Utils.waitForZeroActiveRequests(idPolicy, 3);
 		responses.addAll(Utils.makeSequentialRequests(request, 1));
 
 		checkAssertions(responses, 5, 60);		
@@ -88,7 +88,7 @@ public class SoapTest extends ConfigLoader {
 		request.setContent(body.getBytes());
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, 3);
-		
+		Utils.waitForZeroActiveRequests(idPolicy, 3);
 		responses.addAll(Utils.makeSequentialRequests(request, 1));
 
 		checkAssertions(responses, 5, 3600);		
@@ -125,7 +125,7 @@ public class SoapTest extends ConfigLoader {
 		request.setContent(body.getBytes());
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, 3);
-		
+		Utils.waitForZeroActiveRequests(idPolicy, 3);
 		responses.addAll(Utils.makeSequentialRequests(request, 1));
 
 		checkAssertions(responses, 5, 86400);		
@@ -163,7 +163,7 @@ public class SoapTest extends ConfigLoader {
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, 3);
 		
 		responses.addAll(Utils.makeSequentialRequests(request, 1));
-
+		Utils.waitForZeroActiveRequests(idPolicy, 3);
 		checkAssertions(responses, 5, 60);		
 		
 		Commons.checkPostConditionsOccupazioneBanda(idPolicy);		
@@ -197,7 +197,7 @@ public class SoapTest extends ConfigLoader {
 		request.setContent(body.getBytes());
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, 3);
-		
+		Utils.waitForZeroActiveRequests(idPolicy, 3);
 		responses.addAll(Utils.makeSequentialRequests(request, 1));
 
 		checkAssertions(responses, 5, 3600);		
@@ -234,7 +234,7 @@ public class SoapTest extends ConfigLoader {
 		request.setContent(body.getBytes());
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, 3);
-		
+		Utils.waitForZeroActiveRequests(idPolicy, 3);
 		responses.addAll(Utils.makeSequentialRequests(request, 1));
 
 		checkAssertions(responses, 5, 86400);		
@@ -246,7 +246,7 @@ public class SoapTest extends ConfigLoader {
 		
 		responses.forEach(r -> { 			
 				assertNotEquals(null,Integer.valueOf(r.getHeader(Headers.BandWidthQuotaReset)));
-				assertNotEquals(null,r.getHeader(Headers.BandWidthQuotaLimit));		// TODO invece che confrontare con null confrontare con 5
+				Utils.checkXLimitHeader(r.getHeader(Headers.BandWidthQuotaLimit), maxKb);
 				
 				if ("true".equals(prop.getProperty("rl_check_limit_windows"))) {
 					Map<Integer,Integer> windowMap = Map.of(windowSize,maxKb);							

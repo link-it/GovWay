@@ -13,10 +13,13 @@ public class Headers {
 	public static final String RateLimitTimeResponseQuotaReset = "GovWay-RateLimit-TimeResponseQuota-Reset";
 	public static final String RateLimitTimeResponseQuotaLimit = "GovWay-RateLimit-TimeResponseQuota-Limit";
 	public static final String RateLimitTimeResponseQuotaRemaining =  "GovWay-RateLimit-TimeResponseQuota-Remaining";
-	
-	
+		
 	public static final String BandWidthQuotaReset = "GovWay-RateLimit-BandwithQuota-Reset";
 	public static final String BandWidthQuotaLimit = "GovWay-RateLimit-BandwithQuota-Limit";
 	public static final String BandWidthQuotaRemaining = "GovWay-RateLimit-BandwithQuota-Remaining";
+	
+	public static final String RequestSuccesfulReset = "GovWay-RateLimit-RequestSuccessful-Reset";
+	public static final String RequestSuccesfulLimit = "GovWay-RateLimit-RequestSuccessful-Limit";
+	public static final String RequestSuccesfulRemaining = "GovWay-RateLimit-RequestSuccessful-Remaining";
 	
 }
