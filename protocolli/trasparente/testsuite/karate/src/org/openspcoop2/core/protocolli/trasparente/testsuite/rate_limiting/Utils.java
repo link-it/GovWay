@@ -564,5 +564,52 @@ public class Utils {
 	}
 
 
+	/**
+	 * Effettua n richieste sequenziali che ci si aspetta non vengano bloccate dalla policy
+	 * e che vengano effettivamente conteggiate. Tra una richiesta e l'altra si aspetta
+	 * che i contatori della policy vengano aggiornati.
+	 * 
+	 */
+	
+	public static Vector<HttpResponse> makeRequestsAndCheckPolicy(HttpRequest request, int count, String idPolicy) {
+		final Vector<HttpResponse> responses = new Vector<>();
+	
+		for(int i=0; i<count;i++) {
+			logRateLimiting.info(request.getMethod() + " " + request.getUrl());
+			try {
+				responses.add(HttpUtilities.httpInvoke(request));
+				logRateLimiting.info("Richiesta effettuata..");
+				checkConditionsNumeroRichieste(idPolicy, 0, i+1, 0);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}		
+		}
+		
+		logRateLimiting.info("RESPONSES: ");
+		responses.forEach(r -> {
+			logRateLimiting.info("statusCode: " + r.getResultHTTPOperation());
+			logRateLimiting.info("headers: " + r.getHeaders());
+		});
+		
+		return responses;		
+	}
+
+
+	/**
+	 * Controlla che le risposteabbiamo il valore dello header *-Remaining decrescente
+	 * a partire da maxRequests-1
+	 * 
+	 * @param responses
+	 * @param header
+	 */
+	
+	public static void checkHeaderRemaining(Vector<HttpResponse> responses, String header, int limit) {
+		for(int i=0;i<limit;i++) {
+			var r = responses.get(i);
+			assertEquals(limit-i-1, Integer.parseInt(r.getHeader(header)));
+		}
+	}
+
+
 
 }

@@ -16,7 +16,6 @@ import org.openspcoop2.utils.json.JsonPathExpressionEngine;
 import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpResponse;
-import org.openspcoop2.utils.transport.http.HttpUtilities;
 
 import net.minidev.json.JSONObject;
 
@@ -51,7 +50,7 @@ public class RestTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/RichiesteFaultRest/v1/"+path+"?problem=true");
+		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?problem=true");
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, firstBatch);
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, firstBatch, 0);
@@ -62,14 +61,14 @@ public class RestTest extends ConfigLoader {
 		HttpRequest okRequest = new HttpRequest();
 		okRequest.setContentType("application/json");
 		okRequest.setMethod(HttpRequestMethod.GET);
-		okRequest.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/RichiesteFaultRest/v1/"+path);
+		okRequest.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1/"+path);
 		
 		Utils.makeParallelRequests(okRequest, maxRequests);
 		
 		HttpRequest failRequest = new HttpRequest();
 		failRequest.setContentType("application/json");
 		failRequest.setMethod(HttpRequestMethod.GET);
-		failRequest.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/RichiesteFaultRest/v1/"+path+"?returnCode=500");
+		failRequest.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?returnCode=500");
 		
 		Utils.makeParallelRequests(failRequest, maxRequests);
 		
@@ -113,7 +112,7 @@ public class RestTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/RichiesteFaultRest/v1/"+path+"?problem=true");
+		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?problem=true");
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, firstBatch);
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, firstBatch, 0);
@@ -124,14 +123,14 @@ public class RestTest extends ConfigLoader {
 		HttpRequest okRequest = new HttpRequest();
 		okRequest.setContentType("application/json");
 		okRequest.setMethod(HttpRequestMethod.GET);
-		okRequest.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/RichiesteFaultRest/v1/"+path);
+		okRequest.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/"+path);
 		
 		Utils.makeParallelRequests(okRequest, maxRequests);
 		
 		HttpRequest failRequest = new HttpRequest();
 		failRequest.setContentType("application/json");
 		failRequest.setMethod(HttpRequestMethod.GET);
-		failRequest.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/RichiesteFaultRest/v1/"+path+"?returnCode=500");
+		failRequest.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?returnCode=500");
 		
 		Utils.makeParallelRequests(failRequest, maxRequests);
 		
@@ -227,7 +226,7 @@ public class RestTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/RichiesteFaultRest/v1/"+path+"?problem=true");
+		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?problem=true");
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests);
 
@@ -258,10 +257,10 @@ public class RestTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/RichiesteFaultRest/v1/"+path+"?problem=true");
+		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?problem=true");
 						
-		Vector<HttpResponse> responses = makeRequestsAndCheckPolicy(request, maxRequests, idPolicy);
-		checkHeaderFaultRemaining(responses, Headers.FaultRemaining, maxRequests);
+		Vector<HttpResponse> responses = Utils.makeRequestsAndCheckPolicy(request, maxRequests, idPolicy);
+		Utils.checkHeaderRemaining(responses, Headers.FaultRemaining, maxRequests);
 		
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 0);
 		
@@ -290,7 +289,7 @@ public class RestTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/RichiesteFaultRest/v1/"+path+"?problem=true");
+		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?problem=true");
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests);
 
@@ -321,10 +320,10 @@ public class RestTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/RichiesteFaultRest/v1/"+path+"?problem=true");
+		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?problem=true");
 						
-		Vector<HttpResponse> responses = makeRequestsAndCheckPolicy(request, maxRequests, idPolicy);
-		checkHeaderFaultRemaining(responses, Headers.FaultRemaining, maxRequests);
+		Vector<HttpResponse> responses = Utils.makeRequestsAndCheckPolicy(request, maxRequests, idPolicy);
+		Utils.checkHeaderRemaining(responses, Headers.FaultRemaining, maxRequests);
 		
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 0);
 		
@@ -334,22 +333,6 @@ public class RestTest extends ConfigLoader {
 		
 		checkOkRequests(responses, windowSize);
 		checkFailedRequests(failedResponses, windowSize);
-	}
-	
-	
-	/**
-	 * Controlla che le risposteabbiamo il valore dello header *-Remaining decrescente
-	 * a partire da maxRequests-1
-	 * 
-	 * @param responses
-	 * @param header
-	 */
-	
-	private void checkHeaderFaultRemaining(Vector<HttpResponse> responses, String header, int limit) {
-		for(int i=0;i<limit;i++) {
-			var r = responses.get(i);
-			assertEquals(limit-i-1, Integer.parseInt(r.getHeader(Headers.FaultRemaining)));
-		}
 	}
 	
 	
@@ -396,36 +379,6 @@ public class RestTest extends ConfigLoader {
 			assertNotEquals(null, r.getHeader(Headers.RetryAfter));
 		}
 		
-	}
-	
-	/**
-	 * Effettua n richieste sequenziali che ci si aspetta non vengano bloccate dalla policy
-	 * e che vengano effettivamente conteggiate. Tra una richiesta e l'altra si aspetta
-	 * che i contatori della policy vengano aggiornati.
-	 * 
-	 */
-	
-	public static Vector<HttpResponse> makeRequestsAndCheckPolicy(HttpRequest request, int count, String idPolicy) {
-		final Vector<HttpResponse> responses = new Vector<>();
-
-		for(int i=0; i<count;i++) {
-			logRateLimiting.info(request.getMethod() + " " + request.getUrl());
-			try {
-				responses.add(HttpUtilities.httpInvoke(request));
-				logRateLimiting.info("Richiesta effettuata..");
-				Utils.checkConditionsNumeroRichieste(idPolicy, 0, i+1, 0);
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}		
-		}
-		
-		logRateLimiting.info("RESPONSES: ");
-		responses.forEach(r -> {
-			logRateLimiting.info("statusCode: " + r.getResultHTTPOperation());
-			logRateLimiting.info("headers: " + r.getHeaders());
-		});
-		
-		return responses;		
 	}
 	
 }

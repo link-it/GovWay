@@ -1,47 +1,384 @@
 package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_fallite;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+
+import java.util.Map;
 import java.util.Vector;
 
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.HeaderValues;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Headers;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.PolicyAlias;
-import org.openspcoop2.utils.UtilsException;
+import org.openspcoop2.utils.json.JsonPathExpressionEngine;
 import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpResponse;
-import org.openspcoop2.utils.transport.http.HttpUtilsException;
+
+import net.minidev.json.JSONObject;
 
 public class RestTest extends ConfigLoader {
 	
 	final static int maxRequests = 5;
+	final static int toFailRequests = 4;
+	final static int totalRequests = maxRequests + toFailRequests;
 	
 	@Test
-	public void perMinutoErogazione() throws UtilsException, HttpUtilsException, InterruptedException {
+	public void conteggioCorrettoErogazione() throws Exception {
+		// Testo che non vengano conteggiate le richieste fallite e quelle completate con successo
 
-		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RichiesteFalliteRest", PolicyAlias.MINUTO);
+		final PolicyAlias policy = PolicyAlias.GIORNALIERO;
+		String erogazione = "RichiesteFalliteRest";		
+		int windowSize = Utils.getPolicyWindowSize(policy);
+		String path = Utils.getPolicyPath(policy);
+		
+		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy);
 		Utils.resetCounters(idPolicy);
 		
-		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "RichiesteFalliteRest", PolicyAlias.MINUTO);
-		// Utils.checkPreConditionsNumeroRichieste(idPolicy); TODO
+		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
+				
+		Utils.waitForPolicy(policy);
 		
-		Utils.waitForNewMinute();
+		int firstBatch = maxRequests/2;
+		int secondBatch = maxRequests - firstBatch;
+		
+		// Faccio il primo batch di richieste che devono essere conteggiate
 		
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/RichiesteFalliteRest/v1/minuto?returnCode=500");
+		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?returnCode=500");
+						
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, firstBatch);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, firstBatch, 0);
+
+		
+		// Faccio un batch di richieste che non devono essere conteggiate
+		
+		HttpRequest okRequest = new HttpRequest();
+		okRequest.setContentType("application/json");
+		okRequest.setMethod(HttpRequestMethod.GET);
+		okRequest.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1/"+path);
+		
+		Utils.makeParallelRequests(okRequest, maxRequests);
+		
+		HttpRequest failRequest = new HttpRequest();
+		failRequest.setContentType("application/json");
+		failRequest.setMethod(HttpRequestMethod.GET);
+		failRequest.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?problem=true");
+		
+		Utils.makeParallelRequests(failRequest, maxRequests);
+		
+		// Faccio l'ultimo batch di richieste che devono essere conteggiate
+		
+		responses.addAll(Utils.makeParallelRequests(request, secondBatch));
+
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 0);
+		
+		Vector<HttpResponse>  failedResponses = Utils.makeParallelRequests(request, toFailRequests);
+
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, toFailRequests);
+		
+		checkOkRequests(responses, windowSize);
+		checkFailedRequests(failedResponses, windowSize);		
+	}
+	
+	
+	@Test
+	public void conteggioCorrettoFruizione() throws Exception {
+		// Testo che non vengano conteggiate le richieste fallite e quelle completate con successo
+
+		final PolicyAlias policy = PolicyAlias.GIORNALIERO;
+		String erogazione = "RichiesteFalliteRest";		
+		int windowSize = Utils.getPolicyWindowSize(policy);
+		String path = Utils.getPolicyPath(policy);
+		
+		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
+		Utils.resetCounters(idPolicy);
+		
+		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
+				
+		Utils.waitForPolicy(policy);
+		
+		int firstBatch = maxRequests/2;
+		int secondBatch = maxRequests - firstBatch;
+		
+		// Faccio il primo batch di richieste che devono essere conteggiate
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/json");
+		request.setMethod(HttpRequestMethod.GET);
+		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?returnCode=500");
+						
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, firstBatch);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, firstBatch, 0);
+
+		
+		// Faccio un batch di richieste che non devono essere conteggiate
+		
+		HttpRequest okRequest = new HttpRequest();
+		okRequest.setContentType("application/json");
+		okRequest.setMethod(HttpRequestMethod.GET);
+		okRequest.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/"+path);
+		
+		Utils.makeParallelRequests(okRequest, maxRequests);
+		
+		HttpRequest failRequest = new HttpRequest();
+		failRequest.setContentType("application/json");
+		failRequest.setMethod(HttpRequestMethod.GET);
+		failRequest.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?problem=true");
+		
+		Utils.makeParallelRequests(failRequest, maxRequests);
+		
+		// Faccio l'ultimo batch di richieste che devono essere conteggiate
+		
+		responses.addAll(Utils.makeParallelRequests(request, secondBatch));
+
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 0);
+		
+		Vector<HttpResponse>  failedResponses = Utils.makeParallelRequests(request, toFailRequests);
+
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, toFailRequests);
+		
+		checkOkRequests(responses, windowSize);
+		checkFailedRequests(failedResponses, windowSize);		
+	}
+	
+	
+	@Test
+	public void perMinutoErogazione() throws Exception {
+		testErogazione("RichiesteFalliteRest", PolicyAlias.MINUTO);
+	}
+	
+	@Test
+	public void orarioErogazione() throws Exception {
+		testErogazione("RichiesteFalliteRest", PolicyAlias.ORARIO);
+	}
+	
+	@Test
+	public void giornalieroErogazione() throws Exception {
+		testErogazione("RichiesteFalliteRest", PolicyAlias.GIORNALIERO);
+	}
+	
+	@Test
+	public void perMinutoErogazioneSequenziali() throws Exception {
+		testErogazioneSequenziale("RichiesteFalliteRest", PolicyAlias.MINUTO);
+	}
+	
+	@Test
+	public void orarioErogazioneSequenziali() throws Exception {
+		testErogazioneSequenziale("RichiesteFalliteRest", PolicyAlias.ORARIO);
+	}
+	
+	@Test
+	public void giornalieroErogazioneSequenziali() throws Exception {
+		testErogazioneSequenziale("RichiesteFalliteRest", PolicyAlias.GIORNALIERO);
+	}
+	
+	@Test
+	public void perMinutoFruizione() throws Exception {
+		testFruizione("RichiesteFalliteRest", PolicyAlias.MINUTO);
+	}
+	
+	@Test
+	public void orarioFruizione() throws Exception {
+		testFruizione("RichiesteFalliteRest", PolicyAlias.ORARIO);
+	}
+	
+	@Test
+	public void giornalieroFruizione() throws Exception {
+		testFruizione("RichiesteFalliteRest", PolicyAlias.GIORNALIERO);
+	}
+	
+	@Test
+	public void perMinutoFruizioneSequenziali() throws Exception {
+		testFruizioneSequenziale("RichiesteFalliteRest", PolicyAlias.MINUTO);
+	}
+	
+	@Test
+	public void orarioFruizioneSequenziali() throws Exception {
+		testFruizioneSequenziale("RichiesteFalliteRest", PolicyAlias.ORARIO);
+	}
+	
+	@Test
+	public void giornalieroFruizioneSequenziali() throws Exception {
+		testFruizioneSequenziale("RichiesteFalliteRest", PolicyAlias.GIORNALIERO);
+	}
+	
+	
+	
+	public void testErogazione(String erogazione, PolicyAlias policy) throws Exception {
+		
+		int windowSize = Utils.getPolicyWindowSize(policy);
+		String path = Utils.getPolicyPath(policy);
+		
+		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy);
+		Utils.resetCounters(idPolicy);
+		
+		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
+				
+		Utils.waitForPolicy(policy);
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/json");
+		request.setMethod(HttpRequestMethod.GET);
+		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?returnCode=500");
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests);
+
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 0);
 		
-		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
+		Vector<HttpResponse>  failedResponses = Utils.makeParallelRequests(request, toFailRequests);
+
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, toFailRequests);
 		
-		
-		// TODO: Trasformalo in makeParallelRequests quando andrea ha fixato il conteggio
-		responses.addAll(Utils.makeSequentialRequests(request, 3));
-		
-		// Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests); TODO		
-		
+		checkOkRequests(responses, windowSize);
+		checkFailedRequests(failedResponses, windowSize);		
 	}
+	
+	
+	public void testFruizione(String erogazione, PolicyAlias policy) throws Exception {
+		
+		int windowSize = Utils.getPolicyWindowSize(policy);
+		String path = Utils.getPolicyPath(policy);
+		
+		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
+		Utils.resetCounters(idPolicy);
+		
+		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
+				
+		Utils.waitForPolicy(policy);
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/json");
+		request.setMethod(HttpRequestMethod.GET);
+		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?returnCode=500");
+						
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests);
+
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 0);
+		
+		Vector<HttpResponse>  failedResponses = Utils.makeParallelRequests(request, toFailRequests);
+
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, toFailRequests);
+		
+		checkOkRequests(responses, windowSize);
+		checkFailedRequests(failedResponses, windowSize);		
+	}
+	
+	
+	public void testErogazioneSequenziale(String erogazione, PolicyAlias policy) throws Exception {
+		
+		int windowSize = Utils.getPolicyWindowSize(policy);
+		String path = Utils.getPolicyPath(policy);
+		
+		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy);
+		Utils.resetCounters(idPolicy);
+		
+		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
+				
+		Utils.waitForPolicy(policy);
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/json");
+		request.setMethod(HttpRequestMethod.GET);
+		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?returnCode=500");
+						
+		Vector<HttpResponse> responses = Utils.makeRequestsAndCheckPolicy(request, maxRequests, idPolicy);
+		Utils.checkHeaderRemaining(responses, Headers.FailedRemaining, maxRequests);
+		
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 0);
+		
+		Vector<HttpResponse> failedResponses = Utils.makeParallelRequests(request, toFailRequests);
+		
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, toFailRequests);
+		
+		checkOkRequests(responses, windowSize);
+		checkFailedRequests(failedResponses, windowSize);
+	}
+	
+	
+	public void testFruizioneSequenziale(String erogazione, PolicyAlias policy) throws Exception {
+		
+		int windowSize = Utils.getPolicyWindowSize(policy);
+		String path = Utils.getPolicyPath(policy);
+		
+		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
+		Utils.resetCounters(idPolicy);
+		
+		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
+				
+		Utils.waitForPolicy(policy);
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/json");
+		request.setMethod(HttpRequestMethod.GET);
+		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?returnCode=500");
+						
+		Vector<HttpResponse> responses = Utils.makeRequestsAndCheckPolicy(request, maxRequests, idPolicy);
+		Utils.checkHeaderRemaining(responses, Headers.FailedRemaining, maxRequests);
+		
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 0);
+		
+		Vector<HttpResponse> failedResponses = Utils.makeParallelRequests(request, toFailRequests);
+		
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, toFailRequests);
+		
+		checkOkRequests(responses, windowSize);
+		checkFailedRequests(failedResponses, windowSize);
+	}
+	
+	
+	private void checkOkRequests(Vector<HttpResponse> responses, int windowSize) {
+		// Delle richieste ok Controllo lo header *-Limit, *-Reset e lo status code
+		
+		responses.forEach( r -> {
+			
+			Utils.checkXLimitHeader(r.getHeader(Headers.FailedLimit), maxRequests);			
+			if ("true".equals(prop.getProperty("rl_check_limit_windows"))) {
+				Map<Integer,Integer> windowMap = Map.of(windowSize,maxRequests);							
+				Utils.checkXLimitWindows(r.getHeader(Headers.FailedLimit), maxRequests, windowMap);
+			}
+			assertNotEquals(null, Integer.valueOf(r.getHeader(Headers.FailedReset)));
+			assertEquals(500, r.getResultHTTPOperation());			
+		});
+	}
+	
+	private void checkFailedRequests(Vector<HttpResponse> responses, int windowSize) throws Exception {
+		
+		JsonPathExpressionEngine jsonPath = new JsonPathExpressionEngine();
+		
+		for (var r: responses) {
+			Utils.checkXLimitHeader(r.getHeader(Headers.FailedLimit), maxRequests);			
+			if ("true".equals(prop.getProperty("rl_check_limit_windows"))) {
+				Map<Integer,Integer> windowMap = Map.of(windowSize,maxRequests);							
+				Utils.checkXLimitWindows(r.getHeader(Headers.FailedLimit), maxRequests, windowMap);
+			}
+			assertNotEquals(null, Integer.valueOf(r.getHeader(Headers.FailedReset)));
+			assertEquals(429, r.getResultHTTPOperation());
+			
+			JSONObject jsonResp = JsonPathExpressionEngine.getJSONObject(new String(r.getContent()));
+			
+			assertEquals("https://govway.org/handling-errors/429/LimitExceeded.html", jsonPath.getStringMatchPattern(jsonResp, "$.type").get(0));
+			assertEquals("LimitExceeded", jsonPath.getStringMatchPattern(jsonResp, "$.title").get(0));
+			assertEquals(429, jsonPath.getNumberMatchPattern(jsonResp, "$.status").get(0));
+			assertNotEquals(null, jsonPath.getStringMatchPattern(jsonResp, "$.govway_id").get(0));	
+			assertEquals("Limit exceeded detected", jsonPath.getStringMatchPattern(jsonResp, "$.detail").get(0));
+			
+			assertEquals("0", r.getHeader(Headers.FailedRemaining));
+			assertEquals(HeaderValues.LimitExceeded, r.getHeader(Headers.GovWayTransactionErrorType));
+			assertEquals(HeaderValues.ReturnCodeTooManyRequests, r.getHeader(Headers.ReturnCode));
+			assertNotEquals(null, r.getHeader(Headers.RetryAfter));
+		}	
+	}
+	
 
 }

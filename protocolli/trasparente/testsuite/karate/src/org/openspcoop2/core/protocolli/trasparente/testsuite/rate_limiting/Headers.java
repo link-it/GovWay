@@ -25,4 +25,8 @@ public class Headers {
 	public static final String FaultReset = "GovWay-RateLimit-Fault-Reset";
 	public static final String FaultLimit = "GovWay-RateLimit-Fault-Limit";
 	public static final String FaultRemaining = "GovWay-RateLimit-Fault-Remaining";	
+	
+	public static final String FailedReset = "GovWay-RateLimit-RequestFailed-Reset";
+	public static final String FailedLimit = "GovWay-RateLimit-RequestFailed-Limit";
+	public static final String FailedRemaining = "GovWay-RateLimit-RequestFailed-Remaining";
 }
