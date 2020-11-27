@@ -429,13 +429,16 @@ public class RestTest extends ConfigLoader {
 		// Tutte le richieste devono avere lo header X-RateLimit-Limit
 		
 		responses.forEach(r -> { 			
-				assertNotEquals(null,Integer.valueOf(r.getHeader(Headers.RateLimitReset)));
+				
 				Utils.checkXLimitHeader(r.getHeader(Headers.RateLimitLimit), maxRequests);
 				
 				if ("true".equals(prop.getProperty("rl_check_limit_windows"))) {
 					Map<Integer,Integer> windowMap = Map.of(windowSize,maxRequests);							
 					Utils.checkXLimitWindows(r.getHeader(Headers.RateLimitLimit), maxRequests, windowMap);
 				}
+				
+				assertTrue(Integer.valueOf(r.getHeader(Headers.RateLimitReset)) <= windowSize);
+				assertNotEquals(null, Integer.valueOf(r.getHeader(Headers.RateLimitRemaining)));
 			});
 
 		// Tutte le richieste tranne una devono restituire 200

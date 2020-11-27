@@ -2,6 +2,7 @@ package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.nume
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Map;
 import java.util.Vector;
@@ -346,7 +347,9 @@ public class RestTest extends ConfigLoader {
 				Map<Integer,Integer> windowMap = Map.of(windowSize,maxRequests);							
 				Utils.checkXLimitWindows(r.getHeader(Headers.FaultLimit), maxRequests, windowMap);
 			}
-			assertNotEquals(null, Integer.valueOf(r.getHeader(Headers.FaultReset)));
+			
+			assertTrue(Integer.valueOf(r.getHeader(Headers.FaultReset)) <= windowSize);
+			assertNotEquals(null, Integer.valueOf(r.getHeader(Headers.FaultRemaining)));
 			assertEquals(500, r.getResultHTTPOperation());			
 		});
 	}
@@ -362,7 +365,7 @@ public class RestTest extends ConfigLoader {
 				Map<Integer,Integer> windowMap = Map.of(windowSize,maxRequests);							
 				Utils.checkXLimitWindows(r.getHeader(Headers.FaultLimit), maxRequests, windowMap);
 			}
-			assertNotEquals(null, Integer.valueOf(r.getHeader(Headers.FaultReset)));
+			assertTrue(Integer.valueOf(r.getHeader(Headers.FaultReset)) <= windowSize);			
 			assertEquals(429, r.getResultHTTPOperation());
 			
 			JSONObject jsonResp = JsonPathExpressionEngine.getJSONObject(new String(r.getContent()));
