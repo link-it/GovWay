@@ -1,4 +1,4 @@
-package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_fallite;
+package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -14,9 +14,7 @@ import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Heade
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.SoapBodies;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.PolicyAlias;
-import org.openspcoop2.message.OpenSPCoop2MessageFactory;
 import org.openspcoop2.pdd.core.dynamic.DynamicException;
-import org.openspcoop2.pdd.core.dynamic.PatternExtractor;
 import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpResponse;
@@ -28,12 +26,13 @@ public class SoapTest extends ConfigLoader {
 	final static int toBlockRequests = 4;
 	final static int totalRequests = maxRequests + toBlockRequests;
 	
+	
 	@Test
 	public void conteggioCorrettoErogazione() throws Exception {
 		// Testo che non vengano conteggiate le richieste fallite e quelle completate con successo
 
 		final PolicyAlias policy = PolicyAlias.GIORNALIERO;
-		String erogazione = "RichiesteFalliteSoap";		
+		String erogazione = "RichiesteCompletateConSuccessoSoap";		
 		int windowSize = Utils.getPolicyWindowSize(policy);
 		
 		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy);
@@ -54,7 +53,7 @@ public class SoapTest extends ConfigLoader {
 		request.setContentType("application/soap+xml");		
 		request.setMethod(HttpRequestMethod.POST);
 		request.setContent(body.getBytes());
-		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1?returnCode=500");
+		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1");
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, firstBatch);
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, firstBatch, 0);
@@ -65,8 +64,8 @@ public class SoapTest extends ConfigLoader {
 		okRequest.setContent(body.getBytes());
 		okRequest.setContentType("application/soap+xml");
 		okRequest.setMethod(HttpRequestMethod.POST);
-		okRequest.addHeader(Headers.EchoInvoke, "OkOrFault");
-		okRequest.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1");
+		okRequest.addHeader(Headers.EchoInvoke, "Error");
+		okRequest.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1?returnCode=500");
 		
 		Utils.makeParallelRequests(okRequest, maxRequests);
 		
@@ -74,7 +73,6 @@ public class SoapTest extends ConfigLoader {
 		failRequest.setContent(body.getBytes());
 		failRequest.setContentType("application/soap+xml");
 		failRequest.setMethod(HttpRequestMethod.POST);
-		failRequest.addHeader(Headers.EchoInvoke, "OkOrFault");
 		failRequest.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1?fault=true");
 		
 		Utils.makeParallelRequests(failRequest, maxRequests);
@@ -99,7 +97,7 @@ public class SoapTest extends ConfigLoader {
 		// Testo che non vengano conteggiate le richieste fallite e quelle completate con successo
 
 		final PolicyAlias policy = PolicyAlias.GIORNALIERO;
-		String erogazione = "RichiesteFalliteSoap";		
+		String erogazione = "RichiesteCompletateConSuccessoSoap";		
 		int windowSize = Utils.getPolicyWindowSize(policy);
 		
 		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
@@ -120,7 +118,7 @@ public class SoapTest extends ConfigLoader {
 		request.setContentType("application/soap+xml");		
 		request.setMethod(HttpRequestMethod.POST);
 		request.setContent(body.getBytes());
-		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1?returnCode=500");
+		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1");
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, firstBatch);
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, firstBatch, 0);
@@ -136,8 +134,9 @@ public class SoapTest extends ConfigLoader {
 		Utils.makeParallelRequests(okRequest, maxRequests);
 		
 		/*
-			 Sulle fruizioni non avendo i connettori condizionali non riesco a farmi rispondere 200 perchè il connettore va su /ping, che non
-			 restituisce nessun body.
+			 Sulle fruizioni non avendo i connettori condizionali non riesco a farmi rispondere con un errore perchè il connettore va su /echo,
+			 e per avere errore ho bisogno di usare /ping?returnCode=500
+			 
 		failRequest.setContent(body.getBytes());
 		failRequest.setContentType("application/soap+xml");
 		failRequest.setMethod(HttpRequestMethod.POST);
@@ -161,66 +160,67 @@ public class SoapTest extends ConfigLoader {
 		checkFailedRequests(failedResponses, windowSize);		
 	}
 	
+	
 	@Test
 	public void perMinutoErogazione() throws Exception {
-		testErogazione("RichiesteFalliteSoap", PolicyAlias.MINUTO);
+		testErogazione("RichiesteCompletateConSuccessoSoap", PolicyAlias.MINUTO);
 	}
 	
 	@Test
 	public void orarioErogazione() throws Exception {
-		testErogazione("RichiesteFalliteSoap", PolicyAlias.ORARIO);
+		testErogazione("RichiesteCompletateConSuccessoSoap", PolicyAlias.ORARIO);
 	}
 	
 	@Test
 	public void giornalieroErogazione() throws Exception {
-		testErogazione("RichiesteFalliteSoap", PolicyAlias.GIORNALIERO);
+		testErogazione("RichiesteCompletateConSuccessoSoap", PolicyAlias.GIORNALIERO);
 	}
 	
 	@Test
 	public void perMinutoErogazioneSequenziali() throws Exception {
-		testErogazioneSequenziale("RichiesteFalliteSoap", PolicyAlias.MINUTO);
+		testErogazioneSequenziale("RichiesteCompletateConSuccessoSoap", PolicyAlias.MINUTO);
 	}
 	
 	@Test
 	public void orarioErogazioneSequenziali() throws Exception {
-		testErogazioneSequenziale("RichiesteFalliteSoap", PolicyAlias.ORARIO);
+		testErogazioneSequenziale("RichiesteCompletateConSuccessoSoap", PolicyAlias.ORARIO);
 	}
 	
 	@Test
 	public void giornalieroErogazioneSequenziali() throws Exception {
-		testErogazioneSequenziale("RichiesteFalliteSoap", PolicyAlias.GIORNALIERO);
+		testErogazioneSequenziale("RichiesteCompletateConSuccessoSoap", PolicyAlias.GIORNALIERO);
 	}
 	
 	@Test
 	public void perMinutoFruizione() throws Exception {
-		testFruizione("RichiesteFalliteSoap", PolicyAlias.MINUTO);
+		testFruizione("RichiesteCompletateConSuccessoSoap", PolicyAlias.MINUTO);
 	}
 	
 	@Test
 	public void orarioFruizione() throws Exception {
-		testFruizione("RichiesteFalliteSoap", PolicyAlias.ORARIO);
+		testFruizione("RichiesteCompletateConSuccessoSoap", PolicyAlias.ORARIO);
 	}
 	
 	@Test
 	public void giornalieroFruizione() throws Exception {
-		testFruizione("RichiesteFalliteSoap", PolicyAlias.GIORNALIERO);
+		testFruizione("RichiesteCompletateConSuccessoSoap", PolicyAlias.GIORNALIERO);
 	}
 	
 	@Test
 	public void perMinutoFruizioneSequenziali() throws Exception {
-		testFruizioneSequenziale("RichiesteFalliteSoap", PolicyAlias.MINUTO);
+		testFruizioneSequenziale("RichiesteCompletateConSuccessoSoap", PolicyAlias.MINUTO);
 	}
 	
 	@Test
 	public void orarioFruizioneSequenziali() throws Exception {
-		testFruizioneSequenziale("RichiesteFalliteSoap", PolicyAlias.ORARIO);
+		testFruizioneSequenziale("RichiesteCompletateConSuccessoSoap", PolicyAlias.ORARIO);
 	}
 	
 	@Test
 	public void giornalieroFruizioneSequenziali() throws Exception {
-		testFruizioneSequenziale("RichiesteFalliteSoap", PolicyAlias.GIORNALIERO);
+		testFruizioneSequenziale("RichiesteCompletateConSuccessoSoap", PolicyAlias.GIORNALIERO);
 	}
-
+	
 	
 	public void testErogazione(String erogazione, PolicyAlias policy) throws Exception {
 		
@@ -240,7 +240,7 @@ public class SoapTest extends ConfigLoader {
 		request.setContentType("application/soap+xml");		
 		request.setMethod(HttpRequestMethod.POST);
 		request.setContent(body.getBytes());
-		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1?returnCode=500");
+		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1");
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests);
 
@@ -254,6 +254,38 @@ public class SoapTest extends ConfigLoader {
 		checkFailedRequests(failedResponses, windowSize);		
 	}
 	
+	
+	public void testFruizione(String erogazione, PolicyAlias policy) throws Exception {
+		
+		int windowSize = Utils.getPolicyWindowSize(policy);
+		
+		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
+		Utils.resetCounters(idPolicy);
+		
+		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
+				
+		Utils.waitForPolicy(policy);
+		
+		String body = SoapBodies.get(policy);
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/soap+xml");		
+		request.setMethod(HttpRequestMethod.POST);
+		request.setContent(body.getBytes());
+		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1");
+						
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests);
+
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 0);
+		
+		Vector<HttpResponse>  failedResponses = Utils.makeParallelRequests(request, toBlockRequests);
+
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, toBlockRequests);
+		
+		checkOkRequests(responses, windowSize);
+		checkFailedRequests(failedResponses, windowSize);		
+	}
 	
 	
 	public void testErogazioneSequenziale(String erogazione, PolicyAlias policy) throws Exception {
@@ -274,10 +306,10 @@ public class SoapTest extends ConfigLoader {
 		request.setContentType("application/soap+xml");		
 		request.setMethod(HttpRequestMethod.POST);
 		request.setContent(body.getBytes());
-		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1?returnCode=500");
+		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1");
 						
 		Vector<HttpResponse> responses = Utils.makeRequestsAndCheckPolicy(request, maxRequests, idPolicy);
-		Utils.checkHeaderRemaining(responses, Headers.FailedRemaining, maxRequests);
+		Utils.checkHeaderRemaining(responses, Headers.RequestSuccesfulRemaining, maxRequests);
 		
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 0);
 		
@@ -288,40 +320,6 @@ public class SoapTest extends ConfigLoader {
 		checkOkRequests(responses, windowSize);
 		checkFailedRequests(failedResponses, windowSize);
 	}
-	
-
-	public void testFruizione(String erogazione, PolicyAlias policy) throws Exception {
-		
-		int windowSize = Utils.getPolicyWindowSize(policy);
-		
-		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
-		Utils.resetCounters(idPolicy);
-		
-		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
-				
-		Utils.waitForPolicy(policy);
-		
-		String body = SoapBodies.get(policy);
-		
-		HttpRequest request = new HttpRequest();
-		request.setContentType("application/soap+xml");
-		request.setMethod(HttpRequestMethod.POST);
-		request.setContent(body.getBytes());
-		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1?returnCode=500");
-						
-		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests);
-
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 0);
-		
-		Vector<HttpResponse>  failedResponses = Utils.makeParallelRequests(request, toBlockRequests);
-
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, toBlockRequests);
-		
-		checkOkRequests(responses, windowSize);
-		checkFailedRequests(failedResponses, windowSize);		
-	}
-	
 	
 	public void testFruizioneSequenziale(String erogazione, PolicyAlias policy) throws Exception {
 		
@@ -341,10 +339,10 @@ public class SoapTest extends ConfigLoader {
 		request.setContentType("application/soap+xml");		
 		request.setMethod(HttpRequestMethod.POST);
 		request.setContent(body.getBytes());
-		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1?returnCode=500");
+		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1");
 						
 		Vector<HttpResponse> responses = Utils.makeRequestsAndCheckPolicy(request, maxRequests, idPolicy);
-		Utils.checkHeaderRemaining(responses, Headers.FailedRemaining, maxRequests);
+		Utils.checkHeaderRemaining(responses, Headers.RequestSuccesfulRemaining, maxRequests);
 		
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 0);
 		
@@ -360,18 +358,18 @@ public class SoapTest extends ConfigLoader {
 	private void checkFailedRequests(Vector<HttpResponse> responses, int windowSize) throws Exception {
 		
 		for (var r: responses) {
-			Utils.checkXLimitHeader(r.getHeader(Headers.FailedLimit), maxRequests);			
+			Utils.checkXLimitHeader(r.getHeader(Headers.RequestSuccesfulLimit), maxRequests);			
 			if ("true".equals(prop.getProperty("rl_check_limit_windows"))) {
 				Map<Integer,Integer> windowMap = Map.of(windowSize,maxRequests);							
-				Utils.checkXLimitWindows(r.getHeader(Headers.FailedLimit), maxRequests, windowMap);
+				Utils.checkXLimitWindows(r.getHeader(Headers.RequestSuccesfulLimit), maxRequests, windowMap);
 			}
-			assertTrue(Integer.valueOf(r.getHeader(Headers.FailedReset)) <= windowSize);			
+			assertTrue(Integer.valueOf(r.getHeader(Headers.RequestSuccesfulReset)) <= windowSize);			
 			assertEquals(429, r.getResultHTTPOperation());
 			
 			Element element = Utils.buildXmlElement(r.getContent());
 			Utils.matchLimitExceededSoap(element);
 			
-			assertEquals("0", r.getHeader(Headers.FailedRemaining));
+			assertEquals("0", r.getHeader(Headers.RequestSuccesfulRemaining));
 			assertEquals(HeaderValues.LimitExceeded, r.getHeader(Headers.GovWayTransactionErrorType));
 			assertEquals(HeaderValues.ReturnCodeTooManyRequests, r.getHeader(Headers.ReturnCode));
 			assertNotEquals(null, r.getHeader(Headers.RetryAfter));
@@ -386,24 +384,18 @@ public class SoapTest extends ConfigLoader {
 		// sia effettivamente un fault.
 		for (var r: responses){
 			
-			Utils.checkXLimitHeader(r.getHeader(Headers.FailedLimit), maxRequests);			
+			Utils.checkXLimitHeader(r.getHeader(Headers.RequestSuccesfulLimit), maxRequests);			
 			if ("true".equals(prop.getProperty("rl_check_limit_windows"))) {
 				Map<Integer,Integer> windowMap = Map.of(windowSize,maxRequests);							
-				Utils.checkXLimitWindows(r.getHeader(Headers.FailedLimit), maxRequests, windowMap);
+				Utils.checkXLimitWindows(r.getHeader(Headers.RequestSuccesfulLimit), maxRequests, windowMap);
 			}
 			
-			assertTrue(Integer.valueOf(r.getHeader(Headers.FailedReset)) <= windowSize);
-			assertNotEquals(null, Integer.valueOf(r.getHeader(Headers.FailedRemaining)));
-			assertEquals(500, r.getResultHTTPOperation());
+			assertTrue(Integer.valueOf(r.getHeader(Headers.RequestSuccesfulReset)) <= windowSize);
 			
-			Element element = Utils.buildXmlElement(r.getContent());
-			PatternExtractor matcher = new PatternExtractor(OpenSPCoop2MessageFactory.getDefaultMessageFactory(), element, logRateLimiting);
-			assertEquals("env:Receiver", matcher.read("/Envelope/Body/Fault/Code/Value/text()"));
-			assertEquals("integration:APIUnavailable", matcher.read("/Envelope/Body/Fault/Code/Subcode/Value/text()"));
-			assertEquals("The API Implementation is temporary unavailable", matcher.read("/Envelope/Body/Fault/Reason/Text/text()"));
-			assertEquals("http://govway.org/integration", matcher.read("/Envelope/Body/Fault/Role/text()"));			
+			assertEquals(200, r.getResultHTTPOperation());
+
+			assertNotEquals(null, Integer.valueOf(r.getHeader(Headers.RequestSuccesfulRemaining)));
 		}
 		
 	}
-
 }
