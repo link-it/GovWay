@@ -36,7 +36,6 @@ public class SoapTest extends ConfigLoader {
 		final PolicyAlias policy = PolicyAlias.GIORNALIERO;
 		String erogazione = "RichiesteFaultSoap";		
 		int windowSize = Utils.getPolicyWindowSize(policy);
-		String path = Utils.getPolicyPath(policy);
 		
 		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy);
 		Utils.resetCounters(idPolicy);
@@ -67,15 +66,18 @@ public class SoapTest extends ConfigLoader {
 		okRequest.setContent(body.getBytes());
 		okRequest.setContentType("application/soap+xml");
 		okRequest.setMethod(HttpRequestMethod.POST);
-		okRequest.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1/"+path);
+		okRequest.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1/");
 		
 		Utils.makeParallelRequests(okRequest, maxRequests);
 		
 		HttpRequest failRequest = new HttpRequest();
 		failRequest.setContent(body.getBytes());
 		failRequest.setContentType("application/soap+xml");
+		failRequest.addHeader("GovWay-TestSuite-Echo-Invoke", "Error");
 		failRequest.setMethod(HttpRequestMethod.POST);
-		failRequest.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?returnCode=500");
+		failRequest.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1/?returnCode=500");
+		
+		// TODO: Dovrei controllare di aver ricevuto effettivamente un Error
 		
 		Utils.makeParallelRequests(failRequest, maxRequests);
 		
@@ -101,7 +103,6 @@ public class SoapTest extends ConfigLoader {
 		final PolicyAlias policy = PolicyAlias.GIORNALIERO;
 		String erogazione = "RichiesteFaultSoap";		
 		int windowSize = Utils.getPolicyWindowSize(policy);
-		String path = Utils.getPolicyPath(policy);
 		
 		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
 		Utils.resetCounters(idPolicy);
@@ -132,17 +133,20 @@ public class SoapTest extends ConfigLoader {
 		okRequest.setContent(body.getBytes());
 		okRequest.setContentType("application/soap+xml");
 		okRequest.setMethod(HttpRequestMethod.POST);
-		okRequest.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/"+path);
+		okRequest.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/");
 		
 		Utils.makeParallelRequests(okRequest, maxRequests);
 		
-		HttpRequest failRequest = new HttpRequest();
+		/*
+			 Sulle fruizioni non avendo i connettori condizionali non riesco a far generare un errore.
 		failRequest.setContent(body.getBytes());
 		failRequest.setContentType("application/soap+xml");
 		failRequest.setMethod(HttpRequestMethod.POST);
-		failRequest.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?returnCode=500");
+		failRequest.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/?returnCode=500");
+		
 		
 		Utils.makeParallelRequests(failRequest, maxRequests);
+		*/
 		
 		// Faccio l'ultimo batch di richieste che devono essere conteggiate
 		

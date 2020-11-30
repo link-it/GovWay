@@ -29,11 +29,144 @@ public class SoapTest extends ConfigLoader {
 	final static int totalRequests = maxRequests + toFailRequests;
 	
 	@Test
+	public void conteggioCorrettoErogazione() throws Exception {
+		// Testo che non vengano conteggiate le richieste fallite e quelle completate con successo
+
+		final PolicyAlias policy = PolicyAlias.GIORNALIERO;
+		String erogazione = "RichiesteFalliteSoap";		
+		int windowSize = Utils.getPolicyWindowSize(policy);
+		
+		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy);
+		Utils.resetCounters(idPolicy);
+		
+		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
+				
+		Utils.waitForPolicy(policy);
+		
+		int firstBatch = maxRequests/2;
+		int secondBatch = maxRequests - firstBatch;
+		
+		// Faccio il primo batch di richieste che devono essere conteggiate
+		String body = SoapBodies.get(policy);
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/soap+xml");		
+		request.setMethod(HttpRequestMethod.POST);
+		request.setContent(body.getBytes());
+		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1?returnCode=500");
+						
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, firstBatch);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, firstBatch, 0);
+		
+		// Faccio un batch di richieste che non devono essere conteggiate
+		
+		HttpRequest okRequest = new HttpRequest();
+		okRequest.setContent(body.getBytes());
+		okRequest.setContentType("application/soap+xml");
+		okRequest.setMethod(HttpRequestMethod.POST);
+		okRequest.addHeader("GovWay-TestSuite-Echo-Invoke", "OkOrFault");
+		okRequest.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1");
+		
+		Utils.makeParallelRequests(okRequest, maxRequests);
+		
+		HttpRequest failRequest = new HttpRequest();
+		failRequest.setContent(body.getBytes());
+		failRequest.setContentType("application/soap+xml");
+		failRequest.setMethod(HttpRequestMethod.POST);
+		failRequest.addHeader("GovWay-TestSuite-Echo-Invoke", "OkOrFault");
+		failRequest.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1?fault=true");
+		
+		Utils.makeParallelRequests(failRequest, maxRequests);
+		
+		// Faccio l'ultimo batch di richieste che devono essere conteggiate
+		
+		responses.addAll(Utils.makeParallelRequests(request, secondBatch));
+
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 0);
+		
+		Vector<HttpResponse>  failedResponses = Utils.makeParallelRequests(request, toFailRequests);
+
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, toFailRequests);
+		
+		checkOkRequests(responses, windowSize);
+		checkFailedRequests(failedResponses, windowSize);		
+	}
+	
+	
+	@Test
+	public void conteggioCorrettoFruizione() throws Exception {
+		// Testo che non vengano conteggiate le richieste fallite e quelle completate con successo
+
+		final PolicyAlias policy = PolicyAlias.GIORNALIERO;
+		String erogazione = "RichiesteFalliteSoap";		
+		int windowSize = Utils.getPolicyWindowSize(policy);
+		
+		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
+		Utils.resetCounters(idPolicy);
+		
+		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
+		
+		Utils.waitForPolicy(policy);
+		
+		int firstBatch = maxRequests/2;
+		int secondBatch = maxRequests - firstBatch;
+		
+		// Faccio il primo batch di richieste che devono essere conteggiate
+		String body = SoapBodies.get(policy);
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/soap+xml");		
+		request.setMethod(HttpRequestMethod.POST);
+		request.setContent(body.getBytes());
+		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1?returnCode=500");
+						
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, firstBatch);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, firstBatch, 0);
+		
+		// Faccio un batch di richieste che non devono essere conteggiate
+		
+		HttpRequest okRequest = new HttpRequest();
+		okRequest.setContent(body.getBytes());
+		okRequest.setContentType("application/soap+xml");
+		okRequest.setMethod(HttpRequestMethod.POST);
+		okRequest.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/?fault=true");
+		
+		Utils.makeParallelRequests(okRequest, maxRequests);
+		
+		/*
+			 Sulle fruizioni non avendo i connettori condizionali non riesco a farmi rispondere 200 perchè il connettore va su /ping, che non
+			 restituisce nessun body.
+		failRequest.setContent(body.getBytes());
+		failRequest.setContentType("application/soap+xml");
+		failRequest.setMethod(HttpRequestMethod.POST);
+		failRequest.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/");
+		
+		
+		Utils.makeParallelRequests(failRequest, maxRequests);
+		*/
+		
+		// Faccio l'ultimo batch di richieste che devono essere conteggiate
+		
+		responses.addAll(Utils.makeParallelRequests(request, secondBatch));
+
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 0);
+		
+		Vector<HttpResponse>  failedResponses = Utils.makeParallelRequests(request, toFailRequests);
+
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, toFailRequests);
+		
+		checkOkRequests(responses, windowSize);
+		checkFailedRequests(failedResponses, windowSize);		
+	}
+	
+	@Test
 	public void perMinutoErogazione() throws Exception {
 		testErogazione("RichiesteFalliteSoap", PolicyAlias.MINUTO);
 	}
 	
-/*	@Test
+	@Test
 	public void orarioErogazione() throws Exception {
 		testErogazione("RichiesteFalliteSoap", PolicyAlias.ORARIO);
 	}
@@ -41,8 +174,53 @@ public class SoapTest extends ConfigLoader {
 	@Test
 	public void giornalieroErogazione() throws Exception {
 		testErogazione("RichiesteFalliteSoap", PolicyAlias.GIORNALIERO);
-	}*/
+	}
 	
+	@Test
+	public void perMinutoErogazioneSequenziali() throws Exception {
+		testErogazioneSequenziale("RichiesteFalliteSoap", PolicyAlias.MINUTO);
+	}
+	
+	@Test
+	public void orarioErogazioneSequenziali() throws Exception {
+		testErogazioneSequenziale("RichiesteFalliteSoap", PolicyAlias.ORARIO);
+	}
+	
+	@Test
+	public void giornalieroErogazioneSequenziali() throws Exception {
+		testErogazioneSequenziale("RichiesteFalliteSoap", PolicyAlias.GIORNALIERO);
+	}
+	
+	@Test
+	public void perMinutoFruizione() throws Exception {
+		testFruizione("RichiesteFalliteSoap", PolicyAlias.MINUTO);
+	}
+	
+	@Test
+	public void orarioFruizione() throws Exception {
+		testFruizione("RichiesteFalliteSoap", PolicyAlias.ORARIO);
+	}
+	
+	@Test
+	public void giornalieroFruizione() throws Exception {
+		testFruizione("RichiesteFalliteSoap", PolicyAlias.GIORNALIERO);
+	}
+	
+	@Test
+	public void perMinutoFruizioneSequenziali() throws Exception {
+		testFruizioneSequenziale("RichiesteFalliteSoap", PolicyAlias.MINUTO);
+	}
+	
+	@Test
+	public void orarioFruizioneSequenziali() throws Exception {
+		testFruizioneSequenziale("RichiesteFalliteSoap", PolicyAlias.ORARIO);
+	}
+	
+	@Test
+	public void giornalieroFruizioneSequenziali() throws Exception {
+		testFruizioneSequenziale("RichiesteFalliteSoap", PolicyAlias.GIORNALIERO);
+	}
+
 	
 	public void testErogazione(String erogazione, PolicyAlias policy) throws Exception {
 		
@@ -74,6 +252,108 @@ public class SoapTest extends ConfigLoader {
 		
 		checkOkRequests(responses, windowSize);
 		checkFailedRequests(failedResponses, windowSize);		
+	}
+	
+	
+	
+	public void testErogazioneSequenziale(String erogazione, PolicyAlias policy) throws Exception {
+		
+		int windowSize = Utils.getPolicyWindowSize(policy);
+		
+		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy);
+		Utils.resetCounters(idPolicy);
+		
+		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
+				
+		Utils.waitForPolicy(policy);
+		
+		String body = SoapBodies.get(policy);
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/soap+xml");		
+		request.setMethod(HttpRequestMethod.POST);
+		request.setContent(body.getBytes());
+		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1?returnCode=500");
+						
+		Vector<HttpResponse> responses = Utils.makeRequestsAndCheckPolicy(request, maxRequests, idPolicy);
+		Utils.checkHeaderRemaining(responses, Headers.FailedRemaining, maxRequests);
+		
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 0);
+		
+		Vector<HttpResponse> failedResponses = Utils.makeParallelRequests(request, toFailRequests);
+		
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, toFailRequests);
+		
+		checkOkRequests(responses, windowSize);
+		checkFailedRequests(failedResponses, windowSize);
+	}
+	
+
+	public void testFruizione(String erogazione, PolicyAlias policy) throws Exception {
+		
+		int windowSize = Utils.getPolicyWindowSize(policy);
+		
+		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
+		Utils.resetCounters(idPolicy);
+		
+		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
+				
+		Utils.waitForPolicy(policy);
+		
+		String body = SoapBodies.get(policy);
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/soap+xml");
+		request.setMethod(HttpRequestMethod.POST);
+		request.setContent(body.getBytes());
+		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1?returnCode=500");
+						
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests);
+
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 0);
+		
+		Vector<HttpResponse>  failedResponses = Utils.makeParallelRequests(request, toFailRequests);
+
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, toFailRequests);
+		
+		checkOkRequests(responses, windowSize);
+		checkFailedRequests(failedResponses, windowSize);		
+	}
+	
+	
+	public void testFruizioneSequenziale(String erogazione, PolicyAlias policy) throws Exception {
+		
+		int windowSize = Utils.getPolicyWindowSize(policy);
+		
+		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
+		Utils.resetCounters(idPolicy);
+		
+		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
+				
+		Utils.waitForPolicy(policy);
+		
+		String body = SoapBodies.get(policy);
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/soap+xml");		
+		request.setMethod(HttpRequestMethod.POST);
+		request.setContent(body.getBytes());
+		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1?returnCode=500");
+						
+		Vector<HttpResponse> responses = Utils.makeRequestsAndCheckPolicy(request, maxRequests, idPolicy);
+		Utils.checkHeaderRemaining(responses, Headers.FailedRemaining, maxRequests);
+		
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 0);
+		
+		Vector<HttpResponse> failedResponses = Utils.makeParallelRequests(request, toFailRequests);
+		
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, toFailRequests);
+		
+		checkOkRequests(responses, windowSize);
+		checkFailedRequests(failedResponses, windowSize);
 	}
 	
 	
@@ -115,13 +395,13 @@ public class SoapTest extends ConfigLoader {
 			assertTrue(Integer.valueOf(r.getHeader(Headers.FailedReset)) <= windowSize);
 			assertNotEquals(null, Integer.valueOf(r.getHeader(Headers.FailedRemaining)));
 			assertEquals(500, r.getResultHTTPOperation());
-						
+			
 			Element element = Utils.buildXmlElement(r.getContent());
 			PatternExtractor matcher = new PatternExtractor(OpenSPCoop2MessageFactory.getDefaultMessageFactory(), element, logRateLimiting);
 			assertEquals("env:Receiver", matcher.read("/Envelope/Body/Fault/Code/Value/text()"));
-			assertEquals("ns1:Server.OpenSPCoopExampleFault", matcher.read("/Envelope/Body/Fault/Code/Subcode/Value/text()"));
-			assertEquals("Fault ritornato dalla servlet di trace, esempio di OpenSPCoop", matcher.read("/Envelope/Body/Fault/Reason/Text/text()"));
-			assertEquals("OpenSPCoopTrace", matcher.read("/Envelope/Body/Fault/Role/text()"));			
+			assertEquals("integration:APIUnavailable", matcher.read("/Envelope/Body/Fault/Code/Subcode/Value/text()"));
+			assertEquals("The API Implementation is temporary unavailable", matcher.read("/Envelope/Body/Fault/Reason/Text/text()"));
+			assertEquals("http://govway.org/integration", matcher.read("/Envelope/Body/Fault/Role/text()"));			
 		}
 		
 	}
