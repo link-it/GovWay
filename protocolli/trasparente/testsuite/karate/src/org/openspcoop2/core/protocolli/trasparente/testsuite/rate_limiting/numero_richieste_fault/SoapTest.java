@@ -219,7 +219,7 @@ public class SoapTest extends ConfigLoader {
 	}
 	
 	
-	public void testErogazione(String erogazione, PolicyAlias policy) throws Exception {
+	public static void testErogazione(String erogazione, PolicyAlias policy) throws Exception {
 		
 		int windowSize = Utils.getPolicyWindowSize(policy);
 		
@@ -352,7 +352,7 @@ public class SoapTest extends ConfigLoader {
 		checkFailedRequests(failedResponses, windowSize);
 	}
 	
-	private void checkFailedRequests(Vector<HttpResponse> responses, int windowSize) throws Exception {
+	private static void checkFailedRequests(Vector<HttpResponse> responses, int windowSize) throws Exception {
 		
 		
 		for (var r: responses) {
@@ -376,7 +376,7 @@ public class SoapTest extends ConfigLoader {
 	}
 
 
-	private void checkOkRequests(Vector<HttpResponse> responses, int windowSize) throws DynamicException {
+	private static void checkOkRequests(Vector<HttpResponse> responses, int windowSize) throws DynamicException {
 	
 		// Per ogni richiesta controllo gli headers e anche che il body
 		// sia effettivamente un fault.
