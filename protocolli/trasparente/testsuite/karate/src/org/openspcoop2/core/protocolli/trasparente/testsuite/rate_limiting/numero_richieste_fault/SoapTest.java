@@ -14,9 +14,7 @@ import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Heade
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.SoapBodies;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.PolicyAlias;
-import org.openspcoop2.message.OpenSPCoop2MessageFactory;
 import org.openspcoop2.pdd.core.dynamic.DynamicException;
-import org.openspcoop2.pdd.core.dynamic.PatternExtractor;
 import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpResponse;
@@ -73,7 +71,7 @@ public class SoapTest extends ConfigLoader {
 		HttpRequest failRequest = new HttpRequest();
 		failRequest.setContent(body.getBytes());
 		failRequest.setContentType("application/soap+xml");
-		failRequest.addHeader("GovWay-TestSuite-Echo-Invoke", "Error");
+		failRequest.addHeader(Headers.EchoInvoke, "Error");
 		failRequest.setMethod(HttpRequestMethod.POST);
 		failRequest.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1/?returnCode=500");
 		
@@ -397,11 +395,7 @@ public class SoapTest extends ConfigLoader {
 			assertEquals(500, r.getResultHTTPOperation());
 						
 			Element element = Utils.buildXmlElement(r.getContent());
-			PatternExtractor matcher = new PatternExtractor(OpenSPCoop2MessageFactory.getDefaultMessageFactory(), element, logRateLimiting);
-			assertEquals("env:Receiver", matcher.read("/Envelope/Body/Fault/Code/Value/text()"));
-			assertEquals("ns1:Server.OpenSPCoopExampleFault", matcher.read("/Envelope/Body/Fault/Code/Subcode/Value/text()"));
-			assertEquals("Fault ritornato dalla servlet di trace, esempio di OpenSPCoop", matcher.read("/Envelope/Body/Fault/Reason/Text/text()"));
-			assertEquals("OpenSPCoopTrace", matcher.read("/Envelope/Body/Fault/Role/text()"));			
+			Utils.matchFaultResponseSoap(element);
 		}
 		
 	}

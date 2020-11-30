@@ -65,7 +65,7 @@ public class SoapTest extends ConfigLoader {
 		okRequest.setContent(body.getBytes());
 		okRequest.setContentType("application/soap+xml");
 		okRequest.setMethod(HttpRequestMethod.POST);
-		okRequest.addHeader("GovWay-TestSuite-Echo-Invoke", "OkOrFault");
+		okRequest.addHeader(Headers.EchoInvoke, "OkOrFault");
 		okRequest.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1");
 		
 		Utils.makeParallelRequests(okRequest, maxRequests);
@@ -74,7 +74,7 @@ public class SoapTest extends ConfigLoader {
 		failRequest.setContent(body.getBytes());
 		failRequest.setContentType("application/soap+xml");
 		failRequest.setMethod(HttpRequestMethod.POST);
-		failRequest.addHeader("GovWay-TestSuite-Echo-Invoke", "OkOrFault");
+		failRequest.addHeader(Headers.EchoInvoke, "OkOrFault");
 		failRequest.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1?fault=true");
 		
 		Utils.makeParallelRequests(failRequest, maxRequests);

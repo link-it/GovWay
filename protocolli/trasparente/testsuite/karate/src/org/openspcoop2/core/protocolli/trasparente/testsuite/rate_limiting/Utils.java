@@ -148,6 +148,24 @@ public class Utils {
 	}
 	
 	
+	public static void matchApiUnavaliableSoap(Element element) throws DynamicException {
+		PatternExtractor matcher = new PatternExtractor(OpenSPCoop2MessageFactory.getDefaultMessageFactory(), element, logRateLimiting);
+		assertEquals("env:Receiver", matcher.read("/Envelope/Body/Fault/Code/Value/text()"));
+		assertEquals("integration:APIUnavailable", matcher.read("/Envelope/Body/Fault/Code/Subcode/Value/text()"));
+		assertEquals("The API Implementation is temporary unavailable", matcher.read("/Envelope/Body/Fault/Reason/Text/text()"));
+		assertEquals("http://govway.org/integration", matcher.read("/Envelope/Body/Fault/Role/text()"));		
+	}
+	
+	
+	public static void matchFaultResponseSoap(Element element) throws DynamicException {
+		PatternExtractor matcher = new PatternExtractor(OpenSPCoop2MessageFactory.getDefaultMessageFactory(), element, logRateLimiting);
+		assertEquals("env:Receiver", matcher.read("/Envelope/Body/Fault/Code/Value/text()"));
+		assertEquals("ns1:Server.OpenSPCoopExampleFault", matcher.read("/Envelope/Body/Fault/Code/Subcode/Value/text()"));
+		assertEquals("Fault ritornato dalla servlet di trace, esempio di OpenSPCoop", matcher.read("/Envelope/Body/Fault/Reason/Text/text()"));
+		assertEquals("OpenSPCoopTrace", matcher.read("/Envelope/Body/Fault/Role/text()"));
+	}
+	
+	
 	public static void resetCounters(String idPolicy) throws UtilsException, HttpUtilsException {
 		Map<String,String> queryParams = Map.of(
 				"resourceName", "ControlloTraffico",
