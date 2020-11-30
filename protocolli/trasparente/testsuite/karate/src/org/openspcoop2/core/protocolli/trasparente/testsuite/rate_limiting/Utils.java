@@ -21,6 +21,9 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste.NumeroRichiestePolicyInfo;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste.RichiesteSimultaneePolicyInfo;
+import org.openspcoop2.message.OpenSPCoop2MessageFactory;
+import org.openspcoop2.pdd.core.dynamic.DynamicException;
+import org.openspcoop2.pdd.core.dynamic.PatternExtractor;
 import org.openspcoop2.utils.LoggerWrapperFactory;
 import org.openspcoop2.utils.UtilsException;
 import org.openspcoop2.utils.transport.TransportUtils;
@@ -135,6 +138,13 @@ public class Utils {
 		} catch (SAXException | IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+	
+	public static void matchLimitExceededSoap(Element element) throws DynamicException {
+		PatternExtractor matcher = new PatternExtractor(OpenSPCoop2MessageFactory.getDefaultMessageFactory(), element, logRateLimiting);
+		assertEquals("Limit Exceeded", matcher.read("/html/head/title/text()"));
+		assertEquals("Limit Exceeded", matcher.read("/html/body/h1/text()"));
+		assertEquals("Limit exceeded detected", matcher.read("/html/body/p/text()"));
 	}
 	
 	

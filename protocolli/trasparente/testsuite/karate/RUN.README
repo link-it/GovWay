@@ -1,7 +1,13 @@
 - Impostare a <15> il massimo numero di richieste simultanee generali nella console di govway sotto Configurazione->Controllo del Traffico->Limitazione Numero di Richieste Complessive
 
+- Editare il file <govway_local.properties> impostando le seguenti proprietà:
 
-
+		# ====================================================
+		#	Parametri per testsuite trasparente
+		# Consentono di far passare i parametri url dal client al backend della erogazione
+		org.openspcoop2.pdd.soap.urlParameters.forward.enable=true
+		org.openspcoop2.pdd.soap.urlParameters.blackList.internal=*
+		org.openspcoop2.pdd.soap.urlParameters.whiteList=fault*
 
 
 Per eseguire i test:

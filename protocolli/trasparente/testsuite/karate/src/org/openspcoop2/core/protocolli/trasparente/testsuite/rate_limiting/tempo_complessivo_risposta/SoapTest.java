@@ -278,12 +278,7 @@ public class SoapTest extends ConfigLoader {
 		logRateLimiting.info(body);
 		
 		Element element = Utils.buildXmlElement(failedResponse.getContent());
-		
-		PatternExtractor matcher = new PatternExtractor(OpenSPCoop2MessageFactory.getDefaultMessageFactory(), element, logRateLimiting);
-		assertEquals("Limit Exceeded", matcher.read("/html/head/title/text()"));
-		assertEquals("Limit Exceeded", matcher.read("/html/body/h1/text()"));
-		assertEquals("Limit exceeded detected", matcher.read("/html/body/p/text()"));
-		
+		Utils.matchLimitExceededSoap(element);		
 		
 		assertEquals("0", failedResponse.getHeader(Headers.RateLimitTimeResponseQuotaRemaining));
 		assertEquals(HeaderValues.LimitExceeded, failedResponse.getHeader(Headers.GovWayTransactionErrorType));
