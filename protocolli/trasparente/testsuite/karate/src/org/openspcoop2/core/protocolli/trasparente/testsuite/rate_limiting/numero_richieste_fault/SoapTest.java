@@ -395,7 +395,7 @@ public class SoapTest extends ConfigLoader {
 			assertEquals(500, r.getResultHTTPOperation());
 						
 			Element element = Utils.buildXmlElement(r.getContent());
-			Utils.matchFaultResponseSoap(element);
+			Utils.matchEchoFaultResponseSoap(element);
 		}
 		
 	}

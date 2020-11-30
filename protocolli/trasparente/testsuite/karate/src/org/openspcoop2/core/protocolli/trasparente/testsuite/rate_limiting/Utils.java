@@ -1,6 +1,7 @@
 package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -26,6 +27,7 @@ import org.openspcoop2.pdd.core.dynamic.DynamicException;
 import org.openspcoop2.pdd.core.dynamic.PatternExtractor;
 import org.openspcoop2.utils.LoggerWrapperFactory;
 import org.openspcoop2.utils.UtilsException;
+import org.openspcoop2.utils.json.JsonPathExpressionEngine;
 import org.openspcoop2.utils.transport.TransportUtils;
 import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpResponse;
@@ -35,6 +37,8 @@ import org.slf4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
+
+import net.minidev.json.JSONObject;
 
 public class Utils {
 	
@@ -140,6 +144,32 @@ public class Utils {
 		}
 	}
 	
+	public static void matchLimitExceededRest(JSONObject jsonResp) throws Exception {
+		JsonPathExpressionEngine jsonPath = new JsonPathExpressionEngine();
+		assertEquals("https://govway.org/handling-errors/429/LimitExceeded.html", jsonPath.getStringMatchPattern(jsonResp, "$.type").get(0));
+		assertEquals("LimitExceeded", jsonPath.getStringMatchPattern(jsonResp, "$.title").get(0));
+		assertEquals(429, jsonPath.getNumberMatchPattern(jsonResp, "$.status").get(0));
+		assertNotEquals(null, jsonPath.getStringMatchPattern(jsonResp, "$.govway_id").get(0));	
+		assertEquals("Limit exceeded detected", jsonPath.getStringMatchPattern(jsonResp, "$.detail").get(0));
+		
+	}
+	
+	/**
+	 * Testa la risposta del server di echo quando passo il parametro query problem=true
+	 * @param jsonResp
+	 * @throws Exception
+	 */
+	public static void matchEchoFaultResponseRest(JSONObject jsonResp) throws Exception {
+		JsonPathExpressionEngine jsonPath = new JsonPathExpressionEngine();
+
+		assertEquals("https://httpstatuses.com/500", jsonPath.getStringMatchPattern(jsonResp, "$.type").get(0));
+		assertEquals("Internal Server Error", jsonPath.getStringMatchPattern(jsonResp, "$.title").get(0));
+		assertEquals("Problem ritornato dalla servlet di trace, esempio di OpenSPCoop", jsonPath.getStringMatchPattern(jsonResp, "$.detail").get(0));
+	}
+
+
+	
+	
 	public static void matchLimitExceededSoap(Element element) throws DynamicException {
 		PatternExtractor matcher = new PatternExtractor(OpenSPCoop2MessageFactory.getDefaultMessageFactory(), element, logRateLimiting);
 		assertEquals("Limit Exceeded", matcher.read("/html/head/title/text()"));
@@ -157,7 +187,13 @@ public class Utils {
 	}
 	
 	
-	public static void matchFaultResponseSoap(Element element) throws DynamicException {
+	/**
+	 * Testa la risposta del server di echo quando passo il parametro query fault=true
+	 * 
+	 * @param element
+	 * @throws DynamicException
+	 */
+	public static void matchEchoFaultResponseSoap(Element element) throws DynamicException {
 		PatternExtractor matcher = new PatternExtractor(OpenSPCoop2MessageFactory.getDefaultMessageFactory(), element, logRateLimiting);
 		assertEquals("env:Receiver", matcher.read("/Envelope/Body/Fault/Code/Value/text()"));
 		assertEquals("ns1:Server.OpenSPCoopExampleFault", matcher.read("/Envelope/Body/Fault/Code/Subcode/Value/text()"));
@@ -638,9 +674,5 @@ public class Utils {
 			assertEquals(limit-i-1, Integer.parseInt(r.getHeader(header)));
 		}
 	}
-
-
-
-
 
 }
