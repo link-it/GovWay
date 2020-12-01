@@ -1,3 +1,23 @@
+/*
+ * GovWay - A customizable API Gateway 
+ * https://govway.org
+ * 
+ * Copyright (c) 2005-2020 Link.it srl (https://link.it). 
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting;
 
 import static org.junit.Assert.assertEquals;
@@ -21,7 +41,6 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste.NumeroRichiestePolicyInfo;
-import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste.RichiesteSimultaneePolicyInfo;
 import org.openspcoop2.message.OpenSPCoop2MessageFactory;
 import org.openspcoop2.pdd.core.dynamic.DynamicException;
 import org.openspcoop2.pdd.core.dynamic.PatternExtractor;
@@ -40,6 +59,14 @@ import org.xml.sax.SAXException;
 
 import net.minidev.json.JSONObject;
 
+/**
+* Utils
+*
+* @author Francesco Scarlato (scarlato@link.it)
+* @author $Author$
+* @version $Rev$, $Date$
+* 
+*/
 public class Utils {
 	
 	public enum PolicyAlias {
@@ -366,24 +393,6 @@ public class Utils {
 
 
 	
-	public static void checkPreConditionsNumeroRichieste(String idPolicy)  {
-		String jmxPolicyInfo = getPolicy(idPolicy);
-		logRateLimiting.info(jmxPolicyInfo);
-		
-		// Se non sono mai state fatte richieste che attivano la policy, ottengo questa
-		// risposta, e le precondizioni sono soddisfatte
-		
-		if (jmxPolicyInfo.equals("Informazioni sulla Policy non disponibili; non sono ancora transitate richieste che soddisfano i criteri di filtro impostati")) {
-			return;
-		}
-		
-		NumeroRichiestePolicyInfo polInfo = new NumeroRichiestePolicyInfo(jmxPolicyInfo);
-		
-		assertEquals(Integer.valueOf(0), polInfo.richiesteAttive);
-		assertEquals(Integer.valueOf(0), polInfo.richiesteConteggiate);
-		assertEquals(Integer.valueOf(0), polInfo.richiesteBloccate);
-	}
-	
 	public static void waitForZeroGovWayThreads() {
 		
 		int remainingChecks = Integer.valueOf(System.getProperty("rl_check_policy_conditions_retry"));
@@ -405,10 +414,6 @@ public class Utils {
 		
 	}
 
-	
-	// TODO: scrivere gli altri metodi check*NumeroRichieste in funzione di questo,
-	//	o utilizzare direttamente questo.
-	
 	public static void checkConditionsNumeroRichieste(String idPolicy, Integer attive, Integer conteggiate, Integer bloccate) {
 		int remainingChecks = Integer.valueOf(System.getProperty("rl_check_policy_conditions_retry"));
 		int delay = Integer.valueOf(System.getProperty("rl_check_policy_conditions_delay"));
@@ -418,7 +423,7 @@ public class Utils {
 				String jmxPolicyInfo = getPolicy(idPolicy);
 				logRateLimiting.info(jmxPolicyInfo);
 				
-				if (jmxPolicyInfo.equals("Informazioni sulla Policy non disponibili; non sono ancora transitate richieste che soddisfano i criteri di filtro impostati")) {
+				if (jmxPolicyInfo.equals(PolicyFields.NOPOLICYINFO)) {
 					break;
 				}
 				
@@ -438,92 +443,7 @@ public class Utils {
 		}		
 	}
 	
-	
-	public static void checkPostConditionsNumeroRichieste(String idPolicy, int maxRequests) {
-				
-		int remainingChecks = Integer.valueOf(System.getProperty("rl_check_policy_conditions_retry"));
-		int delay = Integer.valueOf(System.getProperty("rl_check_policy_conditions_delay"));
 
-		
-		while(true) {
-			try {
-				String jmxPolicyInfo = getPolicy(idPolicy);
-				logRateLimiting.info(jmxPolicyInfo);
-				
-				NumeroRichiestePolicyInfo polInfo = new NumeroRichiestePolicyInfo(jmxPolicyInfo);
-			
-				assertEquals(Integer.valueOf(0), polInfo.richiesteAttive);
-				assertEquals(Integer.valueOf(maxRequests), polInfo.richiesteConteggiate);
-				assertEquals(Integer.valueOf(1), polInfo.richiesteBloccate);
-				break;
-			} catch (AssertionError e) {
-				if(remainingChecks == 0) {
-					throw e;
-				}
-				remainingChecks--;
-				org.openspcoop2.utils.Utilities.sleep(delay);
-			}
-		}
-	}
-
-
-	public static void checkPostConditionsRichiesteSimultanee(String idPolicy) {
-		
-		int remainingChecks = Integer.valueOf(System.getProperty("rl_check_policy_conditions_retry"));
-		int delay = Integer.valueOf(System.getProperty("rl_check_policy_conditions_delay"));
-		
-		while(true) {
-			try {
-				String jmxPolicyInfo = getPolicy(idPolicy);
-				
-				if (jmxPolicyInfo.equals("Informazioni sulla Policy non disponibili; non sono ancora transitate richieste che soddisfano i criteri di filtro impostati")) {
-					break;
-				}
-				
-				logRateLimiting.info(jmxPolicyInfo);
-				RichiesteSimultaneePolicyInfo polInfo = new RichiesteSimultaneePolicyInfo(jmxPolicyInfo);
-				assertEquals(Integer.valueOf(0), polInfo.richiesteAttive);
-				break;
-			} catch (AssertionError e) {
-				if(remainingChecks == 0) {
-					throw e;
-				}
-				remainingChecks--;
-				org.openspcoop2.utils.Utilities.sleep(delay);
-			}
-		} 
-		
-	}
-
-	
-	public static void checkPreConditionsRichiesteSimultanee(String idPolicy) {
-		
-		int remainingChecks = Integer.valueOf(System.getProperty("rl_check_policy_conditions_retry"));
-		int delay = Integer.valueOf(System.getProperty("rl_check_policy_conditions_delay"));
-
-		while(true) {
-			try {
-				String jmxPolicyInfo = getPolicy(idPolicy);
-				if (jmxPolicyInfo.equals("Informazioni sulla Policy non disponibili; non sono ancora transitate richieste che soddisfano i criteri di filtro impostati")) {
-					break;
-				}
-				
-				logRateLimiting.info(jmxPolicyInfo);
-				RichiesteSimultaneePolicyInfo polInfo = new RichiesteSimultaneePolicyInfo(jmxPolicyInfo);
-				assertEquals(Integer.valueOf(0), polInfo.richiesteAttive);
-				break;
-			} catch (AssertionError e) {
-				if(remainingChecks == 0) {
-					throw e;
-				}
-				remainingChecks--;
-				org.openspcoop2.utils.Utilities.sleep(delay);
-			}
-		} 
-	}
-	
-	
-	// TODO: Questo deve andare via in favore del più preciso (controlla anche le richieste bloccate) checkConditionsNumeroRichieste(0,maxRequests,0)
 	public static void waitForZeroActiveRequests(String idPolicy, int richiesteConteggiate) {
 		Logger logRateLimiting = LoggerWrapperFactory.getLogger("testsuite.rate_limiting");
 		
@@ -533,13 +453,13 @@ public class Utils {
 		while(true) {
 			try {
 				String jmxPolicyInfo = getPolicy(idPolicy);
-				if (jmxPolicyInfo.equals("Informazioni sulla Policy non disponibili; non sono ancora transitate richieste che soddisfano i criteri di filtro impostati")) {
+				if (jmxPolicyInfo.equals(PolicyFields.NOPOLICYINFO)) {
 					break;
 				}				
 				logRateLimiting.info(jmxPolicyInfo);
 				Map<String, String> policyValues = parsePolicy(jmxPolicyInfo);
-				assertEquals("0", policyValues.get("Richieste Attive"));
-				assertEquals(Integer.valueOf(richiesteConteggiate), Integer.valueOf(policyValues.get("Numero Richieste Conteggiate")));
+				assertEquals("0", policyValues.get(PolicyFields.RichiesteAttive));
+				assertEquals(Integer.valueOf(richiesteConteggiate), Integer.valueOf(policyValues.get(PolicyFields.RichiesteConteggiate)));
 	
 				break;
 			} catch (AssertionError e) {

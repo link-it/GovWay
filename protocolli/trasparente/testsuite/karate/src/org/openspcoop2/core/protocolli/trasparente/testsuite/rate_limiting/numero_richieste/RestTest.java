@@ -1,3 +1,23 @@
+/*
+ * GovWay - A customizable API Gateway 
+ * https://govway.org
+ * 
+ * Copyright (c) 2005-2020 Link.it srl (https://link.it). 
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste;
 
 import static org.junit.Assert.assertEquals;
@@ -35,7 +55,7 @@ public class RestTest extends ConfigLoader {
 		Utils.resetCounters(idPolicy);
 		
 		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "NumeroRichiesteRest", PolicyAlias.MINUTO);
-		Utils.checkPreConditionsNumeroRichieste(idPolicy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
 		
 		// Aspetto lo scoccare del minuto
 		
@@ -52,7 +72,7 @@ public class RestTest extends ConfigLoader {
 		
 		responses.addAll(Utils.makeParallelRequests(request, 1));
 		
-		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);		
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 1);	
 		checkAssertionsNumeroRichieste(responses, maxRequests, 60, disclosure);
 	}
 	
@@ -79,7 +99,7 @@ public class RestTest extends ConfigLoader {
 		Utils.resetCounters(idPolicy);
 		
 		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "NumeroRichiesteRest", PolicyAlias.ORARIO);
-		Utils.checkPreConditionsNumeroRichieste(idPolicy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
 		
 		Utils.waitForNewHour();
 		
@@ -95,7 +115,7 @@ public class RestTest extends ConfigLoader {
 		responses.addAll(Utils.makeParallelRequests(request, 1));
 		
 		checkAssertionsNumeroRichieste(responses, maxRequests,3600, disclosure);
-		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 1);
 	}
 	
 	@Test
@@ -121,7 +141,7 @@ public class RestTest extends ConfigLoader {
 		Utils.resetCounters(idPolicy);
 		
 		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "NumeroRichiesteRest", PolicyAlias.GIORNALIERO);
-		Utils.checkPreConditionsNumeroRichieste(idPolicy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
 		
 		Utils.waitForNewDay();
 		
@@ -137,7 +157,7 @@ public class RestTest extends ConfigLoader {
 		responses.addAll(Utils.makeParallelRequests(request, 1));
 		
 		checkAssertionsNumeroRichieste(responses, maxRequests, 86400, disclosure);
-		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 1);
 	}
 	
 	
@@ -164,7 +184,7 @@ public class RestTest extends ConfigLoader {
 		Utils.resetCounters(idPolicy);
 		
 		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteRest", PolicyAlias.MINUTO);
-		Utils.checkPreConditionsNumeroRichieste(idPolicy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
 		
 		// Aspetto lo scoccare del minuto
 		
@@ -182,7 +202,7 @@ public class RestTest extends ConfigLoader {
 		responses.addAll(Utils.makeParallelRequests(request, 1));
 		
 		checkAssertionsNumeroRichieste(responses, maxRequests, 60, disclosure);
-		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 1);
 	}
 	
 	
@@ -210,7 +230,7 @@ public class RestTest extends ConfigLoader {
 		Utils.resetCounters(idPolicy);
 		
 		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteRest", PolicyAlias.ORARIO);
-		Utils.checkPreConditionsNumeroRichieste(idPolicy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
 		
 		// Aspetto lo scoccare del minuto
 		
@@ -228,7 +248,7 @@ public class RestTest extends ConfigLoader {
 		responses.addAll(Utils.makeParallelRequests(request, 1));
 		
 		checkAssertionsNumeroRichieste(responses, maxRequests, 3600, disclosure);
-		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 1);
 	}
 	
 	
@@ -255,7 +275,7 @@ public class RestTest extends ConfigLoader {
 		Utils.resetCounters(idPolicy);
 		
 		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteRest", PolicyAlias.GIORNALIERO);
-		Utils.checkPreConditionsNumeroRichieste(idPolicy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
 		
 		// Aspetto lo scoccare del minuto
 		
@@ -273,7 +293,7 @@ public class RestTest extends ConfigLoader {
 		responses.addAll(Utils.makeParallelRequests(request, 1));
 		
 		checkAssertionsNumeroRichieste(responses, maxRequests, 86400, disclosure);
-		Utils.checkPostConditionsNumeroRichieste(idPolicy, maxRequests);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 1);
 	}
 	
 	
@@ -301,7 +321,7 @@ public class RestTest extends ConfigLoader {
 		Utils.resetCounters(idPolicy);
 		
 		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "NumeroRichiesteRest", PolicyAlias.RICHIESTE_SIMULTANEE);
-		Utils.checkPreConditionsRichiesteSimultanee(idPolicy);
+		Commons.checkPreConditionsRichiesteSimultanee(idPolicy);
 		
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
@@ -311,7 +331,7 @@ public class RestTest extends ConfigLoader {
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxConcurrentRequests + 1);
 		
 		checkAssertionsRichiesteSimultanee(responses, maxConcurrentRequests);
-		Utils.checkPostConditionsRichiesteSimultanee(idPolicy);
+		Commons.checkPostConditionsRichiesteSimultanee(idPolicy);
 	}
 	
 	
@@ -323,7 +343,7 @@ public class RestTest extends ConfigLoader {
 		Utils.resetCounters(idPolicy);
 
 		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteRest", PolicyAlias.RICHIESTE_SIMULTANEE);
-		Utils.checkPreConditionsRichiesteSimultanee(idPolicy);
+		Commons.checkPreConditionsRichiesteSimultanee(idPolicy);
 
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
@@ -333,7 +353,7 @@ public class RestTest extends ConfigLoader {
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxConcurrentRequests + 1);
 		
 		checkAssertionsRichiesteSimultanee(responses, maxConcurrentRequests);
-		Utils.checkPostConditionsRichiesteSimultanee(idPolicy);
+		Commons.checkPostConditionsRichiesteSimultanee(idPolicy);
 	}
 	
 	@Test

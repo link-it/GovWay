@@ -18,40 +18,58 @@
  *
  */
 
-package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.tempo_medio_risposta;
+package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Map;
-
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.PolicyFields;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
-import org.openspcoop2.utils.LoggerWrapperFactory;
-import org.slf4j.Logger;
 
 public class Commons {
 
-	static void checkPreConditionsTempoMedioRisposta(String idPolicy)  {
-		
-		Logger logRateLimiting = LoggerWrapperFactory.getLogger("testsuite.rate_limiting");
+	public static void checkPostConditionsRichiesteSimultanee(String idPolicy) {
 		
 		int remainingChecks = Integer.valueOf(System.getProperty("rl_check_policy_conditions_retry"));
 		int delay = Integer.valueOf(System.getProperty("rl_check_policy_conditions_delay"));
+		
+		while(true) {
+			try {
+				String jmxPolicyInfo = Utils.getPolicy(idPolicy);
+				
+				if (jmxPolicyInfo.equals(PolicyFields.NOPOLICYINFO)) {
+					break;
+				}
+				
+				Utils.logRateLimiting.info(jmxPolicyInfo);
+				RichiesteSimultaneePolicyInfo polInfo = new RichiesteSimultaneePolicyInfo(jmxPolicyInfo);
+				assertEquals(Integer.valueOf(0), polInfo.richiesteAttive);
+				break;
+			} catch (AssertionError e) {
+				if(remainingChecks == 0) {
+					throw e;
+				}
+				remainingChecks--;
+				org.openspcoop2.utils.Utilities.sleep(delay);
+			}
+		} 
+		
+	}
 
+	public static void checkPreConditionsRichiesteSimultanee(String idPolicy) {
+		
+		int remainingChecks = Integer.valueOf(System.getProperty("rl_check_policy_conditions_retry"));
+		int delay = Integer.valueOf(System.getProperty("rl_check_policy_conditions_delay"));
+	
 		while(true) {
 			try {
 				String jmxPolicyInfo = Utils.getPolicy(idPolicy);
 				if (jmxPolicyInfo.equals(PolicyFields.NOPOLICYINFO)) {
 					break;
-				}				
-				logRateLimiting.info(jmxPolicyInfo);
-				Map<String, String> policyValues = Utils.parsePolicy(jmxPolicyInfo);
+				}
 				
-				assertEquals("0", policyValues.get(PolicyFields.RichiesteAttive));
-				assertEquals("0", policyValues.get(PolicyFields.RichiesteConteggiate));
-				assertEquals("0 ms", policyValues.get(PolicyFields.Contatore));
-				assertEquals("0 ms", policyValues.get(PolicyFields.ValoreMedio));
-				assertEquals("0", policyValues.get(PolicyFields.RichiesteBloccate));
+				Utils.logRateLimiting.info(jmxPolicyInfo);
+				RichiesteSimultaneePolicyInfo polInfo = new RichiesteSimultaneePolicyInfo(jmxPolicyInfo);
+				assertEquals(Integer.valueOf(0), polInfo.richiesteAttive);
 				break;
 			} catch (AssertionError e) {
 				if(remainingChecks == 0) {
