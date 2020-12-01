@@ -96,8 +96,6 @@ public class SoapTest extends ConfigLoader {
 		failRequest.setMethod(HttpRequestMethod.POST);
 		failRequest.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1/?returnCode=500");
 		
-		// TODO: Dovrei controllare di aver ricevuto effettivamente un Error
-		
 		Utils.makeParallelRequests(failRequest, maxRequests);
 		
 		// Faccio l'ultimo batch di richieste che devono essere conteggiate

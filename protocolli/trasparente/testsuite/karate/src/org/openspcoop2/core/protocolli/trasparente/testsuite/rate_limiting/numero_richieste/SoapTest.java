@@ -31,11 +31,11 @@ import java.util.Vector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.HeaderValues;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Headers;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.SoapBodies;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.PolicyAlias;
 import org.openspcoop2.message.OpenSPCoop2MessageFactory;
@@ -48,10 +48,6 @@ import org.w3c.dom.Element;
 
 public class SoapTest extends ConfigLoader {
 	
-	@BeforeClass
-	public static void setup() {
-		Utils.toggleErrorDisclosure(false);
-	}
 	
 	@Test 
 	public void richiesteSimultaneeErogazione() throws Exception {
@@ -63,12 +59,7 @@ public class SoapTest extends ConfigLoader {
 		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.RICHIESTE_SIMULTANEE);
 		Commons.checkPreConditionsRichiesteSimultanee(idPolicy);
 		
-		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
-				"    <soap:Body>\n" + 
-				"        <ns2:RichiesteSimultanee xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
-				"        </ns2:RichiesteSimultanee>\n" + 
-				"    </soap:Body>\n" + 
-				"</soap:Envelope>";
+		String body = SoapBodies.get(PolicyAlias.RICHIESTE_SIMULTANEE);
 		
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/soap+xml");
@@ -93,12 +84,7 @@ public class SoapTest extends ConfigLoader {
 		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.RICHIESTE_SIMULTANEE);
 		Commons.checkPreConditionsRichiesteSimultanee(idPolicy);
 		
-		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
-				"    <soap:Body>\n" + 
-				"        <ns2:RichiesteSimultanee xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
-				"        </ns2:RichiesteSimultanee>\n" + 
-				"    </soap:Body>\n" + 
-				"</soap:Envelope>";
+		String body = SoapBodies.get(PolicyAlias.RICHIESTE_SIMULTANEE);
 		
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/soap+xml");
@@ -119,12 +105,7 @@ public class SoapTest extends ConfigLoader {
 		// Aspetto che i threads attivi sul server siano 0
 		Utils.waitForZeroGovWayThreads();
 		
-		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
-				"    <soap:Body>\n" + 
-				"        <ns2:NoPolicy xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
-				"        </ns2:NoPolicy>\n" + 
-				"    </soap:Body>\n" + 
-				"</soap:Envelope>";
+		String body = SoapBodies.get(null);
 		
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/soap+xml");
@@ -175,13 +156,7 @@ public class SoapTest extends ConfigLoader {
 
 		Utils.waitForNewMinute();		
 		
-		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
-				"    <soap:Body>\n" + 
-				"        <ns2:Minuto xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
-				"        </ns2:Minuto>\n" + 
-				"    </soap:Body>\n" + 
-				"</soap:Envelope>";
-		
+		String body = SoapBodies.get(PolicyAlias.MINUTO);
 		
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/soap+xml");
@@ -193,10 +168,10 @@ public class SoapTest extends ConfigLoader {
 		
 		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
 		
-		responses.addAll(Utils.makeParallelRequests(request, 1));
+		responses.addAll(Utils.makeParallelRequests(request, 5));
 		
 		checkAssertionsNumeroRichieste(responses, maxRequests, 60);
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 1);				
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 5);				
 	}
 	
 	
@@ -218,13 +193,7 @@ public class SoapTest extends ConfigLoader {
 
 		Utils.waitForNewHour();		
 		
-		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
-				"    <soap:Body>\n" + 
-				"        <ns2:Orario xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
-				"        </ns2:Orario>\n" + 
-				"    </soap:Body>\n" + 
-				"</soap:Envelope>";
-		
+		String body = SoapBodies.get(PolicyAlias.ORARIO);
 		
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/soap+xml");
@@ -236,10 +205,10 @@ public class SoapTest extends ConfigLoader {
 		
 		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
 		
-		responses.addAll(Utils.makeParallelRequests(request, 1));
+		responses.addAll(Utils.makeParallelRequests(request, 5));
 		
 		checkAssertionsNumeroRichieste(responses, maxRequests, 3600);	
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 1);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 5);
 	}
 	
 	
@@ -261,13 +230,7 @@ public class SoapTest extends ConfigLoader {
 
 		Utils.waitForNewMinute();		
 		
-		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
-				"    <soap:Body>\n" + 
-				"        <ns2:Giornaliero xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
-				"        </ns2:Giornaliero>\n" + 
-				"    </soap:Body>\n" + 
-				"</soap:Envelope>";
-		
+		String body = SoapBodies.get(PolicyAlias.GIORNALIERO);		
 		
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/soap+xml");
@@ -279,10 +242,10 @@ public class SoapTest extends ConfigLoader {
 		
 		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
 		
-		responses.addAll(Utils.makeParallelRequests(request, 1));
+		responses.addAll(Utils.makeParallelRequests(request, 5));
 		
 		checkAssertionsNumeroRichieste(responses, maxRequests, 86400);
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 1);				
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 5);				
 	}
 	
 	
@@ -304,12 +267,7 @@ public class SoapTest extends ConfigLoader {
 
 		Utils.waitForNewMinute();		
 		
-		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
-				"    <soap:Body>\n" + 
-				"        <ns2:Minuto xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
-				"        </ns2:Minuto>\n" + 
-				"    </soap:Body>\n" + 
-				"</soap:Envelope>";
+		String body = SoapBodies.get(PolicyAlias.MINUTO);
 		
 		
 		HttpRequest request = new HttpRequest();
@@ -322,10 +280,10 @@ public class SoapTest extends ConfigLoader {
 		
 		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
 		
-		responses.addAll(Utils.makeParallelRequests(request, 1));
+		responses.addAll(Utils.makeParallelRequests(request, 5));
 		
 		checkAssertionsNumeroRichieste(responses, maxRequests, 60);
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 1);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 5);
 	}
 	
 	
@@ -347,13 +305,7 @@ public class SoapTest extends ConfigLoader {
 
 		Utils.waitForNewHour();		
 		
-		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
-				"    <soap:Body>\n" + 
-				"        <ns2:Orario xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
-				"        </ns2:Orario>\n" + 
-				"    </soap:Body>\n" + 
-				"</soap:Envelope>";
-		
+		String body = SoapBodies.get(PolicyAlias.ORARIO);		
 		
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/soap+xml");
@@ -365,14 +317,10 @@ public class SoapTest extends ConfigLoader {
 		
 		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
 		
-		responses.addAll(Utils.makeParallelRequests(request, 1));
+		responses.addAll(Utils.makeParallelRequests(request, 5));
 		
 		checkAssertionsNumeroRichieste(responses, maxRequests, 3600);
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 1);
-
-		// TODO: Dovrei testare che lo header X-RateLimit-Reset è in un range giusto, 
-		// nel caso di richieste orarie, deve indicare il numero di secondi allo scoccare della prossima ora
-		// ecc..
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 5);
 	}
 	
 	
@@ -394,13 +342,7 @@ public class SoapTest extends ConfigLoader {
 
 		Utils.waitForNewDay();		
 		
-		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
-				"    <soap:Body>\n" + 
-				"        <ns2:Giornaliero xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
-				"        </ns2:Giornaliero>\n" + 
-				"    </soap:Body>\n" + 
-				"</soap:Envelope>";
-		
+		String body = SoapBodies.get(PolicyAlias.GIORNALIERO);		
 		
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/soap+xml");
@@ -412,10 +354,10 @@ public class SoapTest extends ConfigLoader {
 		
 		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
 		
-		responses.addAll(Utils.makeParallelRequests(request, 1));
+		responses.addAll(Utils.makeParallelRequests(request, 5));
 		
 		checkAssertionsNumeroRichieste(responses, maxRequests, 86400);
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 1);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 5);
 	}
 	
 	

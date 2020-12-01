@@ -61,8 +61,17 @@ public class SoapBodies {
 			"    </soap:Body>\n" + 
 			"</soap:Envelope>";
 	
+	private final static String noPolicy =  "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
+			"    <soap:Body>\n" + 
+			"        <ns2:NoPolicy xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
+			"        </ns2:NoPolicy>\n" + 
+			"    </soap:Body>\n" + 
+			"</soap:Envelope>";
 	
 	public final static String get(PolicyAlias alias) {
+		if (alias == null)
+			return noPolicy;
+		
 		switch(alias) {
 		case GIORNALIERO:
 			return giornaliero;

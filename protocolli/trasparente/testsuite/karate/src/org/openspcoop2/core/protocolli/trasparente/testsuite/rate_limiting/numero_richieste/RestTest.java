@@ -70,9 +70,9 @@ public class RestTest extends ConfigLoader {
 		
 		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
 		
-		responses.addAll(Utils.makeParallelRequests(request, 1));
+		responses.addAll(Utils.makeParallelRequests(request, 5));
 		
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 1);	
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 5);	
 		checkAssertionsNumeroRichieste(responses, maxRequests, 60, disclosure);
 	}
 	
@@ -112,10 +112,10 @@ public class RestTest extends ConfigLoader {
 		
 		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
 		
-		responses.addAll(Utils.makeParallelRequests(request, 1));
+		responses.addAll(Utils.makeParallelRequests(request, 5));
 		
 		checkAssertionsNumeroRichieste(responses, maxRequests,3600, disclosure);
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 1);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 5);
 	}
 	
 	@Test
@@ -154,10 +154,10 @@ public class RestTest extends ConfigLoader {
 		
 		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
 		
-		responses.addAll(Utils.makeParallelRequests(request, 1));
+		responses.addAll(Utils.makeParallelRequests(request, 5));
 		
 		checkAssertionsNumeroRichieste(responses, maxRequests, 86400, disclosure);
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 1);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 5);
 	}
 	
 	
@@ -199,10 +199,10 @@ public class RestTest extends ConfigLoader {
 		
 		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
 		
-		responses.addAll(Utils.makeParallelRequests(request, 1));
+		responses.addAll(Utils.makeParallelRequests(request, 5));
 		
 		checkAssertionsNumeroRichieste(responses, maxRequests, 60, disclosure);
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 1);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 5);
 	}
 	
 	
@@ -245,10 +245,10 @@ public class RestTest extends ConfigLoader {
 		
 		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
 		
-		responses.addAll(Utils.makeParallelRequests(request, 1));
+		responses.addAll(Utils.makeParallelRequests(request, 5));
 		
 		checkAssertionsNumeroRichieste(responses, maxRequests, 3600, disclosure);
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 1);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 5);
 	}
 	
 	
@@ -290,10 +290,10 @@ public class RestTest extends ConfigLoader {
 		
 		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
 		
-		responses.addAll(Utils.makeParallelRequests(request, 1));
+		responses.addAll(Utils.makeParallelRequests(request, 5));
 		
 		checkAssertionsNumeroRichieste(responses, maxRequests, 86400, disclosure);
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 1);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 5);
 	}
 	
 	
@@ -359,9 +359,7 @@ public class RestTest extends ConfigLoader {
 	@Test
 	public void richiesteSimultaneeGlobali() throws Exception {
 		final int maxConcurrentRequests = 15;
-		
-		// TODO: Meglio coinvolgere anche la fruizione.
-		
+				
 		// Aspetto che i threads attivi sul server siano 0
 		Utils.waitForZeroGovWayThreads();
 		
@@ -494,7 +492,7 @@ public class RestTest extends ConfigLoader {
 		assertNotEquals(null, failedResponse.getHeader(Headers.RetryAfter));
 
 		// Lo header X-RateLimit-Remaining deve assumere tutti i
-		// i valori possibili da 0 a maxRequests-1 TODO questo mettilo nel test a parte
+		// i valori possibili da 0 a maxRequests-1
 		List<Integer> counters = responses.stream()
 				.map(resp -> Integer.parseInt(resp.getHeader(Headers.RateLimitRemaining))).collect(Collectors.toList());
 		assertTrue(IntStream.range(0, maxRequests).allMatch(v -> counters.contains(v)));	
