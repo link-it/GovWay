@@ -193,13 +193,7 @@ public class RestTest extends ConfigLoader {
 		assertNotEquals(null,failedResponse);
 		
 		JSONObject jsonResp = JsonPathExpressionEngine.getJSONObject(new String(failedResponse.getContent()));
-		JsonPathExpressionEngine jsonPath = new JsonPathExpressionEngine();
-		
-		assertEquals("https://govway.org/handling-errors/429/LimitExceeded.html", jsonPath.getStringMatchPattern(jsonResp, "$.type").get(0));
-		assertEquals("LimitExceeded", jsonPath.getStringMatchPattern(jsonResp, "$.title").get(0));
-		assertEquals(429, jsonPath.getNumberMatchPattern(jsonResp, "$.status").get(0));
-		assertNotEquals(null, jsonPath.getStringMatchPattern(jsonResp, "$.govway_id").get(0));	
-		assertEquals("Limit exceeded detected", jsonPath.getStringMatchPattern(jsonResp, "$.detail").get(0));
+		Utils.matchLimitExceededRest(jsonResp);
 		
 		assertEquals("0", failedResponse.getHeader(Headers.RateLimitTimeResponseQuotaRemaining));
 		assertEquals(HeaderValues.LimitExceeded, failedResponse.getHeader(Headers.GovWayTransactionErrorType));

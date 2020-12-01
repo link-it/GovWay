@@ -7,7 +7,7 @@
 		# Consentono di far passare i parametri url dal client al backend della erogazione
 		org.openspcoop2.pdd.soap.urlParameters.forward.enable=true
 		org.openspcoop2.pdd.soap.urlParameters.blackList.internal=*
-		org.openspcoop2.pdd.soap.urlParameters.whiteList=fault*,returnCode
+		org.openspcoop2.pdd.soap.urlParameters.whiteList=fault*,returnCode,sleep
 
 
 Per eseguire i test:
