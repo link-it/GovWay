@@ -31,6 +31,7 @@ package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting;
 public class Headers {
 	
 	public static final String EchoInvoke = "GovWay-TestSuite-Echo-Invoke";
+	public static final String TransactionId = "GovWay-Transaction-ID";
 	
 	public static final String RateLimitLimit = "X-RateLimit-Limit";
 	public static final String RateLimitReset = "X-RateLimit-Reset";
@@ -68,6 +69,5 @@ public class Headers {
 	public static final String AvgTimeResponseReset = "GovWay-RateLimit-AvgTimeResponse-Reset";
 	public static final String AvgTimeResponseLimit = "GovWay-RateLimit-AvgTimeResponse-Limit";
 	public static final String AvgTimeResponseRemaining = "GovWay-RateLimit-AvgTimeResponse-Remaining";
-	
-	
+
 }

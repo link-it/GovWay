@@ -73,7 +73,8 @@ public class Utils {
 		RICHIESTE_SIMULTANEE("RichiesteSimultanee"), 
 		MINUTO("Minuto"),	
 		ORARIO("Orario"),
-		GIORNALIERO("Giornaliero");
+		GIORNALIERO("Giornaliero"),
+		NO_POLICY("NESSUNA_POLICY");
 		
 		public final String value;
 		
@@ -106,7 +107,7 @@ public class Utils {
 	 * Esege `count` richieste `request` parallele 
 	 * 
 	 */
-	public static Vector<HttpResponse> makeParallelRequests(HttpRequest request, int count) throws InterruptedException {
+	public static Vector<HttpResponse> makeParallelRequests(HttpRequest request, int count) {
 		logRateLimiting = ConfigLoader.getLogger();
 
 		final Vector<HttpResponse> responses = new Vector<>();
@@ -125,8 +126,13 @@ public class Utils {
 			});
 		}
 		
-		executor.shutdown();
-		executor.awaitTermination(20, TimeUnit.SECONDS);
+		try {
+			executor.shutdown();
+			executor.awaitTermination(20, TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			logRateLimiting.error("Le richieste hanno impiegato più di venti secondi!");
+			throw new RuntimeException(e);
+		}
 		
 		logRateLimiting.info("RESPONSES: ");
 		responses.forEach(r -> {

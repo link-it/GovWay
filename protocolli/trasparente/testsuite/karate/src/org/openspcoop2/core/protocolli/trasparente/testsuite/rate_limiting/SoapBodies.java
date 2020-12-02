@@ -81,6 +81,8 @@ public class SoapBodies {
 			return orario;
 		case RICHIESTE_SIMULTANEE:
 			return richiesteSimultanee;
+		case NO_POLICY:
+			return noPolicy;
 		default:
 			return null;
 		}

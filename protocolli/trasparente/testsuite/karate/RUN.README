@@ -1,4 +1,6 @@
-- Impostare a <15> il massimo numero di richieste simultanee generali nella console di govway sotto Configurazione->Controllo del Traffico->Limitazione Numero di Richieste Complessive
+- Impostare a <15> il massimo numero di richieste simultanee generali nella console di govway sotto 
+		
+		Configurazione->Controllo del Traffico->Limitazione Numero di Richieste Complessive
 
 - Editare il file <govway_local.properties> impostando le seguenti proprietà:
 
@@ -9,6 +11,21 @@
 		org.openspcoop2.pdd.soap.urlParameters.blackList.internal=*
 		org.openspcoop2.pdd.soap.urlParameters.whiteList=fault*,returnCode,sleep
 
+- Abilitare la congestione del traffico impostando una soglia del 55% in modo
+  che il sistema venga considerato congestionato con 8 richieste simultanee.
+	
+	Configurazione-Controllo del Traffico->Controllo della congestione
+	
+  Assicurarsi che la proprietà "soglia_congestione" in testsuite.properties abbia
+  il valore impostato sopra
+	
+
+- Per variare il ritardo con cui vengono scritti gli eventi sul database:
+	In <govway_local.properties>:
+		org.openspcoop2.pdd.eventi.timer.seconds=10
+	In <testsuite.properties>:
+		eventi_db_delay=10
+		
 
 Per eseguire i test:
 	ant run_test
