@@ -55,6 +55,10 @@ public class ConfigLoader {
 	public static Logger getLogger() {
 		return logRateLimiting;
 	}
+	
+	public static DbUtils getDbUtils() {
+		return dbUtils;
+	}
 		
 	@BeforeClass
 	public static void setupLogger()throws Exception {
