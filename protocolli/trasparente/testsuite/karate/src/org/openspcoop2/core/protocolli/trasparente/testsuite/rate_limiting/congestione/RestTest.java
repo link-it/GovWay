@@ -15,32 +15,61 @@ import org.openspcoop2.utils.transport.http.HttpResponse;
 
 public class RestTest extends ConfigLoader {
 
+	private static final String basePath = System.getProperty("govway_base_path");
 	public static final int sogliaCongestione = Integer.valueOf(System.getProperty("soglia_congestione"));
 	
 	@Test
 	public void congestioneAttivaErogazione() {
-		congestioneAttiva(System.getProperty("govway_base_path") + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy");
+		congestioneAttiva(basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=5000");
 	}
 	
 	
 	@Test
 	public void congestioneAttivaFruizione() {
-		congestioneAttiva(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy");
+		congestioneAttiva(basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=5000");
 	}
 	
 	
 	@Test
 	public void congestioneAttivaConViolazioneRLErogazione() {
 		final String idServizio = "SoggettoInternoTest/NumeroRichiesteRest/v1";
-		congestioneAttivaConViolazioneRL(System.getProperty("govway_base_path") + "/SoggettoInternoTest/NumeroRichiesteRest/v1/richieste-simultanee/?sleep=5000", idServizio);
+		congestioneAttivaConViolazioneRL(basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/richieste-simultanee/?sleep=5000", idServizio);
 	}
 	
-	//id_configurazione=RichiesteSimultanee - API: SoggettoInternoTest/NumeroRichiesteRest/v1
 	@Test
 	public void congestioneAttivaConViolazioneRLFruizione() {
 		final String idServizio = "SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteRest/v1";
-		congestioneAttivaConViolazioneRL(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteRest/v1/richieste-simultanee?sleep=5000", idServizio);
+		congestioneAttivaConViolazioneRL(basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteRest/v1/richieste-simultanee?sleep=5000", idServizio);
 	}
+	
+	@Test
+	public void congestioneAttivaViolazioneRichiesteComplessiveErogazione() {
+		congestioneAttivaViolazioneRichiesteComplessive(basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=5000");
+		
+	}
+	
+	@Test
+	public void congestioneAttivaViolazioneRichiesteComplessiveFruizione() {
+		congestioneAttivaViolazioneRichiesteComplessive(basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=5000");
+		
+	}
+	
+	
+	public void congestioneAttivaViolazioneRichiesteComplessive(String url) {
+			
+		final int sogliaRichiesteSimultanee = 15;
+		
+		LocalDateTime dataSpedizione = LocalDateTime.now();		
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/json");
+		request.setMethod(HttpRequestMethod.GET);
+		request.setUrl(url);
+		
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, sogliaRichiesteSimultanee+1);
+		
+		SoapTest.checkCongestioneAttivaViolazioneRichiesteComplessive(dataSpedizione, responses);
+	}		
 	
 	
 	/**

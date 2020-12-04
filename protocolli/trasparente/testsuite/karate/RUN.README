@@ -19,6 +19,9 @@
   Assicurarsi che la proprietà "soglia_congestione" in testsuite.properties abbia
   il valore impostato sopra
 	
+- Nella console Andare su Tracciamento->Superamento Limite Richieste e impostarlo su <abilitato>
+	 Questo perchè di base govway non traccia le transazioni quando è stata superata la soglia globale.
+
 
 - Per variare il ritardo con cui vengono scritti gli eventi sul database:
 	In <govway_local.properties>:

@@ -169,7 +169,7 @@ public class EventiUtils {
 				});
 		assertEquals(found, true);
 	
-		// 		Devo verificare che gli eventi di violazione e risoluzione siano stati scritti sul db
+		// 		Verifico che gli eventi di violazione e risoluzione siano stati scritti sul db
 		
 		List<Map<String, Object>> events = getNotificheEventi(dataSpedizione);		
 		log().info(events.toString());

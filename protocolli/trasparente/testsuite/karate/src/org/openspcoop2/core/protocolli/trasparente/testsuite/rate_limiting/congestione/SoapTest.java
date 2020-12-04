@@ -20,14 +20,20 @@
 
 package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.congestione;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Vector;
 
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Headers;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.SoapBodies;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.PolicyAlias;
@@ -41,27 +47,119 @@ import org.openspcoop2.utils.transport.http.HttpResponse;
  */
 public class SoapTest extends ConfigLoader {
 
+	private static final String basePath = System.getProperty("govway_base_path");
 	public static final int sogliaCongestione = Integer.valueOf(System.getProperty("soglia_congestione"));
 	
 	@Test
 	public void congestioneAttivaErogazione() {
-		congestioneAttiva(System.getProperty("govway_base_path") + "/SoggettoInternoTest/NumeroRichiesteSoap/v1");
+		congestioneAttiva(basePath + "/SoggettoInternoTest/NumeroRichiesteSoap/v1");
 	}
 	
 	
 	@Test
 	public void congestioneAttivaFruizione() {
-		congestioneAttiva(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1");
+		congestioneAttiva(basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1");
 	}
 	
 	@Test
 	public void congestioneAttivaConViolazioneRLErogazione() {
-		congestioneAttivaConViolazioneRL(System.getProperty("govway_base_path") + "/SoggettoInternoTest/NumeroRichiesteSoap/v1", "SoggettoInternoTest/NumeroRichiesteSoap/v1");
+		congestioneAttivaConViolazioneRL(basePath + "/SoggettoInternoTest/NumeroRichiesteSoap/v1", "SoggettoInternoTest/NumeroRichiesteSoap/v1");
 	}
 	
 	@Test
 	public void congestioneAttivaConViolazioneRLFruizione() {
-		congestioneAttivaConViolazioneRL(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1", "SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1");
+		congestioneAttivaConViolazioneRL(basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1", "SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1");
+	}
+	
+	@Test
+	public void congestioneAttivaViolazioneRichiesteComplessiveErogazione() {
+		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteSoap/v1";
+		congestioneAttivaViolazioneRichiesteComplessive(url);
+	}
+	
+	
+	@Test
+	public void congestioneAttivaViolazioneRichiesteComplessiveFruizione() {
+		String url = basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1";
+		congestioneAttivaViolazioneRichiesteComplessive(url);
+	}
+	
+	/** Qui si testa l'evento di congestione seguito dalla violazione del 
+	 *  massimo numero di richieste simultanee
+	 */
+	public void congestioneAttivaViolazioneRichiesteComplessive(String url) {
+		
+		
+		final int sogliaRichiesteSimultanee = 15;
+		
+		String body = SoapBodies.get(PolicyAlias.NO_POLICY);
+		
+		LocalDateTime dataSpedizione = LocalDateTime.now();		
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/soap+xml");
+		request.setMethod(HttpRequestMethod.POST);
+		request.setUrl(url);
+		request.setContent(body.getBytes());
+		
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, sogliaRichiesteSimultanee+1);
+		
+		checkCongestioneAttivaViolazioneRichiesteComplessive(dataSpedizione, responses);
+	}
+
+
+	public static void checkCongestioneAttivaViolazioneRichiesteComplessive(LocalDateTime dataSpedizione,
+			Vector<HttpResponse> responses) {
+		
+		EventiUtils.waitForDbEvents();
+		
+		//  Devo trovare tra le transazioni generate dalle richieste, almeno una transazione
+		//  che abba la violazione della soglia di congestione e una transazione con la violazione
+		//  della soglia di richieste simultanee globali
+			
+
+		var credenzialiToMatch = new ArrayList<String>(Arrays.asList(
+				"##ControlloTraffico_SogliaCongestione_Violazione##",
+				"##ControlloTraffico_NumeroMassimoRichiesteSimultanee_Violazione##"
+				));
+		
+
+		credenzialiToMatch.removeIf( toCheck -> responses.stream()
+				.anyMatch( r -> EventiUtils.testCredenzialiMittenteTransazione(
+							r.getHeader(Headers.TransactionId),
+							evento -> {						
+								logRateLimiting.info(evento.toString());
+								String credenziale = (String) evento.get("credenziale"); 
+								return credenziale.contains(toCheck);
+							}) 
+						)
+				);
+		
+		assertEquals(Arrays.asList(), credenzialiToMatch);
+
+		List<Map<String, Object>> events = EventiUtils.getNotificheEventi(dataSpedizione);		
+		logRateLimiting.info(events.toString());
+		
+		assertEquals(true, EventiUtils.findEventCongestioneViolata(events));
+		assertEquals(true, EventiUtils.findEventCongestioneRisolta(events));
+		
+		boolean sogliaViolata =  events.stream()
+				.anyMatch( ev -> {
+					return  ev.get("tipo").equals("ControlloTraffico_NumeroMassimoRichiesteSimultanee") &&
+							ev.get("codice").equals("Violazione") &&
+							ev.get("severita").equals(1) && 
+							ev.get("descrizione").equals("Superato il numero di richieste complessive (15) gestibili dalla PdD");
+				});
+		
+		boolean violazioneRisolta = events.stream()
+				.anyMatch( ev -> {
+					return  ev.get("tipo").equals("ControlloTraffico_NumeroMassimoRichiesteSimultanee") &&
+							ev.get("codice").equals("ViolazioneRisolta") &&
+							ev.get("severita").equals(3); 
+				}); 
+		
+		assertEquals(true, sogliaViolata);
+		assertEquals(true, violazioneRisolta);
 	}
 	
 	
