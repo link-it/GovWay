@@ -172,7 +172,7 @@ public class RestTest extends ConfigLoader {
 		}
 		
 		// Aspetto che il sistema vada in congestione..
-		org.openspcoop2.utils.Utilities.sleep(1000);
+		org.openspcoop2.utils.Utilities.sleep(Long.parseLong(System.getProperty("congestion_delay")));
 		
 		responses = Utils.makeSequentialRequests(request, maxRequests+1);
 		logRateLimiting.info(Utils.getPolicy(idPolicy));

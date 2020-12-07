@@ -103,6 +103,7 @@ public class ConfigLoader {
             System.setProperty("rl_check_policy_conditions_delay", prop.getProperty("rl_check_policy_conditions_delay"));
             System.setProperty("soglia_congestione", prop.getProperty("soglia_congestione"));
             System.setProperty("eventi_db_delay", prop.getProperty("eventi_db_delay"));
+            System.setProperty("congestion_delay", prop.getProperty("congestion_delay"));
             
             
             
