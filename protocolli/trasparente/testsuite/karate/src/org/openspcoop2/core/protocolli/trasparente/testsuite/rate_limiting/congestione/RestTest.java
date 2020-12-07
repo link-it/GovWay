@@ -171,6 +171,8 @@ public class RestTest extends ConfigLoader {
 			});
 		}
 		
+		// Aspetto che il sistema vada in congestione..
+		org.openspcoop2.utils.Utilities.sleep(1000);
 		
 		responses = Utils.makeSequentialRequests(request, maxRequests+1);
 		logRateLimiting.info(Utils.getPolicy(idPolicy));
