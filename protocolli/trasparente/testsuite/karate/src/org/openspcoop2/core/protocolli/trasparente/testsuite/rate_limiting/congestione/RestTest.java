@@ -19,6 +19,7 @@ import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpResponse;
 import org.openspcoop2.utils.transport.http.HttpUtilities;
+import org.openspcoop2.utils.transport.http.HttpUtilsException;
 
 public class RestTest extends ConfigLoader {
 
@@ -62,15 +63,23 @@ public class RestTest extends ConfigLoader {
 	}
 	
 	
+	
+	
+	
 	/**
 	 * Controlliamo che la policy di rate limiting non venga applicata se lo stato 
-	 * di congestione è stato risolto. 
+	 * di congestione è stato risolto.
+	 * 
 	 */
 	@Test
-	public void noRateLimitingSeCongestioneRisoltaErogazione() {
+	public void noRateLimitingSeCongestioneRisoltaErogazione() throws UtilsException, HttpUtilsException {
 		final int maxRequests = 5;
 		final String erogazione = "InPresenzaCongestioneRest";
-		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, PolicyAlias.MINUTO);
+		final String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, PolicyAlias.ORARIO);
+	
+		Utils.resetCounters(idPolicy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
+		Utils.waitForPolicy(PolicyAlias.ORARIO);
 
 		// La policy di RL è: NumeroRichiesteCompletateConSuccesso.
 
@@ -79,12 +88,10 @@ public class RestTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl(basePath + "/SoggettoInternoTest/"+erogazione+"/v1/minuto");
+		request.setUrl(basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario");
 						
 		Vector<HttpResponse> responses = Utils.makeRequestsAndCheckPolicy(request, maxRequests+1, idPolicy);
-		
-		//Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests+1);
-		
+				
 		// Controllo che non sia scattata la policy
 		assertEquals( maxRequests+1, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
 		
@@ -105,7 +112,7 @@ public class RestTest extends ConfigLoader {
 		// devo estrapolare un test che verifichi che dopo le richieste parallele che fanno scattare il congestionamento
 		// se faccio richieste conteggiate dalla policy, questa comunque non deve scattare.
 		
-		responses = Utils.makeRequestsAndCheckPolicy(request, maxRequests+1, idPolicy);
+		responses = Utils.makeSequentialRequests(request, maxRequests+1);
 		
 		// Controllo che non sia scattata la policy
 		assertEquals( maxRequests+1, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
@@ -123,13 +130,12 @@ public class RestTest extends ConfigLoader {
 	public void rateLimitingInPresenzaCongestione() throws Exception {
 		final int maxRequests = 5;
 		final String erogazione = "InPresenzaCongestioneRest";
-		final PolicyAlias policy = PolicyAlias.MINUTO;
+		final PolicyAlias policy = PolicyAlias.ORARIO;
+		final String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy);
 		
-		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy);
 		Utils.resetCounters(idPolicy);
-		
-		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy);
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
+		Utils.waitForPolicy(policy);
 
 
 		// Faccio n richieste per superare la policy e controllo che non scatti,
@@ -137,7 +143,7 @@ public class RestTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl(basePath + "/SoggettoInternoTest/"+erogazione+"/v1/minuto");
+		request.setUrl(basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario");
 						
 		Vector<HttpResponse> responses = Utils.makeRequestsAndCheckPolicy(request, maxRequests+1, idPolicy);
 		
@@ -195,11 +201,41 @@ public class RestTest extends ConfigLoader {
 	 * Controlliamo che la policy di rate limiting venga applicata solo
 	 * in presenza di degrado prestazionale, facendo scattare il degrado
 	 * superando il tempo medio risposta globale
+
+ 		La policy di RL è: NumeroRichiesteCompletateConSuccesso.
+ 		
 	 */
 	@Test
-	public void rateLimitingInPresenzaDegradoGlobale() {
-		// La policy di RL è: NumeroRichiesteCompletateConSuccesso.
+	public void rateLimitingInPresenzaDegradoGlobale() throws UtilsException, HttpUtilsException {
+		final int maxRequests = 5;
+		final String erogazione = "InPresenzaDegradoRest";
+		final PolicyAlias policy = PolicyAlias.ORARIO;
+		final String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy);
+		
+		//Utils.resetCounters(idPolicy);
+		Utils.waitForPolicy(policy);
+		
+		//Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
+		//
 
+
+		// Faccio n richieste per superare la policy e controllo che non scatti,
+		// e nemmeno che le richieste vengano conteggiate, perchè la congestione non è attiva.
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/json");
+		request.setMethod(HttpRequestMethod.GET);
+		request.setUrl(basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario");
+						
+		
+		Vector<HttpResponse> responses = Utils.makeSequentialRequests(request, maxRequests+1);
+		Utils.waitForZeroActiveRequests(idPolicy, 0);
+		
+		
+		// Faccio le richieste verificando che la policy non venga attivata
+		
+		// Faccio due richieste parallele da 4 secondi l'una per entrare in degrado prestazionale
+		
+		// Rifaccio le richieste e verifico che la policy sia stata attivata
 		
 	}
 	

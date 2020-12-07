@@ -243,7 +243,9 @@ public class Utils {
 			);
 		String jmxUrl = TransportUtils.buildLocationWithURLBasedParameter(queryParams, System.getProperty("govway_base_path") + "/check");
 		logRateLimiting.info("Resetto la policy di rate limiting sulla url: " + jmxUrl );
-		HttpUtilities.check(jmxUrl, System.getProperty("jmx_username"), System.getProperty("jmx_password"));
+		String resp = new String(HttpUtilities.getHTTPResponse(jmxUrl, System.getProperty("jmx_username"), System.getProperty("jmx_password")).getContent());
+		logRateLimiting.info(resp);
+		//HttpUtilities.check(jmxUrl, System.getProperty("jmx_username"), System.getProperty("jmx_password"));
 	}
 	
 	

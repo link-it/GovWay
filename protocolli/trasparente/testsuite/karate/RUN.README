@@ -16,8 +16,11 @@
 	
 	Configurazione-Controllo del Traffico->Controllo della congestione
 	
-  Assicurarsi che la proprietà "soglia_congestione" in testsuite.properties abbia
+  Assicurarsi che la proprietà "soglia_congestione" in <testsuite.properties> abbia
   il valore impostato sopra
+
+
+- Impostare nella console di GovWay, Controllo Traffico->Tempi Risposta->Tempo MedioRisposta = 3000
 	
 - Nella console Andare su Tracciamento->Superamento Limite Richieste e impostarlo su <abilitato>
 	 Questo perchè di base govway non traccia le transazioni quando è stata superata la soglia globale.
