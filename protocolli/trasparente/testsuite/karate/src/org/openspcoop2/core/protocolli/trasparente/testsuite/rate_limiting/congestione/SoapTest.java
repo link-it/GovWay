@@ -84,8 +84,9 @@ public class SoapTest extends ConfigLoader {
 		congestioneAttivaViolazioneRichiesteComplessive(url);
 	}
 	
-	/** Qui si testa l'evento di congestione seguito dalla violazione del 
-	 *  massimo numero di richieste simultanee
+	/** 
+	 * 	Qui si testa la generazione dell'evento di congestione e del successivo evento
+	 *  che segnala la violazione del massimo numero di richieste simultanee
 	 */
 	public void congestioneAttivaViolazioneRichiesteComplessive(String url) {
 		

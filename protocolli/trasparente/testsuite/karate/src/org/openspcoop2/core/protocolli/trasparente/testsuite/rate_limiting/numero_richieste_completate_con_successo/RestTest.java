@@ -230,7 +230,7 @@ public class RestTest extends ConfigLoader {
 	}
 	
 
-	public void testErogazione(String erogazione, PolicyAlias policy) throws Exception {
+	public static void testErogazione(String erogazione, PolicyAlias policy) throws Exception {
 		
 		int windowSize = Utils.getPolicyWindowSize(policy);
 		String path = Utils.getPolicyPath(policy);
@@ -356,7 +356,7 @@ public class RestTest extends ConfigLoader {
 	
 	
 	
-	private void checkOkRequests(Vector<HttpResponse> responses, int windowSize) {
+	private static void checkOkRequests(Vector<HttpResponse> responses, int windowSize) {
 		// Delle richieste ok Controllo lo header *-Limit, *-Reset e lo status code
 		
 		responses.forEach( r -> {
@@ -373,7 +373,7 @@ public class RestTest extends ConfigLoader {
 		});
 	}
 	
-	private void checkFailedRequests(Vector<HttpResponse> responses, int windowSize) throws Exception {
+	private static void checkFailedRequests(Vector<HttpResponse> responses, int windowSize) throws Exception {
 		
 		JsonPathExpressionEngine jsonPath = new JsonPathExpressionEngine();
 		

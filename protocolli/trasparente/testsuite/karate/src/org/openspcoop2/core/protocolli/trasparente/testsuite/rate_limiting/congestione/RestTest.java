@@ -1,5 +1,6 @@
 package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.congestione;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.time.LocalDateTime;
@@ -9,6 +10,7 @@ import java.util.Vector;
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.PolicyAlias;
 import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpResponse;
@@ -54,7 +56,87 @@ public class RestTest extends ConfigLoader {
 		
 	}
 	
+	/** 
+	 * 	Controlliamo che la policy di rate limiting venga applicata solo in
+	 *  presenza di congestione.
+	 * @throws Exception 
+	 */
+	@Test
+	public void rateLimitingInPresenzaCongestione() throws Exception {
+		final int maxRequests = 5;
+		final String erogazione = "InPresenzaCongestioneRest";
+		// La policy di RL è: NumeroRichiesteCompletateConSuccesso.
+
+		// Faccio n richieste per superare la policy e controllo che non scatti,
+		// perchè la congestione non è attiva.
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/json");
+		request.setMethod(HttpRequestMethod.GET);
+		request.setUrl(basePath + "/SoggettoInternoTest/"+erogazione+"/v1/minuto");
+						
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests+1);
+		
+		// Controllo che non sia scattata la policy
+		assertEquals( maxRequests+1, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
+		
+		
+		// Faccio attivare la congestione
+		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=5000";
+		HttpRequest congestionRequest = new HttpRequest();
+		congestionRequest.setContentType("application/json");
+		congestionRequest.setMethod(HttpRequestMethod.GET);
+		congestionRequest.setUrl(url);
+		
+		Vector<HttpResponse> congestionResponses = Utils.makeParallelRequests(congestionRequest, sogliaCongestione+1);
+		
+		// Verifico che siano andate tutte bene
+		assertEquals( sogliaCongestione+1, congestionResponses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
+		
+		
+		// Eseguo il normale test sulla policy di rate limiting
+		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.testErogazione(erogazione, PolicyAlias.MINUTO);	
+	}
 	
+	
+	/**
+	 * Controlliamo che la policy di rate limiting venga applicata solo
+	 * in presenza di degrado prestazionale, facendo scattare il degrado
+	 * superando il tempo medio risposta globale
+	 */
+	@Test
+	public void rateLimitingInPresenzaDegradoGlobale() {
+		// La policy di RL è: NumeroRichiesteCompletateConSuccesso.
+
+		
+	}
+	
+	
+	/**
+	 * Controlliamo che la policy di rate limiting venga applicata solo
+	 * in presenza di degrado prestazionale, facendo scattare il degrado
+	 * superando il tempo medio risposta sul singolo connettore
+	 */
+	@Test
+	public void rateLimitingInPresenzaDegradoServizio() {
+		
+	}
+	
+	
+	/**
+	 * Controlliamo che la policy di rate limiting venga applicata solo
+	 * se contemporaneamente attivi il degrado prestazionale, e la congestione
+	 */
+	@Test
+	public void rateLimitingInPresenzaDegradoECongestione() {
+		
+	}
+	
+	
+	
+	/** 
+	 * 	Qui si testa la generazione dell'evento di congestione e del successivo evento
+	 *  che segnala la violazione del massimo numero di richieste simultanee
+	 */
 	public void congestioneAttivaViolazioneRichiesteComplessive(String url) {
 			
 		final int sogliaRichiesteSimultanee = 15;
