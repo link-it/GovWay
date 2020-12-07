@@ -65,6 +65,8 @@ public class RestTest extends ConfigLoader {
 	public void rateLimitingInPresenzaCongestione() throws Exception {
 		final int maxRequests = 5;
 		final String erogazione = "InPresenzaCongestioneRest";
+		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, PolicyAlias.MINUTO);
+
 		// La policy di RL è: NumeroRichiesteCompletateConSuccesso.
 
 		// Faccio n richieste per superare la policy e controllo che non scatti,
@@ -74,7 +76,9 @@ public class RestTest extends ConfigLoader {
 		request.setMethod(HttpRequestMethod.GET);
 		request.setUrl(basePath + "/SoggettoInternoTest/"+erogazione+"/v1/minuto");
 						
-		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests+1);
+		Vector<HttpResponse> responses = Utils.makeRequestsAndCheckPolicy(request, maxRequests+1, idPolicy);
+		
+		//Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests+1);
 		
 		// Controllo che non sia scattata la policy
 		assertEquals( maxRequests+1, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
