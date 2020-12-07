@@ -6,14 +6,19 @@ import static org.junit.Assert.assertTrue;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Vector;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.PolicyAlias;
+import org.openspcoop2.utils.UtilsException;
 import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpResponse;
+import org.openspcoop2.utils.transport.http.HttpUtilities;
 
 public class RestTest extends ConfigLoader {
 
@@ -56,13 +61,13 @@ public class RestTest extends ConfigLoader {
 		
 	}
 	
-	/** 
-	 * 	Controlliamo che la policy di rate limiting venga applicata solo in
-	 *  presenza di congestione.
-	 * @throws Exception 
+	
+	/**
+	 * Controlliamo che la policy di rate limiting non venga applicata se lo stato 
+	 * di congestione è stato risolto. 
 	 */
 	@Test
-	public void rateLimitingInPresenzaCongestione() throws Exception {
+	public void noRateLimitingSeCongestioneRisoltaErogazione() {
 		final int maxRequests = 5;
 		final String erogazione = "InPresenzaCongestioneRest";
 		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, PolicyAlias.MINUTO);
@@ -95,10 +100,92 @@ public class RestTest extends ConfigLoader {
 		
 		// Verifico che siano andate tutte bene
 		assertEquals( sogliaCongestione+1, congestionResponses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
+	
+		// Siccome il congestionamento termina nel momento in cui terminano le richieste simultanee,
+		// devo estrapolare un test che verifichi che dopo le richieste parallele che fanno scattare il congestionamento
+		// se faccio richieste conteggiate dalla policy, questa comunque non deve scattare.
+		
+		responses = Utils.makeRequestsAndCheckPolicy(request, maxRequests+1, idPolicy);
+		
+		// Controllo che non sia scattata la policy
+		assertEquals( maxRequests+1, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
+		
+	}
+	
+	/** 
+	 * 	Controlliamo che la policy di rate limiting venga applicata solo in
+	 *  presenza di congestione.
+	 *  
+	 *	La policy di RL è: NumeroRichiesteCompletateConSuccesso.
+	 * @throws Exception 
+	 */
+	@Test
+	public void rateLimitingInPresenzaCongestione() throws Exception {
+		final int maxRequests = 5;
+		final String erogazione = "InPresenzaCongestioneRest";
+		final PolicyAlias policy = PolicyAlias.MINUTO;
+		
+		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy);
+		Utils.resetCounters(idPolicy);
+		
+		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
+
+
+		// Faccio n richieste per superare la policy e controllo che non scatti,
+		// perchè la congestione non è attiva.
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/json");
+		request.setMethod(HttpRequestMethod.GET);
+		request.setUrl(basePath + "/SoggettoInternoTest/"+erogazione+"/v1/minuto");
+						
+		Vector<HttpResponse> responses = Utils.makeRequestsAndCheckPolicy(request, maxRequests+1, idPolicy);
+		
+		//Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests+1);
+		
+		// Controllo che non sia scattata la policy
+		assertEquals( maxRequests+1, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
 		
 		
-		// Eseguo il normale test sulla policy di rate limiting
-		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.testErogazione(erogazione, PolicyAlias.MINUTO);	
+		// Faccio attivare la congestione
+		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=10000";
+		HttpRequest congestionRequest = new HttpRequest();
+		congestionRequest.setContentType("application/json");
+		congestionRequest.setMethod(HttpRequestMethod.GET);
+		congestionRequest.setUrl(url);
+		
+		int count = sogliaCongestione;
+		ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(count);
+
+		for (int i = 0; i < count; i++) {
+			executor.execute(() -> {
+				try {
+					logRateLimiting.info(congestionRequest.getMethod() + " " + congestionRequest.getUrl());
+					 HttpResponse r = HttpUtilities.httpInvoke(congestionRequest);
+					 assertEquals(200, r.getResultHTTPOperation());
+					logRateLimiting.info("Richiesta effettuata..");
+				} catch (UtilsException e) {
+					e.printStackTrace();
+					throw new RuntimeException(e);
+				}
+			});
+		}
+		
+		
+		responses = Utils.makeSequentialRequests(request, maxRequests+1);
+		logRateLimiting.info(Utils.getPolicy(idPolicy));
+		
+		
+		// Eseguo il normale test sulla policy di rate limiting in parallelo con le richieste che mandano in congestione
+		//org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.testErogazione(erogazione, PolicyAlias.MINUTO);
+		
+		try {
+			executor.shutdown();
+			executor.awaitTermination(20, TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			logRateLimiting.error("Le richieste hanno impiegato più di venti secondi!");
+			throw new RuntimeException(e);
+		}
 	}
 	
 	
