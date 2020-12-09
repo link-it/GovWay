@@ -9,9 +9,11 @@ import java.util.Vector;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.TipoServizio;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.PolicyAlias;
 import org.openspcoop2.utils.UtilsException;
@@ -62,76 +64,54 @@ public class RestTest extends ConfigLoader {
 		
 	}
 	
+	@Test
+	public void rateLimitingInPresenzaCongestioneErogazione() throws Exception {
+		rateLimitingInPresenzaCongestione(TipoServizio.EROGAZIONE);
+	}
 	
 	
+	@Test
+	public void rateLimitingInPresenzaCongestioneFruizione() throws Exception {
+		rateLimitingInPresenzaCongestione(TipoServizio.FRUIZIONE);
+	}
 	
-	
-	/**
-	 * Controlliamo che la policy di rate limiting non venga applicata se lo stato 
-	 * di congestione è stato risolto.
-	 * 
-	 */
 	@Test
 	public void noRateLimitingSeCongestioneRisoltaErogazione() throws UtilsException, HttpUtilsException {
-		final int maxRequests = 5;
-		final String erogazione = "InPresenzaCongestioneRest";
-		final String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, PolicyAlias.ORARIO);
+		noRateLimitingSeCongestioneRisolta(TipoServizio.EROGAZIONE);
+	}
 	
-		Utils.resetCounters(idPolicy);
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
-		Utils.waitForPolicy(PolicyAlias.ORARIO);
-
-		// La policy di RL è: NumeroRichiesteCompletateConSuccesso.
-
-		// Faccio n richieste per superare la policy e controllo che non scatti,
-		// perchè la congestione non è attiva.
-		HttpRequest request = new HttpRequest();
-		request.setContentType("application/json");
-		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl(basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario");
-						
-		Vector<HttpResponse> responses = Utils.makeRequestsAndCheckPolicy(request, maxRequests+1, idPolicy);
-				
-		// Controllo che non sia scattata la policy
-		assertEquals( maxRequests+1, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
-		
-		
-		// Faccio attivare la congestione
-		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=5000";
-		HttpRequest congestionRequest = new HttpRequest();
-		congestionRequest.setContentType("application/json");
-		congestionRequest.setMethod(HttpRequestMethod.GET);
-		congestionRequest.setUrl(url);
-		
-		Vector<HttpResponse> congestionResponses = Utils.makeParallelRequests(congestionRequest, sogliaCongestione+1);
-		
-		// Verifico che siano andate tutte bene
-		assertEquals( sogliaCongestione+1, congestionResponses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
 	
-		// Siccome il congestionamento termina nel momento in cui terminano le richieste simultanee,
-		// devo estrapolare un test che verifichi che dopo le richieste parallele che fanno scattare il congestionamento
-		// se faccio richieste conteggiate dalla policy, questa comunque non deve scattare.
-		
-		responses = Utils.makeSequentialRequests(request, maxRequests+1);
-		
-		// Controllo che non sia scattata la policy
-		assertEquals( maxRequests+1, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
+	@Test
+	public void noRateLimitingSeCongestioneRisoltaFruizione() throws UtilsException, HttpUtilsException {
+		noRateLimitingSeCongestioneRisolta(TipoServizio.FRUIZIONE);
 		
 	}
 	
+
 	/** 
 	 * 	Controlliamo che la policy di rate limiting venga applicata solo in
 	 *  presenza di congestione.
 	 *  
 	 *	La policy di RL è: NumeroRichiesteCompletateConSuccesso.
-	 * @throws Exception 
 	 */
-	@Test
-	public void rateLimitingInPresenzaCongestione() throws Exception {
+	public void rateLimitingInPresenzaCongestione(TipoServizio tipoServizio) throws Exception {
+		
 		final int maxRequests = 5;
 		final String erogazione = "InPresenzaCongestioneRest";
 		final PolicyAlias policy = PolicyAlias.ORARIO;
-		final String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy);
+		
+		final String idPolicy = tipoServizio == TipoServizio.EROGAZIONE
+				? dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy)
+				: dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
+		
+		final String urlServizio = tipoServizio == TipoServizio.EROGAZIONE
+				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario"
+				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/orario";
+				
+		final BiConsumer<String,PolicyAlias> testToRun = tipoServizio == TipoServizio.EROGAZIONE
+				? org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest::testErogazione
+				: org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest::testFruizione;
+		
 		
 		Utils.resetCounters(idPolicy);
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
@@ -143,15 +123,12 @@ public class RestTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl(basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario");
+		request.setUrl(urlServizio);
 						
 		Vector<HttpResponse> responses = Utils.makeRequestsAndCheckPolicy(request, maxRequests+1, idPolicy);
 		
-		//Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests+1);
-		
 		// Controllo che non sia scattata la policy
 		assertEquals( maxRequests+1, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
-		
 		
 		// Faccio attivare la congestione
 		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=10000";
@@ -181,12 +158,15 @@ public class RestTest extends ConfigLoader {
 		org.openspcoop2.utils.Utilities.sleep(Long.parseLong(System.getProperty("congestion_delay")));
 		
 		responses = Utils.makeSequentialRequests(request, maxRequests+1);
+		
+		// Tutte le risposte devono essere bloccate, perchè siamo in congestione
+		// e le richieste iniziali sono state conteggiate
+		assertEquals( maxRequests+1, responses.stream().filter(r -> r.getResultHTTPOperation() == 429).count());
 		logRateLimiting.info(Utils.getPolicy(idPolicy));
-		
-		
-		// Eseguo il normale test sulla policy di rate limiting in parallelo con le richieste che mandano in congestione
-		//org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.testErogazione(erogazione, PolicyAlias.MINUTO);
-		
+
+		// Nel mentre siamo in congestione rieseguo per intero il test sul Numero Richieste Completate con successo
+		testToRun.accept(erogazione, PolicyAlias.ORARIO);
+				
 		try {
 			executor.shutdown();
 			executor.awaitTermination(20, TimeUnit.SECONDS);
@@ -194,7 +174,71 @@ public class RestTest extends ConfigLoader {
 			logRateLimiting.error("Le richieste hanno impiegato più di venti secondi!");
 			throw new RuntimeException(e);
 		}
+		
 	}
+	
+	
+	
+	/**
+	 * Controlliamo che la policy di rate limiting non venga applicata se lo stato 
+	 * di congestione è stato risolto.
+	 * 
+	 */
+	public void noRateLimitingSeCongestioneRisolta(TipoServizio tipoServizio) throws UtilsException, HttpUtilsException {
+		final int maxRequests = 5;
+		final String erogazione = "InPresenzaCongestioneRest";
+		final PolicyAlias policy = PolicyAlias.ORARIO;
+		
+		final String idPolicy = tipoServizio == TipoServizio.EROGAZIONE
+				? dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy)
+				: dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
+		
+		final String urlServizio = tipoServizio == TipoServizio.EROGAZIONE
+				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario"
+				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/orario";
+		
+		Utils.resetCounters(idPolicy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
+		Utils.waitForPolicy(policy);
+
+		// La policy di RL è: NumeroRichiesteCompletateConSuccesso.
+
+		// Faccio n richieste per superare la policy e controllo che non scatti,
+		// perchè la congestione non è attiva.
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/json");
+		request.setMethod(HttpRequestMethod.GET);
+		request.setUrl(urlServizio);
+						
+		// Anche se la congestione non è attiva, comunque le richieste devono essere conteggiate
+		Vector<HttpResponse> responses = Utils.makeRequestsAndCheckPolicy(request, maxRequests+1, idPolicy);
+				
+		// Controllo che non sia scattata la policy
+		assertEquals( maxRequests+1, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
+		
+		
+		// Faccio attivare la congestione
+		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=5000";
+		HttpRequest congestionRequest = new HttpRequest();
+		congestionRequest.setContentType("application/json");
+		congestionRequest.setMethod(HttpRequestMethod.GET);
+		congestionRequest.setUrl(url);
+		
+		Vector<HttpResponse> congestionResponses = Utils.makeParallelRequests(congestionRequest, sogliaCongestione+1);
+		
+		// Verifico che siano andate tutte bene
+		assertEquals(sogliaCongestione+1, congestionResponses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
+	
+		// Siccome il congestionamento termina nel momento in cui terminano le richieste simultanee,
+		// se faccio richieste conteggiate dalla policy, questa comunque non deve scattare.
+		
+		responses = Utils.makeSequentialRequests(request, maxRequests+1);
+		
+		// Controllo che non sia scattata la policy
+		assertEquals(maxRequests+1, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());		
+	}
+	
+	
 	
 	
 	/**
@@ -212,7 +256,7 @@ public class RestTest extends ConfigLoader {
 		final PolicyAlias policy = PolicyAlias.ORARIO;
 		final String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy);
 		
-		//Utils.resetCounters(idPolicy);
+		Utils.resetCounters(idPolicy);
 		Utils.waitForPolicy(policy);
 		
 		//Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);

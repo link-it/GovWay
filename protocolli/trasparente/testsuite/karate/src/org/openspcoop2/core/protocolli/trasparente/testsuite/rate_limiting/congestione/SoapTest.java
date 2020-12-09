@@ -30,16 +30,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Vector;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Headers;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.SoapBodies;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.TipoServizio;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.PolicyAlias;
+import org.openspcoop2.utils.UtilsException;
 import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpResponse;
+import org.openspcoop2.utils.transport.http.HttpUtilities;
+import org.openspcoop2.utils.transport.http.HttpUtilsException;
 /**
  * 
  * @author Francesco Scarlato {scarlato@link.it}
@@ -83,6 +91,185 @@ public class SoapTest extends ConfigLoader {
 		String url = basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1";
 		congestioneAttivaViolazioneRichiesteComplessive(url);
 	}
+
+	@Test
+	public void rateLimitingInPresenzaCongestioneErogazione() throws Exception {
+		rateLimitingInPresenzaCongestione(TipoServizio.EROGAZIONE);
+	}
+	
+	@Test
+	public void rateLimitingInPresenzaCongestioneFruizione() throws Exception {
+		rateLimitingInPresenzaCongestione(TipoServizio.FRUIZIONE);
+	}
+	
+	@Test
+	public void noRateLimitingSeCongestioneRisoltaErogazione() throws UtilsException, HttpUtilsException {
+		noRateLimitingSeCongestioneRisolta(TipoServizio.EROGAZIONE);
+	}
+	
+	
+	@Test
+	public void noRateLimitingSeCongestioneRisoltaFruizione() throws UtilsException, HttpUtilsException {
+		noRateLimitingSeCongestioneRisolta(TipoServizio.FRUIZIONE);
+		
+	}
+	
+
+	
+	
+	/** 
+	 * 	Controlliamo che la policy di rate limiting venga applicata solo in
+	 *  presenza di congestione.
+	 *  
+	 *	La policy di RL è: NumeroRichiesteCompletateConSuccesso.
+	 */
+	public void rateLimitingInPresenzaCongestione(TipoServizio tipoServizio) throws Exception {
+		
+		final int maxRequests = 5;
+		final String erogazione = "InPresenzaCongestioneSoap";
+		final PolicyAlias policy = PolicyAlias.ORARIO;
+		
+		final String idPolicy = tipoServizio == TipoServizio.EROGAZIONE
+				? dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy)
+				: dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
+		
+		final String urlServizio = tipoServizio == TipoServizio.EROGAZIONE
+				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1"
+				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1";
+				
+		final BiConsumer<String,PolicyAlias> testToRun = tipoServizio == TipoServizio.EROGAZIONE
+				? org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.SoapTest::testErogazione
+				: org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.SoapTest::testFruizione;
+		
+		
+		Utils.resetCounters(idPolicy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
+		Utils.waitForPolicy(policy);
+
+
+		// Faccio n richieste per superare la policy e controllo che non scatti,
+		// perchè la congestione non è attiva.
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/soap+xml");
+		request.setMethod(HttpRequestMethod.POST);
+		request.setUrl(urlServizio);
+		request.setContent(SoapBodies.get(policy).getBytes());
+						
+		Vector<HttpResponse> responses = Utils.makeRequestsAndCheckPolicy(request, maxRequests+1, idPolicy);
+		
+		// Controllo che non sia scattata la policy
+		assertEquals( maxRequests+1, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
+		
+		// Faccio attivare la congestione
+		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteSoap/v1?sleep=10000";
+		HttpRequest congestionRequest = new HttpRequest();
+		congestionRequest.setContentType("application/soap+xml");
+		congestionRequest.setMethod(HttpRequestMethod.POST);
+		congestionRequest.setUrl(url);
+		congestionRequest.setContent(SoapBodies.get(PolicyAlias.NO_POLICY).getBytes());
+		
+		int count = sogliaCongestione;
+		ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(count);
+
+		for (int i = 0; i < count; i++) {
+			executor.execute(() -> {
+				try {
+					logRateLimiting.info(congestionRequest.getMethod() + " " + congestionRequest.getUrl());
+					 HttpResponse r = HttpUtilities.httpInvoke(congestionRequest);
+					 assertEquals(200, r.getResultHTTPOperation());
+					logRateLimiting.info("Richiesta effettuata..");
+				} catch (UtilsException e) {
+					e.printStackTrace();
+					throw new RuntimeException(e);
+				}
+			});
+		}
+		
+		// Aspetto che il sistema vada in congestione..
+		org.openspcoop2.utils.Utilities.sleep(Long.parseLong(System.getProperty("congestion_delay")));
+		
+		responses = Utils.makeSequentialRequests(request, maxRequests+1);
+		
+		// Tutte le risposte devono essere bloccate, perchè siamo in congestione
+		// e le richieste iniziali sono state conteggiate
+		assertEquals( maxRequests+1, responses.stream().filter(r -> r.getResultHTTPOperation() == 429).count());
+		logRateLimiting.info(Utils.getPolicy(idPolicy));
+
+		// Nel mentre siamo in congestione rieseguo per intero il test sul Numero Richieste Completate con successo
+		testToRun.accept(erogazione, PolicyAlias.ORARIO);
+				
+		try {
+			executor.shutdown();
+			executor.awaitTermination(20, TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			logRateLimiting.error("Le richieste hanno impiegato più di venti secondi!");
+			throw new RuntimeException(e);
+		}
+		
+	}
+	
+	
+	/**
+	 * Controlliamo che la policy di rate limiting non venga applicata se lo stato 
+	 * di congestione è stato risolto.
+	 * 
+	 */
+	public void noRateLimitingSeCongestioneRisolta(TipoServizio tipoServizio) throws UtilsException, HttpUtilsException {
+		final int maxRequests = 5;
+		final String erogazione = "InPresenzaCongestioneSoap";
+		final PolicyAlias policy = PolicyAlias.ORARIO;
+		
+		final String idPolicy = tipoServizio == TipoServizio.EROGAZIONE
+				? dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy)
+				: dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
+		
+		final String urlServizio = tipoServizio == TipoServizio.EROGAZIONE
+				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1"
+				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1";
+		
+		Utils.resetCounters(idPolicy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
+		Utils.waitForPolicy(policy);
+
+		// La policy di RL è: NumeroRichiesteCompletateConSuccesso.
+
+		// Faccio n richieste per superare la policy e controllo che non scatti,
+		// perchè la congestione non è attiva.
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/soap+xml");
+		request.setMethod(HttpRequestMethod.POST);
+		request.setUrl(urlServizio);
+		request.setContent(SoapBodies.get(policy).getBytes());
+						
+		// Anche se la congestione non è attiva, comunque le richieste devono essere conteggiate
+		Vector<HttpResponse> responses = Utils.makeRequestsAndCheckPolicy(request, maxRequests+1, idPolicy);
+				
+		// Controllo che non sia scattata la policy
+		assertEquals( maxRequests+1, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
+		
+		
+		// Faccio attivare la congestione
+		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteSoap/v1?sleep=5000";
+		HttpRequest congestionRequest = new HttpRequest();
+		congestionRequest.setContentType("application/soap+xml");
+		congestionRequest.setMethod(HttpRequestMethod.POST);
+		congestionRequest.setUrl(url);
+		congestionRequest.setContent(SoapBodies.get(PolicyAlias.NO_POLICY).getBytes());
+		
+		Vector<HttpResponse> congestionResponses = Utils.makeParallelRequests(congestionRequest, sogliaCongestione+1);
+		
+		// Verifico che siano andate tutte bene
+		assertEquals(sogliaCongestione+1, congestionResponses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
+	
+		// Siccome il congestionamento termina nel momento in cui terminano le richieste simultanee,
+		// se faccio richieste conteggiate dalla policy, questa comunque non deve scattare.
+		
+		responses = Utils.makeSequentialRequests(request, maxRequests+1);
+		
+		// Controllo che non sia scattata la policy
+		assertEquals(maxRequests+1, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());		
+	}
+	
 	
 	/** 
 	 * 	Qui si testa la generazione dell'evento di congestione e del successivo evento

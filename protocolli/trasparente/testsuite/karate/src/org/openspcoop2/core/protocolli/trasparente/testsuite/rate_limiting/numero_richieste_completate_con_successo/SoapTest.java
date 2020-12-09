@@ -34,7 +34,6 @@ import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Heade
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.SoapBodies;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.PolicyAlias;
-import org.openspcoop2.pdd.core.dynamic.DynamicException;
 import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpResponse;
@@ -242,7 +241,7 @@ public class SoapTest extends ConfigLoader {
 	}
 	
 	
-	public void testErogazione(String erogazione, PolicyAlias policy) throws Exception {
+	public static void testErogazione(String erogazione, PolicyAlias policy) {
 		
 		int windowSize = Utils.getPolicyWindowSize(policy);
 		
@@ -275,7 +274,7 @@ public class SoapTest extends ConfigLoader {
 	}
 	
 	
-	public void testFruizione(String erogazione, PolicyAlias policy) throws Exception {
+	public static void testFruizione(String erogazione, PolicyAlias policy) {
 		
 		int windowSize = Utils.getPolicyWindowSize(policy);
 		
@@ -375,7 +374,7 @@ public class SoapTest extends ConfigLoader {
 	}
 	
 	
-	private void checkFailedRequests(Vector<HttpResponse> responses, int windowSize) throws Exception {
+	private static void checkFailedRequests(Vector<HttpResponse> responses, int windowSize) {
 		
 		for (var r: responses) {
 			Utils.checkXLimitHeader(r.getHeader(Headers.RequestSuccesfulLimit), maxRequests);			
@@ -398,7 +397,7 @@ public class SoapTest extends ConfigLoader {
 	}
 
 
-	private void checkOkRequests(Vector<HttpResponse> responses, int windowSize) throws DynamicException {
+	private static void checkOkRequests(Vector<HttpResponse> responses, int windowSize) {
 	
 		// Per ogni richiesta controllo gli headers e anche che il body
 		// sia effettivamente un fault.

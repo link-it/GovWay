@@ -51,7 +51,6 @@ import org.openspcoop2.utils.transport.TransportUtils;
 import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpResponse;
 import org.openspcoop2.utils.transport.http.HttpUtilities;
-import org.openspcoop2.utils.transport.http.HttpUtilsException;
 import org.slf4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -203,11 +202,15 @@ public class Utils {
 
 	
 	
-	public static void matchLimitExceededSoap(Element element) throws DynamicException {
-		PatternExtractor matcher = new PatternExtractor(OpenSPCoop2MessageFactory.getDefaultMessageFactory(), element, logRateLimiting);
-		assertEquals("Limit Exceeded", matcher.read("/html/head/title/text()"));
-		assertEquals("Limit Exceeded", matcher.read("/html/body/h1/text()"));
-		assertEquals("Limit exceeded detected", matcher.read("/html/body/p/text()"));
+	public static void matchLimitExceededSoap(Element element) {
+		try {
+			PatternExtractor matcher = new PatternExtractor(OpenSPCoop2MessageFactory.getDefaultMessageFactory(), element, logRateLimiting);
+			assertEquals("Limit Exceeded", matcher.read("/html/head/title/text()"));
+			assertEquals("Limit Exceeded", matcher.read("/html/body/h1/text()"));
+			assertEquals("Limit exceeded detected", matcher.read("/html/body/p/text()"));
+		} catch (DynamicException e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 	
@@ -235,7 +238,7 @@ public class Utils {
 	}
 	
 	
-	public static void resetCounters(String idPolicy) throws UtilsException, HttpUtilsException {
+	public static void resetCounters(String idPolicy) {
 		Map<String,String> queryParams = Map.of(
 				"resourceName", "ControlloTraffico",
 				"methodName", "resetPolicyCounters",
@@ -243,8 +246,13 @@ public class Utils {
 			);
 		String jmxUrl = TransportUtils.buildLocationWithURLBasedParameter(queryParams, System.getProperty("govway_base_path") + "/check");
 		logRateLimiting.info("Resetto la policy di rate limiting sulla url: " + jmxUrl );
-		String resp = new String(HttpUtilities.getHTTPResponse(jmxUrl, System.getProperty("jmx_username"), System.getProperty("jmx_password")).getContent());
-		logRateLimiting.info(resp);
+		
+		try {
+			String resp = new String(HttpUtilities.getHTTPResponse(jmxUrl, System.getProperty("jmx_username"), System.getProperty("jmx_password")).getContent());
+			logRateLimiting.info(resp);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 		//HttpUtilities.check(jmxUrl, System.getProperty("jmx_username"), System.getProperty("jmx_password"));
 	}
 	
@@ -334,6 +342,8 @@ public class Utils {
 			waitForNewDay();
 			break;
 		case RICHIESTE_SIMULTANEE:
+			break;
+		default:
 			break;
 		}
 		

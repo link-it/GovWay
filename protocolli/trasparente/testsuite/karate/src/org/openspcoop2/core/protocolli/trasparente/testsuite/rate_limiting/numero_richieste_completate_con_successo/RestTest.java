@@ -230,7 +230,7 @@ public class RestTest extends ConfigLoader {
 	}
 	
 
-	public static void testErogazione(String erogazione, PolicyAlias policy) throws Exception {
+	public static void testErogazione(String erogazione, PolicyAlias policy) {
 		
 		int windowSize = Utils.getPolicyWindowSize(policy);
 		String path = Utils.getPolicyPath(policy);
@@ -260,7 +260,7 @@ public class RestTest extends ConfigLoader {
 		checkFailedRequests(failedResponses, windowSize);		
 	}
 	
-	public void testFruizione(String erogazione, PolicyAlias policy) throws Exception {
+	public static void testFruizione(String erogazione, PolicyAlias policy) {
 		
 		int windowSize = Utils.getPolicyWindowSize(policy);
 		String path = Utils.getPolicyPath(policy);
@@ -373,7 +373,7 @@ public class RestTest extends ConfigLoader {
 		});
 	}
 	
-	private static void checkFailedRequests(Vector<HttpResponse> responses, int windowSize) throws Exception {
+	private static void checkFailedRequests(Vector<HttpResponse> responses, int windowSize) {
 		
 		JsonPathExpressionEngine jsonPath = new JsonPathExpressionEngine();
 		
@@ -386,18 +386,22 @@ public class RestTest extends ConfigLoader {
 			assertTrue(Integer.valueOf(r.getHeader(Headers.RequestSuccesfulReset)) <= windowSize);
 			assertEquals(429, r.getResultHTTPOperation());
 			
-			JSONObject jsonResp = JsonPathExpressionEngine.getJSONObject(new String(r.getContent()));
-			
-			assertEquals("https://govway.org/handling-errors/429/LimitExceeded.html", jsonPath.getStringMatchPattern(jsonResp, "$.type").get(0));
-			assertEquals("LimitExceeded", jsonPath.getStringMatchPattern(jsonResp, "$.title").get(0));
-			assertEquals(429, jsonPath.getNumberMatchPattern(jsonResp, "$.status").get(0));
-			assertNotEquals(null, jsonPath.getStringMatchPattern(jsonResp, "$.govway_id").get(0));	
-			assertEquals("Limit exceeded detected", jsonPath.getStringMatchPattern(jsonResp, "$.detail").get(0));
-			
-			assertEquals("0", r.getHeader(Headers.RequestSuccesfulRemaining));
-			assertEquals(HeaderValues.LimitExceeded, r.getHeader(Headers.GovWayTransactionErrorType));
-			assertEquals(HeaderValues.ReturnCodeTooManyRequests, r.getHeader(Headers.ReturnCode));
-			assertNotEquals(null, r.getHeader(Headers.RetryAfter));
+			try {
+				JSONObject jsonResp = JsonPathExpressionEngine.getJSONObject(new String(r.getContent()));
+				
+				assertEquals("https://govway.org/handling-errors/429/LimitExceeded.html", jsonPath.getStringMatchPattern(jsonResp, "$.type").get(0));
+				assertEquals("LimitExceeded", jsonPath.getStringMatchPattern(jsonResp, "$.title").get(0));
+				assertEquals(429, jsonPath.getNumberMatchPattern(jsonResp, "$.status").get(0));
+				assertNotEquals(null, jsonPath.getStringMatchPattern(jsonResp, "$.govway_id").get(0));	
+				assertEquals("Limit exceeded detected", jsonPath.getStringMatchPattern(jsonResp, "$.detail").get(0));
+				
+				assertEquals("0", r.getHeader(Headers.RequestSuccesfulRemaining));
+				assertEquals(HeaderValues.LimitExceeded, r.getHeader(Headers.GovWayTransactionErrorType));
+				assertEquals(HeaderValues.ReturnCodeTooManyRequests, r.getHeader(Headers.ReturnCode));
+				assertNotEquals(null, r.getHeader(Headers.RetryAfter));
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
 		}	
 	}
 
