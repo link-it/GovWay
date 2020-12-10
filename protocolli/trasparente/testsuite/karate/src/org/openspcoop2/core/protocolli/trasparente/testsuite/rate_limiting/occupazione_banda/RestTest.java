@@ -77,6 +77,40 @@ public class RestTest extends ConfigLoader {
 	
 	
 	@Test
+	public void perMinutoDefaultErogazione() throws Exception {
+
+		final int requestSizeBytes = 500000;
+
+		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "OccupazioneBandaRest",
+				PolicyAlias.MINUTODEFAULT);
+		Utils.resetCounters(idPolicy);
+
+		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "OccupazioneBandaRest", PolicyAlias.MINUTODEFAULT);
+		Commons.checkPreConditionsOccupazioneBanda(idPolicy);
+		
+		Utils.waitForNewMinute();
+		
+		// Faccio n-1 richieste parallele per testare eventuali race conditions sui contatori,
+		// alla fine faccio l'ultima che fa scattare la policy
+
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/json");
+		request.setContent(generatePayload(requestSizeBytes));
+		request.setMethod(HttpRequestMethod.POST);
+		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/OccupazioneBandaRest/v1/minuto-default");
+
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, 3);
+		
+		Utils.waitForZeroActiveRequests(idPolicy, 3);
+		
+		responses.addAll(Utils.makeSequentialRequests(request, 1));
+
+		checkAssertions(responses, 1024, 60);
+		Commons.checkPostConditionsOccupazioneBanda(idPolicy);
+	}
+	
+	
+	@Test
 	public void orarioErogazione() throws Exception {
 
 		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "OccupazioneBandaRest",	PolicyAlias.ORARIO);
@@ -152,6 +186,35 @@ public class RestTest extends ConfigLoader {
 		checkAssertions(responses, 5, 60);
 		Commons.checkPostConditionsOccupazioneBanda(idPolicy);
 	}
+	
+	
+	@Test
+	public void perMinutoDefaultFruizione() throws Exception {
+		
+		final int requestSizeBytes = 500000;
+
+		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "OccupazioneBandaRest", PolicyAlias.MINUTODEFAULT);
+		Utils.resetCounters(idPolicy);
+
+		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "OccupazioneBandaRest", PolicyAlias.MINUTODEFAULT);
+		Commons.checkPreConditionsOccupazioneBanda(idPolicy);
+		
+		Utils.waitForNewMinute();
+
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/json");
+		request.setContent(generatePayload(requestSizeBytes));
+		request.setMethod(HttpRequestMethod.POST);
+		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/OccupazioneBandaRest/v1/minuto-default");
+
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, 3);
+		Utils.waitForZeroActiveRequests(idPolicy, 3);
+		responses.addAll(Utils.makeSequentialRequests(request, 1));
+
+		checkAssertions(responses, 1024, 60);
+		Commons.checkPostConditionsOccupazioneBanda(idPolicy);
+	}
+	
 	
 	
 	@Test

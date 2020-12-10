@@ -176,6 +176,42 @@ public class SoapTest extends ConfigLoader {
 	
 	
 	@Test
+	public void richiestePerMinutoDefaultErogazione() throws Exception {
+		logRateLimiting.info("Test richieste per minuto erogazione...");
+		final int maxRequests = 10;
+
+		// Resetto la policy di RL
+		
+		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.MINUTODEFAULT);
+		Utils.resetCounters(idPolicy);
+		
+		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.MINUTODEFAULT);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
+		
+		// Aspetto lo scoccare del minuto
+
+		Utils.waitForNewMinute();		
+		
+		String body = SoapBodies.get(PolicyAlias.MINUTODEFAULT);
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/soap+xml");
+		request.setMethod(HttpRequestMethod.POST);
+		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/NumeroRichiesteSoap/v1");
+		request.setContent(body.getBytes());
+		
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests);
+		
+		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
+		
+		responses.addAll(Utils.makeParallelRequests(request, 5));
+		
+		checkAssertionsNumeroRichieste(responses, maxRequests, 60);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 5);				
+	}
+	
+	
+	@Test
 	public void richiesteOrarieErogazione() throws Exception {
 		logRateLimiting.info("Test richieste orarie erogazione...");
 		final int maxRequests = 10;
@@ -268,6 +304,44 @@ public class SoapTest extends ConfigLoader {
 		Utils.waitForNewMinute();		
 		
 		String body = SoapBodies.get(PolicyAlias.MINUTO);
+		
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/soap+xml");
+		request.setMethod(HttpRequestMethod.POST);
+		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1");
+		request.setContent(body.getBytes());
+		
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests);
+		
+		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
+		
+		responses.addAll(Utils.makeParallelRequests(request, 5));
+		
+		checkAssertionsNumeroRichieste(responses, maxRequests, 60);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 5);
+	}
+	
+	
+	@Test
+	public void richiestePerMinutoDefaultFruizione() throws Exception {
+		logRateLimiting.info("Test richieste per minuto fruizione...");
+		final int maxRequests = 10;
+
+		// Resetto la policy di RL
+		
+		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.MINUTODEFAULT);
+		Utils.resetCounters(idPolicy);
+		
+		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteSoap", PolicyAlias.MINUTODEFAULT);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
+
+		
+		// Aspetto lo scoccare del minuto
+
+		Utils.waitForNewMinute();		
+		
+		String body = SoapBodies.get(PolicyAlias.MINUTODEFAULT);
 		
 		
 		HttpRequest request = new HttpRequest();

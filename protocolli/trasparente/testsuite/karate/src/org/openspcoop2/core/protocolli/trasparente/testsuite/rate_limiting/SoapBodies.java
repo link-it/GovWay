@@ -39,6 +39,14 @@ public class SoapBodies {
 			"</soap:Envelope>";
 	
 	
+	private final static String minutoDefault = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
+			"    <soap:Body>\n" + 
+			"        <ns2:MinutoDefault xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
+			"        </ns2:MinutoDefault>\n" + 
+			"    </soap:Body>\n" + 
+			"</soap:Envelope>";
+	
+	
 	private final static String giornaliero = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
 			"    <soap:Body>\n" + 
 			"        <ns2:Giornaliero xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
@@ -77,6 +85,8 @@ public class SoapBodies {
 			return giornaliero;
 		case MINUTO:
 			return minuto;
+		case MINUTODEFAULT:
+			return minutoDefault;
 		case ORARIO:
 			return orario;
 		case RICHIESTE_SIMULTANEE:

@@ -80,6 +80,46 @@ public class SoapTest extends ConfigLoader {
 	
 	
 	@Test
+	public void perMinutoDefaultErogazione() throws Exception {
+		
+		final int requestSizeBytes = 500000;
+
+
+		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "OccupazioneBandaSoap", PolicyAlias.MINUTODEFAULT);
+		Utils.resetCounters(idPolicy);
+		
+		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "OccupazioneBandaSoap", PolicyAlias.MINUTODEFAULT);
+		Commons.checkPreConditionsOccupazioneBanda(idPolicy);
+ 
+		
+		Utils.waitForNewMinute();
+		
+		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
+				"    <soap:Body>\n" + 
+				"        <ns2:MinutoDefault xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +
+				generatePayload(requestSizeBytes) +
+				"        </ns2:MinutoDefault>\n" + 
+				"    </soap:Body>\n" + 
+				"</soap:Envelope>";
+		
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/soap+xml");
+		request.setMethod(HttpRequestMethod.POST);
+		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/OccupazioneBandaSoap/v1");
+		request.setContent(body.getBytes());
+		
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, 3);
+		Utils.waitForZeroActiveRequests(idPolicy, 3);
+		responses.addAll(Utils.makeSequentialRequests(request, 1));
+
+		checkAssertions(responses, 1024, 60);		
+		
+		Commons.checkPostConditionsOccupazioneBanda(idPolicy);		
+	}
+	
+	
+	@Test
 	public void orarioErogazione() throws Exception {
 
 		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "OccupazioneBandaSoap", PolicyAlias.ORARIO);
@@ -183,6 +223,44 @@ public class SoapTest extends ConfigLoader {
 		responses.addAll(Utils.makeSequentialRequests(request, 1));
 		Utils.waitForZeroActiveRequests(idPolicy, 3);
 		checkAssertions(responses, 5, 60);		
+		
+		Commons.checkPostConditionsOccupazioneBanda(idPolicy);		
+	}
+	
+	
+	@Test
+	public void perMinutoDefaultFruizione() throws Exception {
+		
+		final int requestSizeBytes = 500000;
+
+		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "OccupazioneBandaSoap", PolicyAlias.MINUTODEFAULT);
+		Utils.resetCounters(idPolicy);
+		
+		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "OccupazioneBandaSoap", PolicyAlias.MINUTODEFAULT);
+		Commons.checkPreConditionsOccupazioneBanda(idPolicy);
+		
+		Utils.waitForNewMinute();
+		
+		String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
+				"    <soap:Body>\n" + 
+				"        <ns2:MinutoDefault xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +
+				generatePayload(requestSizeBytes) +
+				"        </ns2:MinutoDefault>\n" + 
+				"    </soap:Body>\n" + 
+				"</soap:Envelope>";
+		
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/soap+xml");
+		request.setMethod(HttpRequestMethod.POST);
+		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/OccupazioneBandaSoap/v1");
+		request.setContent(body.getBytes());
+		
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, 3);
+		
+		responses.addAll(Utils.makeSequentialRequests(request, 1));
+		Utils.waitForZeroActiveRequests(idPolicy, 3);
+		checkAssertions(responses, 1024, 60);		
 		
 		Commons.checkPostConditionsOccupazioneBanda(idPolicy);		
 	}

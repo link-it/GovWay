@@ -44,7 +44,6 @@ public class RestTest extends ConfigLoader {
 	
 	final static int maxRequests = 5;
 	final static int toFailRequests = 4;
-	final static int totalRequests = maxRequests + toFailRequests;
 	
 	@Test
 	public void conteggioCorrettoErogazione() throws Exception {
@@ -100,8 +99,8 @@ public class RestTest extends ConfigLoader {
 
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, toFailRequests);
 		
-		checkOkRequests(responses, windowSize);
-		checkFailedRequests(failedResponses, windowSize);		
+		checkOkRequests(responses, windowSize, maxRequests);
+		checkFailedRequests(failedResponses, windowSize, maxRequests);		
 	}
 	
 	
@@ -159,14 +158,19 @@ public class RestTest extends ConfigLoader {
 
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, toFailRequests);
 		
-		checkOkRequests(responses, windowSize);
-		checkFailedRequests(failedResponses, windowSize);		
+		checkOkRequests(responses, windowSize, maxRequests);
+		checkFailedRequests(failedResponses, windowSize, maxRequests);		
 	}
 	
 	
 	@Test
 	public void perMinutoErogazione() throws Exception {
 		testErogazione("RichiesteFalliteFaultRest", PolicyAlias.MINUTO);
+	}
+	
+	@Test
+	public void perMinutoDefaultErogazione() throws Exception {
+		testErogazione("RichiesteFalliteFaultRest", PolicyAlias.MINUTODEFAULT);
 	}
 	
 	@Test
@@ -201,6 +205,11 @@ public class RestTest extends ConfigLoader {
 	}
 	
 	@Test
+	public void perMinutoDefaultFruizione() throws Exception {
+		testFruizione("RichiesteFalliteFaultRest", PolicyAlias.MINUTODEFAULT);
+	}
+	
+	@Test
 	public void orarioFruizione() throws Exception {
 		testFruizione("RichiesteFalliteFaultRest", PolicyAlias.ORARIO);
 	}
@@ -229,7 +238,7 @@ public class RestTest extends ConfigLoader {
 		
 		// Facciamo un batch di richieste fallite e un batch di richieste con fault,
 		// che devono essere tutte conteggiate
-		
+		int maxRequests = getMaxRequests(policy);
 		int windowSize = Utils.getPolicyWindowSize(policy);
 		String path = Utils.getPolicyPath(policy);
 		
@@ -271,8 +280,8 @@ public class RestTest extends ConfigLoader {
 
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, toFailRequests);
 		
-		checkOkRequests(responses, windowSize);
-		checkFailedRequests(blockedResponses, windowSize);		
+		checkOkRequests(responses, windowSize, maxRequests);
+		checkFailedRequests(blockedResponses, windowSize, maxRequests);		
 	}
 	
 	
@@ -303,8 +312,8 @@ public class RestTest extends ConfigLoader {
 		
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, toFailRequests);
 		
-		checkOkRequests(responses, windowSize);
-		checkFailedRequests(failedResponses, windowSize);
+		checkOkRequests(responses, windowSize, maxRequests);
+		checkFailedRequests(failedResponses, windowSize, maxRequests);
 	}
 	
 	
@@ -312,7 +321,7 @@ public class RestTest extends ConfigLoader {
 		
 		// Facciamo un batch di richieste fallite e un batch di richieste con fault,
 		// che devono essere tutte conteggiate
-		
+		int maxRequests = getMaxRequests(policy);
 		int windowSize = Utils.getPolicyWindowSize(policy);
 		String path = Utils.getPolicyPath(policy);
 		
@@ -354,8 +363,8 @@ public class RestTest extends ConfigLoader {
 
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, toFailRequests);
 		
-		checkOkRequests(responses, windowSize);
-		checkFailedRequests(blockedResponses, windowSize);		
+		checkOkRequests(responses, windowSize, maxRequests);
+		checkFailedRequests(blockedResponses, windowSize, maxRequests);		
 	}
 	
 	
@@ -386,12 +395,12 @@ public class RestTest extends ConfigLoader {
 		
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, toFailRequests);
 		
-		checkOkRequests(responses, windowSize);
-		checkFailedRequests(failedResponses, windowSize);
+		checkOkRequests(responses, windowSize, maxRequests);
+		checkFailedRequests(failedResponses, windowSize, maxRequests);
 	}
 	
 	
-	private void checkOkRequests(Vector<HttpResponse> responses, int windowSize) {
+	private void checkOkRequests(Vector<HttpResponse> responses, int windowSize, int maxRequests) {
 		// Delle richieste ok Controllo lo header *-Limit, *-Reset e lo status code
 		
 		responses.forEach( r -> {
@@ -408,7 +417,7 @@ public class RestTest extends ConfigLoader {
 		});
 	}
 	
-	private void checkFailedRequests(Vector<HttpResponse> responses, int windowSize) throws Exception {
+	private void checkFailedRequests(Vector<HttpResponse> responses, int windowSize, int maxRequests) throws Exception {
 		
 		for (var r: responses) {
 			Utils.checkXLimitHeader(r.getHeader(Headers.FailedOrFaultLimit), maxRequests);			
@@ -428,5 +437,12 @@ public class RestTest extends ConfigLoader {
 			assertEquals(HeaderValues.ReturnCodeTooManyRequests, r.getHeader(Headers.ReturnCode));
 			assertNotEquals(null, r.getHeader(Headers.RetryAfter));
 		}	
+	}
+	
+	private static int getMaxRequests(PolicyAlias policy) {
+		if (policy == PolicyAlias.MINUTODEFAULT)
+			return 3;
+		else
+			return 5;
 	}
 }

@@ -73,6 +73,7 @@ public class Utils {
 		MINUTO("Minuto"),	
 		ORARIO("Orario"),
 		GIORNALIERO("Giornaliero"),
+		MINUTODEFAULT("MinutoDefault"),
 		NO_POLICY("NESSUNA_POLICY");
 		
 		public final String value;
@@ -540,6 +541,8 @@ public class Utils {
 			return 86400;
 		case MINUTO:
 			return 60;
+		case MINUTODEFAULT:
+			return 60;
 		case ORARIO:
 			return 3600;
 		case RICHIESTE_SIMULTANEE:
@@ -560,6 +563,8 @@ public class Utils {
 			return "orario";
 		case RICHIESTE_SIMULTANEE:
 			return "richieste-simultanee";
+		case MINUTODEFAULT:
+			return "minuto-default";
 		default:
 			return "";
 		

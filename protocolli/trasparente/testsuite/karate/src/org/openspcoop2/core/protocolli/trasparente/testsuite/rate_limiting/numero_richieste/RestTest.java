@@ -76,6 +76,37 @@ public class RestTest extends ConfigLoader {
 		checkAssertionsNumeroRichieste(responses, maxRequests, 60, disclosure);
 	}
 	
+	@Test
+	public void richiestePerMinutoDefaultErogazione() throws Exception {
+		Utils.toggleErrorDisclosure(false);
+		logRateLimiting.info("Test richieste per minuto");
+		final int maxRequests = 10;
+
+		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "NumeroRichiesteRest", PolicyAlias.MINUTODEFAULT);
+		Utils.resetCounters(idPolicy);
+		
+		idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "NumeroRichiesteRest", PolicyAlias.MINUTODEFAULT);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
+		
+		// Aspetto lo scoccare del minuto
+		
+		Utils.waitForNewMinute();
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/json");
+		request.setMethod(HttpRequestMethod.GET);
+		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/NumeroRichiesteRest/v1/minuto-default");
+						
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests);
+		
+		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
+		
+		responses.addAll(Utils.makeParallelRequests(request, 5));
+		
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 5);	
+		checkAssertionsNumeroRichieste(responses, maxRequests, 60, false);
+	}
+	
 	
 	@Test
 	public void richiestePerMinutoErogazioneNoDisclosure() throws Exception {
@@ -202,6 +233,37 @@ public class RestTest extends ConfigLoader {
 		responses.addAll(Utils.makeParallelRequests(request, 5));
 		
 		checkAssertionsNumeroRichieste(responses, maxRequests, 60, disclosure);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 5);
+	}
+	
+	@Test
+	public void richiestePerMinutoDefaultFruizione() throws Exception {
+		Utils.toggleErrorDisclosure(false);
+		logRateLimiting.info("Test richieste per minuto fruizione");
+		final int maxRequests = 10;
+
+		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteRest", PolicyAlias.MINUTODEFAULT);
+		Utils.resetCounters(idPolicy);
+		
+		idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "NumeroRichiesteRest", PolicyAlias.MINUTODEFAULT);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
+		
+		// Aspetto lo scoccare del minuto
+		
+		Utils.waitForNewMinute();
+		
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/json");
+		request.setMethod(HttpRequestMethod.GET);
+		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteRest/v1/minuto-default");
+						
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests);
+		
+		Utils.waitForZeroActiveRequests(idPolicy, maxRequests);
+		
+		responses.addAll(Utils.makeParallelRequests(request, 5));
+		
+		checkAssertionsNumeroRichieste(responses, maxRequests, 60, false);
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 5);
 	}
 	

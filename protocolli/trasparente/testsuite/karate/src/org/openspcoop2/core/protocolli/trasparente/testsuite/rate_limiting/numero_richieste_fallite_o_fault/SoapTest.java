@@ -44,7 +44,6 @@ public class SoapTest extends ConfigLoader {
 	
 	final static int maxRequests = 5;
 	final static int toBlockRequests = 4;
-	final static int totalRequests = maxRequests + toBlockRequests;
 	
 	@Test
 	public void conteggioCorrettoErogazione() throws Exception {
@@ -98,8 +97,8 @@ public class SoapTest extends ConfigLoader {
 
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, toBlockRequests);
 		
-		checkOkRequests(responses, windowSize);
-		checkFailedRequests(failedResponses, windowSize);		
+		checkOkRequests(responses, windowSize, maxRequests);
+		checkFailedRequests(failedResponses, windowSize, maxRequests);		
 	}
 	
 	
@@ -115,6 +114,11 @@ public class SoapTest extends ConfigLoader {
 	@Test
 	public void perMinutoErogazione() throws Exception {
 		testErogazione("RichiesteFalliteFaultSoap", PolicyAlias.MINUTO);
+	}
+	
+	@Test
+	public void perMinutoDefaultErogazione() throws Exception {
+		testErogazione("RichiesteFalliteFaultSoap", PolicyAlias.MINUTODEFAULT);
 	}
 	
 	@Test
@@ -148,6 +152,11 @@ public class SoapTest extends ConfigLoader {
 	}
 	
 	@Test
+	public void perMinutoDefaultFruizione() throws Exception {
+		testFruizione("RichiesteFalliteFaultSoap", PolicyAlias.MINUTODEFAULT);
+	}
+	
+	@Test
 	public void orarioFruizione() throws Exception {
 		testFruizione("RichiesteFalliteFaultSoap", PolicyAlias.ORARIO);
 	}
@@ -175,6 +184,7 @@ public class SoapTest extends ConfigLoader {
 	
 	public void testErogazione(String erogazione, PolicyAlias policy) throws Exception {
 		
+		int maxRequests = getMaxRequests(policy);
 		int windowSize = Utils.getPolicyWindowSize(policy);
 		
 		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy);
@@ -227,13 +237,14 @@ public class SoapTest extends ConfigLoader {
 		
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, toBlockRequests);
 		
-		checkOkRequests(responses, windowSize);
-		checkFailedRequests(blockedResponses, windowSize);		
+		checkOkRequests(responses, windowSize, maxRequests);
+		checkFailedRequests(blockedResponses, windowSize, maxRequests);		
 	}
 	
 	
 	public void testFruizione(String erogazione, PolicyAlias policy) throws Exception {
 		
+		int maxRequests = getMaxRequests(policy);
 		int windowSize = Utils.getPolicyWindowSize(policy);
 		
 		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
@@ -286,8 +297,8 @@ public class SoapTest extends ConfigLoader {
 		
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, toBlockRequests);
 		
-		checkOkRequests(responses, windowSize);
-		checkFailedRequests(blockedResponses, windowSize);		
+		checkOkRequests(responses, windowSize, maxRequests);
+		checkFailedRequests(blockedResponses, windowSize, maxRequests);		
 	}
 	
 	
@@ -321,8 +332,8 @@ public class SoapTest extends ConfigLoader {
 		
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, toBlockRequests);
 		
-		checkOkRequests(responses, windowSize);
-		checkFailedRequests(failedResponses, windowSize);
+		checkOkRequests(responses, windowSize, maxRequests);
+		checkFailedRequests(failedResponses, windowSize, maxRequests);
 	}
 	
 	
@@ -355,13 +366,13 @@ public class SoapTest extends ConfigLoader {
 		
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, toBlockRequests);
 		
-		checkOkRequests(responses, windowSize);
-		checkFailedRequests(failedResponses, windowSize);
+		checkOkRequests(responses, windowSize, maxRequests);
+		checkFailedRequests(failedResponses, windowSize, maxRequests);
 	}
 	
 	
 	
-	private void checkFailedRequests(Vector<HttpResponse> responses, int windowSize) throws Exception {
+	private void checkFailedRequests(Vector<HttpResponse> responses, int windowSize, int maxRequests) throws Exception {
 		
 		for (var r: responses) {
 			Utils.checkXLimitHeader(r.getHeader(Headers.FailedOrFaultLimit), maxRequests);			
@@ -384,7 +395,7 @@ public class SoapTest extends ConfigLoader {
 	}
 
 
-	private void checkOkRequests(Vector<HttpResponse> responses, int windowSize) throws DynamicException {
+	private void checkOkRequests(Vector<HttpResponse> responses, int windowSize, int maxRequests) throws DynamicException {
 	
 		// Per ogni richiesta controllo gli headers e anche che il body
 		// sia effettivamente un fault.
@@ -399,5 +410,12 @@ public class SoapTest extends ConfigLoader {
 			assertNotEquals(null, Integer.valueOf(r.getHeader(Headers.FailedOrFaultRemaining)));
 		}
 		
+	}
+	
+	private static int getMaxRequests(PolicyAlias policy) {
+		if (policy == PolicyAlias.MINUTODEFAULT)
+			return 3;
+		else
+			return 5;
 	}
 }
