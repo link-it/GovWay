@@ -52,6 +52,11 @@ public class RestTest extends ConfigLoader {
 	}
 	
 	@Test
+	public void perMinutoDefaultErogazione() throws Exception {
+		testErogazione(PolicyAlias.MINUTODEFAULT);
+	}
+	
+	@Test
 	public void orarioErogazione() throws Exception {
 		testErogazione(PolicyAlias.ORARIO);
 	}
@@ -67,6 +72,11 @@ public class RestTest extends ConfigLoader {
 	}
 	
 	@Test
+	public void perMinutoDefaultFruizione() throws Exception {
+		testFruizione(PolicyAlias.MINUTODEFAULT);
+	}
+	
+	@Test
 	public void orarioFruizione() throws Exception {
 		testFruizione(PolicyAlias.ORARIO);
 	}
@@ -79,6 +89,8 @@ public class RestTest extends ConfigLoader {
 	public void testErogazione(PolicyAlias policy) throws Exception {
 		
 		final int windowSize = Utils.getPolicyWindowSize(policy);
+		final int soglia = getSoglia(policy);
+		
 		String path = Utils.getPolicyPath(policy);
 		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy);
 		Utils.resetCounters(idPolicy);
@@ -101,9 +113,10 @@ public class RestTest extends ConfigLoader {
 		
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?sleep=3000" );
+		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?sleep=8000" );
 		
-		notBlockedResponses.add(HttpUtilities.httpInvoke(request));
+		notBlockedResponses.addAll(Utils.makeParallelRequests(request, 1));
+		
 		
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 4, 0);
 		
@@ -116,15 +129,16 @@ public class RestTest extends ConfigLoader {
 		Vector<HttpResponse> blockedResponses = Utils.makeParallelRequests(request, 3);
 		
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 4, 3);
-		checkPassedRequests(notBlockedResponses, windowSize);
-		checkBlockedRequests(blockedResponses, windowSize);
+		checkPassedRequests(notBlockedResponses, windowSize, soglia);
+		checkBlockedRequests(blockedResponses, windowSize, soglia);
 	}
 	
 	
 	public void testFruizione(PolicyAlias policy) throws Exception {
 		
 		final int windowSize = Utils.getPolicyWindowSize(policy);
-		
+		final int soglia = getSoglia(policy);
+
 		String path = Utils.getPolicyPath(policy);
 		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
 		Utils.resetCounters(idPolicy);
@@ -148,7 +162,7 @@ public class RestTest extends ConfigLoader {
 		
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?sleep=3000" );
+		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?sleep=8000" );
 		
 		notBlockedResponses.add(HttpUtilities.httpInvoke(request));
 		
@@ -163,13 +177,13 @@ public class RestTest extends ConfigLoader {
 		Vector<HttpResponse> blockedResponses = Utils.makeParallelRequests(request, 3);
 		
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 4, 3);
-		checkPassedRequests(notBlockedResponses, windowSize);
-		checkBlockedRequests(blockedResponses, windowSize);
+		checkPassedRequests(notBlockedResponses, windowSize, soglia);
+		checkBlockedRequests(blockedResponses, windowSize, soglia);
 		
 	}
 	
 	
-	private void checkPassedRequests(Vector<HttpResponse> responses, int windowSize) {
+	private void checkPassedRequests(Vector<HttpResponse> responses, int windowSize, int soglia) {
 		// Delle richieste ok Controllo lo header *-Limit, *-Reset e lo status code
 		
 		responses.forEach( r -> {
@@ -185,7 +199,7 @@ public class RestTest extends ConfigLoader {
 		});
 	}
 	
-	private void checkBlockedRequests(Vector<HttpResponse> responses, int windowSize) throws Exception {
+	private void checkBlockedRequests(Vector<HttpResponse> responses, int windowSize, int soglia) throws Exception {
 		
 		
 		for (var r: responses) {
@@ -205,6 +219,13 @@ public class RestTest extends ConfigLoader {
 			assertEquals(HeaderValues.ReturnCodeTooManyRequests, r.getHeader(Headers.ReturnCode));
 			assertNotEquals(null, r.getHeader(Headers.RetryAfter));
 		}	
+	}
+	
+	private int getSoglia(PolicyAlias policy) {
+		if ( policy == PolicyAlias.MINUTODEFAULT )
+			return 2000;
+		else
+			return 1000;
 	}
 
 }
