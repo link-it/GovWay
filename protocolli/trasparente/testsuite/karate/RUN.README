@@ -39,7 +39,9 @@
 	Console -> Controllo del Traffico -> Configurazione Cache Controllo del Traffico -> ItemLifeTime = 10
 
 - Aggiungere nel govway_local.properties la seguente impostazione:
+
 	org.openspcoop2.pdd.controlloTraffico.statistiche.finestraScorrevole.gestioneUltimoIntervallo=true
+
   Questo perchè di base govway controlla i tempi medi risposta sulla finestra di tempo precedente per evitare di bloccare il sistema quando
 	una sola richiesta ha fatto superare il tempo medio risposta.
 

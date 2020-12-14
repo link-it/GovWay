@@ -80,6 +80,7 @@ public class DbUtils {
     public String getIdPolicyErogazione(String erogatore, String erogazione, Utils.PolicyAlias tipoPolicy) {
     	final String filtroPorta = "%gw_" + erogatore + "/gw_" + erogazione + "/v1%";
     	String query = "select active_policy_id,POLICY_UPDATE_TIME from ct_active_policy WHERE POLICY_ALIAS='"+tipoPolicy+"' AND FILTRO_PORTA LIKE'"+filtroPorta+"' AND FILTRO_RUOLO='applicativa' AND filtro_protocollo='trasparente'";
+    	logger.info(query);
     	var result = readRow(query);
     	    	
     	String active_policy_id = (String) result.get("active_policy_id");
@@ -96,7 +97,9 @@ public class DbUtils {
     public String getIdPolicyFruizione(String fruitore, String erogatore, String fruizione, Utils.PolicyAlias tipoPolicy) {
     	final String filtroPorta = "%gw_" + fruitore + "/gw_" + erogatore + "/gw_" + fruizione + "/v1%";
     	
+    	
     	String query = "select active_policy_id,POLICY_UPDATE_TIME from ct_active_policy WHERE POLICY_ALIAS='"+tipoPolicy+"' AND FILTRO_PORTA LIKE '"+filtroPorta+"' AND FILTRO_RUOLO='delegata' AND filtro_protocollo='trasparente'";
+    	logger.info(query);
       	var result = readRow(query);
     	
     	String active_policy_id = (String) result.get("active_policy_id");

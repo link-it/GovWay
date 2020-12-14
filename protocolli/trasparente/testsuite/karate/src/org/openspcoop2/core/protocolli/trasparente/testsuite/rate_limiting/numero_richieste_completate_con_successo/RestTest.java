@@ -374,7 +374,7 @@ public class RestTest extends ConfigLoader {
 	
 	
 	
-	private static void checkOkRequests(Vector<HttpResponse> responses, int windowSize, int maxRequests) {
+	public static void checkOkRequests(Vector<HttpResponse> responses, int windowSize, int maxRequests) {
 		// Delle richieste ok Controllo lo header *-Limit, *-Reset e lo status code
 		
 		responses.forEach( r -> {
@@ -391,7 +391,7 @@ public class RestTest extends ConfigLoader {
 		});
 	}
 	
-	private static void checkFailedRequests(Vector<HttpResponse> responses, int windowSize, int maxRequests) {
+	public static void checkFailedRequests(Vector<HttpResponse> responses, int windowSize, int maxRequests) {
 		
 		JsonPathExpressionEngine jsonPath = new JsonPathExpressionEngine();
 		
