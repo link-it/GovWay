@@ -20,10 +20,19 @@
   il valore impostato sopra
 
 
-- Impostare nella console di GovWay, Controllo Traffico->Tempi Risposta->Tempo MedioRisposta = 3000
-	
+- Impostare nella console di GovWay:
+		 Controllo Traffico->Tempi Risposta->Tempo MedioRisposta = 3000
+	Sia per Erogazione che per Fruizione
+	Questo per ridurre il tempo necessario ad entrare in situazione di degrado prestazionale	
+
 - Nella console Andare su Tracciamento->Superamento Limite Richieste e impostarlo su <abilitato>
 	 Questo perchè di base govway non traccia le transazioni quando è stata superata la soglia globale.
+
+Aggiungere in govway_local.properties 
+		org.openspcoop2.pdd.statistiche.generazione.baseOraria.timer.intervalloSecondi=15
+	
+	Questo per consentire di controllare in un tempo accettabile le metriche dipendenti da statistiche,
+	in particolare quando si abilitano in presenza di degrado prestazionale.
 
 
 - Per variare il ritardo con cui vengono scritti gli eventi sul database:

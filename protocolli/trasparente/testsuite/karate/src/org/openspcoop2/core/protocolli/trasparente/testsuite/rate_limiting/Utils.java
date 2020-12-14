@@ -144,6 +144,20 @@ public class Utils {
 	}
 	
 	
+	public static HttpResponse makeRequest(HttpRequest request) {
+		
+		try {
+			logRateLimiting.info(request.getMethod() + " " + request.getUrl());
+			HttpResponse ret = HttpUtilities.httpInvoke(request);
+			logRateLimiting.info("statusCode: " + ret.getResultHTTPOperation());
+			logRateLimiting.info("headers: " + ret.getHeaders());
+			return ret;
+		} catch (UtilsException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	
 	public static Vector<HttpResponse> makeSequentialRequests(HttpRequest request, int count) {
 		final Vector<HttpResponse> responses = new Vector<>();
 

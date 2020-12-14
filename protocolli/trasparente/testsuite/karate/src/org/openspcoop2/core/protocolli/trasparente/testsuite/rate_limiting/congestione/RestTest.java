@@ -278,26 +278,46 @@ public class RestTest extends ConfigLoader {
 		
 		Utils.resetCounters(idPolicy);
 		Utils.waitForPolicy(policy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
 		
-		//Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
-		//
-
 
 		// Faccio n richieste per superare la policy e controllo che non scatti,
-		// e nemmeno che le richieste vengano conteggiate, perchè la congestione non è attiva.
+		// perchè il degrado non è attivo.
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
 		request.setUrl(basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario");
 						
 		
-		Vector<HttpResponse> responses = Utils.makeSequentialRequests(request, maxRequests+1);
-		Utils.waitForZeroActiveRequests(idPolicy, 0);
+		/*Vector<HttpResponse> responses = Utils.makeSequentialRequests(request, maxRequests+1);
+		Utils.waitForZeroActiveRequests(idPolicy, maxRequests+1);
 		
+		assertEquals(maxRequests+1, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());*/
 		
-		// Faccio le richieste verificando che la policy non venga attivata
+		// Attendo nuove statistiche.
+		//org.openspcoop2.utils.Utilities.sleep(15000);
+
+		// Faccio richieste parallele da 4 secondi l'una per entrare in degrado prestazionale
+		String url = basePath + "/SoggettoInternoTest/"+erogazione+"/v1/no-policy?sleep=4000";
+		HttpRequest degradoRequest = new HttpRequest();
+		degradoRequest.setContentType("application/json");
+		degradoRequest.setMethod(HttpRequestMethod.GET);
+		degradoRequest.setUrl(url);
 		
-		// Faccio due richieste parallele da 4 secondi l'una per entrare in degrado prestazionale
+		Vector<HttpResponse> degradoResponses = Utils.makeParallelRequests(degradoRequest, 10);
+		
+		assertEquals(10, degradoResponses.stream().filter( r -> r.getResultHTTPOperation() == 200).count());
+		
+		// Attendo 15 secondi in modo che le statistiche vengano aggiornate e il degrado prestazionale
+		// rilevato.
+		
+		org.openspcoop2.utils.Utilities.sleep(20000);
+		
+		// Adesso deve bastare una richiesta per far scattare la policy
+		Vector<HttpResponse> blockedResponses = Utils.makeParallelRequests(request, maxRequests+1);
+		System.out.println(Utils.getPolicy(idPolicy));
+		assertEquals(maxRequests+1, blockedResponses.stream().filter( r -> r.getResultHTTPOperation() == 409).count());
+		
 		
 		// Rifaccio le richieste e verifico che la policy sia stata attivata
 		
