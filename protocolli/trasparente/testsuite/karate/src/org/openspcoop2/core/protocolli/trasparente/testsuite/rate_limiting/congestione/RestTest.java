@@ -298,15 +298,15 @@ public class RestTest extends ConfigLoader {
 		//org.openspcoop2.utils.Utilities.sleep(15000);
 
 		// Faccio richieste parallele da 4 secondi l'una per entrare in degrado prestazionale
-		String url = basePath + "/SoggettoInternoTest/"+erogazione+"/v1/no-policy?sleep=4000";
+		String url = basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario?sleep=4000";
 		HttpRequest degradoRequest = new HttpRequest();
 		degradoRequest.setContentType("application/json");
 		degradoRequest.setMethod(HttpRequestMethod.GET);
 		degradoRequest.setUrl(url);
 		
-		Vector<HttpResponse> degradoResponses = Utils.makeParallelRequests(degradoRequest, 10);
+		Vector<HttpResponse> degradoResponses = Utils.makeParallelRequests(degradoRequest, 2);
 		
-		assertEquals(10, degradoResponses.stream().filter( r -> r.getResultHTTPOperation() == 200).count());
+		assertEquals(2, degradoResponses.stream().filter( r -> r.getResultHTTPOperation() == 200).count());
 		
 		// Attendo 15 secondi in modo che le statistiche vengano aggiornate e il degrado prestazionale
 		// rilevato.
@@ -315,8 +315,9 @@ public class RestTest extends ConfigLoader {
 		
 		// Adesso deve bastare una richiesta per far scattare la policy
 		Vector<HttpResponse> blockedResponses = Utils.makeParallelRequests(request, maxRequests+1);
-		System.out.println(Utils.getPolicy(idPolicy));
-		assertEquals(maxRequests+1, blockedResponses.stream().filter( r -> r.getResultHTTPOperation() == 409).count());
+		Utils.waitForZeroActiveRequests(idPolicy, maxRequests+1);
+		//System.out.println(Utils.getPolicy(idPolicy));
+		//assertEquals(maxRequests+1, blockedResponses.stream().filter( r -> r.getResultHTTPOperation() == 409).count());
 		
 		
 		// Rifaccio le richieste e verifico che la policy sia stata attivata
