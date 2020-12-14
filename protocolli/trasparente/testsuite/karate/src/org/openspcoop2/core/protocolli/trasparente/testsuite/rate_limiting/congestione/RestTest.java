@@ -127,6 +127,17 @@ public class RestTest extends ConfigLoader {
 		rateLimitingInPresenzaDegrado(TipoServizio.FRUIZIONE, "InPresenzaDegradoServizioRest", 2100);
 	}
 	
+	@Test
+	public void rateLimitingInPresenzaDegradoECongestioneErogazione() {
+		rateLimitingInPresenzaDegradoECongestione(TipoServizio.EROGAZIONE, "InPresenzaDegradoECongestioneRest", 4000);
+	}
+	
+	@Test
+	public void rateLimitingInPresenzaDegradoECongestioneFruizione() {
+		rateLimitingInPresenzaDegradoECongestione(TipoServizio.FRUIZIONE, "InPresenzaDegradoECongestioneRest", 4000);
+	}
+	
+	
 	
 
 	/** 
@@ -331,18 +342,6 @@ public class RestTest extends ConfigLoader {
 		
 		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkFailedRequests(blockedResponses, windowSize, maxRequests);		
 	}
-	
-	
-	@Test
-	public void rateLimitingInPresenzaDegradoECongestioneErogazione() {
-		rateLimitingInPresenzaDegradoECongestione(TipoServizio.EROGAZIONE, "InPresenzaDegradoECongestioneRest", 4000);
-	}
-	
-	@Test
-	public void rateLimitingInPresenzaDegradoECongestioneFruizione() {
-		rateLimitingInPresenzaDegradoECongestione(TipoServizio.FRUIZIONE, "InPresenzaDegradoECongestioneRest", 4000);
-	}
-	
 	
 	/**
 	 * Controlliamo che la policy di rate limiting venga applicata solo

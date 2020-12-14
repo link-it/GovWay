@@ -385,7 +385,7 @@ public class SoapTest extends ConfigLoader {
 	}
 	
 	
-	private static void checkFailedRequests(Vector<HttpResponse> responses, int windowSize, int maxRequests) {
+	public static void checkFailedRequests(Vector<HttpResponse> responses, int windowSize, int maxRequests) {
 		
 		for (var r: responses) {
 			Utils.checkXLimitHeader(r.getHeader(Headers.RequestSuccesfulLimit), maxRequests);			
