@@ -286,7 +286,7 @@ public class RestTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl(basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario");
+		request.setUrl(basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario?sleep=4000");
 						
 		
 		/*Vector<HttpResponse> responses = Utils.makeSequentialRequests(request, maxRequests+1);
