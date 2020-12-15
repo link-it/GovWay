@@ -137,6 +137,16 @@ public class RestTest extends ConfigLoader {
 		rateLimitingInPresenzaDegradoECongestione(TipoServizio.FRUIZIONE, "InPresenzaDegradoECongestioneRest", 4000);
 	}
 	
+	@Test
+	public void noRateLimitingSeSoloInCongestioneErogazione() {
+		noRateLimitingSeSoloInCongestione(TipoServizio.EROGAZIONE, "InPresenzaDegradoECongestioneRest", 4000);
+	}
+	
+	@Test
+	public void noRateLimitingSeSoloInCongestioneFruizione() {
+		noRateLimitingSeSoloInCongestione(TipoServizio.FRUIZIONE, "InPresenzaDegradoECongestioneRest", 4000);
+	}
+	
 	
 	
 
@@ -330,6 +340,8 @@ public class RestTest extends ConfigLoader {
 		Vector<HttpResponse> degradoResponses = Utils.makeParallelRequests(request, maxRequests);
 		
 		assertEquals(maxRequests, degradoResponses.stream().filter( r -> r.getResultHTTPOperation() == 200).count());
+		logRateLimiting.info(Utils.getPolicy(idPolicy));
+
 		
 		// Attendo 15 secondi in modo che le statistiche vengano aggiornate e il degrado prestazionale
 		// rilevato.
@@ -338,9 +350,10 @@ public class RestTest extends ConfigLoader {
 		
 		// Faccio le ulteriori richieste per far scattare la policy
 		Vector<HttpResponse> blockedResponses = Utils.makeParallelRequests(request, maxRequests);
-		//Utils.waitFor
 		
-		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkFailedRequests(blockedResponses, windowSize, maxRequests);		
+		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkFailedRequests(blockedResponses, windowSize, maxRequests);
+		
+		logRateLimiting.info(Utils.getPolicy(idPolicy));
 	}
 	
 	/**
@@ -382,6 +395,12 @@ public class RestTest extends ConfigLoader {
 		logRateLimiting.info("Attendo che le statistiche vengano generate...");
 		org.openspcoop2.utils.Utilities.sleep(16000);
 		
+		// Faccio n richieste che non devono ancora essere bloccate perchè non in congestione.
+		logRateLimiting.info("Faccio n richieste parallele e nessuna viene bloccata perchè non ancora in congestione...");
+		Vector<HttpResponse> stillNonBlockedResponses = Utils.makeParallelRequests(request, maxRequests);
+
+		assertEquals(maxRequests, stillNonBlockedResponses.stream().filter( r -> r.getResultHTTPOperation() == 200).count());
+		
 		
 		// Faccio attivare la congestione
 		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=10000";
@@ -412,7 +431,73 @@ public class RestTest extends ConfigLoader {
 		
 		Vector<HttpResponse> blockedResponses = Utils.makeParallelRequests(request, maxRequests);
 		
-		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkFailedRequests(blockedResponses, windowSize, maxRequests);		
+		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkFailedRequests(blockedResponses, windowSize, maxRequests);
+		
+		logRateLimiting.info(Utils.getPolicy(idPolicy));
+	}
+	
+	
+
+	/*
+	 * Testo che il sistema non blocchi le richieste se siamo solamente in congestione e non in degrado.
+	 * 
+	 */
+	public void noRateLimitingSeSoloInCongestione(TipoServizio tipoServizio, String erogazione, int attesa) {
+		
+		final int maxRequests = 5;
+		final PolicyAlias policy = PolicyAlias.ORARIO;
+		
+		final String idPolicy = tipoServizio == TipoServizio.EROGAZIONE
+				? dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy)
+				: dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
+				
+
+		final String urlServizio = tipoServizio == TipoServizio.EROGAZIONE
+				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario?sleep="+String.valueOf(attesa)
+				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/orario?sleep="+String.valueOf(attesa);
+		
+		
+		Utils.resetCounters(idPolicy);
+		Utils.waitForPolicy(policy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);	
+		
+		// Faccio attivare la congestione
+		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=10000";
+		HttpRequest congestionRequest = new HttpRequest();
+		congestionRequest.setContentType("application/json");
+		congestionRequest.setMethod(HttpRequestMethod.GET);
+		congestionRequest.setUrl(url);
+		
+		
+		int count = sogliaCongestione;
+		ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(count);
+
+		for (int i = 0; i < count; i++) {
+			executor.execute(() -> {
+				try {
+					logRateLimiting.info(congestionRequest.getMethod() + " " + congestionRequest.getUrl());
+					 HttpResponse r = HttpUtilities.httpInvoke(congestionRequest);
+					 assertEquals(200, r.getResultHTTPOperation());
+					logRateLimiting.info("Richiesta effettuata..");
+				} catch (UtilsException e) {
+					e.printStackTrace();
+					throw new RuntimeException(e);
+				}
+			});
+		}
+		
+		// Aspetto che il sistema vada in congestione..
+		org.openspcoop2.utils.Utilities.sleep(Long.parseLong(System.getProperty("congestion_delay")));
+	
+		HttpRequest request = new HttpRequest();
+		request.setContentType("application/json");
+		request.setMethod(HttpRequestMethod.GET);
+		request.setUrl(urlServizio);
+		
+		Vector<HttpResponse> nonBlockedResponses = Utils.makeSequentialRequests(request, maxRequests*2);
+		
+		assertEquals(maxRequests*2, nonBlockedResponses.stream().filter( r -> r.getResultHTTPOperation() == 200).count());
+		
 	}
 	
 	

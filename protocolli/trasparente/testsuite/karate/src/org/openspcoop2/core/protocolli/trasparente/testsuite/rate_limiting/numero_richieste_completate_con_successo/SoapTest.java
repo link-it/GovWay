@@ -408,7 +408,7 @@ public class SoapTest extends ConfigLoader {
 	}
 
 
-	private static void checkOkRequests(Vector<HttpResponse> responses, int windowSize, int maxRequests) {
+	public static void checkOkRequests(Vector<HttpResponse> responses, int windowSize, int maxRequests) {
 	
 		// Per ogni richiesta controllo gli headers e anche che il body
 		// sia effettivamente un fault.
