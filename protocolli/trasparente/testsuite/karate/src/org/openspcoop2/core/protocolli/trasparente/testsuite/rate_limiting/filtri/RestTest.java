@@ -100,6 +100,130 @@ public class RestTest extends ConfigLoader {
 		
 		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkFailedRequests(filtrateResponsesBlocked, windowSize, maxRequests);
 		
+		// Faccio N richieste che non devono essere filtrate e devono passare
+		
+		nonFiltrateResponses = Utils.makeSequentialRequests(requestNonFiltrata, maxRequests+1);
+			
+		assertEquals(maxRequests+1, nonFiltrateResponses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
+			
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, maxRequests);
+		
+	}
+	
+	
+	/*
+	 * Analogo al test filtroRichiedente ma filtriamo per ruoli, 
+	 */
+	@Test
+	public void filtroRuoloRichiedenteErogazione() {
+		
+		String erogazione  = "FiltroRuoloRest";
+		// Sulla stessa api 
+		final int maxRequests = 5;
+		
+		final PolicyAlias policy = PolicyAlias.ORARIO;
+		final int windowSize = Utils.getPolicyWindowSize(policy);
+		
+		final String idPolicy =  dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy);
+
+		final String urlServizio = basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario";
+		
+		Utils.resetCounters(idPolicy);
+		Utils.waitForPolicy(policy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
+		
+		// Faccio una richiesta con soggetto con ruolo che deve essere filtrato
+		
+		HttpRequest requestFiltrata = new HttpRequest();
+		requestFiltrata.setContentType("application/json");
+		requestFiltrata.setMethod(HttpRequestMethod.GET);
+		requestFiltrata.setUrl(urlServizio);
+		requestFiltrata.setUsername(Credenziali.soggettoRuoloFiltrato.username);
+		requestFiltrata.setPassword(Credenziali.soggettoRuoloFiltrato.password);
+		
+		Vector<HttpResponse> filtrateResponsesOk = Utils.makeSequentialRequests(requestFiltrata, 1);
+		
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 1, 0);
+		
+		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkOkRequests(filtrateResponsesOk, windowSize, maxRequests);
+		
+		// Faccio N richieste con soggetto senza ruolo che non deve essere contato
+		
+		HttpRequest requestNonFiltrata = new HttpRequest();
+		requestNonFiltrata.setContentType("application/json");
+		requestNonFiltrata.setMethod(HttpRequestMethod.GET);
+		requestNonFiltrata.setUrl(urlServizio);
+		requestNonFiltrata.setUsername(Credenziali.nonFiltrateSoggetto.username);
+		requestNonFiltrata.setPassword(Credenziali.nonFiltrateSoggetto.password);
+		
+		Vector<HttpResponse> nonFiltrateResponses = Utils.makeSequentialRequests(requestNonFiltrata, maxRequests+1);
+		
+		assertEquals(maxRequests+1, nonFiltrateResponses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
+		
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 1, 0);
+
+		
+		// Seconda richiesta con altro soggetto con ruolo che deve essere filtrato
+		
+		requestFiltrata.setUsername(Credenziali.soggettoRuoloFiltrato2.username);
+		requestFiltrata.setPassword(Credenziali.soggettoRuoloFiltrato2.password);
+		
+		filtrateResponsesOk = Utils.makeSequentialRequests(requestFiltrata, 1);
+		
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 2, 0);
+		
+		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkOkRequests(filtrateResponsesOk, windowSize, maxRequests);
+		
+		
+		// Altre N richieste con applicativo senza ruolo che non deve essere contato
+		
+		requestNonFiltrata.setUsername(Credenziali.nonFiltrateApplicativo.username);
+		requestNonFiltrata.setPassword(Credenziali.nonFiltrateApplicativo.password);
+		
+		nonFiltrateResponses = Utils.makeSequentialRequests(requestNonFiltrata, maxRequests+1);
+		
+		assertEquals(maxRequests+1, nonFiltrateResponses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
+		
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 2, 0);
+
+	
+		// Terza richiesta con applicativo con ruolo che deve essere filtrato
+		
+		requestFiltrata.setUsername(Credenziali.applicativoRuoloFiltrato.username);
+		requestFiltrata.setPassword(Credenziali.applicativoRuoloFiltrato.password);
+
+		filtrateResponsesOk = Utils.makeSequentialRequests(requestFiltrata, 1);
+		
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 3, 0);
+		
+		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkOkRequests(filtrateResponsesOk, windowSize, maxRequests);
+		// Restanti richieste con altro applicativo con ruolo che deve essere filtrato
+		
+		requestFiltrata.setUsername(Credenziali.applicativoRuoloFiltrato2.username);
+		requestFiltrata.setPassword(Credenziali.applicativoRuoloFiltrato2.password);
+		
+
+		filtrateResponsesOk = Utils.makeSequentialRequests(requestFiltrata, 2);
+		
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 0);
+		
+		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkOkRequests(filtrateResponsesOk, windowSize, maxRequests);
+		
+		// Faccio altre n richieste che devono essere tutte bloccate.
+		
+		Vector<HttpResponse> filtrateResponsesBlocked = Utils.makeSequentialRequests(requestFiltrata, maxRequests);
+		
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, maxRequests);
+		
+		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkFailedRequests(filtrateResponsesBlocked, windowSize, maxRequests);
+		
+		// Faccio altre n richieste che non devono essere conteggiate
+		
+		nonFiltrateResponses = Utils.makeSequentialRequests(requestNonFiltrata, maxRequests);
+		
+		assertEquals(maxRequests, nonFiltrateResponses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
+		
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, maxRequests);
 	}
 	
 

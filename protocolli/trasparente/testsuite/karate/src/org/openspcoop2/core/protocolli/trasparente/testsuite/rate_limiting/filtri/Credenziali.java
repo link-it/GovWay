@@ -7,5 +7,11 @@ public class Credenziali {
 	
 	static final CredenzialiBasic nonFiltrateApplicativo = new CredenzialiBasic("ApplicativoNonFiltrato", "ApplicativoNonFiltrato");
 	static final CredenzialiBasic filtrateApplicativo = new CredenzialiBasic("ApplicativoFiltrato", "ApplicativoFiltrato");
+	
+	static final CredenzialiBasic soggettoRuoloFiltrato = new CredenzialiBasic("SoggettoRuoloFiltrato", "SoggettoRuoloFiltrato");
+	static final CredenzialiBasic soggettoRuoloFiltrato2 = new CredenzialiBasic("SoggettoRuoloFiltrato2", "SoggettoRuoloFiltrato2");
+	
+	static final CredenzialiBasic applicativoRuoloFiltrato = new CredenzialiBasic("ApplicativoRuoloFiltrato", "ApplicativoRuoloFiltrato");
+	static final CredenzialiBasic applicativoRuoloFiltrato2 = new CredenzialiBasic("ApplicativoRuoloFiltrato2", "ApplicativoRuoloFiltrato2");
 
 }
