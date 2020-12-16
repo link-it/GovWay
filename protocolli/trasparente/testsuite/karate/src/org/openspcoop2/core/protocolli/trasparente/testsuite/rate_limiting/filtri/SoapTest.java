@@ -32,7 +32,7 @@ public class SoapTest extends ConfigLoader {
 	
 	@Test
 	public void filtroApplicativoFruizione() {
-		filtroRichiedente(TipoServizio.FRUIZIONE, "FiltroApplicativoSoap", Credenziali.nonFiltrateApplicativo, Credenziali.filtrateApplicativo);
+		filtroRichiedente(TipoServizio.FRUIZIONE, "FiltroApplicativoSoap", Credenziali.applicativoSITFNonFiltrato, Credenziali.applicativoSITFFiltrato);
 	}
 	
 	/**
@@ -212,6 +212,80 @@ public class SoapTest extends ConfigLoader {
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 0);
 		
 		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.SoapTest.checkOkRequests(filtrateResponsesOk, windowSize, maxRequests);
+		
+		// Faccio altre n richieste che devono essere tutte bloccate.
+		
+		Vector<HttpResponse> filtrateResponsesBlocked = Utils.makeSequentialRequests(requestFiltrata, maxRequests);
+		
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, maxRequests);
+		
+		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.SoapTest.checkFailedRequests(filtrateResponsesBlocked, windowSize, maxRequests);
+		
+		// Faccio altre n richieste che non devono essere conteggiate
+		
+		nonFiltrateResponses = Utils.makeSequentialRequests(requestNonFiltrata, maxRequests);
+		
+		assertEquals(maxRequests, nonFiltrateResponses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
+		
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, maxRequests);
+	}
+	
+	
+
+	/*
+	 * Analogo al test filtroRichiedente ma filtriamo per ruoli, 
+	 */
+	@Test
+	public void filtroRuoloRichiedenteFruizione() {
+		
+		String erogazione  = "FiltroRuoloSoap";
+		// Sulla stessa api 
+		final int maxRequests = 5;
+		
+		final PolicyAlias policy = PolicyAlias.ORARIO;
+		final int windowSize = Utils.getPolicyWindowSize(policy);
+		
+		final String idPolicy =  dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
+
+		final String urlServizio = basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1";
+		
+		Utils.resetCounters(idPolicy);
+		Utils.waitForPolicy(policy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
+		
+		// Faccio maxRequests con applicativo con ruolo filtrato che deve essere conteggiata
+		
+		HttpRequest requestFiltrata = new HttpRequest();
+		requestFiltrata.setContentType("application/soap+xml");
+		requestFiltrata.setMethod(HttpRequestMethod.POST);
+		requestFiltrata.setUrl(urlServizio);
+		requestFiltrata.setUsername(Credenziali.applicativoSITFRuoloFiltrato.username);
+		requestFiltrata.setPassword(Credenziali.applicativoSITFRuoloFiltrato.password);
+		requestFiltrata.setContent(SoapBodies.get(policy).getBytes());
+
+		Vector<HttpResponse> filtrateResponsesOk = Utils.makeSequentialRequests(requestFiltrata, maxRequests);
+		
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 0);
+		
+		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.SoapTest.checkOkRequests(filtrateResponsesOk, windowSize, maxRequests);
+		
+		// Faccio N richieste con applicativo con ruolo non filtrato che non deve essere conteggiata
+		
+		HttpRequest requestNonFiltrata = new HttpRequest();
+		requestNonFiltrata.setContentType("application/soap+xml");
+		requestNonFiltrata.setMethod(HttpRequestMethod.POST);
+		requestNonFiltrata.setUrl(urlServizio);
+		requestNonFiltrata.setUsername(Credenziali.applicativoSITFRuoloNonFiltrato.username);
+		requestNonFiltrata.setPassword(Credenziali.applicativoSITFRuoloNonFiltrato.password);
+		requestNonFiltrata.setContent(SoapBodies.get(policy).getBytes());
+
+		
+		Vector<HttpResponse> nonFiltrateResponses = Utils.makeSequentialRequests(requestNonFiltrata, maxRequests+1);
+		
+		assertEquals(maxRequests+1, nonFiltrateResponses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
+		
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 0);
+		
 		
 		// Faccio altre n richieste che devono essere tutte bloccate.
 		

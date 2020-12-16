@@ -13,5 +13,13 @@ public class Credenziali {
 	
 	static final CredenzialiBasic applicativoRuoloFiltrato = new CredenzialiBasic("ApplicativoRuoloFiltrato", "ApplicativoRuoloFiltrato");
 	static final CredenzialiBasic applicativoRuoloFiltrato2 = new CredenzialiBasic("ApplicativoRuoloFiltrato2", "ApplicativoRuoloFiltrato2");
+	static final CredenzialiBasic applicativoRuoloNonFiltrato = new CredenzialiBasic("ApplicativoRuoloNonFiltrato", "ApplicativoRuoloNonFiltrato");
+
+	
+	static final CredenzialiBasic applicativoSITFFiltrato = new CredenzialiBasic("ApplicativoSoggettoInternoTestFruitoreFiltrato", "ApplicativoSoggettoInternoTestFruitoreFiltrato");
+	static final CredenzialiBasic applicativoSITFNonFiltrato = new CredenzialiBasic("ApplicativoSoggettoInternoTestFruitoreNonFiltrato", "ApplicativoSoggettoInternoTestFruitoreNonFiltrato");
+	
+	static final CredenzialiBasic applicativoSITFRuoloFiltrato = new CredenzialiBasic("ApplicativoSoggettoInternoTestFruitoreRuoloFiltrato", "ApplicativoSoggettoInternoTestFruitoreRuoloFiltrato");
+	static final CredenzialiBasic applicativoSITFRuoloNonFiltrato = new CredenzialiBasic("ApplicativoSoggettoInternoTestFruitoreRuoloNonFiltrato", "ApplicativoSoggettoInternoTestFruitoreRuoloNonFiltrato");
 
 }
