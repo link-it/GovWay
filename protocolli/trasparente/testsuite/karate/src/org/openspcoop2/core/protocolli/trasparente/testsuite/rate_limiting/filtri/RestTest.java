@@ -304,26 +304,22 @@ public class RestTest extends ConfigLoader {
 	public void filtroHeaderErogazione() {
 		filtroHeader("X-Test-Filtro-Chiave", "filtrami", TipoServizio.EROGAZIONE, PolicyAlias.FILTROHEADER);
 	}
-	
 
 	@Test
 	public void filtroHeaderFruizione() {
 		filtroHeader("X-Test-Filtro-Chiave", "filtrami", TipoServizio.FRUIZIONE, PolicyAlias.FILTROHEADER);
 	}
 	
-	
 	@Test
 	public void filtroParametroUrlErogazione() {
 		filtroParametroUrl(TipoServizio.EROGAZIONE);
 	}
-	
 	
 	@Test
 	public void filtroParametroUrlFruizione() {
 		filtroParametroUrl(TipoServizio.FRUIZIONE);
 	}
 	
-
 	@Test
 	public void filtroXForwardedForErogazione() {
 		filtroHeader("X-Forwarded-For", "filtrami", TipoServizio.EROGAZIONE, PolicyAlias.FILTROXFORWARDEDFOR);
@@ -342,6 +338,44 @@ public class RestTest extends ConfigLoader {
 	@Test
 	public void filtroContenutoFruizione() {
 		filtroContenuto(TipoServizio.FRUIZIONE);
+	}
+	
+	@Test
+	public void filtroUrlInvocazioneErogazione() {
+		filtroUrlInvocazione(TipoServizio.EROGAZIONE);
+	}
+
+	@Test
+	public void filtroUrlInvocazioneFruizione() {
+		filtroUrlInvocazione(TipoServizio.FRUIZIONE);
+	}
+	
+	public void filtroUrlInvocazione(TipoServizio tipoServizio) {
+		
+		final String erogazione = "FiltroChiaveRest";
+		final PolicyAlias policy = PolicyAlias.FILTROURLINVOCAZIONE;
+
+		final String urlServizioFiltered = tipoServizio == TipoServizio.EROGAZIONE
+				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario"
+				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/orario";
+		
+		final String urlServizioNotFiltered = tipoServizio == TipoServizio.EROGAZIONE
+				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1/minuto"
+				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/minuto";
+		
+		HttpRequest requestFiltrata = new HttpRequest();
+		requestFiltrata.setContentType("application/json");
+		requestFiltrata.setMethod(HttpRequestMethod.GET);
+		requestFiltrata.setUrl(urlServizioFiltered);
+		
+		
+		HttpRequest requestNonFiltrata = new HttpRequest();
+		requestNonFiltrata.setContentType("application/json");
+		requestNonFiltrata.setMethod(HttpRequestMethod.GET);
+		requestNonFiltrata.setUrl(urlServizioNotFiltered);
+		
+		
+		makeRequestsAndCheck(tipoServizio, policy, requestFiltrata, requestNonFiltrata);
 	}
 	
 

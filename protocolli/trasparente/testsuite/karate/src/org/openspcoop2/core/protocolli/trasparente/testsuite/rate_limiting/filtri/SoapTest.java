@@ -303,5 +303,231 @@ public class SoapTest extends ConfigLoader {
 		
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, maxRequests);
 	}
+	
+	
+	
+	@Test
+	public void filtroHeaderErogazione() {
+		filtroHeader("X-Test-Filtro-Chiave", "filtrami", TipoServizio.EROGAZIONE, PolicyAlias.FILTROHEADER);
+	}
+
+	@Test
+	public void filtroHeaderFruizione() {
+		filtroHeader("X-Test-Filtro-Chiave", "filtrami", TipoServizio.FRUIZIONE, PolicyAlias.FILTROHEADER);
+	}
+	
+	@Test
+	public void filtroParametroUrlErogazione() {
+		filtroParametroUrl(TipoServizio.EROGAZIONE);
+	}
+	
+	@Test
+	public void filtroParametroUrlFruizione() {
+		filtroParametroUrl(TipoServizio.FRUIZIONE);
+	}
+	
+	@Test
+	public void filtroXForwardedForErogazione() {
+		filtroHeader("X-Forwarded-For", "filtrami", TipoServizio.EROGAZIONE, PolicyAlias.FILTROXFORWARDEDFOR);
+	}
+	
+	@Test
+	public void filtroXForwardedForFruizione() {
+		filtroHeader("X-Forwarded-For", "filtrami", TipoServizio.FRUIZIONE, PolicyAlias.FILTROXFORWARDEDFOR);
+	}
+	
+	@Test
+	public void filtroUrlInvocazioneErogazione() {
+		filtroUrlInvocazione(TipoServizio.EROGAZIONE);
+	}
+
+	@Test
+	public void filtroUrlInvocazioneFruizione() {
+		filtroUrlInvocazione(TipoServizio.FRUIZIONE);
+	}
+	
+	@Test
+	public void filtroContenutoErogazione() {
+		filtroContenuto(TipoServizio.EROGAZIONE);
+	}
+	
+	@Test
+	public void filtroContenutoFruizione() {
+		filtroContenuto(TipoServizio.FRUIZIONE);
+	}
+	
+	public void filtroContenuto(TipoServizio tipoServizio) {
+		
+		final String bodyToFilter = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
+				"    <soap:Body>\n" + 
+				"        <ns2:Orario xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +
+				"			<testFiltroContenuto>filtrami</testFiltroContenuto>"	+
+				"        </ns2:Orario>\n" + 
+				"    </soap:Body>\n" + 
+				"</soap:Envelope>";
+		
+		
+		final String bodyToNotFilter = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
+				"    <soap:Body>\n" + 
+				"        <ns2:Orario xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +
+				"			<testFiltroContenuto>Nonfiltrarmi</testFiltroContenuto>"	+
+				"        </ns2:Orario>\n" + 
+				"    </soap:Body>\n" + 
+				"</soap:Envelope>";
+		
+		
+		final String erogazione = "FiltroChiaveSoap";
+		final PolicyAlias policy = PolicyAlias.FILTROCONTENUTO;
+		final String urlServizio = tipoServizio == TipoServizio.EROGAZIONE
+				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1"
+				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1";
+		
+		HttpRequest requestFiltrata = new HttpRequest();
+		requestFiltrata.setContentType("application/soap+xml");
+		requestFiltrata.setMethod(HttpRequestMethod.POST);
+		requestFiltrata.setContent(bodyToFilter.getBytes());
+		requestFiltrata.setUrl(urlServizio);
+		
+		
+		HttpRequest requestNonFiltrata = new HttpRequest();
+		requestNonFiltrata.setContentType("application/soap+xml");
+		requestNonFiltrata.setMethod(HttpRequestMethod.POST);
+		requestNonFiltrata.setContent(bodyToNotFilter.getBytes());
+		requestNonFiltrata.setUrl(urlServizio);
+		
+		
+		makeRequestsAndCheck(tipoServizio, policy, requestFiltrata, requestNonFiltrata);
+	}
+	
+	
+	public void filtroUrlInvocazione(TipoServizio tipoServizio) {
+		
+		final String erogazione = "FiltroChiaveSoap";
+		final PolicyAlias policy = PolicyAlias.FILTROURLINVOCAZIONE;
+
+		final String urlServizioFiltered = tipoServizio == TipoServizio.EROGAZIONE
+				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1/Orario"
+				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/Orario";
+		
+		final String urlServizioNotFiltered = tipoServizio == TipoServizio.EROGAZIONE
+				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1/Minuto"
+				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/Minuto";
+		
+		HttpRequest requestFiltrata = new HttpRequest();
+		requestFiltrata.setContentType("application/soap+xml");
+		requestFiltrata.setMethod(HttpRequestMethod.POST);
+		requestFiltrata.setUrl(urlServizioFiltered);
+		requestFiltrata.setContent(SoapBodies.get(PolicyAlias.ORARIO).getBytes());
+		
+		
+		HttpRequest requestNonFiltrata = new HttpRequest();
+		requestNonFiltrata.setContentType("application/soap+xml");
+		requestNonFiltrata.setMethod(HttpRequestMethod.POST);
+		requestNonFiltrata.setUrl(urlServizioNotFiltered);
+		requestNonFiltrata.setContent(SoapBodies.get(PolicyAlias.MINUTO).getBytes());
+		
+		makeRequestsAndCheck(tipoServizio, policy, requestFiltrata, requestNonFiltrata);
+	}
+	
+	
+	public void filtroHeader(String header, String valueToFilter, TipoServizio tipoServizio, PolicyAlias policy) {
+		
+		final String valueToNotFilter = valueToFilter + "puppa";
+		final String erogazione = "FiltroChiaveSoap";
+
+		final String urlServizio = tipoServizio == TipoServizio.EROGAZIONE
+				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1"
+				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1";
+		
+		HttpRequest requestFiltrata = new HttpRequest();
+		requestFiltrata.setContentType("application/soap+xml");
+		requestFiltrata.setMethod(HttpRequestMethod.POST);
+		requestFiltrata.addHeader(header, valueToFilter);
+		requestFiltrata.setUrl(urlServizio);
+		requestFiltrata.setContent(SoapBodies.get(PolicyAlias.ORARIO).getBytes());
+		
+		
+		HttpRequest requestNonFiltrata = new HttpRequest();
+		requestNonFiltrata.setContentType("application/soap+xml");
+		requestNonFiltrata.setMethod(HttpRequestMethod.POST);
+		requestNonFiltrata.addHeader(header, valueToNotFilter);
+		requestNonFiltrata.setUrl(urlServizio);
+		requestNonFiltrata.setContent(SoapBodies.get(PolicyAlias.ORARIO).getBytes());
+		
+		
+		makeRequestsAndCheck(tipoServizio, policy, requestFiltrata, requestNonFiltrata);
+	}
+	
+	
+	public void filtroParametroUrl(TipoServizio tipoServizio) {
+		final String param = "x-test-filtro-chiave";
+		final String paramValue = "filtrami";
+		
+		final String erogazione = "FiltroChiaveSoap";
+		final PolicyAlias policy = PolicyAlias.FILTROPARAMETROURL;
+
+		final String urlServizio = tipoServizio == TipoServizio.EROGAZIONE
+				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1"
+				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1";
+		
+		HttpRequest requestFiltrata = new HttpRequest();
+		requestFiltrata.setContentType("application/soap+xml");
+		requestFiltrata.setMethod(HttpRequestMethod.POST);
+		requestFiltrata.setUrl(urlServizio+"?"+param+"="+paramValue);
+		requestFiltrata.setContent(SoapBodies.get(PolicyAlias.ORARIO).getBytes());
+		
+		
+		HttpRequest requestNonFiltrata = new HttpRequest();
+		requestNonFiltrata.setContentType("application/soap+xml");
+		requestNonFiltrata.setMethod(HttpRequestMethod.POST);
+		requestNonFiltrata.setUrl(urlServizio+"?"+param+"=nonFiltrarmi");
+		requestNonFiltrata.setContent(SoapBodies.get(PolicyAlias.ORARIO).getBytes());
+		
+		
+		makeRequestsAndCheck(tipoServizio, policy, requestFiltrata, requestNonFiltrata);
+	}
+	
+	
+	
+	private void makeRequestsAndCheck(TipoServizio tipoServizio, PolicyAlias policy, HttpRequest requestFiltrata, HttpRequest requestNonFiltrata) {
+
+		final int maxRequests = 5;
+		final int windowSize = Utils.getPolicyWindowSize(policy);
+		final String erogazione = "FiltroChiaveSoap";
+
+
+		final String idPolicy = tipoServizio == TipoServizio.EROGAZIONE
+				? dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy)
+				: dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
+				
+		Utils.resetCounters(idPolicy);
+		Utils.waitForPolicy(policy);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
+				
+		
+		Vector<HttpResponse> nonFiltrateResponses = Utils.makeSequentialRequests(requestNonFiltrata, maxRequests);
+		assertEquals(maxRequests, nonFiltrateResponses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
+
+		Vector<HttpResponse> filtrateResponsesOk = Utils.makeParallelRequests(requestFiltrata, maxRequests);
+		
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 0);
+		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.SoapTest
+				.checkOkRequests(filtrateResponsesOk, windowSize, maxRequests);
+
+		Vector<HttpResponse> filtrateResponsesBlocked = Utils.makeSequentialRequests(requestFiltrata, maxRequests);
+		
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, maxRequests);
+		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.SoapTest
+				.checkFailedRequests(filtrateResponsesBlocked, windowSize, maxRequests);
+
+		// Faccio altre n richieste che non devono essere conteggiate
+
+		nonFiltrateResponses = Utils.makeSequentialRequests(requestNonFiltrata, maxRequests);
+
+		assertEquals(maxRequests, nonFiltrateResponses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
+
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, maxRequests);
+	}
+	
 
 }
