@@ -308,6 +308,7 @@ public class SoapTest extends ConfigLoader {
 	
 	@Test
 	public void filtroHeaderErogazione() {
+		// TODO: Usare gli headers definiti in org.openspcoop2.utils.transport.http.HttpUtilities.getClientAddressHeaders()
 		filtroHeader("X-Test-Filtro-Chiave", "filtrami", TipoServizio.EROGAZIONE, PolicyAlias.FILTROHEADER);
 	}
 
@@ -356,22 +357,61 @@ public class SoapTest extends ConfigLoader {
 		filtroContenuto(TipoServizio.FRUIZIONE);
 	}
 	
+	@Test
+	public void filtroSoapActionErogazione() {
+		filtroSoapAction(TipoServizio.EROGAZIONE);
+	}
+	
+	@Test
+	public void filtroSoapActionFruizione() {
+		filtroSoapAction(TipoServizio.FRUIZIONE);
+	}
+	
+	
+	public void filtroSoapAction(TipoServizio tipoServizio) {
+		
+		
+		final String erogazione = "FiltroChiaveSoap";
+		final PolicyAlias policy = PolicyAlias.FILTROSOAPACTION;
+		final String urlServizio = tipoServizio == TipoServizio.EROGAZIONE
+				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1"
+				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1";
+		
+		HttpRequest requestFiltrata = new HttpRequest();
+		requestFiltrata.setContentType("application/soap+xml; action=NoPolicy");
+		requestFiltrata.setMethod(HttpRequestMethod.POST);
+		requestFiltrata.setUrl(urlServizio);
+		requestFiltrata.setContent(SoapBodies.get(PolicyAlias.NO_POLICY).getBytes());
+		
+		
+		HttpRequest requestNonFiltrata = new HttpRequest();
+		requestNonFiltrata.setContentType("application/soap+xml; action=Orario");
+		requestNonFiltrata.setMethod(HttpRequestMethod.POST);
+		requestNonFiltrata.setUrl(urlServizio);
+		requestNonFiltrata.setContent(SoapBodies.get(PolicyAlias.ORARIO).getBytes());
+		
+		
+		makeRequestsAndCheck(tipoServizio, policy, requestFiltrata, requestNonFiltrata);
+	}
+	
+	
+	
 	public void filtroContenuto(TipoServizio tipoServizio) {
 		
 		final String bodyToFilter = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
 				"    <soap:Body>\n" + 
-				"        <ns2:Orario xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +
+				"        <ns2:Giornaliero xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +
 				"			<testFiltroContenuto>filtrami</testFiltroContenuto>"	+
-				"        </ns2:Orario>\n" + 
+				"        </ns2:Giornaliero>\n" + 
 				"    </soap:Body>\n" + 
 				"</soap:Envelope>";
 		
 		
 		final String bodyToNotFilter = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
 				"    <soap:Body>\n" + 
-				"        <ns2:Orario xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +
+				"        <ns2:Giornaliero xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +
 				"			<testFiltroContenuto>Nonfiltrarmi</testFiltroContenuto>"	+
-				"        </ns2:Orario>\n" + 
+				"        </ns2:Giornaliero>\n" + 
 				"    </soap:Body>\n" + 
 				"</soap:Envelope>";
 		
@@ -398,7 +438,6 @@ public class SoapTest extends ConfigLoader {
 		
 		makeRequestsAndCheck(tipoServizio, policy, requestFiltrata, requestNonFiltrata);
 	}
-	
 	
 	public void filtroUrlInvocazione(TipoServizio tipoServizio) {
 		
