@@ -74,6 +74,12 @@ public class Utils {
 		ORARIO("Orario"),
 		GIORNALIERO("Giornaliero"),
 		MINUTODEFAULT("MinutoDefault"),
+		FILTROHEADER("FiltroHeader"),
+		FILTROURLINVOCAZIONE("FiltroUrlInvocazione"),
+		FILTROPARAMETROURL("FiltroParametroUrl"),
+		FILTROSOAPACTION("FiltroSoapAction"),
+		FILTROCONTENUTO("FiltroContenuto"),
+		FILTROXFORWARDEDFOR("FiltroX-Forwarded-For"),
 		NO_POLICY("NESSUNA_POLICY");
 		
 		public final String value;
@@ -351,6 +357,12 @@ public class Utils {
 			waitForNewMinute();
 			break;
 		case ORARIO:
+		case FILTROHEADER:
+		case FILTROCONTENUTO:
+		case FILTROPARAMETROURL:
+		case FILTROSOAPACTION:
+		case FILTROURLINVOCAZIONE:
+		case FILTROXFORWARDEDFOR:
 			waitForNewHour();
 			break;
 		case GIORNALIERO:
@@ -558,6 +570,12 @@ public class Utils {
 		case MINUTODEFAULT:
 			return 60;
 		case ORARIO:
+		case FILTROHEADER:
+		case FILTROCONTENUTO:
+		case FILTROPARAMETROURL:
+		case FILTROSOAPACTION:
+		case FILTROURLINVOCAZIONE:
+		case FILTROXFORWARDEDFOR:
 			return 3600;
 		case RICHIESTE_SIMULTANEE:
 			return 0;
@@ -574,6 +592,12 @@ public class Utils {
 		case MINUTO:
 			return "minuto";
 		case ORARIO:
+		case FILTROHEADER:
+		case FILTROCONTENUTO:
+		case FILTROPARAMETROURL:
+		case FILTROSOAPACTION:
+		case FILTROURLINVOCAZIONE:
+		case FILTROXFORWARDEDFOR:
 			return "orario";
 		case RICHIESTE_SIMULTANEE:
 			return "richieste-simultanee";
