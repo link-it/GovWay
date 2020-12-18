@@ -322,6 +322,7 @@ public class RestTest extends ConfigLoader {
 	
 	@Test
 	public void filtroXForwardedForErogazione() {
+		// TODO: Testa tutti gli altri header pure
 		filtroHeader("X-Forwarded-For", "filtrami", TipoServizio.EROGAZIONE, PolicyAlias.FILTROXFORWARDEDFOR);
 	}
 	
@@ -356,8 +357,8 @@ public class RestTest extends ConfigLoader {
 		final PolicyAlias policy = PolicyAlias.FILTROURLINVOCAZIONE;
 
 		final String urlServizioFiltered = tipoServizio == TipoServizio.EROGAZIONE
-				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario"
-				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/orario";
+				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1/no-policy"
+				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/no-policy";
 		
 		final String urlServizioNotFiltered = tipoServizio == TipoServizio.EROGAZIONE
 				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1/minuto"

@@ -206,6 +206,8 @@ public class SoapTest extends ConfigLoader {
 	 */
 	public void rateLimitingInPresenzaDegradoECongestione(TipoServizio tipoServizio, String erogazione, int attesa) {
 		
+		EventiUtils.waitForDbEvents();
+
 		final int maxRequests = 5;
 		final PolicyAlias policy = PolicyAlias.ORARIO;
 		final int windowSize = Utils.getPolicyWindowSize(policy);
@@ -219,6 +221,8 @@ public class SoapTest extends ConfigLoader {
 				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1?sleep="+String.valueOf(attesa)
 				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1?sleep="+String.valueOf(attesa);
 		
+		org.openspcoop2.utils.Utilities.sleep(16000);
+
 		
 		Utils.resetCounters(idPolicy);
 		Utils.waitForPolicy(policy);
@@ -286,6 +290,8 @@ public class SoapTest extends ConfigLoader {
 	 */
 	public void noRateLimitingSeSoloInCongestione(TipoServizio tipoServizio, String erogazione, int attesa) {
 		
+		EventiUtils.waitForDbEvents();
+
 		final int maxRequests = 5;
 		final PolicyAlias policy = PolicyAlias.ORARIO;
 		
@@ -298,7 +304,8 @@ public class SoapTest extends ConfigLoader {
 				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1?sleep="+String.valueOf(attesa)
 				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1?sleep="+String.valueOf(attesa);
 		
-		
+		org.openspcoop2.utils.Utilities.sleep(16000);
+
 		Utils.resetCounters(idPolicy);
 		Utils.waitForPolicy(policy);
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);	
@@ -351,7 +358,8 @@ public class SoapTest extends ConfigLoader {
 	 *	La policy di RL è: NumeroRichiesteCompletateConSuccesso.
 	 */
 	public void rateLimitingInPresenzaCongestione(TipoServizio tipoServizio) throws Exception {
-		
+		EventiUtils.waitForDbEvents();
+
 		final int maxRequests = 5;
 		final String erogazione = "InPresenzaCongestioneSoap";
 		final PolicyAlias policy = PolicyAlias.ORARIO;
@@ -442,6 +450,8 @@ public class SoapTest extends ConfigLoader {
 	 * 
 	 */
 	public void noRateLimitingSeCongestioneRisolta(TipoServizio tipoServizio) throws UtilsException, HttpUtilsException {
+		EventiUtils.waitForDbEvents();
+
 		final int maxRequests = 5;
 		final String erogazione = "InPresenzaCongestioneSoap";
 		final PolicyAlias policy = PolicyAlias.ORARIO;
@@ -506,6 +516,8 @@ public class SoapTest extends ConfigLoader {
 		
 		
 		final int sogliaRichiesteSimultanee = 15;
+		EventiUtils.waitForDbEvents();
+
 		
 		String body = SoapBodies.get(PolicyAlias.NO_POLICY);
 		
@@ -585,7 +597,8 @@ public class SoapTest extends ConfigLoader {
 	
 	public void congestioneAttiva(String url) {
 		String body = SoapBodies.get(PolicyAlias.NO_POLICY);
-		
+		EventiUtils.waitForDbEvents();
+
 		LocalDateTime dataSpedizione = LocalDateTime.now();		
 		
 		HttpRequest request = new HttpRequest();
@@ -609,6 +622,7 @@ public class SoapTest extends ConfigLoader {
 		
 		final int sogliaRichiesteSimultanee = 10;
 		
+		EventiUtils.waitForDbEvents();
 		// Affinchè il test faccia scattare tutti e due gli eventi è necessario
 		// che la soglia di congestione sia più bassa della soglia di RL
 		assertTrue(sogliaRichiesteSimultanee > sogliaCongestione);

@@ -10,9 +10,11 @@ import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.SoapB
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.TipoServizio;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.PolicyAlias;
+import org.openspcoop2.utils.UtilsException;
 import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpResponse;
+import org.openspcoop2.utils.transport.http.HttpUtilities;
 
 public class SoapTest extends ConfigLoader {
 	
@@ -307,9 +309,12 @@ public class SoapTest extends ConfigLoader {
 	
 	
 	@Test
-	public void filtroHeaderErogazione() {
-		// TODO: Usare gli headers definiti in org.openspcoop2.utils.transport.http.HttpUtilities.getClientAddressHeaders()
-		filtroHeader("X-Test-Filtro-Chiave", "filtrami", TipoServizio.EROGAZIONE, PolicyAlias.FILTROHEADER);
+	public void filtroHeaderErogazione() throws UtilsException {
+		
+		HttpUtilities.getClientAddressHeaders().forEach( header -> {
+			filtroHeader(header, "filtrami", TipoServizio.EROGAZIONE, PolicyAlias.FILTROHEADER);
+		});
+		
 	}
 
 	@Test

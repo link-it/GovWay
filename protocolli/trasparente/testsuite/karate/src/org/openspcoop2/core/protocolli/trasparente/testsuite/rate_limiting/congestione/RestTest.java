@@ -174,6 +174,7 @@ public class RestTest extends ConfigLoader {
 				? org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest::testErogazione
 				: org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest::testFruizione;
 		
+		EventiUtils.waitForDbEvents();
 		
 		Utils.resetCounters(idPolicy);
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
@@ -375,6 +376,7 @@ public class RestTest extends ConfigLoader {
 				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario?sleep="+String.valueOf(attesa)
 				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/orario?sleep="+String.valueOf(attesa);
 		
+		org.openspcoop2.utils.Utilities.sleep(16000);		
 		
 		Utils.resetCounters(idPolicy);
 		Utils.waitForPolicy(policy);
@@ -384,7 +386,7 @@ public class RestTest extends ConfigLoader {
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
 		request.setUrl(urlServizio);
-						
+				
 		
 		Vector<HttpResponse> degradoResponses = Utils.makeParallelRequests(request, maxRequests);
 		
@@ -440,7 +442,7 @@ public class RestTest extends ConfigLoader {
 
 	/*
 	 * Testo che il sistema non blocchi le richieste se siamo solamente in congestione e non in degrado.
-	 * 
+	 * TODO: Forse dovrei aspettare 15 secondi per essere sicuro di uscire da eventuali situazioni di degrado
 	 */
 	public void noRateLimitingSeSoloInCongestione(TipoServizio tipoServizio, String erogazione, int attesa) {
 		
@@ -456,6 +458,7 @@ public class RestTest extends ConfigLoader {
 				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario?sleep="+String.valueOf(attesa)
 				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/orario?sleep="+String.valueOf(attesa);
 		
+		org.openspcoop2.utils.Utilities.sleep(16000);
 		
 		Utils.resetCounters(idPolicy);
 		Utils.waitForPolicy(policy);
@@ -508,6 +511,8 @@ public class RestTest extends ConfigLoader {
 	 */
 	public void congestioneAttivaViolazioneRichiesteComplessive(String url) {
 			
+		EventiUtils.waitForDbEvents();
+				
 		final int sogliaRichiesteSimultanee = 15;
 		
 		LocalDateTime dataSpedizione = LocalDateTime.now();		
@@ -518,6 +523,8 @@ public class RestTest extends ConfigLoader {
 		request.setUrl(url);
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, sogliaRichiesteSimultanee+1);
+
+		assertEquals(sogliaRichiesteSimultanee, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
 		
 		SoapTest.checkCongestioneAttivaViolazioneRichiesteComplessive(dataSpedizione, responses);
 	}		
@@ -529,6 +536,8 @@ public class RestTest extends ConfigLoader {
 	 * 
 	 */
 	public void congestioneAttivaConViolazioneRL(String url, String idErogazione) {
+		EventiUtils.waitForDbEvents();
+
 		
 		final int sogliaRichiesteSimultanee = 10;
 		
@@ -555,6 +564,9 @@ public class RestTest extends ConfigLoader {
 	 */
 	
 	public void congestioneAttiva(String url) {
+		EventiUtils.waitForDbEvents();
+		
+		//org.openspcoop2.utils.Utilities.sleep(Long.parseLong(System.getProperty("congestion_delay")));
 		
 		LocalDateTime dataSpedizione = LocalDateTime.now();
 		
@@ -565,6 +577,8 @@ public class RestTest extends ConfigLoader {
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, sogliaCongestione+1);
 		
+		assertEquals(sogliaCongestione+1, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
 		EventiUtils.checkEventiCongestioneAttiva(dataSpedizione, responses);
+	
 	}
 }
