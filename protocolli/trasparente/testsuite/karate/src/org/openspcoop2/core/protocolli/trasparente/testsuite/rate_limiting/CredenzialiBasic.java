@@ -1,4 +1,4 @@
-package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.filtri;
+package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting;
 
 public class CredenzialiBasic {
 	

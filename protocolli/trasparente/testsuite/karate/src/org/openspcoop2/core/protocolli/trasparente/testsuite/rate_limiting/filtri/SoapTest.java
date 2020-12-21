@@ -6,6 +6,8 @@ import java.util.Vector;
 
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Credenziali;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.CredenzialiBasic;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.SoapBodies;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.TipoServizio;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
@@ -333,13 +335,17 @@ public class SoapTest extends ConfigLoader {
 	}
 	
 	@Test
-	public void filtroXForwardedForErogazione() {
-		filtroHeader("X-Forwarded-For", "filtrami", TipoServizio.EROGAZIONE, PolicyAlias.FILTROXFORWARDEDFOR);
+	public void filtroXForwardedForErogazione() throws UtilsException {
+		HttpUtilities.getClientAddressHeaders().forEach( headerName ->
+				filtroHeader(headerName, "filtrami", TipoServizio.EROGAZIONE, PolicyAlias.FILTROXFORWARDEDFOR)
+			);
 	}
 	
 	@Test
-	public void filtroXForwardedForFruizione() {
-		filtroHeader("X-Forwarded-For", "filtrami", TipoServizio.FRUIZIONE, PolicyAlias.FILTROXFORWARDEDFOR);
+	public void filtroXForwardedForFruizione() throws UtilsException {
+		HttpUtilities.getClientAddressHeaders().forEach( headerName ->
+				filtroHeader(headerName, "filtrami", TipoServizio.FRUIZIONE, PolicyAlias.FILTROXFORWARDEDFOR)
+			);
 	}
 	
 	@Test

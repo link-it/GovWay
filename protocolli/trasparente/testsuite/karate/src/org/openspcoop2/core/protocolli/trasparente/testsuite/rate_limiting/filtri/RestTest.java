@@ -6,12 +6,16 @@ import java.util.Vector;
 
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Credenziali;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.CredenzialiBasic;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.TipoServizio;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.PolicyAlias;
+import org.openspcoop2.utils.UtilsException;
 import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpResponse;
+import org.openspcoop2.utils.transport.http.HttpUtilities;
 
 public class RestTest extends ConfigLoader {
 	
@@ -321,14 +325,17 @@ public class RestTest extends ConfigLoader {
 	}
 	
 	@Test
-	public void filtroXForwardedForErogazione() {
-		// TODO: Testa tutti gli altri header pure
-		filtroHeader("X-Forwarded-For", "filtrami", TipoServizio.EROGAZIONE, PolicyAlias.FILTROXFORWARDEDFOR);
+	public void filtroXForwardedForErogazione() throws UtilsException {
+		HttpUtilities.getClientAddressHeaders().forEach( headerName ->
+				filtroHeader(headerName, "filtrami", TipoServizio.EROGAZIONE, PolicyAlias.FILTROXFORWARDEDFOR)
+			);
 	}
 	
 	@Test
-	public void filtroXForwardedForFruizione() {
-		filtroHeader("X-Forwarded-For", "filtrami", TipoServizio.FRUIZIONE, PolicyAlias.FILTROXFORWARDEDFOR);
+	public void filtroXForwardedForFruizione() throws UtilsException  {
+		HttpUtilities.getClientAddressHeaders().forEach( headerName ->
+				filtroHeader(headerName, "filtrami", TipoServizio.FRUIZIONE, PolicyAlias.FILTROXFORWARDEDFOR)
+			);
 	}
 
 	@Test
