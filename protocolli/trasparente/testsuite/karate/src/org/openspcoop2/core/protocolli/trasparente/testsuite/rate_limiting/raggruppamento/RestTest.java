@@ -32,28 +32,28 @@ public class RestTest extends ConfigLoader {
 		requestGroup1.setContentType("application/json");
 		requestGroup1.setMethod(HttpRequestMethod.GET);
 		requestGroup1.setUrl(urlServizio);
-		requestGroup1.setUsername(Credenziali.applicativoRuoloFiltrato.username);
-		requestGroup1.setPassword(Credenziali.applicativoRuoloFiltrato.password);
+		requestGroup1.setUsername(Credenziali.applicativoSITFFiltrato.username);
+		requestGroup1.setPassword(Credenziali.applicativoSITFFiltrato.password);
 		
 		
 		HttpRequest requestGroup2 = new HttpRequest();
 		requestGroup2.setContentType("application/json");
 		requestGroup2.setMethod(HttpRequestMethod.GET);
 		requestGroup2.setUrl(urlServizio);
-		requestGroup2.setUsername(Credenziali.applicativoRuoloFiltrato2.username);
-		requestGroup2.setPassword(Credenziali.applicativoRuoloFiltrato2.password);
+		requestGroup2.setUsername(Credenziali.applicativoSITFNonFiltrato.username);
+		requestGroup2.setPassword(Credenziali.applicativoSITFNonFiltrato.password);
 		
 		
 		HttpRequest requestGroup3 = new HttpRequest();
 		requestGroup3.setContentType("application/json");
 		requestGroup3.setMethod(HttpRequestMethod.GET);
 		requestGroup3.setUrl(urlServizio);
-		requestGroup3.setUsername(Credenziali.soggettoRuoloFiltrato.username);
-		requestGroup3.setPassword(Credenziali.soggettoRuoloFiltrato.password);
+		requestGroup3.setUsername(Credenziali.applicativoSITFRuoloFiltrato.username);
+		requestGroup3.setPassword(Credenziali.applicativoSITFRuoloFiltrato.password);
 		
 		HttpRequest[] requests = {requestGroup1, requestGroup2, requestGroup3};
 		
-		makeAndCheckGroupRequests(TipoServizio.EROGAZIONE, PolicyAlias.ORARIO, erogazione, requests);		
+		makeAndCheckGroupRequests(TipoServizio.FRUIZIONE, PolicyAlias.ORARIO, erogazione, requests);		
 	}
 	
 	@Test
@@ -91,7 +91,7 @@ public class RestTest extends ConfigLoader {
 		
 	}
 	
-	public static void makeAndCheckGroupRequests(TipoServizio tipoServizio, PolicyAlias policy, String erogazione, HttpRequest[] requests) {
+	private static void makeAndCheckGroupRequests(TipoServizio tipoServizio, PolicyAlias policy, String erogazione, HttpRequest[] requests) {
 		
 		final int maxRequests = 5;
 		final int windowSize = Utils.getPolicyWindowSize(policy);
@@ -185,16 +185,15 @@ public class RestTest extends ConfigLoader {
 	
 	
 	@Test
-	public void perParametroUrlFruizione() {
-		perParametroUrl(TipoServizio.FRUIZIONE);
-	}
-	
-	@Test
 	public void perParametroUrlErogazione() {
 		perParametroUrl(TipoServizio.EROGAZIONE);
 	}
 	
-	
+	@Test
+	public void perParametroUrlFruizione() {
+		perParametroUrl(TipoServizio.FRUIZIONE);
+	}
+
 	@Test
 	public void perContenutoErogazione() {
 		perContenuto(TipoServizio.EROGAZIONE);
@@ -216,6 +215,17 @@ public class RestTest extends ConfigLoader {
 	}
 	
 	@Test
+	public void perHeaderErogazione() {
+		perHeader(TipoServizio.EROGAZIONE);
+	}
+	
+	
+	@Test
+	public void perHeaderFruizione() {
+		perHeader(TipoServizio.FRUIZIONE);
+	}
+	
+	@Test
 	public void perHeaderXForwardedForErogazione() throws UtilsException {
 		HttpUtilities.getClientAddressHeaders().forEach( headerName ->
 				perHeaderXForwardedFor(TipoServizio.EROGAZIONE, headerName)
@@ -228,19 +238,6 @@ public class RestTest extends ConfigLoader {
 			perHeaderXForwardedFor(TipoServizio.FRUIZIONE, headerName)
 		);
 	}
-	
-	
-	@Test
-	public void perHeaderErogazione() {
-		perHeader(TipoServizio.EROGAZIONE);
-	}
-	
-	
-	@Test
-	public void perHeaderFruizione() {
-		perHeader(TipoServizio.FRUIZIONE);
-	}
-	
 	
 	public static void perHeader(TipoServizio tipoServizio) {
 		final String erogazione = "RaggruppamentoRest";
@@ -335,10 +332,6 @@ public class RestTest extends ConfigLoader {
 		requestGroup3.setMethod(HttpRequestMethod.GET);
 		requestGroup3.setUrl(urlServizio + "/orario");
 		
-		/*HttpRequest requestGroup4 = new HttpRequest();
-		requestGroup3.setContentType("application/json");
-		requestGroup3.setMethod(HttpRequestMethod.GET);
-		requestGroup3.setUrl(urlServizio + "/no-policy");*/
 		
 		HttpRequest[] requests = {requestGroup1, requestGroup2, requestGroup3};
 		
