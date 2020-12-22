@@ -47,6 +47,10 @@
 			<include name="joda-time-2.10.5.jar"/>
 		</fileset>
 		<fileset dir="${required_lib}/cxf">
+			<include name="cxf-rt-security-*.jar"/>
+			<include name="cxf-core-*.jar"/>
+			<include name="cxf-rt-rs-json-basic-*.jar"/>
+			<include name="cxf-rt-rs-security-jose-*.jar"/>
 			<include name="asm-7.1.jar"/>
 		</fileset>
 		<fileset dir="${openspcoop2.dist}">

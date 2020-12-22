@@ -1,5 +1,6 @@
 package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.raggruppamento;
 
+import java.util.Properties;
 import java.util.Vector;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -12,6 +13,9 @@ import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.TipoS
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.PolicyAlias;
 import org.openspcoop2.utils.UtilsException;
+import org.openspcoop2.utils.security.JOSESerialization;
+import org.openspcoop2.utils.security.JWSOptions;
+import org.openspcoop2.utils.security.JsonSignature;
 import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpResponse;
@@ -140,9 +144,10 @@ public class RestTest extends ConfigLoader {
 			logRateLimiting.info("statusCode: " + r.getResultHTTPOperation());
 			logRateLimiting.info("headers: " + r.getHeaders());
 		});
-		
+		Utils.waitForZeroGovWayThreads();
 		
 		logRateLimiting.info(Utils.getPolicy(idPolicy));
+		
 		// Le richieste di sopra devono andare tutte bene e devono essere conteggiate
 		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkOkRequests(responsesOk, windowSize, maxRequests);
 		
@@ -177,6 +182,7 @@ public class RestTest extends ConfigLoader {
 			logRateLimiting.info("statusCode: " + r.getResultHTTPOperation());
 			logRateLimiting.info("headers: " + r.getHeaders());
 		});
+		Utils.waitForZeroGovWayThreads();
 		logRateLimiting.info(Utils.getPolicy(idPolicy));
 		// Tutte le richieste di sopra falliscono perchè il limit è stato raggiunto dal primo set di richieste
 		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkFailedRequests(responsesFailed, windowSize, maxRequests);
@@ -238,6 +244,95 @@ public class RestTest extends ConfigLoader {
 			perHeaderXForwardedFor(TipoServizio.FRUIZIONE, headerName)
 		);
 	}
+	
+	
+	@Test
+	public void perTokenErogazione() throws UtilsException {
+		perToken(TipoServizio.EROGAZIONE);
+	}
+	
+	
+	@Test
+	public void perTokenFruizione() throws UtilsException {
+		perToken(TipoServizio.FRUIZIONE);
+	}
+	
+	
+	public static void perToken(TipoServizio tipoServizio) throws UtilsException {
+		final String erogazione = "RaggruppamentoTokenRest";
+		final String urlServizio =  tipoServizio == TipoServizio.EROGAZIONE
+				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario"
+				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/orario";
+		
+		// Signature Json
+		JWSOptions options = new JWSOptions(JOSESerialization.COMPACT);
+		Properties signatureProps = new Properties();
+		signatureProps.put("rs.security.keystore.file", "/etc/govway/keys/pa.p12");
+		signatureProps.put("rs.security.keystore.type","pkcs12");
+		signatureProps.put("rs.security.keystore.alias","paP12");
+		signatureProps.put("rs.security.keystore.password","keypa");
+		signatureProps.put("rs.security.key.password","keypa");
+		signatureProps.put("rs.security.signature.algorithm","RS256");
+		signatureProps.put("rs.security.signature.include.cert","false");
+		signatureProps.put("rs.security.signature.include.public.key","false");
+		signatureProps.put("rs.security.signature.include.key.id","true");
+		signatureProps.put("rs.security.signature.include.cert.sha1","false");
+		signatureProps.put("rs.security.signature.include.cert.sha256","false");
+		
+		JsonSignature jsonSignature = null;
+		jsonSignature = new JsonSignature(signatureProps, options);
+		
+		String token1 = "{\n"+
+		  "\"sub\": \"gruppo1\",\n"+
+		  "\"iss\": \"example.org\",\n"+
+		  "\"preferred_username\": \"John Doe\",\n"+
+		  "\"azp\": \"clientTest\",\n"+
+		  "\"iat\": 1516239022\n"+
+		"}";
+		String token1Signed = jsonSignature.sign(token1);
+		
+		HttpRequest requestGroup1 = new HttpRequest();
+		requestGroup1.setContentType("application/json");
+		requestGroup1.setMethod(HttpRequestMethod.GET);
+		requestGroup1.setUrl(urlServizio+"?access_token="+token1Signed);
+		
+		
+		String token2 = "{\n"+
+				  "\"sub\": \"gruppo2\",\n"+
+				  "\"iss\": \"example.org\",\n"+
+				  "\"preferred_username\": \"John Doe\",\n"+
+				  "\"azp\": \"clientTest\",\n"+
+				  "\"iat\": 1516239022\n"+
+				"}";
+				
+		String token2Signed = jsonSignature.sign(token2);
+		
+		HttpRequest requestGroup2 = new HttpRequest();
+		requestGroup2.setContentType("application/json");
+		requestGroup2.setMethod(HttpRequestMethod.GET);
+		requestGroup2.setUrl(urlServizio+"?access_token="+token2Signed);
+		
+		String token3 = "{\n"+
+				  "\"sub\": \"gruppo3\",\n"+
+				  "\"iss\": \"example.org\",\n"+
+				  "\"preferred_username\": \"John Doe\",\n"+
+				  "\"azp\": \"clientTest\",\n"+
+				  "\"iat\": 1516239022\n"+
+				"}";
+				
+		String token3Signed = jsonSignature.sign(token3);
+		
+		HttpRequest requestGroup3 = new HttpRequest();
+		requestGroup3.setContentType("application/json");
+		requestGroup3.setMethod(HttpRequestMethod.GET);
+		requestGroup3.setUrl(urlServizio+"?access_token="+token3Signed);
+		
+		HttpRequest[] requests = {requestGroup1, requestGroup2, requestGroup3};
+		
+
+		makeAndCheckGroupRequests(tipoServizio, PolicyAlias.ORARIO, erogazione, requests);	
+	}
+	
 	
 	public static void perHeader(TipoServizio tipoServizio) {
 		final String erogazione = "RaggruppamentoRest";
