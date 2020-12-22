@@ -155,7 +155,7 @@ public class SoapTest extends ConfigLoader {
 			logRateLimiting.info("headers: " + r.getHeaders());
 		});
 		
-		org.openspcoop2.utils.Utilities.sleep(1000);
+		Utils.waitForZeroGovWayThreads();
 		logRateLimiting.info(Utils.getPolicy(idPolicy));
 		// Le richieste di sopra devono andare tutte bene e devono essere conteggiate
 		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.SoapTest.checkOkRequests(responsesOk, windowSize, maxRequests);
@@ -191,6 +191,7 @@ public class SoapTest extends ConfigLoader {
 			logRateLimiting.info("statusCode: " + r.getResultHTTPOperation());
 			logRateLimiting.info("headers: " + r.getHeaders());
 		});
+		Utils.waitForZeroGovWayThreads();
 		logRateLimiting.info(Utils.getPolicy(idPolicy));
 		// Tutte le richieste di sopra falliscono perchè il limit è stato raggiunto dal primo set di richieste
 		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.SoapTest.checkFailedRequests(responsesFailed, windowSize, maxRequests);
