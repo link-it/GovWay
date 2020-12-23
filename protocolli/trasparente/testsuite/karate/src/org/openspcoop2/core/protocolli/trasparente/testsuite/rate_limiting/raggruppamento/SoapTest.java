@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Credenziali;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.SoapBodies;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.TipoServizio;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.PolicyAlias;
@@ -21,39 +22,42 @@ import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpResponse;
 import org.openspcoop2.utils.transport.http.HttpUtilities;
 
-public class RestTest extends ConfigLoader {
+public class SoapTest extends ConfigLoader {
 	
 	private static final String basePath = System.getProperty("govway_base_path");
-	private static final String testIdHeader = "GovWay-TestSuite-RL-Grouping";
+	private static final String testIdHeader = "GovWay-TestSuite-RL-Grouping";	// TODO: Mettilo globale
 	
 	@Test
 	public void perRichiedenteFruizione() {
 		
-		final String erogazione = "RaggruppamentoRichiedenteRest";
-		final String urlServizio =  basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/orario";
+		final String erogazione = "RaggruppamentoRichiedenteSoap";
+		final String urlServizio =  basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1";
 		
 		HttpRequest requestGroup1 = new HttpRequest();
-		requestGroup1.setContentType("application/json");
-		requestGroup1.setMethod(HttpRequestMethod.GET);
+		requestGroup1.setContentType("application/soap+xml");
+		requestGroup1.setMethod(HttpRequestMethod.POST);
 		requestGroup1.setUrl(urlServizio);
 		requestGroup1.setUsername(Credenziali.applicativoSITFFiltrato.username);
 		requestGroup1.setPassword(Credenziali.applicativoSITFFiltrato.password);
+		requestGroup1.setContent(SoapBodies.get(PolicyAlias.ORARIO).getBytes());
 		
 		
 		HttpRequest requestGroup2 = new HttpRequest();
-		requestGroup2.setContentType("application/json");
-		requestGroup2.setMethod(HttpRequestMethod.GET);
+		requestGroup2.setContentType("application/soap+xml");
+		requestGroup2.setMethod(HttpRequestMethod.POST);
 		requestGroup2.setUrl(urlServizio);
 		requestGroup2.setUsername(Credenziali.applicativoSITFNonFiltrato.username);
 		requestGroup2.setPassword(Credenziali.applicativoSITFNonFiltrato.password);
+		requestGroup2.setContent(SoapBodies.get(PolicyAlias.ORARIO).getBytes());
 		
 		
 		HttpRequest requestGroup3 = new HttpRequest();
-		requestGroup3.setContentType("application/json");
-		requestGroup3.setMethod(HttpRequestMethod.GET);
+		requestGroup3.setContentType("application/soap+xml");
+		requestGroup3.setMethod(HttpRequestMethod.POST);
 		requestGroup3.setUrl(urlServizio);
 		requestGroup3.setUsername(Credenziali.applicativoSITFRuoloFiltrato.username);
 		requestGroup3.setPassword(Credenziali.applicativoSITFRuoloFiltrato.password);
+		requestGroup3.setContent(SoapBodies.get(PolicyAlias.ORARIO).getBytes());
 		
 		HttpRequest[] requests = {requestGroup1, requestGroup2, requestGroup3};
 		
@@ -63,37 +67,43 @@ public class RestTest extends ConfigLoader {
 	@Test
 	public void perRichiedenteErogazione() {
 		
-		final String erogazione = "RaggruppamentoRichiedenteRest";
-		final String urlServizio =  basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario";
+		final String erogazione = "RaggruppamentoRichiedenteSoap";
+		final String urlServizio =  basePath + "/SoggettoInternoTest/"+erogazione+"/v1";
 		
 		HttpRequest requestGroup1 = new HttpRequest();
-		requestGroup1.setContentType("application/json");
-		requestGroup1.setMethod(HttpRequestMethod.GET);
+		requestGroup1.setContentType("application/soap+xml");
+		requestGroup1.setMethod(HttpRequestMethod.POST);
 		requestGroup1.setUrl(urlServizio);
 		requestGroup1.setUsername(Credenziali.applicativoRuoloFiltrato.username);
 		requestGroup1.setPassword(Credenziali.applicativoRuoloFiltrato.password);
+		requestGroup1.setContent(SoapBodies.get(PolicyAlias.ORARIO).getBytes());
 		
 		
 		HttpRequest requestGroup2 = new HttpRequest();
-		requestGroup2.setContentType("application/json");
-		requestGroup2.setMethod(HttpRequestMethod.GET);
+		requestGroup2.setContentType("application/soap+xml");
+		requestGroup2.setMethod(HttpRequestMethod.POST);
 		requestGroup2.setUrl(urlServizio);
 		requestGroup2.setUsername(Credenziali.applicativoRuoloFiltrato2.username);
 		requestGroup2.setPassword(Credenziali.applicativoRuoloFiltrato2.password);
+		requestGroup2.setContent(SoapBodies.get(PolicyAlias.ORARIO).getBytes());
 		
 		
 		HttpRequest requestGroup3 = new HttpRequest();
-		requestGroup3.setContentType("application/json");
-		requestGroup3.setMethod(HttpRequestMethod.GET);
+		requestGroup3.setContentType("application/soap+xml");
+		requestGroup3.setMethod(HttpRequestMethod.POST);
 		requestGroup3.setUrl(urlServizio);
 		requestGroup3.setUsername(Credenziali.soggettoRuoloFiltrato.username);
 		requestGroup3.setPassword(Credenziali.soggettoRuoloFiltrato.password);
+		requestGroup3.setContent(SoapBodies.get(PolicyAlias.ORARIO).getBytes());
+
 		
 		HttpRequest[] requests = {requestGroup1, requestGroup2, requestGroup3};
 		
 		makeAndCheckGroupRequests(TipoServizio.EROGAZIONE, PolicyAlias.ORARIO, erogazione, requests);
 		
 	}
+	
+	
 	
 	private static void makeAndCheckGroupRequests(TipoServizio tipoServizio, PolicyAlias policy, String erogazione, HttpRequest[] requests) {
 		
@@ -119,16 +129,16 @@ public class RestTest extends ConfigLoader {
 		for (int i = 0; i < maxRequests; i++) {
 			
 			for(var request : requests) {
-			executor.execute(() -> {
-				try {
-					logRateLimiting.info(request.getMethod() + " " + request.getUrl());
-					responsesOk.add(HttpUtilities.httpInvoke(request));
-					logRateLimiting.info("Richiesta effettuata..");
-				} catch (UtilsException e) {
-					e.printStackTrace();
-					throw new RuntimeException(e);
-				}
-			});
+				executor.execute(() -> {
+					try {
+						logRateLimiting.info(request.getMethod() + " " + request.getUrl());
+						responsesOk.add(HttpUtilities.httpInvoke(request));
+						logRateLimiting.info("Richiesta effettuata..");
+					} catch (UtilsException e) {
+						e.printStackTrace();
+						throw new RuntimeException(e);
+					}
+				});
 			}
 		}
 		
@@ -144,12 +154,11 @@ public class RestTest extends ConfigLoader {
 			logRateLimiting.info("statusCode: " + r.getResultHTTPOperation());
 			logRateLimiting.info("headers: " + r.getHeaders());
 		});
+		
 		Utils.waitForZeroGovWayThreads();
-		
 		logRateLimiting.info(Utils.getPolicy(idPolicy));
-		
 		// Le richieste di sopra devono andare tutte bene e devono essere conteggiate
-		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkOkRequests(responsesOk, windowSize, maxRequests);
+		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.SoapTest.checkOkRequests(responsesOk, windowSize, maxRequests);
 		
 		
 		final Vector<HttpResponse> responsesFailed = new Vector<>();
@@ -185,11 +194,13 @@ public class RestTest extends ConfigLoader {
 		Utils.waitForZeroGovWayThreads();
 		logRateLimiting.info(Utils.getPolicy(idPolicy));
 		// Tutte le richieste di sopra falliscono perchè il limit è stato raggiunto dal primo set di richieste
-		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkFailedRequests(responsesFailed, windowSize, maxRequests);
+		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.SoapTest.checkFailedRequests(responsesFailed, windowSize, maxRequests);
 		
 	}
 	
 	
+	
+
 	@Test
 	public void perParametroUrlErogazione() {
 		perParametroUrl(TipoServizio.EROGAZIONE);
@@ -199,7 +210,7 @@ public class RestTest extends ConfigLoader {
 	public void perParametroUrlFruizione() {
 		perParametroUrl(TipoServizio.FRUIZIONE);
 	}
-
+	
 	@Test
 	public void perContenutoErogazione() {
 		perContenuto(TipoServizio.EROGAZIONE);
@@ -247,6 +258,17 @@ public class RestTest extends ConfigLoader {
 	
 	
 	@Test
+	public void perSoapActionErogazione() {
+		perSoapAction(TipoServizio.EROGAZIONE);
+	}
+	
+	@Test
+	public void perSoapActionFruizione() {
+		perSoapAction(TipoServizio.FRUIZIONE);
+	}
+	
+	
+	@Test
 	public void perTokenErogazione() throws UtilsException {
 		perToken(TipoServizio.EROGAZIONE);
 	}
@@ -259,10 +281,10 @@ public class RestTest extends ConfigLoader {
 	
 	
 	public static void perToken(TipoServizio tipoServizio) throws UtilsException {
-		final String erogazione = "RaggruppamentoTokenRest";
+		final String erogazione = "RaggruppamentoTokenSoap";
 		final String urlServizio =  tipoServizio == TipoServizio.EROGAZIONE
-				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario"
-				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/orario";
+				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1"
+				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1";
 		
 		// Signature Json
 		JWSOptions options = new JWSOptions(JOSESerialization.COMPACT);
@@ -292,10 +314,10 @@ public class RestTest extends ConfigLoader {
 		String token1Signed = jsonSignature.sign(token1);
 		
 		HttpRequest requestGroup1 = new HttpRequest();
-		requestGroup1.setContentType("application/json");
-		requestGroup1.setMethod(HttpRequestMethod.GET);
+		requestGroup1.setContentType("application/soap+xml");
+		requestGroup1.setMethod(HttpRequestMethod.POST);
 		requestGroup1.setUrl(urlServizio+"?access_token="+token1Signed);
-		
+		requestGroup1.setContent(SoapBodies.get(PolicyAlias.ORARIO).getBytes());
 		
 		String token2 = "{\n"+
 				  "\"sub\": \"gruppo2\",\n"+
@@ -308,9 +330,10 @@ public class RestTest extends ConfigLoader {
 		String token2Signed = jsonSignature.sign(token2);
 		
 		HttpRequest requestGroup2 = new HttpRequest();
-		requestGroup2.setContentType("application/json");
-		requestGroup2.setMethod(HttpRequestMethod.GET);
+		requestGroup2.setContentType("application/soap+xml");
+		requestGroup2.setMethod(HttpRequestMethod.POST);
 		requestGroup2.setUrl(urlServizio+"?access_token="+token2Signed);
+		requestGroup2.setContent(SoapBodies.get(PolicyAlias.ORARIO).getBytes());
 		
 		String token3 = "{\n"+
 				  "\"sub\": \"gruppo3\",\n"+
@@ -323,10 +346,11 @@ public class RestTest extends ConfigLoader {
 		String token3Signed = jsonSignature.sign(token3);
 		
 		HttpRequest requestGroup3 = new HttpRequest();
-		requestGroup3.setContentType("application/json");
-		requestGroup3.setMethod(HttpRequestMethod.GET);
+		requestGroup3.setContentType("application/soap+xml");
+		requestGroup3.setMethod(HttpRequestMethod.POST);
 		requestGroup3.setUrl(urlServizio+"?access_token="+token3Signed);
-		
+		requestGroup3.setContent(SoapBodies.get(PolicyAlias.ORARIO).getBytes());
+
 		HttpRequest[] requests = {requestGroup1, requestGroup2, requestGroup3};
 		
 
@@ -334,137 +358,94 @@ public class RestTest extends ConfigLoader {
 	}
 	
 	
-	public static void perHeader(TipoServizio tipoServizio) {
-		final String erogazione = "RaggruppamentoRest";
-		final String urlServizio =  tipoServizio == TipoServizio.EROGAZIONE
-				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario"
-				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/orario";
+	private static void perSoapAction(TipoServizio tipoServizio) {
 		
-		HttpRequest requestGroup1 = new HttpRequest();
-		requestGroup1.setContentType("application/json");
-		requestGroup1.setMethod(HttpRequestMethod.GET);
-		requestGroup1.setUrl(urlServizio);
-		requestGroup1.addHeader("Gruppo", "gruppo1");
-		
-		HttpRequest requestGroup2 = new HttpRequest();
-		requestGroup2.setContentType("application/json");
-		requestGroup2.setMethod(HttpRequestMethod.GET);
-		requestGroup2.setUrl(urlServizio);
-		requestGroup2.addHeader("Gruppo", "gruppo2");
-		
-		HttpRequest requestGroup3 = new HttpRequest();
-		requestGroup3.setContentType("application/json");
-		requestGroup3.setMethod(HttpRequestMethod.GET);
-		requestGroup3.setUrl(urlServizio);
-		requestGroup3.addHeader("Gruppo", "gruppo3");
-		
-		
-		HttpRequest[] requests = {requestGroup1, requestGroup2, requestGroup3};
-		
-		// Dico quale policy di rate limiting deve attivarsi, perchè sono 
-		// filtrate per header
-		for(var r: requests) {
-			r.addHeader(testIdHeader, PolicyAlias.FILTROHEADER.value);
-		}
-		
-		makeAndCheckGroupRequests(tipoServizio, PolicyAlias.FILTROHEADER, erogazione, requests);	
-	}
-	
-	public static void perHeaderXForwardedFor(TipoServizio tipoServizio, String headerName) {
-		final String erogazione = "RaggruppamentoRest";
-		final String urlServizio =  tipoServizio == TipoServizio.EROGAZIONE
-				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario"
-				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/orario";
-		
-		HttpRequest requestGroup1 = new HttpRequest();
-		requestGroup1.setContentType("application/json");
-		requestGroup1.setMethod(HttpRequestMethod.GET);
-		requestGroup1.setUrl(urlServizio);
-		requestGroup1.addHeader(headerName, "gruppo1");
-		
-		HttpRequest requestGroup2 = new HttpRequest();
-		requestGroup2.setContentType("application/json");
-		requestGroup2.setMethod(HttpRequestMethod.GET);
-		requestGroup2.setUrl(urlServizio);
-		requestGroup2.addHeader(headerName, "gruppo2");
-		
-		HttpRequest requestGroup3 = new HttpRequest();
-		requestGroup3.setContentType("application/json");
-		requestGroup3.setMethod(HttpRequestMethod.GET);
-		requestGroup3.setUrl(urlServizio);
-		requestGroup3.addHeader(headerName, "gruppo3");
-		
-		
-		HttpRequest[] requests = {requestGroup1, requestGroup2, requestGroup3};
-		
-		// Dico quale policy di rate limiting deve attivarsi, perchè sono 
-		// filtrate per header
-		for(var r: requests) {
-			r.addHeader(testIdHeader, PolicyAlias.FILTROXFORWARDEDFOR.value);
-		}
-		
-		makeAndCheckGroupRequests(tipoServizio, PolicyAlias.FILTROXFORWARDEDFOR, erogazione, requests);
-	}
-	
-	public static void perUrlInvocazione(TipoServizio tipoServizio) {
-		final String erogazione = "RaggruppamentoRest";
+		final String erogazione = "RaggruppamentoSoap";
 		final String urlServizio =  tipoServizio == TipoServizio.EROGAZIONE
 				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1"
 				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1";
 		
 		HttpRequest requestGroup1 = new HttpRequest();
-		requestGroup1.setContentType("application/json");
-		requestGroup1.setMethod(HttpRequestMethod.GET);
-		requestGroup1.setUrl(urlServizio + "/minuto");		
+		requestGroup1.setContentType("application/soap+xml");
+		requestGroup1.setMethod(HttpRequestMethod.POST);
+		requestGroup1.setUrl(urlServizio);
+		requestGroup1.setContentType("application/soap+xml; action=Minuto");
+		requestGroup1.setContent(SoapBodies.get(PolicyAlias.MINUTO).getBytes());
 		
 		HttpRequest requestGroup2 = new HttpRequest();
-		requestGroup2.setContentType("application/json");
-		requestGroup2.setMethod(HttpRequestMethod.GET);
-		requestGroup2.setUrl(urlServizio + "/giornaliero");		
+		requestGroup2.setContentType("application/soap+xml; action=Orario");
+		requestGroup2.setMethod(HttpRequestMethod.POST);
+		requestGroup2.setUrl(urlServizio);
+		requestGroup2.setContent(SoapBodies.get(PolicyAlias.ORARIO).getBytes());
+		
 		
 		HttpRequest requestGroup3 = new HttpRequest();
-		requestGroup3.setContentType("application/json");
-		requestGroup3.setMethod(HttpRequestMethod.GET);
-		requestGroup3.setUrl(urlServizio + "/orario");
+		requestGroup3.setContentType("application/soap+xml; action=Giornaliero");
+		requestGroup3.setMethod(HttpRequestMethod.POST);
+		requestGroup3.setUrl(urlServizio);
+		requestGroup3.setContent(SoapBodies.get(PolicyAlias.GIORNALIERO).getBytes());
 		
 		
 		HttpRequest[] requests = {requestGroup1, requestGroup2, requestGroup3};
 		
-		// Dico quale policy di rate limiting deve attivarsi, perchè sono 
-		// filtrate per header
 		for(var r: requests) {
-			r.addHeader(testIdHeader, PolicyAlias.FILTROURLINVOCAZIONE.value);
+			r.addHeader(testIdHeader, PolicyAlias.FILTROSOAPACTION.value);
 		}
 		
-		makeAndCheckGroupRequests(tipoServizio, PolicyAlias.FILTROURLINVOCAZIONE, erogazione, requests);
+		makeAndCheckGroupRequests(tipoServizio, PolicyAlias.FILTROSOAPACTION, erogazione, requests);		
 	}
 	
+
 	public static void perContenuto(TipoServizio tipoServizio) {
-	
-		final String erogazione = "RaggruppamentoRest";
+		
+		final String erogazione = "RaggruppamentoSoap";
 		final String urlServizio =  tipoServizio == TipoServizio.EROGAZIONE
-				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario"
-				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/orario";
+				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1"
+				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1";
+		
+		String body1 =  "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
+				"    <soap:Body>\n" + 
+				"        <ns2:Orario xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +
+				"			<Gruppo>gruppo1</Gruppo>" +	
+				"        </ns2:Orario>\n" + 
+				"    </soap:Body>\n" + 
+				"</soap:Envelope>";
 		
 		HttpRequest requestGroup1 = new HttpRequest();
-		requestGroup1.setContentType("application/json");
+		requestGroup1.setContentType("application/soap+xml");
 		requestGroup1.setMethod(HttpRequestMethod.POST);
 		requestGroup1.setUrl(urlServizio);
-		requestGroup1.setContent("{ \"gruppo\": \"gruppo1\" }".getBytes());
+		requestGroup1.setContent(body1.getBytes());
+		
+		
+		String body2 =  "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
+				"    <soap:Body>\n" + 
+				"        <ns2:Orario xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +
+				"			<Gruppo>gruppo2</Gruppo>" +
+				"        </ns2:Orario>\n" + 
+				"    </soap:Body>\n" + 
+				"</soap:Envelope>";
 		
 		
 		HttpRequest requestGroup2 = new HttpRequest();
-		requestGroup2.setContentType("application/json");
+		requestGroup2.setContentType("application/soap+xml");
 		requestGroup2.setMethod(HttpRequestMethod.POST);
 		requestGroup2.setUrl(urlServizio);
-		requestGroup2.setContent("{ \"gruppo\": \"gruppo2\" }".getBytes());
+		requestGroup2.setContent(body2.getBytes());
 		
+		String body3 =  "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
+				"    <soap:Body>\n" + 
+				"        <ns2:Orario xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +
+				"			<Gruppo>gruppo3</Gruppo>" +
+				"        </ns2:Orario>\n" + 
+				"    </soap:Body>\n" + 
+				"</soap:Envelope>";
 		
 		HttpRequest requestGroup3 = new HttpRequest();
-		requestGroup3.setContentType("application/json");
+		requestGroup3.setContentType("application/soap+xml");
 		requestGroup3.setMethod(HttpRequestMethod.POST);
 		requestGroup3.setUrl(urlServizio);
-		requestGroup3.setContent("{ \"gruppo\": \"gruppo3\" }".getBytes());
+		requestGroup3.setContent(body3.getBytes());
 		
 		
 		HttpRequest[] requests = {requestGroup1, requestGroup2, requestGroup3};
@@ -480,27 +461,29 @@ public class RestTest extends ConfigLoader {
 	
 	public static void perParametroUrl(TipoServizio tipoServizio) {
 		
-		final String erogazione = "RaggruppamentoRest";
+		final String erogazione = "RaggruppamentoSoap";
 		final String urlServizio =  tipoServizio == TipoServizio.EROGAZIONE
-				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario"
-				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/orario";
+				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1"
+				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1";
 		
 		HttpRequest requestGroup1 = new HttpRequest();
-		requestGroup1.setContentType("application/json");
-		requestGroup1.setMethod(HttpRequestMethod.GET);
+		requestGroup1.setContentType("application/soap+xml");
+		requestGroup1.setMethod(HttpRequestMethod.POST);
 		requestGroup1.setUrl(urlServizio+"?gruppo=gruppo1");
-		
+		requestGroup1.setContent(SoapBodies.get(PolicyAlias.ORARIO).getBytes());
 		
 		HttpRequest requestGroup2 = new HttpRequest();
-		requestGroup2.setContentType("application/json");
-		requestGroup2.setMethod(HttpRequestMethod.GET);
+		requestGroup2.setContentType("application/soap+xml");
+		requestGroup2.setMethod(HttpRequestMethod.POST);
 		requestGroup2.setUrl(urlServizio+"?gruppo=gruppo2");
+		requestGroup2.setContent(SoapBodies.get(PolicyAlias.ORARIO).getBytes());
 		
 		
 		HttpRequest requestGroup3 = new HttpRequest();
-		requestGroup3.setContentType("application/json");
-		requestGroup3.setMethod(HttpRequestMethod.GET);
+		requestGroup3.setContentType("application/soap+xml");
+		requestGroup3.setMethod(HttpRequestMethod.POST);
 		requestGroup3.setUrl(urlServizio+"?gruppo=gruppo3");
+		requestGroup3.setContent(SoapBodies.get(PolicyAlias.ORARIO).getBytes());
 		
 		
 		HttpRequest[] requests = {requestGroup1, requestGroup2, requestGroup3};
@@ -512,5 +495,124 @@ public class RestTest extends ConfigLoader {
 		makeAndCheckGroupRequests(tipoServizio, PolicyAlias.FILTROPARAMETROURL, erogazione, requests);
 		
 	}
+	
+	
+	public static void perUrlInvocazione(TipoServizio tipoServizio) {
+		final String erogazione = "RaggruppamentoSoap";
+		final String urlServizio =  tipoServizio == TipoServizio.EROGAZIONE
+				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1"
+				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1";
+		
+		HttpRequest requestGroup1 = new HttpRequest();
+		requestGroup1.setContentType("application/soap+xml");
+		requestGroup1.setMethod(HttpRequestMethod.POST);
+		requestGroup1.setUrl(urlServizio + "/Minuto");
+		requestGroup1.setContent(SoapBodies.get(PolicyAlias.MINUTO).getBytes());
+		
+		HttpRequest requestGroup2 = new HttpRequest();
+		requestGroup2.setContentType("application/soap+xml");
+		requestGroup2.setMethod(HttpRequestMethod.POST);
+		requestGroup2.setUrl(urlServizio + "/Giornaliero");
+		requestGroup2.setContent(SoapBodies.get(PolicyAlias.GIORNALIERO).getBytes());
+		
+		HttpRequest requestGroup3 = new HttpRequest();
+		requestGroup3.setContentType("application/soap+xml");
+		requestGroup3.setMethod(HttpRequestMethod.POST);
+		requestGroup3.setUrl(urlServizio + "/Orario");
+		requestGroup3.setContent(SoapBodies.get(PolicyAlias.ORARIO).getBytes());
+		
+		
+		HttpRequest[] requests = {requestGroup1, requestGroup2, requestGroup3};
+		
+		// Dico quale policy di rate limiting deve attivarsi, perchè sono 
+		// filtrate per header
+		for(var r: requests) {
+			r.addHeader(testIdHeader, PolicyAlias.FILTROURLINVOCAZIONE.value);
+		}
+		
+		makeAndCheckGroupRequests(tipoServizio, PolicyAlias.FILTROURLINVOCAZIONE, erogazione, requests);
+	}
+	
+	
+	public static void perHeader(TipoServizio tipoServizio) {
+		final String erogazione = "RaggruppamentoSoap";
+		final String urlServizio =  tipoServizio == TipoServizio.EROGAZIONE
+				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1"
+				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1";
+		
+		HttpRequest requestGroup1 = new HttpRequest();
+		requestGroup1.setContentType("application/soap+xml");
+		requestGroup1.setMethod(HttpRequestMethod.POST);
+		requestGroup1.setUrl(urlServizio);
+		requestGroup1.addHeader("Gruppo", "gruppo1");
+		requestGroup1.setContent(SoapBodies.get(PolicyAlias.ORARIO).getBytes());
 
+		
+		HttpRequest requestGroup2 = new HttpRequest();
+		requestGroup2.setContentType("application/soap+xml");
+		requestGroup2.setMethod(HttpRequestMethod.POST);
+		requestGroup2.setUrl(urlServizio);
+		requestGroup2.addHeader("Gruppo", "gruppo2");
+		requestGroup2.setContent(SoapBodies.get(PolicyAlias.ORARIO).getBytes());
+
+		
+		HttpRequest requestGroup3 = new HttpRequest();
+		requestGroup3.setContentType("application/soap+xml");
+		requestGroup3.setMethod(HttpRequestMethod.POST);
+		requestGroup3.setUrl(urlServizio);
+		requestGroup3.addHeader("Gruppo", "gruppo3");
+		requestGroup3.setContent(SoapBodies.get(PolicyAlias.ORARIO).getBytes());
+
+		
+		HttpRequest[] requests = {requestGroup1, requestGroup2, requestGroup3};
+		
+		// Dico quale policy di rate limiting deve attivarsi, perchè sono 
+		// filtrate per header
+		for(var r: requests) {
+			r.addHeader(testIdHeader, PolicyAlias.FILTROHEADER.value);
+		}
+		
+		makeAndCheckGroupRequests(tipoServizio, PolicyAlias.FILTROHEADER, erogazione, requests);	
+	}
+
+	
+	public static void perHeaderXForwardedFor(TipoServizio tipoServizio, String headerName) {
+		final String erogazione = "RaggruppamentoSoap";
+		final String urlServizio =  tipoServizio == TipoServizio.EROGAZIONE
+				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1"
+				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1";
+		
+		HttpRequest requestGroup1 = new HttpRequest();
+		requestGroup1.setContentType("application/soap+xml");
+		requestGroup1.setMethod(HttpRequestMethod.POST);
+		requestGroup1.setUrl(urlServizio);
+		requestGroup1.addHeader(headerName, "gruppo1");
+		requestGroup1.setContent(SoapBodies.get(PolicyAlias.ORARIO).getBytes());
+
+		
+		HttpRequest requestGroup2 = new HttpRequest();
+		requestGroup2.setContentType("application/soap+xml");
+		requestGroup2.setMethod(HttpRequestMethod.POST);
+		requestGroup2.setUrl(urlServizio);
+		requestGroup2.addHeader(headerName, "gruppo2");
+		requestGroup2.setContent(SoapBodies.get(PolicyAlias.ORARIO).getBytes());
+
+		
+		HttpRequest requestGroup3 = new HttpRequest();
+		requestGroup3.setContentType("application/soap+xml");
+		requestGroup3.setMethod(HttpRequestMethod.POST);
+		requestGroup3.setUrl(urlServizio);
+		requestGroup3.addHeader(headerName, "gruppo3");
+		requestGroup3.setContent(SoapBodies.get(PolicyAlias.ORARIO).getBytes());
+
+		HttpRequest[] requests = {requestGroup1, requestGroup2, requestGroup3};
+		
+		// Dico quale policy di rate limiting deve attivarsi, perchè sono 
+		// filtrate per header
+		for(var r: requests) {
+			r.addHeader(testIdHeader, PolicyAlias.FILTROXFORWARDEDFOR.value);
+		}
+		
+		makeAndCheckGroupRequests(tipoServizio, PolicyAlias.FILTROXFORWARDEDFOR, erogazione, requests);
+	}
 }

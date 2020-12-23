@@ -80,8 +80,7 @@ public class Utils {
 		FILTROSOAPACTION("FiltroSoapAction"),
 		FILTROCONTENUTO("FiltroContenuto"),
 		FILTROXFORWARDEDFOR("FiltroX-Forwarded-For"),
-		NO_POLICY("NESSUNA_POLICY");
-		
+		NO_POLICY("NESSUNA_POLICY");		
 		public final String value;
 		
 		PolicyAlias(String value) {
