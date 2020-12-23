@@ -279,6 +279,56 @@ public class SoapTest extends ConfigLoader {
 		perToken(TipoServizio.FRUIZIONE);
 	}
 	
+
+	@Test
+	public void perRisorsaErogazione() {
+		perRisorsa(TipoServizio.EROGAZIONE);
+	}
+	
+	
+	@Test
+	public void perRisorsaFruizione() {
+		perRisorsa(TipoServizio.FRUIZIONE);
+	}
+	
+	
+	private static void perRisorsa(TipoServizio tipoServizio) {
+		
+		final String erogazione = "RaggruppamentoSoap";
+		final String urlServizio =  tipoServizio == TipoServizio.EROGAZIONE
+				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1"
+				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1";
+		
+		HttpRequest requestGroup1 = new HttpRequest();
+		requestGroup1.setContentType("application/soap+xml");
+		requestGroup1.setMethod(HttpRequestMethod.POST);
+		requestGroup1.setUrl(urlServizio);
+		requestGroup1.setContentType("application/soap+xml");
+		requestGroup1.setContent(SoapBodies.get(PolicyAlias.MINUTO).getBytes());
+		
+		HttpRequest requestGroup2 = new HttpRequest();
+		requestGroup2.setContentType("application/soap+xml");
+		requestGroup2.setMethod(HttpRequestMethod.POST);
+		requestGroup2.setUrl(urlServizio);
+		requestGroup2.setContent(SoapBodies.get(PolicyAlias.ORARIO).getBytes());
+		
+		
+		HttpRequest requestGroup3 = new HttpRequest();
+		requestGroup3.setContentType("application/soap+xml");
+		requestGroup3.setMethod(HttpRequestMethod.POST);
+		requestGroup3.setUrl(urlServizio);
+		requestGroup3.setContent(SoapBodies.get(PolicyAlias.GIORNALIERO).getBytes());
+		
+		
+		HttpRequest[] requests = {requestGroup1, requestGroup2, requestGroup3};
+		
+		for(var r: requests) {
+			r.addHeader(testIdHeader, PolicyAlias.FILTRORISORSA.value);
+		}
+		
+		makeAndCheckGroupRequests(tipoServizio, PolicyAlias.FILTRORISORSA, erogazione, requests);		
+	}
+	
 	
 	public static void perToken(TipoServizio tipoServizio) throws UtilsException {
 		final String erogazione = "RaggruppamentoTokenSoap";

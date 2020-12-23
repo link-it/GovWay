@@ -80,7 +80,9 @@ public class Utils {
 		FILTROSOAPACTION("FiltroSoapAction"),
 		FILTROCONTENUTO("FiltroContenuto"),
 		FILTROXFORWARDEDFOR("FiltroX-Forwarded-For"),
-		NO_POLICY("NESSUNA_POLICY");		
+		FILTRORISORSA("FiltroRisorsa"),
+		NO_POLICY("NESSUNA_POLICY");
+				
 		public final String value;
 		
 		PolicyAlias(String value) {
@@ -362,6 +364,7 @@ public class Utils {
 		case FILTROSOAPACTION:
 		case FILTROURLINVOCAZIONE:
 		case FILTROXFORWARDEDFOR:
+		case FILTRORISORSA:
 			waitForNewHour();
 			break;
 		case GIORNALIERO:
@@ -575,6 +578,7 @@ public class Utils {
 		case FILTROSOAPACTION:
 		case FILTROURLINVOCAZIONE:
 		case FILTROXFORWARDEDFOR:
+		case FILTRORISORSA:
 			return 3600;
 		case RICHIESTE_SIMULTANEE:
 			return 0;
@@ -597,6 +601,7 @@ public class Utils {
 		case FILTROSOAPACTION:
 		case FILTROURLINVOCAZIONE:
 		case FILTROXFORWARDEDFOR:
+		case FILTRORISORSA:
 			return "orario";
 		case RICHIESTE_SIMULTANEE:
 			return "richieste-simultanee";

@@ -258,6 +258,52 @@ public class RestTest extends ConfigLoader {
 	}
 	
 	
+	@Test
+	public void perRisorsaErogazione() {
+		perRisorsa(TipoServizio.EROGAZIONE);
+	}
+	
+	
+	@Test
+	public void perRisorsaFruizione() {
+		perRisorsa(TipoServizio.FRUIZIONE);
+	}
+	
+	
+	public static void perRisorsa(TipoServizio tipoServizio) {
+		final String erogazione = "RaggruppamentoRest";
+		final String urlServizio =  tipoServizio == TipoServizio.EROGAZIONE
+				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1"
+				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1";
+		
+		HttpRequest requestGroup1 = new HttpRequest();
+		requestGroup1.setContentType("application/json");
+		requestGroup1.setMethod(HttpRequestMethod.GET);
+		requestGroup1.setUrl(urlServizio + "/minuto");		
+		
+		HttpRequest requestGroup2 = new HttpRequest();
+		requestGroup2.setContentType("application/json");
+		requestGroup2.setMethod(HttpRequestMethod.GET);
+		requestGroup2.setUrl(urlServizio + "/giornaliero");		
+		
+		HttpRequest requestGroup3 = new HttpRequest();
+		requestGroup3.setContentType("application/json");
+		requestGroup3.setMethod(HttpRequestMethod.GET);
+		requestGroup3.setUrl(urlServizio + "/orario");
+		
+		
+		HttpRequest[] requests = {requestGroup1, requestGroup2, requestGroup3};
+		
+		// Dico quale policy di rate limiting deve attivarsi, perchè sono 
+		// filtrate per header
+		for(var r: requests) {
+			r.addHeader(testIdHeader, PolicyAlias.FILTRORISORSA.value);
+		}
+		
+		makeAndCheckGroupRequests(tipoServizio, PolicyAlias.FILTRORISORSA, erogazione, requests);
+	}
+	
+	
 	public static void perToken(TipoServizio tipoServizio) throws UtilsException {
 		final String erogazione = "RaggruppamentoTokenRest";
 		final String urlServizio =  tipoServizio == TipoServizio.EROGAZIONE
