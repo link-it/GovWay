@@ -14489,8 +14489,10 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 			boolean showServizio = false;
 			
 			boolean showAzione = policy.getFiltro()==null || 
-					policy.getFiltro().isEnabled()==false || 
-					policy.getFiltro().getAzione()==null;
+					policy.getFiltro().isEnabled()==false ||
+					policy.getFiltro().getAzione()==null ||
+					"".equals(policy.getFiltro().getAzione()) ||
+					policy.getFiltro().getAzione().contains(",");
 			
 			boolean showSAErogatore = false;
 			
@@ -14541,21 +14543,25 @@ public class ConfigurazioneHelper extends ConsoleHelper{
 			}
 				
 			// Azione
+			de = new DataElement();
+			de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_CONTROLLO_TRAFFICO_POLICY_ACTIVE_GROUPBY_AZIONE);
+			if(serviceBinding!=null) {
+				de.setLabel(getLabelAzione(serviceBinding));
+			}
+			else {
+				de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_CONTROLLO_TRAFFICO_POLICY_ACTIVE_GROUPBY_AZIONE);
+			}
 			if( showAzione ){
-				de = new DataElement();
-				de.setName(ConfigurazioneCostanti.PARAMETRO_CONFIGURAZIONE_CONTROLLO_TRAFFICO_POLICY_ACTIVE_GROUPBY_AZIONE);
-				if(serviceBinding!=null) {
-					de.setLabel(getLabelAzione(serviceBinding));
-				}
-				else {
-					de.setLabel(ConfigurazioneCostanti.LABEL_PARAMETRO_CONFIGURAZIONE_CONTROLLO_TRAFFICO_POLICY_ACTIVE_GROUPBY_AZIONE);
-				}
 				de.setType(DataElementType.CHECKBOX);
 				de.setSelected(policy.getGroupBy().isAzione());
-				de.setValue(policy.getGroupBy().isAzione()+"");
-				dati.addElement(de);
 			}
-				
+			else {
+				de.setType(DataElementType.HIDDEN);
+			}
+			de.setValue(policy.getGroupBy().isAzione()+"");
+			dati.addElement(de);
+			
+			
 			// Servizio Applicativo Erogatore
 			if(configurazione) {
 				if( showSAErogatore	){
