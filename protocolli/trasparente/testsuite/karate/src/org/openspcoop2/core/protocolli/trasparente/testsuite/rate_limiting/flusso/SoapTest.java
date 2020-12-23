@@ -25,6 +25,7 @@ import java.util.Vector;
 
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.SoapBodies;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.TipoServizio;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.PolicyAlias;
@@ -32,8 +33,8 @@ import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpResponse;
 
-public class RestTest extends ConfigLoader {
-
+public class SoapTest extends ConfigLoader {
+	
 	/**
 	 * Le policy per una metrica vengono valutate dall'alto verso il basso.
 	 * Quando il flusso di elaborazione per una policy è impostato su "Interrompi", nel momento in cui una policy per quella metrica viene
@@ -56,7 +57,7 @@ public class RestTest extends ConfigLoader {
 	
 	public void controlloFlusso(TipoServizio tipoServizio) {
 		
-		final String erogazione = "FlussoValutazionePolicyRest";
+		final String erogazione = "FlussoValutazionePolicySoap";
 		final String urlServizio =  tipoServizio == TipoServizio.EROGAZIONE
 				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1"
 				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1";
@@ -65,10 +66,10 @@ public class RestTest extends ConfigLoader {
 		PolicyAlias policy2 = PolicyAlias.MINUTO;				// Elaborazione: Interrompi
 		PolicyAlias policy3 = PolicyAlias.GIORNALIERO;			// Elaborazione: Prosegui
 		
-		//int maxRequestsPolicy1 = 10;
+		// int maxRequestsPolicy1 = 10;
 		int maxRequestsPolicy3 = 5;
 		
-		//int windowSizePolicy1 = Utils.getPolicyWindowSize(policy1);
+		// int windowSizePolicy1 = Utils.getPolicyWindowSize(policy1);
 		int windowSizePolicy3 = Utils.getPolicyWindowSize(policy3);
 		
 		final String idPolicy1 = tipoServizio == TipoServizio.EROGAZIONE
@@ -76,12 +77,12 @@ public class RestTest extends ConfigLoader {
 				: dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy1);
 				
 		final String idPolicy2 = tipoServizio == TipoServizio.EROGAZIONE
-					? dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy2)
-					: dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy2);
-					
+				? dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy2)
+				: dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy2);
+				
 		final String idPolicy3 = tipoServizio == TipoServizio.EROGAZIONE
-							? dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy3)
-							: dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy3);
+				? dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy3)
+				: dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy3);
 		
 		Utils.resetCounters(idPolicy1);
 		Utils.checkConditionsNumeroRichieste(idPolicy1, 0, 0, 0);
@@ -91,20 +92,23 @@ public class RestTest extends ConfigLoader {
 		
 		Utils.resetCounters(idPolicy3);
 		Utils.checkConditionsNumeroRichieste(idPolicy3, 0, 0, 0);
-		
+
+		// Se scatta l'attesa per il nuovo giorno allora la chiamata di dopo
+		// non crea attesa.
 		Utils.waitForNewDay();
 		Utils.waitForNewHour();
 		
 		HttpRequest request = new HttpRequest();
-		request.setContentType("application/json");
-		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl(urlServizio + "/orario");
+		request.setContentType("application/soap+xml");
+		request.setMethod(HttpRequestMethod.POST);
+		request.setUrl(urlServizio);
+		request.setContent(SoapBodies.get(PolicyAlias.ORARIO).getBytes());
 		
 		// Faccio maxRequestsPolicy2 Richieste e verifico che vengano conteggiate
 		Vector<HttpResponse> responsesOk = Utils.makeSequentialRequests(request, maxRequestsPolicy3);
 		
 		// Gli headers vengono valorizzati con i dati della policy più stringente, per questo passo le info sulla policy 3
-		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkOkRequests(responsesOk, windowSizePolicy3, maxRequestsPolicy3);
+		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.SoapTest.checkOkRequests(responsesOk, windowSizePolicy3, maxRequestsPolicy3);
 		
 		Utils.checkConditionsNumeroRichieste(idPolicy1, 0, maxRequestsPolicy3, 0);
 		Utils.checkConditionsNumeroRichieste(idPolicy2, 0, 0, 0);
@@ -117,7 +121,8 @@ public class RestTest extends ConfigLoader {
 		Utils.checkConditionsNumeroRichieste(idPolicy2, 0, 0, 0);
 		Utils.checkConditionsNumeroRichieste(idPolicy3, 0, maxRequestsPolicy3, 3);
 		
-		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkFailedRequests(responsesFailed, windowSizePolicy3, maxRequestsPolicy3);
+		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.SoapTest.checkFailedRequests(responsesFailed, windowSizePolicy3, maxRequestsPolicy3);
 
 	}
+
 }
