@@ -104,9 +104,7 @@ public class ConfigLoader {
             System.setProperty("soglia_congestione", prop.getProperty("soglia_congestione"));
             System.setProperty("eventi_db_delay", prop.getProperty("eventi_db_delay"));
             System.setProperty("congestion_delay", prop.getProperty("congestion_delay"));
-            
-            
-            
+            System.setProperty("statistiche_delay", prop.getProperty("statistiche_delay"));
             
             setupLogger();
             Utils.toggleErrorDisclosure(false);
