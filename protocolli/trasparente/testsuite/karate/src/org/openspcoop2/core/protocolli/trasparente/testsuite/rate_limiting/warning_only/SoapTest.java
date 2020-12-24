@@ -7,6 +7,7 @@ import java.util.Vector;
 
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.SoapBodies;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.TipoServizio;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.PolicyAlias;
@@ -14,8 +15,8 @@ import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpResponse;
 
-public class RestTest extends ConfigLoader {
-
+public class SoapTest extends ConfigLoader {
+	
 	private static final String basePath = System.getProperty("govway_base_path");
 
 	
@@ -38,7 +39,7 @@ public class RestTest extends ConfigLoader {
 		
 		final int maxRequests = 5;
 		final int windowSize = Utils.getPolicyWindowSize(policy);
-		final String erogazione = "WarningOnlyRest";		
+		final String erogazione = "WarningOnlySoap";		
 		
 		String idPolicy = tipoServizio == TipoServizio.EROGAZIONE
 				? dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy)
@@ -50,8 +51,8 @@ public class RestTest extends ConfigLoader {
 						: dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy2);
 						
 		String url = tipoServizio == TipoServizio.EROGAZIONE
-				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario"
-				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/orario";
+				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1"
+				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1";
 
 										
 		Utils.resetCounters(idPolicy);
@@ -65,20 +66,22 @@ public class RestTest extends ConfigLoader {
 		Utils.waitForPolicy(policy);
 		
 		HttpRequest request = new HttpRequest();
-		request.setContentType("application/json");
-		request.setMethod(HttpRequestMethod.GET);
+		request.setContentType("application/soap+xml");
+		request.setMethod(HttpRequestMethod.POST);
 		request.setUrl(url);
+		request.setContent(SoapBodies.get(PolicyAlias.ORARIO).getBytes());
+		
 						
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests);		
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests, 0);
 		Utils.checkConditionsNumeroRichieste(idPolicy2, 0, maxRequests, 0);
-		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkOkRequests(responses, windowSize, maxRequests);
+		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.SoapTest.checkOkRequests(responses, windowSize, maxRequests);
 		
 		Vector<HttpResponse>  warningResponses = Utils.makeParallelRequests(request, maxRequests);
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, maxRequests*2, 0);
 		Utils.checkConditionsNumeroRichieste(idPolicy2, 0, maxRequests, 0);
 
-		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkOkRequests(warningResponses, windowSize, maxRequests);
+		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.SoapTest.checkOkRequests(warningResponses, windowSize, maxRequests);
 		
 		// Pesco dal db l'evento collegato ad una delle warningResponses e controllo che abbia esito Warning RateLimiting
 		int idx = (int) (Math.random()*maxRequests);
@@ -86,8 +89,7 @@ public class RestTest extends ConfigLoader {
 		Map<String, Object> result = dbUtils.readRow("select id,esito from transazioni where id ='"+tid+"'");
 		Integer esito = (Integer) result.get("esito");
 		
-		assertEquals(Integer.valueOf(19), esito);
-		
+		assertEquals(Integer.valueOf(19), esito);		
 	}
 
 }
