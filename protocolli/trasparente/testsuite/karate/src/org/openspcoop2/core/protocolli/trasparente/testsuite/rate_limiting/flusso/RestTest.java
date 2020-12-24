@@ -113,7 +113,7 @@ public class RestTest extends ConfigLoader {
 		
 		Vector<HttpResponse> responsesFailed = Utils.makeSequentialRequests(request, 3);
 		
-		Utils.checkConditionsNumeroRichieste(idPolicy1, 0, maxRequestsPolicy3, 3);
+		Utils.checkConditionsNumeroRichieste(idPolicy1, 0, maxRequestsPolicy3, 0);
 		Utils.checkConditionsNumeroRichieste(idPolicy2, 0, 0, 0);
 		Utils.checkConditionsNumeroRichieste(idPolicy3, 0, maxRequestsPolicy3, 3);
 		
