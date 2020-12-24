@@ -42,7 +42,7 @@ public class RestTest extends ConfigLoader {
 		String url = tipoServizio == TipoServizio.EROGAZIONE
 				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1"
 				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1";
-		final int nrequests = 10;
+		final int nrequests = 5;
 		
 		// Endpoints:
 		//	/orario 	 -> policy oraria
@@ -50,7 +50,7 @@ public class RestTest extends ConfigLoader {
 		//  /no-policy 	 -> policy settimanale
 		// 	/minuto		 -> policy mensile
 		
-		String[] endpoints = { /*"orario", "giornaliero",*/ "no-policy", "minuto" };
+		String[] endpoints = { "orario", "giornaliero", "no-policy", "minuto" };
 		int[] headerRemaining = new int[endpoints.length];
 		
 		for(int i=0;i<endpoints.length;i++) {
