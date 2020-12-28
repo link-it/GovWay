@@ -50,6 +50,11 @@
   Questo perchè di base govway controlla i tempi medi risposta sulla finestra di tempo precedente per evitare di bloccare il sistema quando
 	una sola richiesta ha fatto superare il tempo medio risposta.
 
+- Modificare le properties del config_loader in modo che vengano caricate le policy utente.
+	Impostare in <.../distrib/properties/config_loader.cli.properties>
+
+		policy.enable=true
+
 - Per variare il ritardo con cui vengono scritti gli eventi sul database:
 	In <govway_local.properties>:
 		org.openspcoop2.pdd.eventi.timer.seconds=10
