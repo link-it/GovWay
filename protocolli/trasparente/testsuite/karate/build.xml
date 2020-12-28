@@ -172,7 +172,7 @@
 		<if>
 			<and>
 				<equals arg1="${package}" arg2="$${package}"/>
-				<equals arg1="${test}" arg2="$${test}"/>ù
+				<equals arg1="${test}" arg2="$${test}"/>
 				<equals arg1="${methods}" arg2="$${methods}"/>
 			</and>
 			<then>
@@ -193,9 +193,9 @@
 					<formatter type="plain"/>
 					<formatter type="xml" />
 
-					<batchtest fork="yes" todir="${output}/@{karateTipoTest}" >
+					<batchtest fork="yes" todir="${output}" >
 						<fileset dir="${src_testsuite}">
-							<include name="**/*.java" />
+							<include name="**/*Test.java" />
 						</fileset>
 					</batchtest>
 

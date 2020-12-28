@@ -390,9 +390,15 @@ public class Utils {
 		}
 		
 		Calendar now = Calendar.getInstance();
-		int to_wait = (63 - now.get(Calendar.SECOND)) *1000;
-		logRateLimiting.info("Aspetto " + to_wait/1000 + " secondi per lo scoccare del minuto..");
-		org.openspcoop2.utils.Utilities.sleep(to_wait);
+		int remaining = 60 - now.get(Calendar.SECOND);
+		if (remaining <= 15) {
+			//int to_wait = (63 - now.get(Calendar.SECOND)) *1000;
+			int to_wait = remaining * 1000;
+			logRateLimiting.info("Aspetto " + to_wait/1000 + " secondi per lo scoccare del minuto..");
+			org.openspcoop2.utils.Utilities.sleep(to_wait);
+		}
+		
+
 				
 	}
 	

@@ -26,7 +26,14 @@ import java.io.InputStream;
 import java.util.Map;
 import java.util.Properties;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.rules.MethodRule;
+import org.junit.rules.TestName;
+import org.junit.rules.TestRule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
 import org.openspcoop2.utils.LoggerWrapperFactory;
 import org.slf4j.Logger;
@@ -66,6 +73,18 @@ public class ConfigLoader {
 	}
 	
 	protected static DbUtils dbUtils;
+	
+    @Rule public TestName testName = new TestName();
+
+    @Before
+    public void before() {
+    	logRateLimiting.info(
+    			"\n###################" +
+    			"\nEseguo test: " + this.getClass().getName() + "." + this.testName.getMethodName() +
+    			"\n##################"
+    		);
+    }
+
 	
 	@BeforeClass
 	public static void setupDbUtils() {
