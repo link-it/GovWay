@@ -194,7 +194,7 @@
 					<formatter type="xml" />
 
 					<batchtest fork="yes" todir="${output}/@{karateTipoTest}" >
-						<fileset dir="${src_testsuite}"/>
+						<fileset dir="${src_testsuite}">
 							<include name="**/*.java" />
 						</fileset>
 					</batchtest>
