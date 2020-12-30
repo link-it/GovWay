@@ -1,24 +1,3 @@
-/*
- * GovWay - A customizable API Gateway 
- * https://govway.org
- * 
- * Copyright (c) 2005-2020 Link.it srl (https://link.it). 
- * 
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3, as published by
- * the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- */
-
-
 package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.custom_policy;
 
 import static org.junit.Assert.assertEquals;
@@ -30,22 +9,18 @@ import java.util.Vector;
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Headers;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.SoapBodies;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.TipoServizio;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.PolicyAlias;
 import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpResponse;
 
-
-/** 
- * Per questi test non è necessario far fallire la policy, è sufficiente verificare
- *  che venga attivata quella giusta con il relativo conteggio.
- *  
- */
-
-public class RestTest extends ConfigLoader {
+public class SoapTest extends ConfigLoader {
 	
 	private static final String basePath = System.getProperty("govway_base_path");
+	private static final String testIdHeader = "GovWay-TestSuite-RL-Grouping";
 
 	@Test
 	public void completateConSuccessoErogazione() {
@@ -69,37 +44,40 @@ public class RestTest extends ConfigLoader {
 		occupazioneBanda(TipoServizio.FRUIZIONE);
 	}
 	
-
-	
-	
 	public static void occupazioneBanda(TipoServizio tipoServizio) {
-		final String erogazione = "CustomPolicyRest";
+		final String erogazione = "CustomPolicySoap";
 		String url = tipoServizio == TipoServizio.EROGAZIONE
 				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1"
 				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1";
 		final int nrequests = 5;
 		final int payload_size = 1024;
-		// Endpoints:
-		//	/orario 	 -> policy oraria
-		//	/giornaliero -> policy giornaliera
-		//  /no-policy 	 -> policy settimanale
-		// 	/minuto		 -> policy mensile
 		
+				
 		// La policy con l'intervallo più breve è quella oraria, allora per essere
 		// sicuri di non sforare in tutti i casi nell'intervallo successivo, è sufficiente
-		// aspettare l'ora.
+		// aspettare l'ora
 		Utils.waitForNewHour();
 		
-		String[] endpoints = { "orario", "giornaliero", "no-policy", "minuto" };
-		int[] headerRemaining = new int[endpoints.length];
+		final String[] headerPolicies = { "OccupazioneBandaOrario", "OccupazioneBandaGiornaliero", "OccupazioneBandaSettimanale", "OccupazioneBandaMensile" };
+		final int[] headerRemaining = new int[headerPolicies.length];
 		
-		for(int i=0;i<endpoints.length;i++) {
-			logRateLimiting.info("Attivo conteggio su endpoint /"+endpoints[i]);
+
+		final String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
+				"    <soap:Body>\n" + 
+				"        <ns2:Minuto xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +
+				generatePayload(payload_size) +
+				"        </ns2:Minuto>\n" + 
+				"    </soap:Body>\n" + 
+				"</soap:Envelope>";
+		
+		for(int i=0;i<headerPolicies.length;i++) {
+			logRateLimiting.info("Attivo conteggio su "+headerPolicies[i]);
 			HttpRequest request = new HttpRequest();
-			request.setContentType("application/json");
+			request.setContentType("application/soap+xml");
 			request.setMethod(HttpRequestMethod.POST);
-			request.setUrl(url + "/" + endpoints[i]);
-			request.setContent(generatePayload(payload_size));
+			request.setUrl(url);
+			request.setContent(body.getBytes());
+			request.addHeader(testIdHeader, headerPolicies[i]);
 			
 			
 			// Vedo quante ne mancano
@@ -123,13 +101,14 @@ public class RestTest extends ConfigLoader {
 		logRateLimiting.info("Aspetto che le statistiche vengano generate...");
 		org.openspcoop2.utils.Utilities.sleep(16000);
 		
-		for(int i=0;i<endpoints.length;i++) {
-			logRateLimiting.info("Controllo il conteggio su endpoint /"+endpoints[i]);
+		for(int i=0;i<headerPolicies.length;i++) {
+			logRateLimiting.info("Controllo il conteggio su endpoint /"+headerPolicies[i]);
 			HttpRequest request = new HttpRequest();
-			request.setContentType("application/json");
+			request.setContentType("application/soap+xml");
 			request.setMethod(HttpRequestMethod.POST);
-			request.setUrl(url + "/" + endpoints[i]);
-			request.setContent(generatePayload(payload_size));
+			request.setUrl(url);
+			request.setContent(body.getBytes());
+			request.addHeader(testIdHeader, headerPolicies[i]);
 			
 			// Faccio un'altra richiesta e verifico che il remaining sia diminuito di payload_size*(nrequests+1)
 			
@@ -141,40 +120,36 @@ public class RestTest extends ConfigLoader {
 			// quindi 2*(nrequests+1)
 			
 			int shouldRemaining = headerRemaining[i] - 2*(nrequests+1);
-			logRateLimiting.info("Banda rimanente su /"+endpoints[i]+": " + updatedHeaderRemaining);
+			logRateLimiting.info("Banda rimanente su "+headerPolicies[i]+": " + updatedHeaderRemaining);
 			logRateLimiting.info("Dovrebbero rimanerne meno di: " + shouldRemaining);
 			assertTrue(updatedHeaderRemaining <= shouldRemaining);
 			
 		}
-		
 	}
 	
+	
 	public static void completateConSuccesso(TipoServizio tipoServizio) {
-		final String erogazione = "CustomPolicyRest";
+		final String erogazione = "CustomPolicySoap";
 		final String url = tipoServizio == TipoServizio.EROGAZIONE
 				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1"
 				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1";
 		final int nrequests = 5;
 		
-		// Endpoints:
-		//	/orario 	 -> policy oraria
-		//	/giornaliero -> policy giornaliera
-		//  /no-policy 	 -> policy settimanale
-		// 	/minuto		 -> policy mensile
-		
 		// La policy con l'intervallo più breve è quella oraria, allora per essere
 		// sicuri di non sforare in tutti i casi nell'intervallo successivo, è sufficiente
 		// aspettare l'ora.
 		Utils.waitForNewHour();
-		final String[] endpoints = { "orario", "giornaliero", "no-policy", "minuto" };
-		final int[] headerRemaining = new int[endpoints.length];
+		final String[] headerPolicies = { "CompletateConSuccessoOrario", "CompletateConSuccessoGiornaliero", "CompletateConSuccessoSettimanale", "CompletateConSuccessoMensile" };
+		final int[] headerRemaining = new int[headerPolicies.length];
 		
-		for(int i=0;i<endpoints.length;i++) {
-			logRateLimiting.info("Attivo conteggio su endpoint /"+endpoints[i]);
+		for(int i=0;i<headerPolicies.length;i++) {
+			logRateLimiting.info("Attivo conteggio su "+headerPolicies[i]);
 			HttpRequest request = new HttpRequest();
-			request.setContentType("application/json");
-			request.setMethod(HttpRequestMethod.GET);
-			request.setUrl(url + "/" + endpoints[i]);
+			request.setContentType("application/soap+xml");
+			request.setMethod(HttpRequestMethod.POST);
+			request.setUrl(url);
+			request.setContent(SoapBodies.get(PolicyAlias.MINUTO).getBytes());
+			request.addHeader(testIdHeader, headerPolicies[i]);
 			
 			// Vedo quante ne mancano
 			HttpResponse firstResp = Utils.makeRequest(request);
@@ -190,18 +165,20 @@ public class RestTest extends ConfigLoader {
 		
 		logRateLimiting.info("Headers remaining: " );
 		for(var h : headerRemaining) {
-			logRateLimiting.info( " - " + h);
+			logRateLimiting.info(String.valueOf(h));
 		}
 		
 		logRateLimiting.info("Aspetto che le statistiche vengano generate...");
 		org.openspcoop2.utils.Utilities.sleep(16000);
 		
-		for(int i=0;i<endpoints.length;i++) {
-			logRateLimiting.info("Controllo il conteggio su endpoint /"+endpoints[i]);
+		for(int i=0;i<headerPolicies.length;i++) {
+			logRateLimiting.info("Controllo il conteggio su "+headerPolicies[i]);
 			HttpRequest request = new HttpRequest();
-			request.setContentType("application/json");
-			request.setMethod(HttpRequestMethod.GET);
-			request.setUrl(url + "/" + endpoints[i]);
+			request.setContentType("application/soap+xml");
+			request.setMethod(HttpRequestMethod.POST);
+			request.setUrl(url);
+			request.setContent(SoapBodies.get(PolicyAlias.MINUTO).getBytes());
+			request.addHeader(testIdHeader, headerPolicies[i]);
 			
 			// Faccio un'altra richiesta e verifico che il remaining sia diminuito di nrequests+1
 			
@@ -210,13 +187,13 @@ public class RestTest extends ConfigLoader {
 			int updatedHeaderRemaining = Integer.valueOf(lastResp.getHeader(Headers.RequestSuccesfulRemaining));
 			assertEquals(headerRemaining[i] - (nrequests+1),updatedHeaderRemaining);			
 		}
-		
+
 	}
-	
 	
 	private static byte[] generatePayload(int payloadSize) {
 		byte[] ret = new byte[payloadSize];
 		Arrays.fill(ret, (byte) 97);
 		return ret;
 	}
+
 }

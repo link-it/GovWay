@@ -68,7 +68,6 @@ public class Headers {
 	
 	public static final String AvgTimeResponseReset = "GovWay-RateLimit-AvgTimeResponse-Reset";
 	public static final String AvgTimeResponseLimit = "GovWay-RateLimit-AvgTimeResponse-Limit";
-	public static final String AvgTimeResponseRemaining = "GovWay-RateLimit-AvgTimeResponse-Remaining";
 	
 
 }
