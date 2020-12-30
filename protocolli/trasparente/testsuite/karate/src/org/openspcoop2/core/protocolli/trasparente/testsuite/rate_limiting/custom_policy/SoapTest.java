@@ -65,7 +65,7 @@ public class SoapTest extends ConfigLoader {
 		final String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
 				"    <soap:Body>\n" + 
 				"        <ns2:Minuto xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +
-				generatePayload(payload_size) +
+				new String(generatePayload(payload_size)) +
 				"        </ns2:Minuto>\n" + 
 				"    </soap:Body>\n" + 
 				"</soap:Envelope>";
