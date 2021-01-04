@@ -355,6 +355,7 @@ public class Utils {
 	public static void waitForPolicy(PolicyAlias policy) {
 		switch (policy) {
 		case MINUTO:
+		case MINUTODEFAULT:
 			waitForNewMinute();
 			break;
 		case ORARIO:
@@ -391,9 +392,9 @@ public class Utils {
 		
 		Calendar now = Calendar.getInstance();
 		int remaining = 60 - now.get(Calendar.SECOND);
-		if (remaining <= 15) {
-			//int to_wait = (63 - now.get(Calendar.SECOND)) *1000;
-			int to_wait = remaining * 1000;
+		if (remaining <= 20) {
+
+			int to_wait = (remaining+2) * 1000;
 			logRateLimiting.info("Aspetto " + to_wait/1000 + " secondi per lo scoccare del minuto..");
 			org.openspcoop2.utils.Utilities.sleep(to_wait);
 		}
@@ -633,19 +634,16 @@ public class Utils {
 		for(int i=0; i<count;i++) {
 			logRateLimiting.info(request.getMethod() + " " + request.getUrl());
 			try {
-				responses.add(HttpUtilities.httpInvoke(request));
+				HttpResponse r = HttpUtilities.httpInvoke(request); 
+				responses.add(r);
 				logRateLimiting.info("Richiesta effettuata..");
+				logRateLimiting.info("statusCode: " + r.getResultHTTPOperation());
+				logRateLimiting.info("headers: " + r.getHeaders());
 				checkConditionsNumeroRichieste(idPolicy, 0, i+1, 0);
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}		
 		}
-		
-		logRateLimiting.info("RESPONSES: ");
-		responses.forEach(r -> {
-			logRateLimiting.info("statusCode: " + r.getResultHTTPOperation());
-			logRateLimiting.info("headers: " + r.getHeaders());
-		});
 		
 		return responses;		
 	}

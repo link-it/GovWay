@@ -331,12 +331,8 @@ public class SoapTest extends ConfigLoader {
 	
 	
 	@Test
-	public void filtroHeaderErogazione() throws UtilsException {
-		
-		HttpUtilities.getClientAddressHeaders().forEach( header -> {
-			filtroHeader(header, "filtrami", TipoServizio.EROGAZIONE, PolicyAlias.FILTROHEADER);
-		});
-		
+	public void filtroHeaderErogazione() throws UtilsException {		
+		filtroHeader("X-Test-Filtro-Chiave", "filtrami", TipoServizio.EROGAZIONE, PolicyAlias.FILTROHEADER);		
 	}
 
 	@Test
