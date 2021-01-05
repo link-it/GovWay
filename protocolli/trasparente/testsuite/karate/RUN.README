@@ -57,9 +57,9 @@
 
 - Per variare il ritardo con cui vengono scritti gli eventi sul database:
 	In <govway_local.properties>:
-		org.openspcoop2.pdd.eventi.timer.seconds=10
+		org.openspcoop2.pdd.eventi.timer.seconds=5
 	In <testsuite.properties>:
-		eventi_db_delay=10
+		eventi_db_delay=5
 
 - Copiare o linkare sotto /etc/govway/keys il keystore in:
 	/protocolli/spcoop/testsuite/deploy/wss_examples/jks/pa.p12

@@ -104,23 +104,10 @@ public class ConfigLoader {
                 throw new FileNotFoundException("property file '" + propFileName + "' not found in the classpath");
             }
             
-            System.setProperty("govway_base_path", prop.getProperty("govway_base_path"));
-            System.setProperty("connect_timeout", prop.getProperty("connect_timeout"));
-            System.setProperty("read_timeout", prop.getProperty("read_timeout"));
-            System.setProperty("db_username", prop.getProperty("db_username"));
-            System.setProperty("db_password", prop.getProperty("db_password"));
-            System.setProperty("db_url", prop.getProperty("db_url"));
-            System.setProperty("db_driverClassName", prop.getProperty("db_driverClassName"));
-            System.setProperty("db_sleep_before_read", prop.getProperty("db_sleep_before_read"));
-            System.setProperty("jmx_username", prop.getProperty("jmx_cache_username"));
-            System.setProperty("jmx_password", prop.getProperty("jmx_cache_password"));
-            System.setProperty("rl_check_policy_conditions_retry", prop.getProperty("rl_check_policy_conditions_retry"));
-            System.setProperty("rl_check_policy_conditions_delay", prop.getProperty("rl_check_policy_conditions_delay"));
-            System.setProperty("soglia_congestione", prop.getProperty("soglia_congestione"));
-            System.setProperty("eventi_db_delay", prop.getProperty("eventi_db_delay"));
-            System.setProperty("congestion_delay", prop.getProperty("congestion_delay"));
-            System.setProperty("statistiche_delay", prop.getProperty("statistiche_delay"));
-            
+            for(var p : prop.entrySet()) {
+            	System.setProperty((String)p.getKey(), (String)p.getValue());
+            }
+                        
             setupLogger();
             Utils.toggleErrorDisclosure(false);
 
@@ -159,8 +146,8 @@ public class ConfigLoader {
         scriptInvoker.run(new File(configLoaderPath), trasparenteBundle);
 
         // Dopo aver caricato lo script, resetto le cache
-        String jmx_user = prop.getProperty("jmx_cache_username");
-        String jmx_pass = prop.getProperty("jmx_cache_password"); 
+        String jmx_user = prop.getProperty("jmx_username");
+        String jmx_pass = prop.getProperty("jmx_password"); 
         
         String[] govwayCaches = prop.getProperty("jmx_cache_resources").split(",");
         for (String resource : govwayCaches) {

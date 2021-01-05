@@ -20,172 +20,130 @@ import org.openspcoop2.utils.transport.http.HttpResponse;
 public class SoapTest extends ConfigLoader {
 	
 	private static final String basePath = System.getProperty("govway_base_path");
-	private static final String testIdHeader = "GovWay-TestSuite-RL-Grouping";
 
 	@Test
-	public void completateConSuccessoErogazione() {
-		completateConSuccesso(TipoServizio.EROGAZIONE);
+	public void customPolicyErogazione() {
+		customPolicy(TipoServizio.EROGAZIONE);
 	}
 	
 	
 	@Test
-	public void completateConSuccessoFruizione() {
-		completateConSuccesso(TipoServizio.FRUIZIONE);
-	}
-	
-	@Test
-	public void occupazioneBandaErogazione() {
-		occupazioneBanda(TipoServizio.EROGAZIONE);
+	public void customPolicyFruizione() {
+		customPolicy(TipoServizio.FRUIZIONE);
 	}
 	
 	
-	@Test
-	public void occupazioneBandaFruizione() {
-		occupazioneBanda(TipoServizio.FRUIZIONE);
-	}
-	
-	public static void occupazioneBanda(TipoServizio tipoServizio) {
+	/**
+	 * Testo contemporaneamente le tre policy custom: 
+	 * 		NumeroRichiesteCompletateConSuccesso, OccupazioneBanda e TempoMedioRisposta
+	 *
+	 * Controllo che gli headers remaining abbiano il conteggio giusto.
+	 * Per il tempo medio invece, non avendo uno header -Remaining, controllo i contatori sulla policy
+	 * TODO: Potrei controllare che lo header -Limit abbia la finestra adatta?
+	 * @param tipoServizio
+	 */
+	public static void customPolicy(TipoServizio tipoServizio) {
 		final String erogazione = "CustomPolicySoap";
-		String url = tipoServizio == TipoServizio.EROGAZIONE
-				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1"
-				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1";
 		final int nrequests = 5;
 		final int payload_size = 1024;
 		
-				
-		// La policy con l'intervallo più breve è quella oraria, allora per essere
-		// sicuri di non sforare in tutti i casi nell'intervallo successivo, è sufficiente
-		// aspettare l'ora
-		Utils.waitForNewHour();
-		
-		final String[] headerPolicies = { "OccupazioneBandaOrario", "OccupazioneBandaGiornaliero", "OccupazioneBandaSettimanale", "OccupazioneBandaMensile" };
-		final int[] headerRemaining = new int[headerPolicies.length];
-		
-
-		final String body = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
-				"    <soap:Body>\n" + 
-				"        <ns2:Minuto xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +
-				new String(generatePayload(payload_size)) +
-				"        </ns2:Minuto>\n" + 
-				"    </soap:Body>\n" + 
-				"</soap:Envelope>";
-		
-		for(int i=0;i<headerPolicies.length;i++) {
-			logRateLimiting.info("Attivo conteggio su "+headerPolicies[i]);
-			HttpRequest request = new HttpRequest();
-			request.setContentType("application/soap+xml");
-			request.setMethod(HttpRequestMethod.POST);
-			request.setUrl(url);
-			request.setContent(body.getBytes());
-			request.addHeader(testIdHeader, headerPolicies[i]);
-			
-			
-			// Vedo quante ne mancano
-			HttpResponse firstResp = Utils.makeRequest(request);
-			assertEquals(200, firstResp.getResultHTTPOperation());
-			headerRemaining[i] = Integer.valueOf(firstResp.getHeader(Headers.BandWidthQuotaRemaining));
-			
-			// Faccio n richieste
-			Vector<HttpResponse> responses = Utils.makeParallelRequests(request, nrequests);
-
-			// Le richieste devono essere andate tutte bene
-			assertEquals(nrequests, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());	
-		}
-		
-
-		logRateLimiting.info("Headers remaining: " );
-		for(var h : headerRemaining) {
-			logRateLimiting.info( " - " + h);
-		}
-	
-		logRateLimiting.info("Aspetto che le statistiche vengano generate...");
-		org.openspcoop2.utils.Utilities.sleep(16000);
-		
-		for(int i=0;i<headerPolicies.length;i++) {
-			logRateLimiting.info("Controllo il conteggio su endpoint /"+headerPolicies[i]);
-			HttpRequest request = new HttpRequest();
-			request.setContentType("application/soap+xml");
-			request.setMethod(HttpRequestMethod.POST);
-			request.setUrl(url);
-			request.setContent(body.getBytes());
-			request.addHeader(testIdHeader, headerPolicies[i]);
-			
-			// Faccio un'altra richiesta e verifico che il remaining sia diminuito di payload_size*(nrequests+1)
-			
-			HttpResponse lastResp = Utils.makeRequest(request);
-			assertEquals(200, lastResp.getResultHTTPOperation());
-			int updatedHeaderRemaining = Integer.valueOf(lastResp.getHeader(Headers.BandWidthQuotaRemaining));
-			
-			// Ogni richiesta è da 1Kb, e nella risposta viene restituito il payload della richiesta
-			// quindi 2*(nrequests+1)
-			
-			int shouldRemaining = headerRemaining[i] - 2*(nrequests+1);
-			logRateLimiting.info("Banda rimanente su "+headerPolicies[i]+": " + updatedHeaderRemaining);
-			logRateLimiting.info("Dovrebbero rimanerne meno di: " + shouldRemaining);
-			assertTrue(updatedHeaderRemaining <= shouldRemaining);
-			
-		}
-	}
-	
-	
-	public static void completateConSuccesso(TipoServizio tipoServizio) {
-		final String erogazione = "CustomPolicySoap";
 		final String url = tipoServizio == TipoServizio.EROGAZIONE
 				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1"
 				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1";
-		final int nrequests = 5;
 		
+
+		// Aspettiamo nuove statistiche pulite.
+		Utils.waitForDbStats();
+
 		// La policy con l'intervallo più breve è quella oraria, allora per essere
 		// sicuri di non sforare in tutti i casi nell'intervallo successivo, è sufficiente
-		// aspettare l'ora.
-		Utils.waitForNewHour();
-		final String[] headerPolicies = { "CompletateConSuccessoOrario", "CompletateConSuccessoGiornaliero", "CompletateConSuccessoSettimanale", "CompletateConSuccessoMensile" };
-		final int[] headerRemaining = new int[headerPolicies.length];
+		// aspettare l'ora
+		Utils.waitForNewHour();	
 		
-		for(int i=0;i<headerPolicies.length;i++) {
-			logRateLimiting.info("Attivo conteggio su "+headerPolicies[i]);
+		// Creo un messaggio grande payload_size bytes, e con un tempo di attesa di 2 secondi.
+		// Faccio le richieste, che devono andare tutte bene e controllo che
+		//	1 - lo header RequestSuccesfullRemaining sia corretto
+		//	2 - Quello dell'occupazione banda anche
+		// 	3 - I dati sulla policy per il tempo medio risposta siano corretti.
+				
+		//	/orario 	 -> policy oraria
+		//	/giornaliero -> policy giornaliera
+		//  /no-policy 	 -> policy settimanale
+		// 	/minuto		 -> policy mensile
+
+		final PolicyAlias[] policies = { PolicyAlias.ORARIO, PolicyAlias.GIORNALIERO, PolicyAlias.NO_POLICY, PolicyAlias.MINUTO };
+
+		final int[] succesfullHeaderRemaining = new int[policies.length];
+		final int[] bandwidthQuotaRemaining = new int[policies.length];
+		
+		// Faccio una richiesta per vedere quante ne mancano ogni header
+		// e altre n richieste per far incrementare il conteggio.
+		for(int i=0;i<policies.length;i++) {
+			logRateLimiting.info("Attivo conteggio su " + policies[i]);
 			HttpRequest request = new HttpRequest();
 			request.setContentType("application/soap+xml");
 			request.setMethod(HttpRequestMethod.POST);
 			request.setUrl(url);
-			request.setContent(SoapBodies.get(PolicyAlias.MINUTO).getBytes());
-			request.addHeader(testIdHeader, headerPolicies[i]);
+			request.setContent(SoapBodies.get(policies[i], new String(generatePayload(payload_size))).getBytes());
 			
-			// Vedo quante ne mancano
+			
+			// Vedo quante ne mancano per ogni header
 			HttpResponse firstResp = Utils.makeRequest(request);
 			assertEquals(200, firstResp.getResultHTTPOperation());
-			headerRemaining[i] = Integer.valueOf(firstResp.getHeader(Headers.RequestSuccesfulRemaining));
-			
+			succesfullHeaderRemaining[i] = Integer.valueOf(firstResp.getHeader(Headers.RequestSuccesfulRemaining));
+			bandwidthQuotaRemaining[i] = Integer.valueOf(firstResp.getHeader(Headers.BandWidthQuotaRemaining));
+						
 			// Faccio n richieste
 			Vector<HttpResponse> responses = Utils.makeParallelRequests(request, nrequests);
 
 			// Le richieste devono essere andate tutte bene
-			assertEquals(nrequests, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());	
+			assertEquals(nrequests, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count()); 
 		}
 		
-		logRateLimiting.info("Headers remaining: " );
-		for(var h : headerRemaining) {
+		logRateLimiting.info("Succesful Headers remaining: " );
+		for(var h : succesfullHeaderRemaining) {
+			logRateLimiting.info(String.valueOf(h));
+		}
+		logRateLimiting.info("Bandwidth quota Headers remaining: " );
+		for(var h : bandwidthQuotaRemaining) {
 			logRateLimiting.info(String.valueOf(h));
 		}
 		
-		logRateLimiting.info("Aspetto che le statistiche vengano generate...");
-		org.openspcoop2.utils.Utilities.sleep(16000);
-		
-		for(int i=0;i<headerPolicies.length;i++) {
-			logRateLimiting.info("Controllo il conteggio su "+headerPolicies[i]);
+		Utils.waitForDbStats();
+
+		// Faccio per ogni azione una nuova richiesta in modo da controllare
+		// che gli headers remaining siano diminuiti opportunamente 
+		for(int i=0;i<policies.length;i++) {
+			
+			logRateLimiting.info("Controllo il conteggio su "+policies[i]);
+
 			HttpRequest request = new HttpRequest();
+			String body = SoapBodies.get(policies[i], new String(generatePayload(payload_size)));
 			request.setContentType("application/soap+xml");
 			request.setMethod(HttpRequestMethod.POST);
 			request.setUrl(url);
-			request.setContent(SoapBodies.get(PolicyAlias.MINUTO).getBytes());
-			request.addHeader(testIdHeader, headerPolicies[i]);
-			
-			// Faccio un'altra richiesta e verifico che il remaining sia diminuito di nrequests+1
+			request.setContent(body.getBytes());
 			
 			HttpResponse lastResp = Utils.makeRequest(request);
 			assertEquals(200, lastResp.getResultHTTPOperation());
+			
+			logRateLimiting.info("Controllo " + Headers.RequestSuccesfulRemaining);
+			
 			int updatedHeaderRemaining = Integer.valueOf(lastResp.getHeader(Headers.RequestSuccesfulRemaining));
-			assertEquals(headerRemaining[i] - (nrequests+1),updatedHeaderRemaining);			
+			assertEquals(succesfullHeaderRemaining[i] - (nrequests+1), updatedHeaderRemaining);
+			
+			logRateLimiting.info("Controllo " + Headers.BandWidthQuotaRemaining);
+			
+			updatedHeaderRemaining = Integer.valueOf(lastResp.getHeader(Headers.BandWidthQuotaRemaining));
+		
+			int shouldRemaining = bandwidthQuotaRemaining[i] - (2*(nrequests+1)*body.getBytes().length)/1024;
+			logRateLimiting.info("Banda rimanente su "+policies[i]+": " + updatedHeaderRemaining);
+			logRateLimiting.info("Dovrebbero rimanerne meno di: " + shouldRemaining);
+			assertTrue(updatedHeaderRemaining <= shouldRemaining);
+			
+			
+			logRateLimiting.info("Controllo presenza header:" + Headers.AvgTimeResponseLimit);
+			assertTrue(lastResp.getHeader(Headers.AvgTimeResponseLimit) != null);
 		}
 
 	}

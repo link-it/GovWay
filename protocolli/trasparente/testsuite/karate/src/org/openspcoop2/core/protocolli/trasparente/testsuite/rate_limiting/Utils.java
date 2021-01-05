@@ -81,7 +81,7 @@ public class Utils {
 		FILTROCONTENUTO("FiltroContenuto"),
 		FILTROXFORWARDEDFOR("FiltroX-Forwarded-For"),
 		FILTRORISORSA("FiltroRisorsa"),
-		NO_POLICY("NESSUNA_POLICY");
+		NO_POLICY("NO_POLICY");
 				
 		public final String value;
 		
@@ -390,9 +390,11 @@ public class Utils {
 			return;
 		}
 		
+		final int threshold = Integer.valueOf(System.getProperty("threshold_minute"));
+	
 		Calendar now = Calendar.getInstance();
 		int remaining = 60 - now.get(Calendar.SECOND);
-		if (remaining <= 20) {
+		if (remaining <= threshold) {
 
 			int to_wait = (remaining+2) * 1000;
 			logRateLimiting.info("Aspetto " + to_wait/1000 + " secondi per lo scoccare del minuto..");
@@ -414,9 +416,14 @@ public class Utils {
 			return;
 		}
 		
+		int threshold = Integer.valueOf(System.getProperty("threshold_hour"));
+		
 		Calendar now = Calendar.getInstance();
-		int remaining = 60 - now.get(Calendar.MINUTE); 
-		if (remaining <= 2) {
+		int remaining_min = 60 - now.get(Calendar.MINUTE);
+		int remaining_sec = 60 - now.get(Calendar.SECOND);
+		int remaining = (remaining_min - 1)*60 + remaining_sec;
+		
+		if (remaining <= threshold) {
 			int to_wait = (remaining+1) * 60 * 1000;
 			logRateLimiting.info("Aspetto " + to_wait/1000 + " secondi per lo scoccare dell'ora..");
 			org.openspcoop2.utils.Utilities.sleep(to_wait);
@@ -433,11 +440,15 @@ public class Utils {
 		if ("false".equals(System.getProperty("wait"))) {
 			return;
 		}
-		
+
+		int threshold = Integer.valueOf(System.getProperty("threshold_day"));
+
 		Calendar now = Calendar.getInstance();
 		if (now.get(Calendar.HOUR_OF_DAY) == 23) {
-			int remaining = 60 - now.get(Calendar.MINUTE); 
-			if (remaining <= 2) {
+			int remaining_min = 60 - now.get(Calendar.MINUTE);
+			int remaining_sec = 60 - now.get(Calendar.SECOND);
+			int remaining = (remaining_min - 1)*60 + remaining_sec;
+		if (remaining <= threshold) {
 				int to_wait = (remaining+1) * 60 * 1000;
 				logRateLimiting.info("Aspetto " + to_wait/1000 + " secondi per lo scoccare del nuovo giorno..");
 				org.openspcoop2.utils.Utilities.sleep(to_wait);
@@ -466,6 +477,13 @@ public class Utils {
 			}
 		}
 		
+	}
+	
+	
+	public static void waitForDbStats() {
+		int to_wait = Integer.valueOf(System.getProperty("statistiche_delay"));
+		logRateLimiting.info("Aspetto " + to_wait/1000 + " secondi affinchè le statistiche vengano generate...");
+		org.openspcoop2.utils.Utilities.sleep(to_wait);
 	}
 
 	public static void checkConditionsNumeroRichieste(String idPolicy, Integer attive, Integer conteggiate, Integer bloccate) {
@@ -614,9 +632,10 @@ public class Utils {
 			return "richieste-simultanee";
 		case MINUTODEFAULT:
 			return "minuto-default";
+		case NO_POLICY:
+			return "no-policy";
 		default:
-			return "";
-		
+			return "";		
 		}
 	}
 

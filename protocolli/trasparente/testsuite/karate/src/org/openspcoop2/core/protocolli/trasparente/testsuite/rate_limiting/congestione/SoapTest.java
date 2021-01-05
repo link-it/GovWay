@@ -56,7 +56,8 @@ import org.openspcoop2.utils.transport.http.HttpUtilsException;
 public class SoapTest extends ConfigLoader {
 
 	private static final String basePath = System.getProperty("govway_base_path");
-	public static final int sogliaCongestione = Integer.valueOf(System.getProperty("soglia_congestione"));
+	private static final int durataCongestione = Integer.valueOf(System.getProperty("rate_limiting.congestione.durata_congestione"));
+	private static final int sogliaCongestione = Integer.valueOf(System.getProperty("soglia_congestione"));
 	
 	@Test
 	public void congestioneAttivaErogazione() {
@@ -119,6 +120,10 @@ public class SoapTest extends ConfigLoader {
 	}
 	
 	
+	/*
+	 * Nota, per Globale si intende la configurazione del tempo medio risposta, ad andare in degrado è comunque
+	 * la singola API.
+	 */
 	@Test
 	public void rateLimitingInPresenzaDegradoGlobaleFruizione() throws UtilsException, HttpUtilsException {
 		rateLimitingInPresenzaDegrado(TipoServizio.FRUIZIONE, "InPresenzaDegradoSoap", 4000);
@@ -135,12 +140,12 @@ public class SoapTest extends ConfigLoader {
 	}
 	
 
+	// Se questi di sotto li divido in due erogazioni, o li unisco in un solo test, risparmio un minutino.
 	@Test
 	public void rateLimitingInPresenzaDegradoECongestioneErogazione() {
 		rateLimitingInPresenzaDegradoECongestione(TipoServizio.EROGAZIONE, "InPresenzaDegradoECongestioneSoap", 4000);
 	}
 	
-
 	@Test
 	public void rateLimitingInPresenzaDegradoECongestioneFruizione() {
 		rateLimitingInPresenzaDegradoECongestione(TipoServizio.FRUIZIONE, "InPresenzaDegradoECongestioneSoap", 4000);
@@ -155,6 +160,7 @@ public class SoapTest extends ConfigLoader {
 	public void noRateLimitingSeSoloInCongestioneFruizione() {
 		noRateLimitingSeSoloInCongestione(TipoServizio.FRUIZIONE, "InPresenzaDegradoECongestioneSoap", 4000);
 	}
+	
 	
 	private void rateLimitingInPresenzaDegrado(TipoServizio tipoServizio, String erogazione, int attesa) {
 		
@@ -183,14 +189,13 @@ public class SoapTest extends ConfigLoader {
 		request.setUrl(urlServizio);
 		request.setContent(SoapBodies.get(policy).getBytes());
 						
-		Vector<HttpResponse> degradoResponses = Utils.makeParallelRequests(request, maxRequests);
+		Vector<HttpResponse> degradoResponses = Utils.makeParallelRequests(request, maxRequests+1);
 		
-		assertEquals(maxRequests, degradoResponses.stream().filter( r -> r.getResultHTTPOperation() == 200).count());
+		assertEquals(maxRequests+1, degradoResponses.stream().filter( r -> r.getResultHTTPOperation() == 200).count());
 		
 		// Attendo 15 secondi in modo che le statistiche vengano aggiornate e il degrado prestazionale
 		// rilevato.
-		logRateLimiting.info("Attendo che le statistiche vengano generate...");
-		org.openspcoop2.utils.Utilities.sleep(16000);
+		Utils.waitForDbStats();
 		
 		// Faccio le ulteriori richieste per far scattare la policy
 		Vector<HttpResponse> blockedResponses = Utils.makeParallelRequests(request, maxRequests);
@@ -206,7 +211,7 @@ public class SoapTest extends ConfigLoader {
 	 */
 	public void rateLimitingInPresenzaDegradoECongestione(TipoServizio tipoServizio, String erogazione, int attesa) {
 		
-		EventiUtils.waitForDbEvents();
+		//EventiUtils.waitForDbEvents();
 
 		final int maxRequests = 5;
 		final PolicyAlias policy = PolicyAlias.ORARIO;
@@ -221,7 +226,7 @@ public class SoapTest extends ConfigLoader {
 				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1?sleep="+String.valueOf(attesa)
 				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1?sleep="+String.valueOf(attesa);
 		
-		org.openspcoop2.utils.Utilities.sleep(16000);
+		Utils.waitForDbStats();
 
 		
 		Utils.resetCounters(idPolicy);
@@ -240,8 +245,8 @@ public class SoapTest extends ConfigLoader {
 		
 		// Attendo 15 secondi in modo che le statistiche vengano aggiornate e il degrado prestazionale
 		// rilevato.
-		logRateLimiting.info("Attendo che le statistiche vengano generate...");
-		org.openspcoop2.utils.Utilities.sleep(16000);
+		Utils.waitForDbStats();
+
 		
 		// Faccio n richieste che non devono ancora essere bloccate perchè non in congestione.
 		logRateLimiting.info("Faccio n richieste parallele e nessuna viene bloccata perchè non ancora in congestione...");
@@ -251,7 +256,7 @@ public class SoapTest extends ConfigLoader {
 		
 		
 		// Faccio attivare la congestione
-		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=10000";
+		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep="+durataCongestione;
 		HttpRequest congestionRequest = new HttpRequest();
 		congestionRequest.setContentType("application/json");
 		congestionRequest.setMethod(HttpRequestMethod.GET);
@@ -280,7 +285,15 @@ public class SoapTest extends ConfigLoader {
 		
 		Vector<HttpResponse> blockedResponses = Utils.makeParallelRequests(request, maxRequests);
 		
-		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.SoapTest.checkFailedRequests(blockedResponses, windowSize, maxRequests);		
+		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.SoapTest.checkFailedRequests(blockedResponses, windowSize, maxRequests);
+		
+		try {
+			executor.shutdown();
+			executor.awaitTermination(20, TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			logRateLimiting.error("Le richieste hanno impiegato più di venti secondi!");
+			throw new RuntimeException(e);
+		}
 	}
 	
 	
@@ -290,7 +303,7 @@ public class SoapTest extends ConfigLoader {
 	 */
 	public void noRateLimitingSeSoloInCongestione(TipoServizio tipoServizio, String erogazione, int attesa) {
 		
-		EventiUtils.waitForDbEvents();
+		// EventiUtils.waitForDbEvents();
 
 		final int maxRequests = 5;
 		final PolicyAlias policy = PolicyAlias.ORARIO;
@@ -304,14 +317,15 @@ public class SoapTest extends ConfigLoader {
 				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1?sleep="+String.valueOf(attesa)
 				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1?sleep="+String.valueOf(attesa);
 		
-		org.openspcoop2.utils.Utilities.sleep(16000);
+		Utils.waitForDbStats();
+
 
 		Utils.resetCounters(idPolicy);
 		Utils.waitForPolicy(policy);
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);	
 		
 		// Faccio attivare la congestione
-		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=10000";
+		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep="+durataCongestione;
 		HttpRequest congestionRequest = new HttpRequest();
 		congestionRequest.setContentType("application/json");
 		congestionRequest.setMethod(HttpRequestMethod.GET);
@@ -348,6 +362,14 @@ public class SoapTest extends ConfigLoader {
 		
 		assertEquals(maxRequests*2, nonBlockedResponses.stream().filter( r -> r.getResultHTTPOperation() == 200).count());
 		
+		try {
+			executor.shutdown();
+			executor.awaitTermination(20, TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			logRateLimiting.error("Le richieste hanno impiegato più di venti secondi!");
+			throw new RuntimeException(e);
+		}
+		
 	}
 
 	
@@ -358,7 +380,7 @@ public class SoapTest extends ConfigLoader {
 	 *	La policy di RL è: NumeroRichiesteCompletateConSuccesso.
 	 */
 	public void rateLimitingInPresenzaCongestione(TipoServizio tipoServizio) throws Exception {
-		EventiUtils.waitForDbEvents();
+		// EventiUtils.waitForDbEvents();
 
 		final int maxRequests = 5;
 		final String erogazione = "InPresenzaCongestioneSoap";
@@ -396,7 +418,7 @@ public class SoapTest extends ConfigLoader {
 		assertEquals( maxRequests+1, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
 		
 		// Faccio attivare la congestione
-		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteSoap/v1?sleep=10000";
+		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteSoap/v1?sleep="+durataCongestione;
 		HttpRequest congestionRequest = new HttpRequest();
 		congestionRequest.setContentType("application/soap+xml");
 		congestionRequest.setMethod(HttpRequestMethod.POST);
@@ -450,7 +472,7 @@ public class SoapTest extends ConfigLoader {
 	 * 
 	 */
 	public void noRateLimitingSeCongestioneRisolta(TipoServizio tipoServizio) throws UtilsException, HttpUtilsException {
-		EventiUtils.waitForDbEvents();
+		//EventiUtils.waitForDbEvents();
 
 		final int maxRequests = 5;
 		final String erogazione = "InPresenzaCongestioneSoap";
@@ -486,7 +508,7 @@ public class SoapTest extends ConfigLoader {
 		
 		
 		// Faccio attivare la congestione
-		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteSoap/v1?sleep=5000";
+		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteSoap/v1?sleep=2000";
 		HttpRequest congestionRequest = new HttpRequest();
 		congestionRequest.setContentType("application/soap+xml");
 		congestionRequest.setMethod(HttpRequestMethod.POST);

@@ -545,7 +545,7 @@ public class InRequestProtocolHandler_GestioneControlloTraffico {
 								// trasformo in secondi
 								sec = ms / 1000;
 							}
-							else if(ms>0) {
+							else if(ms>=0) {
 								// genero comunque l'header approssimando l'intervallo al secondo + backoff
 								sec=1;
 							}
@@ -887,7 +887,7 @@ public class InRequestProtocolHandler_GestioneControlloTraffico {
 						// trasformo in secondi
 						sec = ms / 1000;
 					}
-					else if(ms>0) {
+					else if(ms>=0) {
 						// genero comunque l'header approssimando l'intervallo al secondo
 						sec=1;
 					}

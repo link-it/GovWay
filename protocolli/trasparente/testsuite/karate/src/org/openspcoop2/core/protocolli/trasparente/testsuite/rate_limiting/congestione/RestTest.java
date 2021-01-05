@@ -46,41 +46,42 @@ import org.openspcoop2.utils.transport.http.HttpUtilsException;
 public class RestTest extends ConfigLoader {
 
 	private static final String basePath = System.getProperty("govway_base_path");
-	public static final int sogliaCongestione = Integer.valueOf(System.getProperty("soglia_congestione"));
+	private static final int durataCongestione = Integer.valueOf(System.getProperty("rate_limiting.congestione.durata_congestione"));
+	private static final int sogliaCongestione = Integer.valueOf(System.getProperty("soglia_congestione"));
 	
 	@Test
 	public void congestioneAttivaErogazione() {
-		congestioneAttiva(basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=5000");
+		congestioneAttiva(basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=2000");
 	}
 	
 	
 	@Test
 	public void congestioneAttivaFruizione() {
-		congestioneAttiva(basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=5000");
+		congestioneAttiva(basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=2000");
 	}
 	
 	
 	@Test
 	public void congestioneAttivaConViolazioneRLErogazione() {
 		final String idServizio = "SoggettoInternoTest/NumeroRichiesteRest/v1";
-		congestioneAttivaConViolazioneRL(basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/richieste-simultanee/?sleep=5000", idServizio);
+		congestioneAttivaConViolazioneRL(basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/richieste-simultanee/?sleep=2000", idServizio);
 	}
 	
 	@Test
 	public void congestioneAttivaConViolazioneRLFruizione() {
 		final String idServizio = "SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteRest/v1";
-		congestioneAttivaConViolazioneRL(basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteRest/v1/richieste-simultanee?sleep=5000", idServizio);
+		congestioneAttivaConViolazioneRL(basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteRest/v1/richieste-simultanee?sleep=2000", idServizio);
 	}
 	
 	@Test
 	public void congestioneAttivaViolazioneRichiesteComplessiveErogazione() {
-		congestioneAttivaViolazioneRichiesteComplessive(basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=5000");
+		congestioneAttivaViolazioneRichiesteComplessive(basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=2000");
 		
 	}
 	
 	@Test
 	public void congestioneAttivaViolazioneRichiesteComplessiveFruizione() {
-		congestioneAttivaViolazioneRichiesteComplessive(basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=5000");
+		congestioneAttivaViolazioneRichiesteComplessive(basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=2000");
 		
 	}
 	
@@ -173,13 +174,10 @@ public class RestTest extends ConfigLoader {
 		final BiConsumer<String,PolicyAlias> testToRun = tipoServizio == TipoServizio.EROGAZIONE
 				? org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest::testErogazione
 				: org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest::testFruizione;
-		
-		EventiUtils.waitForDbEvents();
-		
+				
 		Utils.resetCounters(idPolicy);
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
 		Utils.waitForPolicy(policy);
-
 
 		// Faccio n richieste per superare la policy e controllo che non scatti,
 		// perchè la congestione non è attiva.
@@ -194,11 +192,15 @@ public class RestTest extends ConfigLoader {
 		assertEquals( maxRequests+1, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
 		
 		// Faccio attivare la congestione
-		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=10000";
+		
+		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep="+durataCongestione;
 		HttpRequest congestionRequest = new HttpRequest();
 		congestionRequest.setContentType("application/json");
 		congestionRequest.setMethod(HttpRequestMethod.GET);
 		congestionRequest.setUrl(url);
+		
+		// In realtà qui dovrei assicurarmi che anche a test fallito, il thread pool venga terminato.
+		// Altrimenti restiamo in congestione con delle richieste ancora attive all'inizio del test successivo.
 		
 		int count = sogliaCongestione;
 		ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(count);
@@ -281,7 +283,7 @@ public class RestTest extends ConfigLoader {
 		
 		
 		// Faccio attivare la congestione
-		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=5000";
+		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=2000";
 		HttpRequest congestionRequest = new HttpRequest();
 		congestionRequest.setContentType("application/json");
 		congestionRequest.setMethod(HttpRequestMethod.GET);
@@ -338,16 +340,14 @@ public class RestTest extends ConfigLoader {
 		request.setUrl(urlServizio);
 						
 		
-		Vector<HttpResponse> degradoResponses = Utils.makeParallelRequests(request, maxRequests);
+		Vector<HttpResponse> degradoResponses = Utils.makeParallelRequests(request, maxRequests+1);
 		
-		assertEquals(maxRequests, degradoResponses.stream().filter( r -> r.getResultHTTPOperation() == 200).count());
+		assertEquals(maxRequests+1, degradoResponses.stream().filter( r -> r.getResultHTTPOperation() == 200).count());
 		logRateLimiting.info(Utils.getPolicy(idPolicy));
 
-		
-		// Attendo 15 secondi in modo che le statistiche vengano aggiornate e il degrado prestazionale
+		// Attendo in modo che le statistiche vengano aggiornate e il degrado prestazionale
 		// rilevato.
-		logRateLimiting.info("Attendo che le statistiche vengano generate...");
-		org.openspcoop2.utils.Utilities.sleep(16000);
+		Utils.waitForDbStats();
 		
 		// Faccio le ulteriori richieste per far scattare la policy
 		Vector<HttpResponse> blockedResponses = Utils.makeParallelRequests(request, maxRequests);
@@ -376,7 +376,7 @@ public class RestTest extends ConfigLoader {
 				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario?sleep="+String.valueOf(attesa)
 				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/orario?sleep="+String.valueOf(attesa);
 		
-		org.openspcoop2.utils.Utilities.sleep(16000);		
+		Utils.waitForDbStats();
 		
 		Utils.resetCounters(idPolicy);
 		Utils.waitForPolicy(policy);
@@ -392,10 +392,9 @@ public class RestTest extends ConfigLoader {
 		
 		assertEquals(maxRequests, degradoResponses.stream().filter( r -> r.getResultHTTPOperation() == 200).count());
 		
-		// Attendo 15 secondi in modo che le statistiche vengano aggiornate e il degrado prestazionale
+		// Attendo in modo che le statistiche vengano aggiornate e il degrado prestazionale
 		// rilevato.
-		logRateLimiting.info("Attendo che le statistiche vengano generate...");
-		org.openspcoop2.utils.Utilities.sleep(16000);
+		Utils.waitForDbStats();
 		
 		// Faccio n richieste che non devono ancora essere bloccate perchè non in congestione.
 		logRateLimiting.info("Faccio n richieste parallele e nessuna viene bloccata perchè non ancora in congestione...");
@@ -405,7 +404,7 @@ public class RestTest extends ConfigLoader {
 		
 		
 		// Faccio attivare la congestione
-		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=10000";
+		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep="+durataCongestione;
 		HttpRequest congestionRequest = new HttpRequest();
 		congestionRequest.setContentType("application/json");
 		congestionRequest.setMethod(HttpRequestMethod.GET);
@@ -436,6 +435,14 @@ public class RestTest extends ConfigLoader {
 		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkFailedRequests(blockedResponses, windowSize, maxRequests);
 		
 		logRateLimiting.info(Utils.getPolicy(idPolicy));
+		
+		try {
+			executor.shutdown();
+			executor.awaitTermination(20, TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			logRateLimiting.error("Le richieste hanno impiegato più di venti secondi!");
+			throw new RuntimeException(e);
+		}
 	}
 	
 	
@@ -458,14 +465,15 @@ public class RestTest extends ConfigLoader {
 				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario?sleep="+String.valueOf(attesa)
 				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/orario?sleep="+String.valueOf(attesa);
 		
-		org.openspcoop2.utils.Utilities.sleep(16000);
+		Utils.waitForDbStats();
+
 		
 		Utils.resetCounters(idPolicy);
 		Utils.waitForPolicy(policy);
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);	
 		
 		// Faccio attivare la congestione
-		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=10000";
+		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep="+durataCongestione;
 		HttpRequest congestionRequest = new HttpRequest();
 		congestionRequest.setContentType("application/json");
 		congestionRequest.setMethod(HttpRequestMethod.GET);
@@ -501,6 +509,14 @@ public class RestTest extends ConfigLoader {
 		
 		assertEquals(maxRequests*2, nonBlockedResponses.stream().filter( r -> r.getResultHTTPOperation() == 200).count());
 		
+		try {
+			executor.shutdown();
+			executor.awaitTermination(20, TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			logRateLimiting.error("Le richieste hanno impiegato più di venti secondi!");
+			throw new RuntimeException(e);
+		}
+		
 	}
 	
 	
@@ -513,7 +529,7 @@ public class RestTest extends ConfigLoader {
 			
 		EventiUtils.waitForDbEvents();
 				
-		final int sogliaRichiesteSimultanee = 15;
+		final int sogliaRichiesteSimultanee = Integer.valueOf(System.getProperty("soglia_richieste_simultanee"));
 		
 		LocalDateTime dataSpedizione = LocalDateTime.now();		
 		
@@ -565,8 +581,6 @@ public class RestTest extends ConfigLoader {
 	
 	public void congestioneAttiva(String url) {
 		EventiUtils.waitForDbEvents();
-		
-		//org.openspcoop2.utils.Utilities.sleep(Long.parseLong(System.getProperty("congestion_delay")));
 		
 		LocalDateTime dataSpedizione = LocalDateTime.now();
 		

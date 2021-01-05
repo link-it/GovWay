@@ -31,71 +31,91 @@ import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils
 */
 public class SoapBodies {
 	
-	private final static String minuto = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
+	private final static String minuto(String payload) { 
+		return "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
 			"    <soap:Body>\n" + 
-			"        <ns2:Minuto xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
+			"        <ns2:Minuto xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" + 
+						payload +
 			"        </ns2:Minuto>\n" + 
 			"    </soap:Body>\n" + 
 			"</soap:Envelope>";
-	
-	
-	private final static String minutoDefault = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
+	}
+		
+	private final static String minutoDefault(String payload) { 
+		return "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
 			"    <soap:Body>\n" + 
-			"        <ns2:MinutoDefault xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
+			"        <ns2:MinutoDefault xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +
+						payload +
 			"        </ns2:MinutoDefault>\n" + 
 			"    </soap:Body>\n" + 
 			"</soap:Envelope>";
+	}
 	
 	
-	private final static String giornaliero = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
+	private final static String giornaliero(String payload) {
+		return "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
 			"    <soap:Body>\n" + 
-			"        <ns2:Giornaliero xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
+			"        <ns2:Giornaliero xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +
+						payload +
 			"        </ns2:Giornaliero>\n" + 
 			"    </soap:Body>\n" + 
 			"</soap:Envelope>";
+	}
 	
 	
-	private final static String orario = "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
+	private final static String orario(String payload) { 
+		return "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
 			"    <soap:Body>\n" + 
-			"        <ns2:Orario xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
+			"        <ns2:Orario xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +
+						payload +
 			"        </ns2:Orario>\n" + 
 			"    </soap:Body>\n" + 
 			"</soap:Envelope>";
+	}
 	
-	private final static String richiesteSimultanee =  "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
+	private final static String richiesteSimultanee(String payload) {
+		return "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
 			"    <soap:Body>\n" + 
-			"        <ns2:RichiesteSimultanee xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
+			"        <ns2:RichiesteSimultanee xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +
+						payload +
 			"        </ns2:RichiesteSimultanee>\n" + 
 			"    </soap:Body>\n" + 
 			"</soap:Envelope>";
+	}
 	
-	private final static String noPolicy =  "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
+	private final static String noPolicy(String payload) {
+			return "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +  
 			"    <soap:Body>\n" + 
-			"        <ns2:NoPolicy xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +  
+			"        <ns2:NoPolicy xmlns:ns2=\"http://amministrazioneesempio.it/nomeinterfacciaservizio\">\n" +
+						payload +
 			"        </ns2:NoPolicy>\n" + 
 			"    </soap:Body>\n" + 
 			"</soap:Envelope>";
+	}
+	
 	
 	public final static String get(PolicyAlias alias) {
+		return get(alias, "");
+	}
+	
+	public final static String get(PolicyAlias alias, String payload) {
 		if (alias == null)
-			return noPolicy;
-		
+			return noPolicy(payload);	
 		switch(alias) {
 		case GIORNALIERO:
-			return giornaliero;
+			return giornaliero(payload);
 		case MINUTO:
-			return minuto;
+			return minuto(payload);
 		case MINUTODEFAULT:
-			return minutoDefault;
+			return minutoDefault(payload);
 		case ORARIO:
-			return orario;
+			return orario(payload);
 		case RICHIESTE_SIMULTANEE:
-			return richiesteSimultanee;
+			return richiesteSimultanee(payload);
 		case NO_POLICY:
-			return noPolicy;
+			return noPolicy(payload);
 		default:
 			return null;
 		}
 	}
-
 }
