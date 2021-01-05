@@ -49,7 +49,7 @@ public class RestTest extends ConfigLoader {
 	private static final int durataCongestione = Integer.valueOf(System.getProperty("rate_limiting.congestione.durata_congestione"));
 	private static final int sogliaCongestione = Integer.valueOf(System.getProperty("soglia_congestione"));
 	
-	@Test
+	/*@Test
 	public void congestioneAttivaErogazione() {
 		congestioneAttiva(basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=2000");
 	}
@@ -58,7 +58,7 @@ public class RestTest extends ConfigLoader {
 	@Test
 	public void congestioneAttivaFruizione() {
 		congestioneAttiva(basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=2000");
-	}
+	}*/
 	
 	
 	@Test

@@ -59,7 +59,11 @@ public class SoapTest extends ConfigLoader {
 	private static final int durataCongestione = Integer.valueOf(System.getProperty("rate_limiting.congestione.durata_congestione"));
 	private static final int sogliaCongestione = Integer.valueOf(System.getProperty("soglia_congestione"));
 	
-	@Test
+	/**
+	 * Questi primi due forse posso toglierli visto che gli altri quattro test comunque controllano
+	 * la scrittura degli eventi di congestione sul db. 
+	 */
+	/*@Test
 	public void congestioneAttivaErogazione() {
 		congestioneAttiva(basePath + "/SoggettoInternoTest/NumeroRichiesteSoap/v1");
 	}
@@ -68,7 +72,7 @@ public class SoapTest extends ConfigLoader {
 	@Test
 	public void congestioneAttivaFruizione() {
 		congestioneAttiva(basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1");
-	}
+	}*/
 	
 	@Test
 	public void congestioneAttivaConViolazioneRLErogazione() {
@@ -105,29 +109,17 @@ public class SoapTest extends ConfigLoader {
 	
 	
 	@Test
-	public void rateLimitingInPresenzaDegradoGlobaleErogazione() throws UtilsException, HttpUtilsException {
-		// Posso fondere erogazione e fruizione in un unico test, risparmiando 20 secondi. (16+4)
-		rateLimitingInPresenzaDegrado(TipoServizio.EROGAZIONE, "InPresenzaDegradoSoap", 4000);
+	public void rateLimitingInPresenzaDegradoGlobale() throws UtilsException, HttpUtilsException {
+		rateLimitingInPresenzaDegrado("InPresenzaDegradoSoap", 4000);
 	}
 
-	@Test
-	public void rateLimitingInPresenzaDegradoGlobaleFruizione() throws UtilsException, HttpUtilsException {
-		rateLimitingInPresenzaDegrado(TipoServizio.FRUIZIONE, "InPresenzaDegradoSoap", 4000);
-	}
 	
 	@Test
-	public void rateLimitingInPresenzaDegradoServizioErogazione() throws UtilsException, HttpUtilsException {
-		// Posso fondere erogazione e fruizione in un unico test, risparmiando 20 secondi. (16+4)
-		rateLimitingInPresenzaDegrado(TipoServizio.EROGAZIONE, "InPresenzaDegradoServizioSoap", 2100);
-	}
-	
-	@Test
-	public void rateLimitingInPresenzaDegradoServizioFruizione() throws UtilsException, HttpUtilsException {
-		rateLimitingInPresenzaDegrado(TipoServizio.FRUIZIONE, "InPresenzaDegradoServizioSoap", 2100);
+	public void rateLimitingInPresenzaDegradoServizio() throws UtilsException, HttpUtilsException {
+		rateLimitingInPresenzaDegrado("InPresenzaDegradoServizioSoap", 2100);
 	}
 	
 
-	// se fondo tutti questi di sotto risparmio un pochino
 	@Test
 	public void rateLimitingInPresenzaDegradoECongestioneErogazione() { 
 		rateLimitingInPresenzaDegradoECongestione(TipoServizio.EROGAZIONE, "InPresenzaDegradoECongestioneSoap", 4000);
@@ -141,51 +133,60 @@ public class SoapTest extends ConfigLoader {
 	
 	/**
 	 * Controlliamo che la policy di rate limiting venga attivata solo in caso di degrado prestazionale.
-	 * TODO: Fonderlo con il test rateLimitingInPresenzaDegradoECongestione
+
 	 * @param tipoServizio
 	 * @param erogazione
 	 * @param attesa
 	 */
-	private void rateLimitingInPresenzaDegrado(TipoServizio tipoServizio, String erogazione, int attesa) {
+	private void rateLimitingInPresenzaDegrado(String erogazione, int attesa) {
 		
 		final int maxRequests = 5;
 		final PolicyAlias policy = PolicyAlias.ORARIO;
 		final int windowSize = Utils.getPolicyWindowSize(policy);
 		
-		final String idPolicy = tipoServizio == TipoServizio.EROGAZIONE
-				? dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy)
-				: dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
+		final String idPolicyErogazione = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy);
+		final String idPolicyFruizione =  dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
 				
 
-		final String urlServizio = tipoServizio == TipoServizio.EROGAZIONE
-				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1?sleep="+String.valueOf(attesa)
-				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1?sleep="+String.valueOf(attesa);
+		final String urlServizioErogazione = basePath + "/SoggettoInternoTest/"+erogazione+"/v1?sleep="+String.valueOf(attesa);
+		final String urlServizioFruizione =  basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1?sleep="+String.valueOf(attesa);
 		
-		
-		Utils.resetCounters(idPolicy);
+		Utils.resetCounters(idPolicyErogazione);
+		Utils.resetCounters(idPolicyFruizione);
 		Utils.waitForPolicy(policy);
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
+		Utils.checkConditionsNumeroRichieste(idPolicyErogazione, 0, 0, 0);
+		Utils.checkConditionsNumeroRichieste(idPolicyFruizione, 0, 0, 0);
 		
 
-		HttpRequest request = new HttpRequest();
-		request.setContentType("application/soap+xml");
-		request.setMethod(HttpRequestMethod.POST);
-		request.setUrl(urlServizio);
-		request.setContent(SoapBodies.get(policy).getBytes());
+		HttpRequest requestErogazione = new HttpRequest();
+		requestErogazione.setContentType("application/soap+xml");
+		requestErogazione.setMethod(HttpRequestMethod.POST);
+		requestErogazione.setUrl(urlServizioErogazione);
+		requestErogazione.setContent(SoapBodies.get(policy).getBytes());
 						
-		Vector<HttpResponse> degradoResponses = Utils.makeParallelRequests(request, maxRequests+1);
+		Vector<HttpResponse> degradoResponsesErogazione = Utils.makeParallelRequests(requestErogazione, maxRequests+1);
+		assertEquals(maxRequests+1, degradoResponsesErogazione.stream().filter( r -> r.getResultHTTPOperation() == 200).count());
 		
-		assertEquals(maxRequests+1, degradoResponses.stream().filter( r -> r.getResultHTTPOperation() == 200).count());
+		HttpRequest requestFruizione = new HttpRequest();
+		requestFruizione.setContentType("application/soap+xml");
+		requestFruizione.setMethod(HttpRequestMethod.POST);
+		requestFruizione.setUrl(urlServizioFruizione);
+		requestFruizione.setContent(SoapBodies.get(policy).getBytes());
 		
-		// Attendo 15 secondi in modo che le statistiche vengano aggiornate e il degrado prestazionale
+		Vector<HttpResponse> degradoResponsesFruizione = Utils.makeParallelRequests(requestFruizione, maxRequests+1);
+		assertEquals(maxRequests+1, degradoResponsesFruizione.stream().filter( r -> r.getResultHTTPOperation() == 200).count());
+		
+		
+		// Attendo in modo che le statistiche vengano aggiornate e il degrado prestazionale
 		// rilevato.
 		Utils.waitForDbStats();
 		
 		// Faccio le ulteriori richieste per far scattare la policy
-		Vector<HttpResponse> blockedResponses = Utils.makeParallelRequests(request, maxRequests);
-		
-		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.SoapTest.checkFailedRequests(blockedResponses, windowSize, maxRequests);	
-		
+		Vector<HttpResponse> blockedResponsesErogazione = Utils.makeParallelRequests(requestErogazione, maxRequests);
+		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.SoapTest.checkFailedRequests(blockedResponsesErogazione, windowSize, maxRequests);	
+
+		Vector<HttpResponse> blockedResponsesFruizione = Utils.makeParallelRequests(requestErogazione, maxRequests);
+		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.SoapTest.checkFailedRequests(blockedResponsesFruizione, windowSize, maxRequests);	
 	}
 	
 	
