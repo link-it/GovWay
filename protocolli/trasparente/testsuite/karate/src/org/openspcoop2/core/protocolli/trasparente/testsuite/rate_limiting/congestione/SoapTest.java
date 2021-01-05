@@ -103,27 +103,13 @@ public class SoapTest extends ConfigLoader {
 		rateLimitingInPresenzaCongestione(TipoServizio.FRUIZIONE);
 	}
 	
-	@Test
-	public void noRateLimitingSeCongestioneRisoltaErogazione() throws UtilsException, HttpUtilsException {
-		noRateLimitingSeCongestioneRisolta(TipoServizio.EROGAZIONE);
-	}
-	
-	
-	@Test
-	public void noRateLimitingSeCongestioneRisoltaFruizione() throws UtilsException, HttpUtilsException {
-		noRateLimitingSeCongestioneRisolta(TipoServizio.FRUIZIONE);
-	}
 	
 	@Test
 	public void rateLimitingInPresenzaDegradoGlobaleErogazione() throws UtilsException, HttpUtilsException {
+		// Posso fondere erogazione e fruizione in un unico test, risparmiando 20 secondi. (16+4)
 		rateLimitingInPresenzaDegrado(TipoServizio.EROGAZIONE, "InPresenzaDegradoSoap", 4000);
 	}
-	
-	
-	/*
-	 * Nota, per Globale si intende la configurazione del tempo medio risposta, ad andare in degrado è comunque
-	 * la singola API.
-	 */
+
 	@Test
 	public void rateLimitingInPresenzaDegradoGlobaleFruizione() throws UtilsException, HttpUtilsException {
 		rateLimitingInPresenzaDegrado(TipoServizio.FRUIZIONE, "InPresenzaDegradoSoap", 4000);
@@ -131,6 +117,7 @@ public class SoapTest extends ConfigLoader {
 	
 	@Test
 	public void rateLimitingInPresenzaDegradoServizioErogazione() throws UtilsException, HttpUtilsException {
+		// Posso fondere erogazione e fruizione in un unico test, risparmiando 20 secondi. (16+4)
 		rateLimitingInPresenzaDegrado(TipoServizio.EROGAZIONE, "InPresenzaDegradoServizioSoap", 2100);
 	}
 	
@@ -140,9 +127,9 @@ public class SoapTest extends ConfigLoader {
 	}
 	
 
-	// Se questi di sotto li divido in due erogazioni, o li unisco in un solo test, risparmio un minutino.
+	// se fondo tutti questi di sotto risparmio un pochino
 	@Test
-	public void rateLimitingInPresenzaDegradoECongestioneErogazione() {
+	public void rateLimitingInPresenzaDegradoECongestioneErogazione() { 
 		rateLimitingInPresenzaDegradoECongestione(TipoServizio.EROGAZIONE, "InPresenzaDegradoECongestioneSoap", 4000);
 	}
 	
@@ -151,17 +138,14 @@ public class SoapTest extends ConfigLoader {
 		rateLimitingInPresenzaDegradoECongestione(TipoServizio.FRUIZIONE, "InPresenzaDegradoECongestioneSoap", 4000);
 	}
 	
-	@Test
-	public void noRateLimitingSeSoloInCongestioneErogazione() {
-		noRateLimitingSeSoloInCongestione(TipoServizio.EROGAZIONE, "InPresenzaDegradoECongestioneSoap", 4000);
-	}
 	
-	@Test
-	public void noRateLimitingSeSoloInCongestioneFruizione() {
-		noRateLimitingSeSoloInCongestione(TipoServizio.FRUIZIONE, "InPresenzaDegradoECongestioneSoap", 4000);
-	}
-	
-	
+	/**
+	 * Controlliamo che la policy di rate limiting venga attivata solo in caso di degrado prestazionale.
+	 * TODO: Fonderlo con il test rateLimitingInPresenzaDegradoECongestione
+	 * @param tipoServizio
+	 * @param erogazione
+	 * @param attesa
+	 */
 	private void rateLimitingInPresenzaDegrado(TipoServizio tipoServizio, String erogazione, int attesa) {
 		
 		final int maxRequests = 5;
@@ -211,8 +195,6 @@ public class SoapTest extends ConfigLoader {
 	 */
 	public void rateLimitingInPresenzaDegradoECongestione(TipoServizio tipoServizio, String erogazione, int attesa) {
 		
-		//EventiUtils.waitForDbEvents();
-
 		final int maxRequests = 5;
 		final PolicyAlias policy = PolicyAlias.ORARIO;
 		final int windowSize = Utils.getPolicyWindowSize(policy);
@@ -283,9 +265,11 @@ public class SoapTest extends ConfigLoader {
 		// Aspetto che il sistema vada in congestione..
 		org.openspcoop2.utils.Utilities.sleep(Long.parseLong(System.getProperty("congestion_delay")));
 		
+		// faccio n richieste che devono essere tutte bloccate
 		Vector<HttpResponse> blockedResponses = Utils.makeParallelRequests(request, maxRequests);
 		
 		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.SoapTest.checkFailedRequests(blockedResponses, windowSize, maxRequests);
+
 		
 		try {
 			executor.shutdown();
@@ -294,46 +278,12 @@ public class SoapTest extends ConfigLoader {
 			logRateLimiting.error("Le richieste hanno impiegato più di venti secondi!");
 			throw new RuntimeException(e);
 		}
-	}
-	
-	
-	/*
-	 * Testo che il sistema non blocchi le richieste se siamo solamente in congestione e non in degrado.
-	 * 
-	 */
-	public void noRateLimitingSeSoloInCongestione(TipoServizio tipoServizio, String erogazione, int attesa) {
 		
-		// EventiUtils.waitForDbEvents();
-
-		final int maxRequests = 5;
-		final PolicyAlias policy = PolicyAlias.ORARIO;
+		// Aspetto che il degrado prestazionale passi e faccio ulteriori n richieste che non devono essere bloccate
+		// perchè ancora in congestione
+		/*Utils.waitForDbStats();
 		
-		final String idPolicy = tipoServizio == TipoServizio.EROGAZIONE
-				? dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy)
-				: dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
-				
-
-		final String urlServizio = tipoServizio == TipoServizio.EROGAZIONE
-				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1?sleep="+String.valueOf(attesa)
-				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1?sleep="+String.valueOf(attesa);
-		
-		Utils.waitForDbStats();
-
-
-		Utils.resetCounters(idPolicy);
-		Utils.waitForPolicy(policy);
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);	
-		
-		// Faccio attivare la congestione
-		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep="+durataCongestione;
-		HttpRequest congestionRequest = new HttpRequest();
-		congestionRequest.setContentType("application/json");
-		congestionRequest.setMethod(HttpRequestMethod.GET);
-		congestionRequest.setUrl(url);
-		
-		
-		int count = sogliaCongestione;
-		ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(count);
+		executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(count);
 
 		for (int i = 0; i < count; i++) {
 			executor.execute(() -> {
@@ -351,16 +301,13 @@ public class SoapTest extends ConfigLoader {
 		
 		// Aspetto che il sistema vada in congestione..
 		org.openspcoop2.utils.Utilities.sleep(Long.parseLong(System.getProperty("congestion_delay")));
-	
-		HttpRequest request = new HttpRequest();
-		request.setContentType("application/soap+xml");
-		request.setMethod(HttpRequestMethod.POST);
-		request.setUrl(urlServizio);
-		request.setContent(SoapBodies.get(policy).getBytes());
+
 		
-		Vector<HttpResponse> nonBlockedResponses = Utils.makeSequentialRequests(request, maxRequests*2);
+		// Faccio n richieste che devono andare tutte bene perchè il sistema è solo in congestione
+		Vector<HttpResponse> nonBlockedResponses = Utils.makeParallelRequests(request, maxRequests);
 		
-		assertEquals(maxRequests*2, nonBlockedResponses.stream().filter( r -> r.getResultHTTPOperation() == 200).count());
+		assertEquals(maxRequests, nonBlockedResponses.stream().filter( r -> r.getResultHTTPOperation() == 200).count());*/
+		
 		
 		try {
 			executor.shutdown();
@@ -369,8 +316,10 @@ public class SoapTest extends ConfigLoader {
 			logRateLimiting.error("Le richieste hanno impiegato più di venti secondi!");
 			throw new RuntimeException(e);
 		}
-		
 	}
+	
+	
+
 
 	
 	/** 
@@ -381,6 +330,8 @@ public class SoapTest extends ConfigLoader {
 	 */
 	public void rateLimitingInPresenzaCongestione(TipoServizio tipoServizio) throws Exception {
 		// EventiUtils.waitForDbEvents();
+		Utils.waitForZeroGovWayThreads();
+
 
 		final int maxRequests = 5;
 		final String erogazione = "InPresenzaCongestioneSoap";
@@ -445,7 +396,7 @@ public class SoapTest extends ConfigLoader {
 		// Aspetto che il sistema vada in congestione..
 		org.openspcoop2.utils.Utilities.sleep(Long.parseLong(System.getProperty("congestion_delay")));
 		
-		responses = Utils.makeSequentialRequests(request, maxRequests+1);
+		responses = Utils.makeParallelRequests(request, maxRequests+1);
 		
 		// Tutte le risposte devono essere bloccate, perchè siamo in congestione
 		// e le richieste iniziali sono state conteggiate
@@ -463,70 +414,12 @@ public class SoapTest extends ConfigLoader {
 			throw new RuntimeException(e);
 		}
 		
-	}
-	
-	
-	/**
-	 * Controlliamo che la policy di rate limiting non venga applicata se lo stato 
-	 * di congestione è stato risolto.
-	 * 
-	 */
-	public void noRateLimitingSeCongestioneRisolta(TipoServizio tipoServizio) throws UtilsException, HttpUtilsException {
-		//EventiUtils.waitForDbEvents();
-
-		final int maxRequests = 5;
-		final String erogazione = "InPresenzaCongestioneSoap";
-		final PolicyAlias policy = PolicyAlias.ORARIO;
+		// Terminata la congestione faccio n richieste che non devono essere bloccate
+		responses = Utils.makeParallelRequests(request, maxRequests+1);
 		
-		final String idPolicy = tipoServizio == TipoServizio.EROGAZIONE
-				? dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy)
-				: dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
-		
-		final String urlServizio = tipoServizio == TipoServizio.EROGAZIONE
-				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1"
-				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1";
-		
-		Utils.resetCounters(idPolicy);
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
-		Utils.waitForPolicy(policy);
-
-		// La policy di RL è: NumeroRichiesteCompletateConSuccesso.
-
-		// Faccio n richieste per superare la policy e controllo che non scatti,
-		// perchè la congestione non è attiva.
-		HttpRequest request = new HttpRequest();
-		request.setContentType("application/soap+xml");
-		request.setMethod(HttpRequestMethod.POST);
-		request.setUrl(urlServizio);
-		request.setContent(SoapBodies.get(policy).getBytes());
-						
-		// Anche se la congestione non è attiva, comunque le richieste devono essere conteggiate
-		Vector<HttpResponse> responses = Utils.makeRequestsAndCheckPolicy(request, maxRequests+1, idPolicy);
-				
 		// Controllo che non sia scattata la policy
 		assertEquals( maxRequests+1, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
 		
-		
-		// Faccio attivare la congestione
-		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteSoap/v1?sleep=2000";
-		HttpRequest congestionRequest = new HttpRequest();
-		congestionRequest.setContentType("application/soap+xml");
-		congestionRequest.setMethod(HttpRequestMethod.POST);
-		congestionRequest.setUrl(url);
-		congestionRequest.setContent(SoapBodies.get(PolicyAlias.NO_POLICY).getBytes());
-		
-		Vector<HttpResponse> congestionResponses = Utils.makeParallelRequests(congestionRequest, sogliaCongestione+1);
-		
-		// Verifico che siano andate tutte bene
-		assertEquals(sogliaCongestione+1, congestionResponses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
-	
-		// Siccome il congestionamento termina nel momento in cui terminano le richieste simultanee,
-		// se faccio richieste conteggiate dalla policy, questa comunque non deve scattare.
-		
-		responses = Utils.makeSequentialRequests(request, maxRequests+1);
-		
-		// Controllo che non sia scattata la policy
-		assertEquals(maxRequests+1, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());		
 	}
 	
 	
@@ -539,6 +432,8 @@ public class SoapTest extends ConfigLoader {
 		
 		final int sogliaRichiesteSimultanee = 15;
 		EventiUtils.waitForDbEvents();
+		Utils.waitForZeroGovWayThreads();
+
 
 		
 		String body = SoapBodies.get(PolicyAlias.NO_POLICY);
@@ -561,6 +456,8 @@ public class SoapTest extends ConfigLoader {
 			Vector<HttpResponse> responses) {
 		
 		EventiUtils.waitForDbEvents();
+		Utils.waitForZeroGovWayThreads();
+
 		
 		//  Devo trovare tra le transazioni generate dalle richieste, almeno una transazione
 		//  che abba la violazione della soglia di congestione e una transazione con la violazione
@@ -620,10 +517,11 @@ public class SoapTest extends ConfigLoader {
 	public void congestioneAttiva(String url) {
 		String body = SoapBodies.get(PolicyAlias.NO_POLICY);
 		EventiUtils.waitForDbEvents();
+		Utils.waitForZeroGovWayThreads();
 
 		LocalDateTime dataSpedizione = LocalDateTime.now();		
 		
-		HttpRequest request = new HttpRequest();
+		HttpRequest request = new HttpRequest();	
 		request.setContentType("application/soap+xml");
 		request.setMethod(HttpRequestMethod.POST);
 		request.setUrl(url);
@@ -645,6 +543,8 @@ public class SoapTest extends ConfigLoader {
 		final int sogliaRichiesteSimultanee = 10;
 		
 		EventiUtils.waitForDbEvents();
+		Utils.waitForZeroGovWayThreads();
+
 		// Affinchè il test faccia scattare tutti e due gli eventi è necessario
 		// che la soglia di congestione sia più bassa della soglia di RL
 		assertTrue(sogliaRichiesteSimultanee > sogliaCongestione);
