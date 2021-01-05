@@ -185,7 +185,7 @@ public class SoapTest extends ConfigLoader {
 		Vector<HttpResponse> blockedResponsesErogazione = Utils.makeParallelRequests(requestErogazione, maxRequests);
 		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.SoapTest.checkFailedRequests(blockedResponsesErogazione, windowSize, maxRequests);	
 
-		Vector<HttpResponse> blockedResponsesFruizione = Utils.makeParallelRequests(requestErogazione, maxRequests);
+		Vector<HttpResponse> blockedResponsesFruizione = Utils.makeParallelRequests(requestFruizione, maxRequests);
 		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.SoapTest.checkFailedRequests(blockedResponsesFruizione, windowSize, maxRequests);	
 	}
 	

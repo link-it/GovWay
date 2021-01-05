@@ -97,35 +97,13 @@ public class RestTest extends ConfigLoader {
 	}
 	
 	@Test
-	public void noRateLimitingSeCongestioneRisoltaErogazione() throws UtilsException, HttpUtilsException {
-		noRateLimitingSeCongestioneRisolta(TipoServizio.EROGAZIONE);
-	}
-	
-	
-	@Test
-	public void noRateLimitingSeCongestioneRisoltaFruizione() throws UtilsException, HttpUtilsException {
-		noRateLimitingSeCongestioneRisolta(TipoServizio.FRUIZIONE);
-		
+	public void rateLimitingInPresenzaDegradoGlobale() throws UtilsException, HttpUtilsException {
+		rateLimitingInPresenzaDegrado("InPresenzaDegradoRest", 4000);
 	}
 	
 	@Test
-	public void rateLimitingInPresenzaDegradoGlobaleErogazione() throws UtilsException, HttpUtilsException {
-		rateLimitingInPresenzaDegrado(TipoServizio.EROGAZIONE, "InPresenzaDegradoRest", 4000);
-	}
-	
-	@Test
-	public void rateLimitingInPresenzaDegradoGlobaleFruizione() throws UtilsException, HttpUtilsException {
-		rateLimitingInPresenzaDegrado(TipoServizio.FRUIZIONE, "InPresenzaDegradoRest", 4000);
-	}
-	
-	@Test
-	public void rateLimitingInPresenzaDegradoServizioErogazione() throws UtilsException, HttpUtilsException {
-		rateLimitingInPresenzaDegrado(TipoServizio.EROGAZIONE, "InPresenzaDegradoServizioRest", 2100);
-	}
-	
-	@Test
-	public void rateLimitingInPresenzaDegradoServizioFruizione() throws UtilsException, HttpUtilsException {
-		rateLimitingInPresenzaDegrado(TipoServizio.FRUIZIONE, "InPresenzaDegradoServizioRest", 2100);
+	public void rateLimitingInPresenzaDegradoServizio() throws UtilsException, HttpUtilsException {
+		rateLimitingInPresenzaDegrado("InPresenzaDegradoServizioRest", 2100);
 	}
 	
 	@Test
@@ -137,18 +115,7 @@ public class RestTest extends ConfigLoader {
 	public void rateLimitingInPresenzaDegradoECongestioneFruizione() {
 		rateLimitingInPresenzaDegradoECongestione(TipoServizio.FRUIZIONE, "InPresenzaDegradoECongestioneRest", 4000);
 	}
-	
-	@Test
-	public void noRateLimitingSeSoloInCongestioneErogazione() {
-		noRateLimitingSeSoloInCongestione(TipoServizio.EROGAZIONE, "InPresenzaDegradoECongestioneRest", 4000);
-	}
-	
-	@Test
-	public void noRateLimitingSeSoloInCongestioneFruizione() {
-		noRateLimitingSeSoloInCongestione(TipoServizio.FRUIZIONE, "InPresenzaDegradoECongestioneRest", 4000);
-	}
-	
-	
+
 	
 
 	/** 
@@ -240,70 +207,13 @@ public class RestTest extends ConfigLoader {
 			throw new RuntimeException(e);
 		}
 		
-	}
-	
-	
-	
-	/**
-	 * Controlliamo che la policy di rate limiting non venga applicata se lo stato 
-	 * di congestione è stato risolto.
-	 * 
-	 */
-	public void noRateLimitingSeCongestioneRisolta(TipoServizio tipoServizio) throws UtilsException, HttpUtilsException {
-		final int maxRequests = 5;
-		final String erogazione = "InPresenzaCongestioneRest";
-		final PolicyAlias policy = PolicyAlias.ORARIO;
+		// Terminata la congestione faccio n richieste che non devono essere bloccate
+		responses = Utils.makeParallelRequests(request, maxRequests+1);
 		
-		final String idPolicy = tipoServizio == TipoServizio.EROGAZIONE
-				? dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy)
-				: dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
-		
-		final String urlServizio = tipoServizio == TipoServizio.EROGAZIONE
-				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario"
-				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/orario";
-		
-		Utils.resetCounters(idPolicy);
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
-		Utils.waitForPolicy(policy);
-
-		// La policy di RL è: NumeroRichiesteCompletateConSuccesso.
-
-		// Faccio n richieste per superare la policy e controllo che non scatti,
-		// perchè la congestione non è attiva.
-		HttpRequest request = new HttpRequest();
-		request.setContentType("application/json");
-		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl(urlServizio);
-						
-		// Anche se la congestione non è attiva, comunque le richieste devono essere conteggiate
-		Vector<HttpResponse> responses = Utils.makeRequestsAndCheckPolicy(request, maxRequests+1, idPolicy);
-				
 		// Controllo che non sia scattata la policy
 		assertEquals( maxRequests+1, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
 		
-		
-		// Faccio attivare la congestione
-		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=2000";
-		HttpRequest congestionRequest = new HttpRequest();
-		congestionRequest.setContentType("application/json");
-		congestionRequest.setMethod(HttpRequestMethod.GET);
-		congestionRequest.setUrl(url);
-		
-		Vector<HttpResponse> congestionResponses = Utils.makeParallelRequests(congestionRequest, sogliaCongestione+1);
-		
-		// Verifico che siano andate tutte bene
-		assertEquals(sogliaCongestione+1, congestionResponses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
-	
-		// Siccome il congestionamento termina nel momento in cui terminano le richieste simultanee,
-		// se faccio richieste conteggiate dalla policy, questa comunque non deve scattare.
-		
-		responses = Utils.makeSequentialRequests(request, maxRequests+1);
-		
-		// Controllo che non sia scattata la policy
-		assertEquals(maxRequests+1, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());		
 	}
-	
-	
 	
 	
 	/**
@@ -314,47 +224,55 @@ public class RestTest extends ConfigLoader {
  		La policy di RL è: NumeroRichiesteCompletateConSuccesso.
  		
 	 */
-	public void rateLimitingInPresenzaDegrado(TipoServizio tipoServizio, String erogazione, int attesa) throws UtilsException, HttpUtilsException {
+	public void rateLimitingInPresenzaDegrado(String erogazione, int attesa) throws UtilsException, HttpUtilsException {
 		final int maxRequests = 5;
 		final PolicyAlias policy = PolicyAlias.ORARIO;
 		final int windowSize = Utils.getPolicyWindowSize(policy);
 		
-		final String idPolicy = tipoServizio == TipoServizio.EROGAZIONE
-				? dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy)
-				: dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
+		final String idPolicyErogazione = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy);
+		final String idPolicyFruizione =  dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
 				
 
-		final String urlServizio = tipoServizio == TipoServizio.EROGAZIONE
-				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario?sleep="+String.valueOf(attesa)
-				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/orario?sleep="+String.valueOf(attesa);
+		final String urlServizioErogazione = basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario?sleep="+String.valueOf(attesa);
+		final String urlServizioFruizione =  basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/orario?sleep="+String.valueOf(attesa);
 		
-		
-		Utils.resetCounters(idPolicy);
+		Utils.resetCounters(idPolicyErogazione);
+		Utils.resetCounters(idPolicyFruizione);
 		Utils.waitForPolicy(policy);
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
-		
+		Utils.checkConditionsNumeroRichieste(idPolicyErogazione, 0, 0, 0);
+		Utils.checkConditionsNumeroRichieste(idPolicyFruizione, 0, 0, 0);
 
-		HttpRequest request = new HttpRequest();
-		request.setContentType("application/json");
-		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl(urlServizio);
+		HttpRequest requestErogazione = new HttpRequest();
+		requestErogazione.setContentType("application/json");
+		requestErogazione.setMethod(HttpRequestMethod.GET);
+		requestErogazione.setUrl(urlServizioErogazione);
+								
+		Vector<HttpResponse> degradoResponsesErogazione = Utils.makeParallelRequests(requestErogazione, maxRequests+1);
+		assertEquals(maxRequests+1, degradoResponsesErogazione.stream().filter( r -> r.getResultHTTPOperation() == 200).count());
+		logRateLimiting.info(Utils.getPolicy(idPolicyErogazione));
+		
+		HttpRequest requestFruizione = new HttpRequest();
+		requestFruizione.setContentType("application/json");
+		requestFruizione.setMethod(HttpRequestMethod.GET);
+		requestFruizione.setUrl(urlServizioFruizione);
 						
+		Vector<HttpResponse> degradoResponsesFruizione = Utils.makeParallelRequests(requestFruizione, maxRequests+1);
+		assertEquals(maxRequests+1, degradoResponsesFruizione.stream().filter( r -> r.getResultHTTPOperation() == 200).count());
 		
-		Vector<HttpResponse> degradoResponses = Utils.makeParallelRequests(request, maxRequests+1);
-		
-		assertEquals(maxRequests+1, degradoResponses.stream().filter( r -> r.getResultHTTPOperation() == 200).count());
-		logRateLimiting.info(Utils.getPolicy(idPolicy));
+		logRateLimiting.info(Utils.getPolicy(idPolicyErogazione));
 
 		// Attendo in modo che le statistiche vengano aggiornate e il degrado prestazionale
 		// rilevato.
 		Utils.waitForDbStats();
 		
 		// Faccio le ulteriori richieste per far scattare la policy
-		Vector<HttpResponse> blockedResponses = Utils.makeParallelRequests(request, maxRequests);
+		Vector<HttpResponse> blockedResponsesErogazione = Utils.makeParallelRequests(requestErogazione, maxRequests);
+		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkFailedRequests(blockedResponsesErogazione, windowSize, maxRequests);
+		logRateLimiting.info(Utils.getPolicy(idPolicyErogazione));
 		
-		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkFailedRequests(blockedResponses, windowSize, maxRequests);
-		
-		logRateLimiting.info(Utils.getPolicy(idPolicy));
+		Vector<HttpResponse> blockedResponsesFruizione = Utils.makeParallelRequests(requestFruizione, maxRequests);
+		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkFailedRequests(blockedResponsesFruizione, windowSize, maxRequests);
+		logRateLimiting.info(Utils.getPolicy(idPolicyFruizione));
 	}
 	
 	/**
@@ -443,83 +361,12 @@ public class RestTest extends ConfigLoader {
 			logRateLimiting.error("Le richieste hanno impiegato più di venti secondi!");
 			throw new RuntimeException(e);
 		}
+		
+		// TODO: Adesso testare che una volta passato il degrado, con la sola 
+		//	congestione le richieste non vengono bloccate.
 	}
 	
-	
 
-	/*
-	 * Testo che il sistema non blocchi le richieste se siamo solamente in congestione e non in degrado.
-	 * TODO: Forse dovrei aspettare 15 secondi per essere sicuro di uscire da eventuali situazioni di degrado
-	 */
-	public void noRateLimitingSeSoloInCongestione(TipoServizio tipoServizio, String erogazione, int attesa) {
-		
-		final int maxRequests = 5;
-		final PolicyAlias policy = PolicyAlias.ORARIO;
-		
-		final String idPolicy = tipoServizio == TipoServizio.EROGAZIONE
-				? dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy)
-				: dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
-				
-
-		final String urlServizio = tipoServizio == TipoServizio.EROGAZIONE
-				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario?sleep="+String.valueOf(attesa)
-				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/orario?sleep="+String.valueOf(attesa);
-		
-		Utils.waitForDbStats();
-
-		
-		Utils.resetCounters(idPolicy);
-		Utils.waitForPolicy(policy);
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);	
-		
-		// Faccio attivare la congestione
-		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep="+durataCongestione;
-		HttpRequest congestionRequest = new HttpRequest();
-		congestionRequest.setContentType("application/json");
-		congestionRequest.setMethod(HttpRequestMethod.GET);
-		congestionRequest.setUrl(url);
-		
-		
-		int count = sogliaCongestione;
-		ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(count);
-
-		for (int i = 0; i < count; i++) {
-			executor.execute(() -> {
-				try {
-					logRateLimiting.info(congestionRequest.getMethod() + " " + congestionRequest.getUrl());
-					 HttpResponse r = HttpUtilities.httpInvoke(congestionRequest);
-					 assertEquals(200, r.getResultHTTPOperation());
-					logRateLimiting.info("Richiesta effettuata..");
-				} catch (UtilsException e) {
-					e.printStackTrace();
-					throw new RuntimeException(e);
-				}
-			});
-		}
-		
-		// Aspetto che il sistema vada in congestione..
-		org.openspcoop2.utils.Utilities.sleep(Long.parseLong(System.getProperty("congestion_delay")));
-	
-		HttpRequest request = new HttpRequest();
-		request.setContentType("application/json");
-		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl(urlServizio);
-		
-		Vector<HttpResponse> nonBlockedResponses = Utils.makeSequentialRequests(request, maxRequests*2);
-		
-		assertEquals(maxRequests*2, nonBlockedResponses.stream().filter( r -> r.getResultHTTPOperation() == 200).count());
-		
-		try {
-			executor.shutdown();
-			executor.awaitTermination(20, TimeUnit.SECONDS);
-		} catch (InterruptedException e) {
-			logRateLimiting.error("Le richieste hanno impiegato più di venti secondi!");
-			throw new RuntimeException(e);
-		}
-		
-	}
-	
-	
 	
 	/** 
 	 * 	Qui si testa la generazione dell'evento di congestione e del successivo evento
