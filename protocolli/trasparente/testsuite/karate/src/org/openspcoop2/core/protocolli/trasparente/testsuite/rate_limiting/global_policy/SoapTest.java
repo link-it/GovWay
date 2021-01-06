@@ -1,36 +1,10 @@
-/*
- * GovWay - A customizable API Gateway 
- * https://govway.org
- * 
- * Copyright (c) 2005-2020 Link.it srl (https://link.it). 
- * 
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3, as published by
- * the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- */
-
-
 package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.global_policy;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Map;
 import java.util.Vector;
 
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
-import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Headers;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.SoapBodies;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.TipoServizio;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.PolicyAlias;
@@ -38,7 +12,7 @@ import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpResponse;
 
-public class RestTest extends ConfigLoader {
+public class SoapTest extends ConfigLoader {
 	
 	@Test
 	public void erogazione() {
@@ -61,8 +35,8 @@ public class RestTest extends ConfigLoader {
 		final int windowSize = Utils.getPolicyWindowSize(PolicyAlias.ORARIO);
 		final String idPolicy = dbUtils.getIdGlobalPolicy("Orario");
 		final String url = tipoServizio == TipoServizio.EROGAZIONE
-				? System.getProperty("govway_base_path") + "/SoggettoInternoTest/NumeroRichiesteRest/v1/richieste-simultanee"
-				: System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteRest/v1/richieste-simultanee";
+				? System.getProperty("govway_base_path") + "/SoggettoInternoTest/TempoMedioRispostaSoap/v1"
+				: System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/TempoMedioRispostaSoap/v1";
 		
 		Utils.waitForNewHour();
 		Utils.resetCounters(idPolicy);
@@ -70,8 +44,9 @@ public class RestTest extends ConfigLoader {
 				
 		
 		HttpRequest request = new HttpRequest();
-		request.setContentType("application/json");
-		request.setMethod(HttpRequestMethod.GET);
+		request.setContentType("application/soap+xml");
+		request.setContent(SoapBodies.get(PolicyAlias.RICHIESTE_SIMULTANEE).getBytes());
+		request.setMethod(HttpRequestMethod.POST);
 		request.setUrl(url);
 		request.addHeader("GovWay-TestSuite-RL-GlobalPolicy", "Orario");
 		
@@ -82,8 +57,8 @@ public class RestTest extends ConfigLoader {
 		// TODO: Gli header da controllare sono diversi.
 		// X-RateLimit-Limit=10, 10;w=3600, X-RateLimit-Remaining=9
 		// Sono solo questi due. Siamo sicuri? Chiedi ad andrea.
-		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkOkRequests(responseOk, windowSize, maxRequests);
-		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkFailedRequests(responseBlocked, windowSize, maxRequests);
+		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.SoapTest.checkOkRequests(responseOk, windowSize, maxRequests);
+		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.SoapTest.checkFailedRequests(responseBlocked, windowSize, maxRequests);
 	}
 
 }

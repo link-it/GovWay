@@ -76,6 +76,21 @@ public class DbUtils {
         return this.jdbc.update(query);
     }
     
+    public String getIdGlobalPolicy(String policyName) {
+    	String query = "select active_policy_id,POLICY_UPDATE_TIME from ct_active_policy WHERE POLICY_ALIAS='"+policyName+"' AND FILTRO_PORTA is null";
+    
+    	logger.info(query);
+    	var result = readRow(query);
+    	    	
+    	String active_policy_id = (String) result.get("active_policy_id");
+    	Timestamp policy_update_time = (Timestamp) result.get("policy_update_time");   	
+    	
+       	AttivazionePolicy policy = new AttivazionePolicy();
+    	policy.setIdActivePolicy(active_policy_id);
+    	policy.setUpdateTime(policy_update_time);
+       	
+       	return UniqueIdentifierUtilities.getUniqueId(policy);
+    }
     
     public String getIdPolicyErogazione(String erogatore, String erogazione, String policyName) {
     	final String filtroPorta = "%gw_" + erogatore + "/gw_" + erogazione + "/v1%";
