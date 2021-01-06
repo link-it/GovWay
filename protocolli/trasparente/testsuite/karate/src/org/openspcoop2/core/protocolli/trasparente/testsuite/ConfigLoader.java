@@ -30,7 +30,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TestName;
-import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
 import org.openspcoop2.utils.LoggerWrapperFactory;
 import org.slf4j.Logger;
 
@@ -109,7 +108,6 @@ public class ConfigLoader {
             }
                         
             setupLogger();
-            Utils.toggleErrorDisclosure(false);
 
         }catch(Throwable t) {
             throw new RuntimeException(t.getMessage(),t);

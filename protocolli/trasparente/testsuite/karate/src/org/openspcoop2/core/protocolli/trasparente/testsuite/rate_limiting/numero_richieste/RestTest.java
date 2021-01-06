@@ -78,7 +78,6 @@ public class RestTest extends ConfigLoader {
 	
 	@Test
 	public void richiestePerMinutoDefaultErogazione() throws Exception {
-		Utils.toggleErrorDisclosure(false);
 		logRateLimiting.info("Test richieste per minuto");
 		final int maxRequests = 10;
 
@@ -110,16 +109,15 @@ public class RestTest extends ConfigLoader {
 	
 	@Test
 	public void richiestePerMinutoErogazioneNoDisclosure() throws Exception {
-		Utils.toggleErrorDisclosure(false);
 		this.richiestePerMinutoErogazione(false);
 	}
 	
-	@Test
+	/*@Test
 	public void richiestePerMinutoErogazioneDisclosure() throws Exception {
 		Utils.toggleErrorDisclosure(true);
 		this.richiestePerMinutoErogazione(true);
 		Utils.toggleErrorDisclosure(false);
-	}
+	}*/
 	
 	
 	public void richiesteOrarieErogazione(boolean disclosure) throws Exception {
@@ -151,17 +149,16 @@ public class RestTest extends ConfigLoader {
 	
 	@Test
 	public void richiesteOrarieErogazioneNoDisclosure() throws Exception {
-		Utils.toggleErrorDisclosure(false);
 		this.richiesteOrarieErogazione(false);
 	}
 	
 	
-	@Test
+	/*@Test
 	public void richiesteOrarieErogazioneDisclosure() throws Exception {
 		Utils.toggleErrorDisclosure(true);
 		this.richiesteOrarieErogazione(true);
 		Utils.toggleErrorDisclosure(false);
-	}
+	}*/
 	
 	
 	public void richiesteGiornaliereErogazione(boolean disclosure) throws Exception {
@@ -194,17 +191,16 @@ public class RestTest extends ConfigLoader {
 	
 	@Test
 	public void richiesteGiornaliereErogazioneNoDisclosure() throws Exception {
-		Utils.toggleErrorDisclosure(false);
 		this.richiesteGiornaliereErogazione(false);
 	}
 	
 	
-	@Test
+	/*@Test
 	public void richiesteGiornaliereErogazioneDisclosure() throws Exception {
 		Utils.toggleErrorDisclosure(true);
 		this.richiesteGiornaliereErogazione(true);
 		Utils.toggleErrorDisclosure(false);
-	}
+	}*/
 	
 	
 	public void richiestePerMinutoFruizione(boolean disclosure) throws Exception {
@@ -238,7 +234,6 @@ public class RestTest extends ConfigLoader {
 	
 	@Test
 	public void richiestePerMinutoDefaultFruizione() throws Exception {
-		Utils.toggleErrorDisclosure(false);
 		logRateLimiting.info("Test richieste per minuto fruizione");
 		final int maxRequests = 10;
 
@@ -270,17 +265,16 @@ public class RestTest extends ConfigLoader {
 	
 	@Test
 	public void richiestePerMinutoFruizioneNoDisclosure() throws Exception {
-		Utils.toggleErrorDisclosure(false);
 		this.richiestePerMinutoFruizione(false);
 	}
 	
 	
-	@Test
+	/*@Test
 	public void richiestePerMinutoFruizioneDisclosure() throws Exception {
 		Utils.toggleErrorDisclosure(true);
 		this.richiestePerMinutoFruizione(true);
 		Utils.toggleErrorDisclosure(false);
-	}
+	}*/
 	
 	
 	public void richiesteOrarieFruizione(boolean disclosure) throws Exception {
@@ -316,17 +310,16 @@ public class RestTest extends ConfigLoader {
 	
 	@Test
 	public void richiesteOrarieFruizioneNoDisclosure() throws Exception {
-		Utils.toggleErrorDisclosure(false);
 		this.richiesteOrarieFruizione(false);
 	}
 	
 	
-	@Test
+	/*@Test
 	public void richiesteOrarieFruizioneDisclosure() throws Exception {
 		Utils.toggleErrorDisclosure(true);
 		this.richiesteOrarieFruizione(true);
 		Utils.toggleErrorDisclosure(false);
-	}
+	}*/
 	
 	
 	public void richiesteGiornaliereFruizione(boolean disclosure) throws Exception {
@@ -361,17 +354,16 @@ public class RestTest extends ConfigLoader {
 	
 	@Test
 	public void richiesteGiornaliereFruizioneNoDisclosure() throws Exception {
-		Utils.toggleErrorDisclosure(false);
 		this.richiesteGiornaliereFruizione(false);
 	}
 	
 	
-	@Test
+	/*@Test
 	public void richiesteGiornaliereFruizioneDisclosure() throws Exception {
 		Utils.toggleErrorDisclosure(true);
 		this.richiesteGiornaliereFruizione(true);
 		Utils.toggleErrorDisclosure(false);
-	}
+	}*/
 	
 	
 
