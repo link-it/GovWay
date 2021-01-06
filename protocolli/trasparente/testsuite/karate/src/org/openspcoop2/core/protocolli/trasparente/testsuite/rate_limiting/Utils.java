@@ -424,7 +424,7 @@ public class Utils {
 		int remaining = (remaining_min - 1)*60 + remaining_sec;
 		
 		if (remaining <= threshold) {
-			int to_wait = (remaining+1) * 60 * 1000;
+			int to_wait = (remaining+1) * 1000;
 			logRateLimiting.info("Aspetto " + to_wait/1000 + " secondi per lo scoccare dell'ora..");
 			org.openspcoop2.utils.Utilities.sleep(to_wait);
 		}					
@@ -449,7 +449,7 @@ public class Utils {
 			int remaining_sec = 60 - now.get(Calendar.SECOND);
 			int remaining = (remaining_min - 1)*60 + remaining_sec;
 		if (remaining <= threshold) {
-				int to_wait = (remaining+1) * 60 * 1000;
+				int to_wait = (remaining+1) * 1000;
 				logRateLimiting.info("Aspetto " + to_wait/1000 + " secondi per lo scoccare del nuovo giorno..");
 				org.openspcoop2.utils.Utilities.sleep(to_wait);
 			}							

@@ -42,7 +42,6 @@ import org.openspcoop2.utils.transport.http.HttpUtilities;
 public class SoapTest extends ConfigLoader {
 
 	final static String erogazione = "TempoMedioRispostaSoap";
-	final static int soglia = 1000;	// (ms);
 	
 	@Test
 	public void perMinutoErogazione() throws Exception {
@@ -88,8 +87,12 @@ public class SoapTest extends ConfigLoader {
 	
 	public void testErogazione(PolicyAlias policy) throws Exception {
 		
-		final int soglia = getSoglia(policy);
 		final int windowSize = Utils.getPolicyWindowSize(policy);
+		final int soglia = getSoglia(policy);
+		final int small_delay = soglia/2;
+		final int small_delay_count = 2;
+		final int big_delay = (small_delay_count+1)*soglia - small_delay*(small_delay_count) + 20;
+		
 		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy);
 		Utils.resetCounters(idPolicy);
 		
@@ -106,39 +109,43 @@ public class SoapTest extends ConfigLoader {
 		request.setContentType("application/soap+xml");
 		request.setMethod(HttpRequestMethod.POST);
 		request.setContent(body.getBytes());
-		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1?sleep=512" );
+		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1?sleep="+small_delay );
 		
-		Vector<HttpResponse> notBlockedResponses = Utils.makeParallelRequests(request, 3);
+		Vector<HttpResponse> notBlockedResponses = Utils.makeParallelRequests(request, small_delay_count);
 		
 		// Poi faccio una richiesta che fa scattare la policy
 		
 		request.setContentType("application/soap+xml");
 		request.setMethod(HttpRequestMethod.POST);
 		request.setContent(body.getBytes());
-		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1?sleep=8000" );
+		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1?sleep="+big_delay );
 		
 		notBlockedResponses.add(HttpUtilities.httpInvoke(request));
 		
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 4, 0);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, small_delay_count+1, 0);
 		
 		// Poi faccio n richieste che non passano
 		
 		request.setContentType("application/soap+xml");
 		request.setMethod(HttpRequestMethod.POST);
 		request.setContent(body.getBytes());
-		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1?sleep=512" );
+		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1?sleep="+small_delay );
 		
-		Vector<HttpResponse> blockedResponses = Utils.makeParallelRequests(request, 3);
+		Vector<HttpResponse> blockedResponses = Utils.makeParallelRequests(request, small_delay_count);
 		
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 4, 3);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, small_delay_count+1, small_delay_count);
 		checkPassedRequests(notBlockedResponses, windowSize, soglia);
 		checkBlockedRequests(blockedResponses, windowSize, soglia);
 	}
 	
 	public void testFruizione(PolicyAlias policy) throws Exception {
 		
-		final int soglia = getSoglia(policy);
 		final int windowSize = Utils.getPolicyWindowSize(policy);
+		final int soglia = getSoglia(policy);
+		final int small_delay = soglia/2;
+		final int small_delay_count = 2;
+		final int big_delay = (small_delay_count+1)*soglia - small_delay*(small_delay_count) + 20;
+		
 		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
 		Utils.resetCounters(idPolicy);
 		
@@ -155,31 +162,31 @@ public class SoapTest extends ConfigLoader {
 		request.setContentType("application/soap+xml");
 		request.setMethod(HttpRequestMethod.POST);
 		request.setContent(body.getBytes());
-		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1?sleep=512" );
+		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1?sleep="+small_delay );
 		
-		Vector<HttpResponse> notBlockedResponses = Utils.makeParallelRequests(request, 3);
+		Vector<HttpResponse> notBlockedResponses = Utils.makeParallelRequests(request, small_delay_count);
 		
 		// Poi faccio una richiesta che fa scattare la policy
 		
 		request.setContentType("application/soap+xml");
 		request.setMethod(HttpRequestMethod.POST);
 		request.setContent(body.getBytes());
-		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1?sleep=8000" );
+		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1?sleep="+big_delay );
 		
 		notBlockedResponses.add(HttpUtilities.httpInvoke(request));
 		
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 4, 0);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, small_delay_count+1, 0);
 		
 		// Poi faccio n richieste che non passano
 		
 		request.setContentType("application/soap+xml");
 		request.setMethod(HttpRequestMethod.POST);
 		request.setContent(body.getBytes());
-		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1?sleep=512" );
+		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1?sleep="+small_delay );
 		
-		Vector<HttpResponse> blockedResponses = Utils.makeParallelRequests(request, 3);
+		Vector<HttpResponse> blockedResponses = Utils.makeParallelRequests(request, small_delay_count);
 		
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 4, 3);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, small_delay_count+1, small_delay_count);
 		checkPassedRequests(notBlockedResponses, windowSize, soglia);
 		checkBlockedRequests(blockedResponses, windowSize, soglia);
 	}

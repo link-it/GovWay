@@ -44,7 +44,6 @@ import net.minidev.json.JSONObject;
 public class RestTest extends ConfigLoader {
 	
 	final static String erogazione = "TempoMedioRispostaRest";
-	final static int soglia = 1000;	// (ms);
 	
 	@Test
 	public void perMinutoErogazione() throws Exception {
@@ -90,6 +89,10 @@ public class RestTest extends ConfigLoader {
 		
 		final int windowSize = Utils.getPolicyWindowSize(policy);
 		final int soglia = getSoglia(policy);
+		final int small_delay = soglia/2;
+		final int small_delay_count = 2;
+		final int big_delay = (small_delay_count+1)*soglia - small_delay*(small_delay_count) + 20;
+		
 		
 		String path = Utils.getPolicyPath(policy);
 		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", erogazione, policy);
@@ -105,30 +108,30 @@ public class RestTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?sleep=512" );
+		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?sleep="+small_delay );
 		
-		Vector<HttpResponse> notBlockedResponses = Utils.makeParallelRequests(request, 3);
+		Vector<HttpResponse> notBlockedResponses = Utils.makeParallelRequests(request, small_delay_count);
 		
 		// Poi faccio una richiesta che fa scattare la policy
 		
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?sleep=8000" );
+		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?sleep="+big_delay );
 		
 		notBlockedResponses.addAll(Utils.makeParallelRequests(request, 1));
 		
 		
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 4, 0);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, small_delay_count+1, 0);
 		
 		// Poi faccio n richieste che non passano
 		
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?sleep=512" );
+		request.setUrl( System.getProperty("govway_base_path") + "/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?sleep="+small_delay );
 		
-		Vector<HttpResponse> blockedResponses = Utils.makeParallelRequests(request, 3);
+		Vector<HttpResponse> blockedResponses = Utils.makeParallelRequests(request, small_delay_count);
 		
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 4, 3);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, small_delay_count+1, small_delay_count);
 		checkPassedRequests(notBlockedResponses, windowSize, soglia);
 		checkBlockedRequests(blockedResponses, windowSize, soglia);
 	}
@@ -138,6 +141,9 @@ public class RestTest extends ConfigLoader {
 		
 		final int windowSize = Utils.getPolicyWindowSize(policy);
 		final int soglia = getSoglia(policy);
+		final int small_delay = soglia/2;
+		final int small_delay_count = 2;
+		final int big_delay = (small_delay_count+1)*soglia - small_delay*(small_delay_count) + 20;
 
 		String path = Utils.getPolicyPath(policy);
 		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", erogazione, policy);
@@ -149,34 +155,34 @@ public class RestTest extends ConfigLoader {
 		Utils.waitForPolicy(policy);
 
 		
-		// Faccio prima 3 richieste che passano
+		// Faccio prima richieste che passano
 		
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?sleep=512" );
+		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?sleep="+small_delay );
 		
-		Vector<HttpResponse> notBlockedResponses = Utils.makeParallelRequests(request, 3);
+		Vector<HttpResponse> notBlockedResponses = Utils.makeParallelRequests(request, small_delay_count);
 		
 		// Poi faccio una richiesta che fa scattare la policy
 		
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?sleep=8000" );
+		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?sleep="+big_delay );
 		
-		notBlockedResponses.add(HttpUtilities.httpInvoke(request));
+		notBlockedResponses.add(Utils.makeRequest(request));
 		
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 4, 0);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, small_delay_count+1, 0);
 		
 		// Poi faccio n richieste che non passano
 		
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?sleep=512" );
+		request.setUrl( System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/"+path+"?sleep="+small_delay );
 		
-		Vector<HttpResponse> blockedResponses = Utils.makeParallelRequests(request, 3);
+		Vector<HttpResponse> blockedResponses = Utils.makeParallelRequests(request, small_delay_count);
 		
-		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 4, 3);
+		Utils.checkConditionsNumeroRichieste(idPolicy, 0, small_delay_count+1, small_delay_count);
 		checkPassedRequests(notBlockedResponses, windowSize, soglia);
 		checkBlockedRequests(blockedResponses, windowSize, soglia);
 		
