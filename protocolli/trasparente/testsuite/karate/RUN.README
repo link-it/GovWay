@@ -41,7 +41,7 @@
 	in particolare quando si abilitano in presenza di degrado prestazionale. 
 
 - Inoltre è necessario abbassare il life time degli oggetti in cache:
-	Console -> Controllo del Traffico -> Configurazione Cache Controllo del Traffico -> ItemLifeTime = 10
+	Console -> Controllo del Traffico -> Configurazione Cache Controllo del Traffico -> ItemLifeTime = 5
 
 - Aggiungere nel govway_local.properties la seguente impostazione:
 

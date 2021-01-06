@@ -209,9 +209,9 @@ public class SoapTest extends ConfigLoader {
 				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1?sleep="+String.valueOf(attesa)
 				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1?sleep="+String.valueOf(attesa);
 		
-		Utils.waitForDbStats();
+		// Utils.waitForDbStats();
 
-		
+		Utils.waitForZeroGovWayThreads();
 		Utils.resetCounters(idPolicy);
 		Utils.waitForPolicy(policy);
 		Utils.checkConditionsNumeroRichieste(idPolicy, 0, 0, 0);
@@ -307,7 +307,7 @@ public class SoapTest extends ConfigLoader {
 		// Faccio n richieste che devono andare tutte bene perchè il sistema è solo in congestione
 		Vector<HttpResponse> nonBlockedResponses = Utils.makeParallelRequests(request, maxRequests);
 		
-		assertEquals(maxRequests, nonBlockedResponses.stream().filter( r -> r.getResultHTTPOperation() == 200).count());*/
+		assertEquals(maxRequests, nonBlockedResponses.stream().filter( r -> r.getResultHTTPOperation() == 200).count());
 		
 		
 		try {
@@ -316,7 +316,7 @@ public class SoapTest extends ConfigLoader {
 		} catch (InterruptedException e) {
 			logRateLimiting.error("Le richieste hanno impiegato più di venti secondi!");
 			throw new RuntimeException(e);
-		}
+		}*/
 	}
 	
 	
@@ -402,8 +402,8 @@ public class SoapTest extends ConfigLoader {
 		// Tutte le risposte devono essere bloccate, perchè siamo in congestione
 		// e le richieste iniziali sono state conteggiate
 		assertEquals( maxRequests+1, responses.stream().filter(r -> r.getResultHTTPOperation() == 429).count());
-		logRateLimiting.info(Utils.getPolicy(idPolicy));
-
+		Utils.waitForZeroActiveRequests(idPolicy, maxRequests+1);
+		
 		// Nel mentre siamo in congestione rieseguo per intero il test sul Numero Richieste Completate con successo
 		testToRun.accept(erogazione, PolicyAlias.ORARIO);
 				

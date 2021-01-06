@@ -194,7 +194,7 @@ public class RestTest extends ConfigLoader {
 		// Tutte le risposte devono essere bloccate, perchè siamo in congestione
 		// e le richieste iniziali sono state conteggiate
 		assertEquals( maxRequests+1, responses.stream().filter(r -> r.getResultHTTPOperation() == 429).count());
-		logRateLimiting.info(Utils.getPolicy(idPolicy));
+		Utils.waitForZeroActiveRequests(idPolicy, maxRequests+1);
 
 		// Nel mentre siamo in congestione rieseguo per intero il test sul Numero Richieste Completate con successo
 		testToRun.accept(erogazione, PolicyAlias.ORARIO);
@@ -294,7 +294,7 @@ public class RestTest extends ConfigLoader {
 				? basePath + "/SoggettoInternoTest/"+erogazione+"/v1/orario?sleep="+String.valueOf(attesa)
 				: basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/"+erogazione+"/v1/orario?sleep="+String.valueOf(attesa);
 		
-		Utils.waitForDbStats();
+		// Utils.waitForDbStats();
 		
 		Utils.resetCounters(idPolicy);
 		Utils.waitForPolicy(policy);
