@@ -388,7 +388,7 @@ public class RestTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/NumeroRichiesteRest/v1/richieste-simultanee?sleep=5000");
+		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/NumeroRichiesteRest/v1/richieste-simultanee?sleep=2000");
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxConcurrentRequests + 1);
 		
@@ -410,7 +410,7 @@ public class RestTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteRest/v1/richieste-simultanee?sleep=5000");
+		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteRest/v1/richieste-simultanee?sleep=2000");
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxConcurrentRequests + 1);
 		
@@ -420,7 +420,7 @@ public class RestTest extends ConfigLoader {
 	
 	@Test
 	public void richiesteSimultaneeGlobali() throws Exception {
-		final int maxConcurrentRequests = 15;
+		final int maxConcurrentRequests = Integer.valueOf(System.getProperty("soglia_richieste_simultanee"));
 				
 		// Aspetto che i threads attivi sul server siano 0
 		Utils.waitForZeroGovWayThreads();
@@ -430,7 +430,7 @@ public class RestTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
 		request.setMethod(HttpRequestMethod.GET);
-		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=5000");
+		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=2000");
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxConcurrentRequests + 1);
 		
 		HttpResponse failedResponse = responses.stream().filter(r -> r.getResultHTTPOperation() == 429).findAny()

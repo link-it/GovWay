@@ -100,7 +100,7 @@ public class SoapTest extends ConfigLoader {
 	
 	@Test
 	public void richiesteSimultaneeGlobali() throws Exception {
-		final int maxConcurrentRequests = 15;
+		final int maxConcurrentRequests = Integer.valueOf(System.getProperty("soglia_richieste_simultanee"));
 				
 		// Aspetto che i threads attivi sul server siano 0
 		Utils.waitForZeroGovWayThreads();
