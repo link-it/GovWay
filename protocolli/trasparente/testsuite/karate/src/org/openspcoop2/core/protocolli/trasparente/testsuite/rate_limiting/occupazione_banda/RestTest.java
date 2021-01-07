@@ -79,8 +79,10 @@ public class RestTest extends ConfigLoader {
 	@Test
 	public void perMinutoDefaultErogazione() throws Exception {
 
-		final int requestSizeBytes = 500000;
-
+		final int sogliaKb = 1024;
+		final int requestToPass = 3;
+		final int requestSizeBytes = (sogliaKb*1000/ (requestToPass-1))/4;
+		
 		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "OccupazioneBandaRest",
 				PolicyAlias.MINUTODEFAULT);
 		Utils.resetCounters(idPolicy);
@@ -191,8 +193,10 @@ public class RestTest extends ConfigLoader {
 	@Test
 	public void perMinutoDefaultFruizione() throws Exception {
 		
-		final int requestSizeBytes = 500000;
-
+		final int sogliaKb = 1024;
+		final int requestToPass = 3;
+		final int requestSizeBytes = (sogliaKb*1000/ (requestToPass-1))/4;
+		
 		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "OccupazioneBandaRest", PolicyAlias.MINUTODEFAULT);
 		Utils.resetCounters(idPolicy);
 

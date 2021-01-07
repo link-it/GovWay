@@ -82,7 +82,11 @@ public class SoapTest extends ConfigLoader {
 	@Test
 	public void perMinutoDefaultErogazione() throws Exception {
 		
-		final int requestSizeBytes = 500000;
+		final int sogliaKb = 1024;
+		final int requestToPass = 3;
+		final int requestSizeBytes = (sogliaKb*1000/ (requestToPass-1))/4;
+		
+		logRateLimiting.info("Request size bytes: " + requestSizeBytes);
 
 
 		String idPolicy = dbUtils.getIdPolicyErogazione("SoggettoInternoTest", "OccupazioneBandaSoap", PolicyAlias.MINUTODEFAULT);
@@ -231,7 +235,11 @@ public class SoapTest extends ConfigLoader {
 	@Test
 	public void perMinutoDefaultFruizione() throws Exception {
 		
-		final int requestSizeBytes = 500000;
+		final int sogliaKb = 1024;
+		final int requestToPass = 3;
+		final int requestSizeBytes = (sogliaKb*1000/ (requestToPass-1))/4;
+		
+		logRateLimiting.info("Request size bytes: " + requestSizeBytes);
 
 		String idPolicy = dbUtils.getIdPolicyFruizione("SoggettoInternoTestFruitore", "SoggettoInternoTest", "OccupazioneBandaSoap", PolicyAlias.MINUTODEFAULT);
 		Utils.resetCounters(idPolicy);
@@ -256,10 +264,10 @@ public class SoapTest extends ConfigLoader {
 		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/OccupazioneBandaSoap/v1");
 		request.setContent(body.getBytes());
 		
-		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, 3);
+		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, requestToPass);
 		
 		responses.addAll(Utils.makeSequentialRequests(request, 1));
-		Utils.waitForZeroActiveRequests(idPolicy, 3);
+		Utils.waitForZeroActiveRequests(idPolicy, requestToPass);
 		checkAssertions(responses, 1024, 60);		
 		
 		Commons.checkPostConditionsOccupazioneBanda(idPolicy);		
