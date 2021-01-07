@@ -23,6 +23,7 @@ package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.glob
 
 import java.util.Vector;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.TipoServizio;
@@ -34,6 +35,25 @@ import org.openspcoop2.utils.transport.http.HttpResponse;
 
 public class RestTest extends ConfigLoader {
 	
+	@BeforeClass
+	public static void initTest() {
+		String idPolicy = null;
+
+		try {
+			idPolicy = dbUtils.getIdGlobalPolicy("Orario");
+		} catch (Exception e) {
+		}
+		
+		if (idPolicy == null) {
+			createGlobalPolicy();
+			idPolicy = dbUtils.getIdGlobalPolicy("Orario");
+		}
+		
+		if (idPolicy == null) {
+			throw new RuntimeException("Fallito il recupero della policy globale appena creata.");
+		}
+	}
+	
 	@Test
 	public void erogazione() {
 		testGlobalPolicy(TipoServizio.EROGAZIONE);
@@ -43,7 +63,6 @@ public class RestTest extends ConfigLoader {
 	public void fruizione() {
 		testGlobalPolicy(TipoServizio.FRUIZIONE);
 	}
-	
 	
 	static void testGlobalPolicy(TipoServizio tipoServizio) {
 		// Usiamo l'erogazione già presente per il test numero_richieste
@@ -78,6 +97,57 @@ public class RestTest extends ConfigLoader {
 		// Sono solo questi due. Siamo sicuri? Chiedi ad andrea.
 		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkOkRequests(responseOk, windowSize, maxRequests);
 		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkFailedRequests(responseBlocked, windowSize, maxRequests);
+	}
+	
+	
+	static void createGlobalPolicy() {
+		String policy_id = "__TestsuiteGlobaleTestOrarioConFiltroPerChiave__";
+		String policy_alias = "Orario";
+		
+		Boolean policy_continue = false;
+		Boolean policy_enabled = true;
+		Boolean policy_redefined = true;
+		Boolean filtro_enabled = true;
+		
+		String query = "INSERT INTO ct_active_policy "
+				+ "("
+				+ 		"active_policy_id,"
+				+ 		"policy_update_time,"
+				+ 		"policy_alias,"
+				+ 		"policy_posizione,"
+				+ 		"policy_continue,"
+				+ 		"policy_id,"
+				+ 		"policy_enabled,"
+				+ 		"policy_redefined,"
+				+ 		"policy_valore,"
+				+ 		"filtro_enabled,"
+				+ 		"filtro_protocollo,"
+				+ 		"filtro_ruolo,"
+				+ 		"filtro_key_type,"
+				+ 		"filtro_key_name,"
+				+ 		"filtro_key_value"
+				+ ")"
+				+ " VALUES ("
+				+ 		"'"+policy_id+"',"
+				+ 		"CURRENT_TIMESTAMP,"
+				+ 		"'"+policy_alias+"',"
+				+ 		"1,"
+				+ 		"?,"	// policy_continue
+				+ 		"'_built-in_NumeroRichiesteCompletateConSuccesso-ControlloRealtimeOrario',"
+				+ 		"?,"	// policy_enabled
+				+ 		"?,"	// policy_redefined
+				+ 		"5,"
+				+ 		"?,"	// filtro_enabled
+				+ 		"'trasparente',"
+				+ 		"'entrambi',"
+				+ 		"'HeaderBased', "
+				+ 		"'GovWay-TestSuite-RL-GlobalPolicy', "
+				+ 		"'Orario'"
+				+ 	");";
+		
+		
+		logRateLimiting.info(query);
+		dbUtils.jdbc.update(query,policy_continue, policy_enabled, policy_redefined, filtro_enabled);
 	}
 
 }

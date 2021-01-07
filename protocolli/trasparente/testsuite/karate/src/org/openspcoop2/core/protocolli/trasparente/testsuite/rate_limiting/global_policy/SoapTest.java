@@ -2,6 +2,7 @@ package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.glob
 
 import java.util.Vector;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.SoapBodies;
@@ -22,6 +23,11 @@ public class SoapTest extends ConfigLoader {
 	@Test
 	public void fruizione() {
 		testGlobalPolicy(TipoServizio.FRUIZIONE);
+	}
+	
+	@BeforeClass
+	public static void initTest() {
+		RestTest.initTest();
 	}
 	
 	
