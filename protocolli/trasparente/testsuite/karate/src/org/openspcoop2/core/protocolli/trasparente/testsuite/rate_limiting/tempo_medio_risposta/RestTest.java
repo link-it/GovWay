@@ -37,7 +37,6 @@ import org.openspcoop2.utils.json.JsonPathExpressionEngine;
 import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpResponse;
-import org.openspcoop2.utils.transport.http.HttpUtilities;
 
 import net.minidev.json.JSONObject;
 

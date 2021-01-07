@@ -71,9 +71,9 @@ Per eseguire i test:
 	ant run_test
 
 	Parametri:
-		-Dload=false 	Carica la configurazione di govway all'inizio del test	
-		-Ddelete=false	Elimina la configurazione di govway alla fine del test
-		-Dwait=false	aspetta lo scoccare della nuova finestra di tempo nei test di rate limiting
+		-Dload=false (default: true) Carica la configurazione di govway all'inizio del test	
+		-Ddelete=false (default: true) Elimina la configurazione di govway alla fine del test
+		-Dwait=false (default:true) Non aspetta lo scoccare della nuova finestra di tempo nei test di rate limiting
 
 Per eseguire solo una classe, indicare il package e il metodo:
 
