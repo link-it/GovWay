@@ -21,6 +21,8 @@
 package org.openspcoop2.core.protocolli.trasparente.testsuite;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -65,13 +67,39 @@ public class DbUtils {
     }
 
     public Map<String, Object> readRow(String query) {
-        return this.jdbc.queryForMap(query);
+    	Map<String, Object> mapReaded = this.jdbc.queryForMap(query);
+    	return this.formatResult(mapReaded);
     }
 
     public List<Map<String, Object>> readRows(String query) {
-        return this.jdbc.queryForList(query);
+    	List<Map<String, Object>> listReaded = this.jdbc.queryForList(query);
+    	if(listReaded!=null && !listReaded.isEmpty()) {
+    		List<Map<String, Object>> list = new ArrayList<Map<String,Object>>();
+    		for (Map<String, Object> mapReaded : listReaded) {
+				list.add(this.formatResult(mapReaded));
+			}
+    	}
+    	return null;
     }
 
+    private Map<String, Object> formatResult(Map<String, Object> mapReaded){
+    	if(mapReaded!=null && !mapReaded.isEmpty()) {
+    		Map<String, Object> map = new HashMap<String, Object>();
+    		for (String colonna : mapReaded.keySet()) {
+				Object value = mapReaded.get(colonna);
+				if(value instanceof java.math.BigDecimal) {
+					java.math.BigDecimal bd = (java.math.BigDecimal) value;
+					map.put(colonna.toLowerCase(), bd.intValue());
+				}
+				else {
+					map.put(colonna.toLowerCase(), value);
+				}
+			}
+    		return map;
+    	}
+    	return null;
+    }
+    
     public int update(String query) {
         return this.jdbc.update(query);
     }
@@ -97,7 +125,7 @@ public class DbUtils {
     	String query = "select active_policy_id,POLICY_UPDATE_TIME from ct_active_policy WHERE POLICY_ALIAS='"+policyName+"' AND FILTRO_PORTA LIKE'"+filtroPorta+"' AND FILTRO_RUOLO='applicativa' AND filtro_protocollo='trasparente'";
     	logger.info(query);
     	var result = readRow(query);
-    	    	
+    	
     	String active_policy_id = (String) result.get("active_policy_id");
     	Timestamp policy_update_time = (Timestamp) result.get("policy_update_time");   	
     	
