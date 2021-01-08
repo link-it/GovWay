@@ -71,13 +71,14 @@ public class DbUtils {
     	return this.formatResult(mapReaded);
     }
 
-    public List<Map<String, Object>> readRows(String query) {
-    	List<Map<String, Object>> listReaded = this.jdbc.queryForList(query);
+    public List<Map<String, Object>> readRows(String query, Object... args) {
+    	List<Map<String, Object>> listReaded = this.jdbc.queryForList(query, args);
     	if(listReaded!=null && !listReaded.isEmpty()) {
     		List<Map<String, Object>> list = new ArrayList<Map<String,Object>>();
     		for (Map<String, Object> mapReaded : listReaded) {
 				list.add(this.formatResult(mapReaded));
 			}
+    		return list;
     	}
     	return null;
     }

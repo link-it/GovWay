@@ -63,7 +63,7 @@ public class SoapTest extends ConfigLoader {
 	 * Questi primi due forse posso toglierli visto che gli altri quattro test comunque controllano
 	 * la scrittura degli eventi di congestione sul db. 
 	 */
-	/*@Test
+	@Test
 	public void congestioneAttivaErogazione() {
 		congestioneAttiva(basePath + "/SoggettoInternoTest/NumeroRichiesteSoap/v1");
 	}
@@ -72,7 +72,7 @@ public class SoapTest extends ConfigLoader {
 	@Test
 	public void congestioneAttivaFruizione() {
 		congestioneAttiva(basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1");
-	}*/
+	}
 	
 	@Test
 	public void congestioneAttivaConViolazioneRLErogazione() {

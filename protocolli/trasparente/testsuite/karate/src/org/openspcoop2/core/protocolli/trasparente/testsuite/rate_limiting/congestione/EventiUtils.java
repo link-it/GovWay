@@ -3,6 +3,8 @@ package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.cong
 import static org.junit.Assert.assertEquals;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -62,10 +64,14 @@ public class EventiUtils {
 	
 	
 	public static List<Map<String,Object>> getNotificheEventi(LocalDateTime dataSpedizione) {
-		String query = "select * from notifiche_eventi where ora_registrazione >= '"+ dataSpedizione +"'";
+		
+		ZonedDateTime zdt = dataSpedizione.atZone(ZoneId.systemDefault());
+		java.sql.Timestamp filtroData = new java.sql.Timestamp(zdt.toInstant().toEpochMilli());
+		
+		String query = "select * from notifiche_eventi where ora_registrazione >= ?";
 		log().info(query);
 		
-		return dbUtils().readRows(query);
+		return dbUtils().readRows(query, filtroData);
 	}
 	
 	

@@ -24,6 +24,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.Vector;
 import java.util.concurrent.Executors;
@@ -49,7 +51,7 @@ public class RestTest extends ConfigLoader {
 	private static final int durataCongestione = Integer.valueOf(System.getProperty("rate_limiting.congestione.durata_congestione"));
 	private static final int sogliaCongestione = Integer.valueOf(System.getProperty("soglia_congestione"));
 	
-	/*@Test
+	@Test
 	public void congestioneAttivaErogazione() {
 		congestioneAttiva(basePath + "/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=2000");
 	}
@@ -58,7 +60,7 @@ public class RestTest extends ConfigLoader {
 	@Test
 	public void congestioneAttivaFruizione() {
 		congestioneAttiva(basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteRest/v1/no-policy?sleep=2000");
-	}*/
+	}
 	
 	
 	@Test
@@ -378,7 +380,16 @@ public class RestTest extends ConfigLoader {
 				
 		final int sogliaRichiesteSimultanee = Integer.valueOf(System.getProperty("soglia_richieste_simultanee"));
 		
-		LocalDateTime dataSpedizione = LocalDateTime.now();		
+		LocalDateTime dataSpedizione = LocalDateTime.now();
+		
+		ZonedDateTime zdt = dataSpedizione.atZone(ZoneId.systemDefault());
+		
+		logRateLimiting.info(" Epoch Millis: " + zdt.toInstant().toEpochMilli());
+		logRateLimiting.info(" Sistem Millis: " + System.currentTimeMillis());
+		logRateLimiting.info(" LocalDateTimeDate: " + dataSpedizione);
+		
+		//Calendar dataSpedizione = Calendar.getInstance();
+		//java.sql.Date dataSpedizione = new java.sql.Date(now.getTimeInMillis());
 		
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/json");
