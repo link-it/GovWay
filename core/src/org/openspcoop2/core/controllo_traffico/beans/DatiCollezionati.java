@@ -857,8 +857,12 @@ public class DatiCollezionati extends org.openspcoop2.utils.beans.BaseBean imple
 				
 				// Genero nuova finestra
 				Date d = DateUtils.incrementDate(this.policyDate, this.policyDateTypeInterval, this.policyDateInterval);
-				Date dRight = DateUtils.incrementDate(d, this.policyDateTypeInterval, this.policyDateInterval);
-				dRight = DateUtils.convertToRightInterval(dRight, this.policyDateTypeInterval);
+				
+				Date dRight = DateUtils.convertToRightInterval(d, this.policyDateTypeInterval);
+				dRight = DatiCollezionati.incrementDate(dRight, this.policyDateTypeInterval, this.policyDateInterval, this.policyDateCurrentInterval);
+				//Date dRight = DateUtils.incrementDate(d, this.policyDateTypeInterval, this.policyDateInterval);
+				//dRight = DateUtils.convertToRightInterval(dRight, this.policyDateTypeInterval);
+				
 				boolean before = dRight.before(now);
 				if(activePolicy.getConfigurazioneControlloTraffico().isDebug()){
 					SimpleDateFormat dateformat = DateUtils.getSimpleDateFormatMs();
@@ -881,8 +885,12 @@ public class DatiCollezionati extends org.openspcoop2.utils.beans.BaseBean imple
 					}
 					
 					d = DateUtils.incrementDate(d, this.policyDateTypeInterval, this.policyDateInterval);
-					dRight = DateUtils.incrementDate(d, this.policyDateTypeInterval, this.policyDateInterval);
-					dRight = DateUtils.convertToRightInterval(dRight, this.policyDateTypeInterval);
+					
+					dRight = DateUtils.convertToRightInterval(d, this.policyDateTypeInterval);
+					dRight = DatiCollezionati.incrementDate(dRight, this.policyDateTypeInterval, this.policyDateInterval, this.policyDateCurrentInterval);
+					//dRight = DateUtils.incrementDate(d, this.policyDateTypeInterval, this.policyDateInterval);
+					//dRight = DateUtils.convertToRightInterval(dRight, this.policyDateTypeInterval);
+					
 					before = dRight.before(now);
 					if(activePolicy.getConfigurazioneControlloTraffico().isDebug()){
 						SimpleDateFormat dateformat = DateUtils.getSimpleDateFormatMs();
