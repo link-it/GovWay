@@ -49,6 +49,9 @@ import org.w3c.dom.Element;
 public class SoapTest extends ConfigLoader {
 	
 	
+	private static final int durata_simultanee = Integer.valueOf(System.getProperty("rate_limiting.numero_richieste.durata_simultanee"));
+
+	
 	@Test 
 	public void richiesteSimultaneeErogazione() throws Exception {
 		final int maxConcurrentRequests = 10;
@@ -64,7 +67,7 @@ public class SoapTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/soap+xml");
 		request.setMethod(HttpRequestMethod.POST);
-		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/NumeroRichiesteSoap/v1");
+		request.setUrl(System.getProperty("govway_base_path") + "/SoggettoInternoTest/NumeroRichiesteSoap/v1?sleep="+durata_simultanee);
 		request.setContent(body.getBytes());
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxConcurrentRequests + 1);
@@ -89,7 +92,7 @@ public class SoapTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/soap+xml");
 		request.setMethod(HttpRequestMethod.POST);
-		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1");
+		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1?sleep="+durata_simultanee);
 		request.setContent(body.getBytes());
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxConcurrentRequests + 1);
@@ -110,7 +113,7 @@ public class SoapTest extends ConfigLoader {
 		HttpRequest request = new HttpRequest();
 		request.setContentType("application/soap+xml");
 		request.setMethod(HttpRequestMethod.POST);
-		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1");
+		request.setUrl(System.getProperty("govway_base_path") + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1?sleep="+durata_simultanee);
 		request.setContent(body.getBytes());
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxConcurrentRequests + 1);

@@ -65,35 +65,35 @@ public class SoapTest extends ConfigLoader {
 	 */
 	@Test
 	public void congestioneAttivaErogazione() {
-		congestioneAttiva(basePath + "/SoggettoInternoTest/NumeroRichiesteSoap/v1");
+		congestioneAttiva(basePath + "/SoggettoInternoTest/NumeroRichiesteSoap/v1?sleep=2000");
 	}
 	
 	
 	@Test
 	public void congestioneAttivaFruizione() {
-		congestioneAttiva(basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1");
+		congestioneAttiva(basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1?sleep=2000");
 	}
 	
 	@Test
 	public void congestioneAttivaConViolazioneRLErogazione() {
-		congestioneAttivaConViolazioneRL(basePath + "/SoggettoInternoTest/NumeroRichiesteSoap/v1", "SoggettoInternoTest/NumeroRichiesteSoap/v1");
+		congestioneAttivaConViolazioneRL(basePath + "/SoggettoInternoTest/NumeroRichiesteSoap/v1", "SoggettoInternoTest/NumeroRichiesteSoap/v1?sleep=2000");
 	}
 	
 	@Test
 	public void congestioneAttivaConViolazioneRLFruizione() {
-		congestioneAttivaConViolazioneRL(basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1", "SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1");
+		congestioneAttivaConViolazioneRL(basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1?sleep=2000", "SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1");
 	}
 	
 	@Test
 	public void congestioneAttivaViolazioneRichiesteComplessiveErogazione() {
-		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteSoap/v1";
+		String url = basePath + "/SoggettoInternoTest/NumeroRichiesteSoap/v1?sleep=2000";
 		congestioneAttivaViolazioneRichiesteComplessive(url);
 	}
 	
 	
 	@Test
 	public void congestioneAttivaViolazioneRichiesteComplessiveFruizione() {
-		String url = basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1";
+		String url = basePath + "/out/SoggettoInternoTestFruitore/SoggettoInternoTest/NumeroRichiesteSoap/v1?sleep=2000";
 		congestioneAttivaViolazioneRichiesteComplessive(url);
 	}
 
