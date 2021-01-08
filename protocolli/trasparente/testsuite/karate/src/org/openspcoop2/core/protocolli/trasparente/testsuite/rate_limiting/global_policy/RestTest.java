@@ -146,7 +146,7 @@ public class RestTest extends ConfigLoader {
 				+ 		"'HeaderBased', "
 				+ 		"'GovWay-TestSuite-RL-GlobalPolicy', "
 				+ 		"'Orario'"
-				+ 	");";
+				+ 	")";
 		
 		
 		logRateLimiting.info(query);
