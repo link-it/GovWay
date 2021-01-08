@@ -108,7 +108,8 @@ public class RestTest extends ConfigLoader {
 		Boolean policy_enabled = true;
 		Boolean policy_redefined = true;
 		Boolean filtro_enabled = true;
-		
+		Boolean filtro_key_enabled = true;
+
 		String query = "INSERT INTO ct_active_policy "
 				+ "("
 				+ 		"active_policy_id,"
@@ -123,6 +124,7 @@ public class RestTest extends ConfigLoader {
 				+ 		"filtro_enabled,"
 				+ 		"filtro_protocollo,"
 				+ 		"filtro_ruolo,"
+				+		"filtro_key_enabled,"
 				+ 		"filtro_key_type,"
 				+ 		"filtro_key_name,"
 				+ 		"filtro_key_value"
@@ -140,6 +142,7 @@ public class RestTest extends ConfigLoader {
 				+ 		"?,"	// filtro_enabled
 				+ 		"'trasparente',"
 				+ 		"'entrambi',"
+				+		"?,"	// filtro_key_enabled
 				+ 		"'HeaderBased', "
 				+ 		"'GovWay-TestSuite-RL-GlobalPolicy', "
 				+ 		"'Orario'"
@@ -147,7 +150,7 @@ public class RestTest extends ConfigLoader {
 		
 		
 		logRateLimiting.info(query);
-		dbUtils.jdbc.update(query,policy_continue, policy_enabled, policy_redefined, filtro_enabled);
+		dbUtils.jdbc.update(query,policy_continue, policy_enabled, policy_redefined, filtro_enabled, filtro_key_enabled);
 	}
 
 }
