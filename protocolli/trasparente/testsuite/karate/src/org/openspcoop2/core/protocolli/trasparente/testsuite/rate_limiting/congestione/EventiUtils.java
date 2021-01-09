@@ -87,44 +87,114 @@ public class EventiUtils {
 
 
 
-	public static boolean findEventCongestioneRisolta(List<Map<String, Object>> events) {
+	public static boolean findEventCongestioneRisolta(List<Map<String, Object>> events, Logger log) {
+		
+		log.debug("======== VERIFICA findEventCongestioneRisolta ========");
+		
 		return events.stream()
 			.anyMatch( ev -> {
-				return  ev.get("tipo").equals("ControlloTraffico_SogliaCongestione") &&
-						ev.get("codice").equals("ViolazioneRisolta") &&
-						ev.get("severita").equals(3);
+				Object tipo = ev.get("tipo");
+				Object codice = ev.get("codice");
+				Object severita = ev.get("severita");
+				boolean match = tipo.equals("ControlloTraffico_SogliaCongestione") &&
+						codice.equals("ViolazioneRisolta") &&
+						severita.equals(3);
+				
+				log.debug("tipo='"+tipo+"' confronto con 'ControlloTraffico_SogliaCongestione': "+tipo.equals("ControlloTraffico_SogliaCongestione"));
+				log.debug("codice='"+codice+"' confronto con 'ViolazioneRisolta': "+codice.equals("ViolazioneRisolta"));
+				log.debug("severita='"+severita+"' confronto con 3: "+severita.equals(3));
+				log.debug("match="+match);
+				
+				return match;
 			});
 	}
 
 
 
-	public static boolean findEventCongestioneViolata(List<Map<String, Object>> events) {
+	public static boolean findEventCongestioneViolata(List<Map<String, Object>> events, Logger log) {
+		
+		log.debug("======== VERIFICA findEventCongestioneViolata ========");
+		
+		String descrAttesa = "E' stata rilevata una congestione del sistema in seguito al superamento della soglia del";
+		
 		return events.stream()
 				.anyMatch( ev -> {
-					return  ev.get("tipo").equals("ControlloTraffico_SogliaCongestione") &&
-							ev.get("codice").equals("Violazione") &&
-							ev.get("severita").equals(2) &&
-							((String) ev.get("descrizione")).startsWith("E' stata rilevata una congestione del sistema in seguito al superamento della soglia del");
+					Object tipo = ev.get("tipo");
+					Object codice = ev.get("codice");
+					Object severita = ev.get("severita");
+					String descrizione = ((String) ev.get("descrizione"));
+					boolean descrizioneCheck = false;
+					if(descrizione!=null) {
+						descrizioneCheck = descrizione.startsWith(descrAttesa);
+					}
+					boolean match = tipo.equals("ControlloTraffico_SogliaCongestione") &&
+							codice.equals("Violazione") &&
+							severita.equals(2) &&
+							descrizioneCheck;
+					
+					log.debug("tipo='"+tipo+"' confronto con 'ControlloTraffico_SogliaCongestione': "+tipo.equals("ControlloTraffico_SogliaCongestione"));
+					log.debug("codice='"+codice+"' confronto con 'Violazione': "+codice.equals("Violazione"));
+					log.debug("severita='"+severita+"' confronto con 2: "+severita.equals(2));
+					if(descrizione!=null) {
+						log.debug("descrizione='"+descrizione+"' confronto con '"+descrAttesa+"': "+descrizioneCheck);
+					}
+					else {
+						log.debug("descrizione='"+descrizione+"'");
+					}
+					log.debug("match="+match);
+					
+					return match;
 				});
 	}
 
 
 
-	public static boolean findEventRLViolato(List<Map<String,Object>> events, PolicyAlias policy, String idServizio, Optional<String> gruppo) {
+	public static boolean findEventRLViolato(List<Map<String,Object>> events, PolicyAlias policy, String idServizio, Optional<String> gruppo, Logger log) {
+		
+		log.debug("======== VERIFICA findEventRLViolato ========");
 		
 		return events.stream()
 		.anyMatch( ev -> {
+			Object tipo = ev.get("tipo");
+			Object codice = ev.get("codice");
+			Object severita = ev.get("severita");
 			String id_configurazione = (String) ev.get("id_configurazione");
-			boolean match = ev.get("tipo").equals("RateLimiting_PolicyAPI") &&
-					ev.get("codice").equals("Violazione") &&
-					ev.get("severita").equals(1) && 
-					id_configurazione.contains(policy.toString()) &&
-					id_configurazione.contains(idServizio);
-			
-			if (gruppo.isPresent()) {
-				match = match && id_configurazione.contains("gruppo '"+gruppo.get()+"'");
+			boolean contains1 = false;
+			boolean contains2 = false;
+			if(id_configurazione!=null) {
+				contains1 = id_configurazione.contains(policy.toString());
+				contains2 = id_configurazione.contains(idServizio);
 			}
-					
+			boolean match = tipo.equals("RateLimiting_PolicyAPI") &&
+					codice.equals("Violazione") &&
+					severita.equals(1) && 
+					contains1 &&
+					contains2;
+			
+			boolean contains3 = false;
+			if (gruppo.isPresent()) {
+				if(id_configurazione!=null) {
+					contains3 = id_configurazione.contains("gruppo '"+gruppo.get()+"'");
+				}
+				match = match && contains3;
+			}
+			
+			log.debug("tipo='"+tipo+"' confronto con 'RateLimiting_PolicyAPI': "+tipo.equals("RateLimiting_PolicyAPI"));
+			log.debug("codice='"+codice+"' confronto con 'Violazione': "+codice.equals("Violazione"));
+			log.debug("severita='"+severita+"' confronto con 1: "+severita.equals(1));
+			if(id_configurazione!=null) {
+				log.debug("id_configurazione='"+id_configurazione+"'"+
+						"\n\tverifica1 contains("+policy.toString()+")="+contains1+""+
+						"\n\tverifica2 contains("+idServizio+")="+contains2+"");
+				if (gruppo.isPresent()) {
+					log.debug("\n\tverifica3 containsGruppo("+gruppo.get()+")="+contains3+"");
+				}
+			}
+			else {
+				log.debug("id_configurazione='"+id_configurazione+"'");
+			}
+			log.debug("match="+match);
+			
 			return match;
 		});
 	
@@ -132,20 +202,51 @@ public class EventiUtils {
 
 
 
-	public static boolean findEventRLViolazioneRisolta(List<Map<String,Object>> events, PolicyAlias policy, String idServizio, Optional<String> gruppo) {
+	public static boolean findEventRLViolazioneRisolta(List<Map<String,Object>> events, PolicyAlias policy, String idServizio, Optional<String> gruppo, Logger log) {
+		
+		log.debug("======== VERIFICA findEventRLViolazioneRisolta ========");
 		
 		return events.stream()
 		.anyMatch( ev -> {
+			Object tipo = ev.get("tipo");
+			Object codice = ev.get("codice");
+			Object severita = ev.get("severita");
 			String id_configurazione = (String) ev.get("id_configurazione");
-			boolean match = ev.get("tipo").equals("RateLimiting_PolicyAPI") &&
-					ev.get("codice").equals("ViolazioneRisolta") &&
-					ev.get("severita").equals(3) && 
-					id_configurazione.contains(policy.toString()) &&
-					id_configurazione.contains(idServizio);
-			
-			if (gruppo.isPresent()) {
-				match = match && id_configurazione.contains("gruppo '"+gruppo.get()+"'");
+			boolean contains1 = false;
+			boolean contains2 = false;
+			if(id_configurazione!=null) {
+				contains1 = id_configurazione.contains(policy.toString());
+				contains2 = id_configurazione.contains(idServizio);
 			}
+			boolean match = tipo.equals("RateLimiting_PolicyAPI") &&
+					codice.equals("ViolazioneRisolta") &&
+					severita.equals(3) && 
+					contains1 &&
+					contains2;
+			
+			boolean contains3 = false;
+			if (gruppo.isPresent()) {
+				if(id_configurazione!=null) {
+					contains3 = id_configurazione.contains("gruppo '"+gruppo.get()+"'");
+				}
+				match = match && contains3;
+			}
+			
+			log.debug("tipo='"+tipo+"' confronto con 'RateLimiting_PolicyAPI': "+tipo.equals("RateLimiting_PolicyAPI"));
+			log.debug("codice='"+codice+"' confronto con 'ViolazioneRisolta': "+codice.equals("ViolazioneRisolta"));
+			log.debug("severita='"+severita+"' confronto con 3: "+severita.equals(3));
+			if(id_configurazione!=null) {
+				log.debug("id_configurazione='"+id_configurazione+"'"+
+						"\n\tverifica1 contains("+policy.toString()+")="+contains1+""+
+						"\n\tverifica2 contains("+idServizio+")="+contains2+"");
+				if (gruppo.isPresent()) {
+					log.debug("\n\tverifica3 containsGruppo("+gruppo.get()+")="+contains3+"");
+				}
+			}
+			else {
+				log.debug("id_configurazione='"+id_configurazione+"'");
+			}
+			log.debug("match="+match);
 					
 			return match;
 		});
@@ -155,11 +256,14 @@ public class EventiUtils {
 
 
 	public static void checkEventiCongestioneAttivaConViolazioneRL(String idServizio, LocalDateTime dataSpedizione, Optional<String> gruppo,
-			Vector<HttpResponse> responses) {
+			Vector<HttpResponse> responses, Logger log) {
 				
 		waitForDbEvents();
 		
 		//  Devo trovare tra le transazioni generate dalle richieste, almeno una transazione che abbia entrambe le violazioni
+		
+		log.debug("======== VERIFICA checkEventiCongestioneAttivaConViolazioneRL ========");
+		
 		boolean found = responses
 				.stream()
 				.anyMatch( r -> {
@@ -167,9 +271,18 @@ public class EventiUtils {
 							r.getHeader(Headers.TransactionId),
 							evento -> {						
 								log().info(evento.toString());
-								String credenziale = (String) evento.get("credenziale"); 
-								return credenziale.contains("##ControlloTraffico_SogliaCongestione_Violazione##") &&
-										credenziale.contains("##RateLimiting_PolicyAPI_Violazione_RichiesteSimultanee##");
+								String credenziale = (String) evento.get("credenziale");
+								boolean contains1 = credenziale.contains("##ControlloTraffico_SogliaCongestione_Violazione##");
+								boolean contains2 = credenziale.contains("##RateLimiting_PolicyAPI_Violazione_RichiesteSimultanee##");
+								boolean match = contains1 &&
+										contains2;
+								
+								log.debug("credenziale='"+credenziale+"'"+
+										"\n\tverifica1 contains(##ControlloTraffico_SogliaCongestione_Violazione##)="+contains1+""+
+										"\n\tverifica2 contains(##RateLimiting_PolicyAPI_Violazione_RichiesteSimultanee##)="+contains2+"");
+								log.debug("match="+match);
+								
+								return match;
 							});
 				
 				});
@@ -180,19 +293,21 @@ public class EventiUtils {
 		List<Map<String, Object>> events = getNotificheEventi(dataSpedizione);		
 		log().info(events.toString());
 		
-		assertEquals(true, findEventCongestioneViolata(events));
-		assertEquals(true, findEventCongestioneRisolta(events));
-		assertEquals(true, findEventRLViolato(events, PolicyAlias.RICHIESTE_SIMULTANEE, idServizio, gruppo));
-		assertEquals(true, findEventRLViolazioneRisolta(events, PolicyAlias.RICHIESTE_SIMULTANEE, idServizio, gruppo));
+		assertEquals(true, findEventCongestioneViolata(events, log));
+		assertEquals(true, findEventCongestioneRisolta(events, log));
+		assertEquals(true, findEventRLViolato(events, PolicyAlias.RICHIESTE_SIMULTANEE, idServizio, gruppo, log));
+		assertEquals(true, findEventRLViolazioneRisolta(events, PolicyAlias.RICHIESTE_SIMULTANEE, idServizio, gruppo, log));
 	}
 
 
 
-	public static void checkEventiCongestioneAttiva(LocalDateTime dataSpedizione, Vector<HttpResponse> responses) {
+	public static void checkEventiCongestioneAttiva(LocalDateTime dataSpedizione, Vector<HttpResponse> responses, Logger log) {
 	
 		waitForDbEvents();
 		
 		//		Devo trovare tra le transazioni generate dalle richieste, almeno una transazione che abbia la violazione
+		
+		log.debug("======== VERIFICA checkEventiCongestioneAttiva ========");
 		
 		boolean found = responses
 				.stream()
@@ -201,7 +316,15 @@ public class EventiUtils {
 							r.getHeader(Headers.TransactionId),
 							evento -> {						
 								log().info(evento.toString());
-								return ((String) evento.get("credenziale")).contains("##ControlloTraffico_SogliaCongestione_Violazione##"); 
+								String credenziale = (String) evento.get("credenziale");
+								boolean contains1 = credenziale.contains("##ControlloTraffico_SogliaCongestione_Violazione##");
+								boolean match = contains1;
+								
+								log.debug("credenziale='"+credenziale+"'"+
+										"\n\tverifica1 contains(##ControlloTraffico_SogliaCongestione_Violazione##)="+contains1+"");
+								log.debug("match="+match);
+								
+								return match;
 							});
 				
 				});
@@ -213,8 +336,8 @@ public class EventiUtils {
 		List<Map<String, Object>> events = getNotificheEventi(dataSpedizione);		
 		log().info(events.toString());
 		
-		assertEquals(true, findEventCongestioneViolata(events));
-		assertEquals(true, findEventCongestioneRisolta(events));		
+		assertEquals(true, findEventCongestioneViolata(events, log));
+		assertEquals(true, findEventCongestioneRisolta(events, log));		
 	}
 
 }

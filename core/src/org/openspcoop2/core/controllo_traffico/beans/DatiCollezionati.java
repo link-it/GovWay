@@ -903,6 +903,8 @@ public class DatiCollezionati extends org.openspcoop2.utils.beans.BaseBean imple
 					this.policyRequestCounter = 0l;
 					this.policyDenyRequestCounter = 0l;
 					if(this.tipoRisorsa==null || !isRisorsaContaNumeroRichieste(this.tipoRisorsa)){
+						//SimpleDateFormat dateformat = DateUtils.getSimpleDateFormatMs();
+						//System.out.println("Resetto policy counter a zero per intervallo d["+dateformat.format(d)+"]");
 						this.policyCounter = 0l;
 					}
 				}
@@ -1085,7 +1087,7 @@ public class DatiCollezionati extends org.openspcoop2.utils.beans.BaseBean imple
 		
 	}
 	
-	public void updateDatiStartRequestApplicabile(Logger log, ActivePolicy activePolicy){
+	public boolean updateDatiStartRequestApplicabile(Logger log, ActivePolicy activePolicy){
 		
 		if(this.getPolicyDateWindowInterval()!=null && 
 				TipoFinestra.SCORREVOLE.equals(this.getPolicyDateWindowInterval())==false){
@@ -1098,10 +1100,13 @@ public class DatiCollezionati extends org.openspcoop2.utils.beans.BaseBean imple
 				if( (TipoRisorsa.TEMPO_MEDIO_RISPOSTA.equals(activePolicy.getTipoRisorsaPolicy()) == false) &&
 						isRisorsaContaNumeroRichiesteDipendentiEsito(activePolicy.getTipoRisorsaPolicy())==false){
 					this.policyRequestCounter++; 
+					return true;
 				}
 			}
 			
 		}
+		
+		return false;
 
 	}
 	
@@ -1217,7 +1222,9 @@ public class DatiCollezionati extends org.openspcoop2.utils.beans.BaseBean imple
 			case OCCUPAZIONE_BANDA:
 				
 				// viene misurata la banda "generata" dalle applicazioni
+				//System.out.println("Incremento banda da "+this.policyCounter);
 				this.policyCounter = this.policyCounter + this.getBanda(activePolicy.getConfigurazionePolicy().getValoreTipoBanda(), dati);
+				//System.out.println("Incremento banda a "+this.policyCounter);
 								
 				break;
 	
@@ -1237,7 +1244,9 @@ public class DatiCollezionati extends org.openspcoop2.utils.beans.BaseBean imple
 				for (int esitoValido : esitiValidi) {
 					if(dati.getEsitoTransazione() == esitoValido){
 						long latenza = this.getLatenza(activePolicy.getConfigurazionePolicy().getValoreTipoLatenza(), dati);
+						//System.out.println("Incremento tempo da "+this.policyCounter);
 						this.policyCounter = this.policyCounter + latenza;
+						//System.out.println("Incremento tempo a "+this.policyCounter);
 						found = true;
 						break;
 					}

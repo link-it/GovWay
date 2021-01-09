@@ -504,7 +504,7 @@ public class RestTest extends ConfigLoader {
 		
 		responses.forEach(r -> { 			
 				
-				Utils.checkXLimitHeader(r.getHeader(Headers.RateLimitLimit), maxRequests);
+				Utils.checkXLimitHeader(logRateLimiting, Headers.RateLimitLimit, r.getHeader(Headers.RateLimitLimit), maxRequests);
 				
 				if ("true".equals(prop.getProperty("rl_check_limit_windows"))) {
 					Map<Integer,Integer> windowMap = Map.of(windowSize,maxRequests);							

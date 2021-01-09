@@ -40,8 +40,8 @@
 	Questo per consentire di controllare in un tempo accettabile le metriche dipendenti da statistiche,
 	in particolare quando si abilitano in presenza di degrado prestazionale. 
 
-- Inoltre è necessario abbassare il life time degli oggetti in cache:
-	Console -> Controllo del Traffico -> Configurazione Cache Controllo del Traffico -> ItemLifeTime = 5
+- Inoltre è necessario disabilitare la cache delle informazioni statistiche:
+	Console -> Controllo del Traffico -> Configurazione Cache Controllo del Traffico -> Stato = Disabilitato
 
 - Aggiungere nel govway_local.properties la seguente impostazione:
 
@@ -82,3 +82,55 @@ Per eseguire solo una classe, indicare il package e il metodo:
 Per eseguire solo un metodo, indicare il nome del metodo e il sottopackage+classe
 
 	ant run_test -Dmethods=richiesteSimultaneeGlobali -Dtest=rate_limiting.numero_richieste.SoapTest 
+
+
+Di seguito vengono descritti i test:
+
+- 'congestione', verifica policy che usano l'applicabilità con degrado prestazionale e/o congestione (invocarli separati tra rest e soap per non incorrere in errori di sincronizzazione temporale). Verifica anche gli eventi:
+  ant run_test -Ddelete=false -Dload=false -Dpackage=rate_limiting.congestione -Dtest=RestTest
+  ant run_test -Ddelete=false -Dload=false -Dpackage=rate_limiting.congestione -Dtest=SoapTest
+
+- 'custom policy', verifica policy che usano intervalli statistici (invocarli separati tra rest e soap per non incorrere in errori di sincronizzazione temporale):
+  ant run_test -Ddelete=false -Dload=false -Dpackage=rate_limiting.custom_policy -Dtest=RestTest
+  ant run_test -Ddelete=false -Dload=false -Dpackage=rate_limiting.custom_policy -Dtest=SoapTest
+
+- 'global_policy', verifica policy definite a livello globale
+  ant run_test -Ddelete=false -Dload=false -Dpackage=rate_limiting.global_policy
+
+- 'numero_richieste', verifica policy definite con metriche basate sul numero di richieste simultanee e in un intervallo
+  ant run_test -Ddelete=false -Dload=false -Dpackage=rate_limiting.numero_richieste
+
+- 'numero_richieste_fallite', verifica policy definite con metriche basate sul numero di richieste fallite in un intervallo
+  ant run_test -Ddelete=false -Dload=false -Dpackage=rate_limiting.numero_richieste_fallite
+
+- 'numero_richieste_fallite_o_fault', verifica policy definite con metriche basate sul numero di richieste fallite o fault in un intervallo
+  ant run_test -Ddelete=false -Dload=false -Dpackage=rate_limiting.numero_richieste_fallite_o_fault
+
+- 'numero_richieste_fault', verifica policy definite con metriche basate sul numero di fault in un intervallo
+  ant run_test -Ddelete=false -Dload=false -Dpackage=rate_limiting.numero_richieste_fault
+
+- 'numero_richieste_completate_con_successo', verifica policy definite con metriche basate sul numero di richieste completate con successo in un intervallo
+  ant run_test -Ddelete=false -Dload=false -Dpackage=rate_limiting.numero_richieste_completate_con_successo
+
+- 'occupazione_banda', verifica policy definite con metriche basate sull'occupazine di banda in un intervallo
+  ant run_test -Ddelete=false -Dload=false -Dpackage=rate_limiting.occupazione_banda
+
+- 'tempo_complessivo_risposta', verifica policy definite con metriche basate sul tempo complessivo di risposta in un intervallo
+  ant run_test -Ddelete=false -Dload=false -Dpackage=rate_limiting.tempo_complessivo_risposta
+
+- 'tempo_medio_risposta', verifica policy definite con metriche basate sul tempo medio di risposta in un intervallo
+  ant run_test -Ddelete=false -Dload=false -Dpackage=rate_limiting.tempo_medio_risposta
+
+- 'filtri', verifica policy definite con filtri
+  ant run_test -Ddelete=false -Dload=false -Dpackage=rate_limiting.filtri
+
+- 'raggruppamento', verifica policy definite con raggruppamento dei contatori
+  ant run_test -Ddelete=false -Dload=false -Dpackage=rate_limiting.raggruppamento
+
+- 'flusso', verifica policy definite rispetto ad un ordinamento di applicabilità
+  ant run_test -Ddelete=false -Dload=false -Dpackage=rate_limiting.flusso
+
+- 'warning_only', verifica policy definite con stato warning_only (verifica anche gli eventi)
+  ant run_test -Ddelete=false -Dload=false -Dpackage=rate_limiting.warning_only                                         
+
+

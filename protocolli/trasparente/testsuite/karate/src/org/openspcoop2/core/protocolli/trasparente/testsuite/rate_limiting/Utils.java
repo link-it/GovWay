@@ -579,10 +579,14 @@ public class Utils {
 	}
 
 
-	public static void checkXLimitHeader(String header, int maxLimit) {
+	public static void checkXLimitHeader(Logger log, String nomeHeader, String header, int maxLimit) {
 		// La configurazione di govway potrebbe utilizzare le window anche se nel test la proprietà
 		// è disabilitata. Scriviamo un test che sia indipendente da questa cosa, e che controlli
 		// in ogni caso il primo valore.
+		log.info("Verifica valore header '"+nomeHeader+"'; trovato valore '"+header+"'");
+		if(header==null) {
+			log.error("Header '"+nomeHeader+"' non presente o non valorizzato");
+		}
 		String limit = header.split(",")[0].trim();
 		assertEquals(String.valueOf(maxLimit),limit);
 	}

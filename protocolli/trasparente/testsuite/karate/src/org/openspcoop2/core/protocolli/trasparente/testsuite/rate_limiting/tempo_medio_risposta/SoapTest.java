@@ -197,7 +197,7 @@ public class SoapTest extends ConfigLoader {
 		
 		responses.forEach( r -> {
 			
-			Utils.checkXLimitHeader(r.getHeader(Headers.AvgTimeResponseLimit), soglia);			
+			Utils.checkXLimitHeader(logRateLimiting, Headers.AvgTimeResponseLimit, r.getHeader(Headers.AvgTimeResponseLimit), soglia);			
 			if ("true".equals(prop.getProperty("rl_check_limit_windows"))) {
 				Map<Integer,Integer> windowMap = Map.of(windowSize,soglia);							
 				Utils.checkXLimitWindows(r.getHeader(Headers.AvgTimeResponseLimit), soglia, windowMap);
@@ -211,7 +211,7 @@ public class SoapTest extends ConfigLoader {
 	private void checkBlockedRequests(Vector<HttpResponse> responses, int windowSize, int soglia) throws Exception {
 		
 		for (var r: responses) {
-			Utils.checkXLimitHeader(r.getHeader(Headers.AvgTimeResponseLimit), soglia);			
+			Utils.checkXLimitHeader(logRateLimiting, Headers.AvgTimeResponseLimit, r.getHeader(Headers.AvgTimeResponseLimit), soglia);			
 			if ("true".equals(prop.getProperty("rl_check_limit_windows"))) {
 				Map<Integer,Integer> windowMap = Map.of(windowSize,soglia);							
 				Utils.checkXLimitWindows(r.getHeader(Headers.AvgTimeResponseLimit), soglia, windowMap);

@@ -405,7 +405,7 @@ public class RestTest extends ConfigLoader {
 		
 		responses.forEach( r -> {
 			
-			Utils.checkXLimitHeader(r.getHeader(Headers.FailedOrFaultLimit), maxRequests);			
+			Utils.checkXLimitHeader(logRateLimiting, Headers.FailedOrFaultLimit, r.getHeader(Headers.FailedOrFaultLimit), maxRequests);			
 			if ("true".equals(prop.getProperty("rl_check_limit_windows"))) {
 				Map<Integer,Integer> windowMap = Map.of(windowSize,maxRequests);							
 				Utils.checkXLimitWindows(r.getHeader(Headers.FailedOrFaultLimit), maxRequests, windowMap);
@@ -420,7 +420,7 @@ public class RestTest extends ConfigLoader {
 	private void checkFailedRequests(Vector<HttpResponse> responses, int windowSize, int maxRequests) throws Exception {
 		
 		for (var r: responses) {
-			Utils.checkXLimitHeader(r.getHeader(Headers.FailedOrFaultLimit), maxRequests);			
+			Utils.checkXLimitHeader(logRateLimiting, Headers.FailedOrFaultLimit, r.getHeader(Headers.FailedOrFaultLimit), maxRequests);			
 			if ("true".equals(prop.getProperty("rl_check_limit_windows"))) {
 				Map<Integer,Integer> windowMap = Map.of(windowSize,maxRequests);							
 				Utils.checkXLimitWindows(r.getHeader(Headers.FailedOrFaultLimit), maxRequests, windowMap);

@@ -21,6 +21,7 @@
 package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.congestione;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.time.LocalDateTime;
@@ -37,17 +38,20 @@ import java.util.function.BiConsumer;
 
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.HeaderValues;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Headers;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.SoapBodies;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.TipoServizio;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.PolicyAlias;
+import org.openspcoop2.utils.Utilities;
 import org.openspcoop2.utils.UtilsException;
 import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpResponse;
 import org.openspcoop2.utils.transport.http.HttpUtilities;
 import org.openspcoop2.utils.transport.http.HttpUtilsException;
+import org.w3c.dom.Element;
 /**
  * 
  * @author Francesco Scarlato {scarlato@link.it}
@@ -76,7 +80,7 @@ public class SoapTest extends ConfigLoader {
 	
 	@Test
 	public void congestioneAttivaConViolazioneRLErogazione() {
-		congestioneAttivaConViolazioneRL(basePath + "/SoggettoInternoTest/NumeroRichiesteSoap/v1", "SoggettoInternoTest/NumeroRichiesteSoap/v1?sleep=2000");
+		congestioneAttivaConViolazioneRL(basePath + "/SoggettoInternoTest/NumeroRichiesteSoap/v1?sleep=2000", "SoggettoInternoTest/NumeroRichiesteSoap/v1");
 	}
 	
 	@Test
@@ -122,12 +126,12 @@ public class SoapTest extends ConfigLoader {
 
 	@Test
 	public void rateLimitingInPresenzaDegradoECongestioneErogazione() { 
-		rateLimitingInPresenzaDegradoECongestione(TipoServizio.EROGAZIONE, "InPresenzaDegradoECongestioneSoap", 4000);
+		rateLimitingInPresenzaDegradoECongestione(TipoServizio.EROGAZIONE, "InPresenzaDegradoECongestioneSoap", 4500);
 	}
 	
 	@Test
 	public void rateLimitingInPresenzaDegradoECongestioneFruizione() {
-		rateLimitingInPresenzaDegradoECongestione(TipoServizio.FRUIZIONE, "InPresenzaDegradoECongestioneSoap", 4000);
+		rateLimitingInPresenzaDegradoECongestione(TipoServizio.FRUIZIONE, "InPresenzaDegradoECongestioneSoap", 4500);
 	}
 	
 	
@@ -181,14 +185,13 @@ public class SoapTest extends ConfigLoader {
 		// rilevato.
 		Utils.waitForDbStats();
 		
-		// Faccio le ulteriori richieste per far scattare la policy
-		Vector<HttpResponse> blockedResponsesErogazione = Utils.makeParallelRequests(requestErogazione, maxRequests);
-		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.SoapTest.checkFailedRequests(blockedResponsesErogazione, windowSize, maxRequests);	
+		// Faccio le ulteriori richieste per far scattare la policy sulla erogazione
+		makeParallelRequests_and_checkFailedRequests(requestErogazione, windowSize, maxRequests, null);
 
-		Vector<HttpResponse> blockedResponsesFruizione = Utils.makeParallelRequests(requestFruizione, maxRequests);
-		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.SoapTest.checkFailedRequests(blockedResponsesFruizione, windowSize, maxRequests);	
-	}
-	
+		// Faccio le ulteriori richieste per far scattare la policy sulla fruizione
+		makeParallelRequests_and_checkFailedRequests(requestFruizione, windowSize, maxRequests, null);
+		
+	}	
 	
 	/**
 	 * Controlliamo che la policy di rate limiting venga applicata solo
@@ -245,40 +248,11 @@ public class SoapTest extends ConfigLoader {
 		congestionRequest.setMethod(HttpRequestMethod.GET);
 		congestionRequest.setUrl(url);
 		
-		
-		int count = sogliaCongestione;
-		ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(count);
-
-		for (int i = 0; i < count; i++) {
-			executor.execute(() -> {
-				try {
-					logRateLimiting.info(congestionRequest.getMethod() + " " + congestionRequest.getUrl());
-					 HttpResponse r = HttpUtilities.httpInvoke(congestionRequest);
-					 assertEquals(200, r.getResultHTTPOperation());
-					logRateLimiting.info("Richiesta effettuata..");
-				} catch (UtilsException e) {
-					e.printStackTrace();
-					throw new RuntimeException(e);
-				}
-			});
-		}
-		
-		// Aspetto che il sistema vada in congestione..
-		org.openspcoop2.utils.Utilities.sleep(Long.parseLong(System.getProperty("congestion_delay")));
-		
 		// faccio n richieste che devono essere tutte bloccate
-		Vector<HttpResponse> blockedResponses = Utils.makeParallelRequests(request, maxRequests);
-		
-		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.SoapTest.checkFailedRequests(blockedResponses, windowSize, maxRequests);
+		//Vector<HttpResponse> blockedResponses = Utils.makeParallelRequests(request, maxRequests);
+		//org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.SoapTest.checkFailedRequests(blockedResponses, windowSize, maxRequests);
+		makeParallelRequests_and_checkFailedRequests(request, windowSize, maxRequests, congestionRequest);
 
-		
-		try {
-			executor.shutdown();
-			executor.awaitTermination(20, TimeUnit.SECONDS);
-		} catch (InterruptedException e) {
-			logRateLimiting.error("Le richieste hanno impiegato più di venti secondi!");
-			throw new RuntimeException(e);
-		}
 		
 		// Aspetto che il degrado prestazionale passi e faccio ulteriori n richieste che non devono essere bloccate
 		// perchè ancora in congestione
@@ -320,7 +294,97 @@ public class SoapTest extends ConfigLoader {
 	}
 	
 	
+	private static void makeParallelRequests_and_checkFailedRequests(HttpRequest request, int windowSize, int maxRequests, HttpRequest congestionRequest) {
+		
+		// Siccome le policy hanno un applicabilita con degrado sono sull'intervallo statistico corrente, potrebbe succedere che nel momento in cui avviene la richiesta, 
+		// il timer ha eliminato le informazioni statistiche sulla data corrente per aggiornarle.
+		// Questo provoca che il tempo di risposta è 0 o basso poichè non considera i test effettuati
+		// Il test in caso di fallimento verrà quindi ripetuto tre volete prima di assumere che sia fallito.
+		// Si spera che in queste tre volte non si rientri nel caso limite.
+		// A regime non ha senso fare una policy sull'intervallo statistico basato sul'intervallo corrente con finestra uguale a 1.
+		// Lo si è fatto solo per motivi di test.
+		
+		boolean ok = false;
+		
+		for (int i = 0; i < 3; i++) {
+			
+			ThreadPoolExecutor executor = null;
+			try {
+				if(congestionRequest!=null) {
+					// faccio richieste per attivare la congestione
+					logRateLimiting.info("["+i+"] Faccio andare in congestione il sistema ...");
+					executor = congestionRequest(congestionRequest);
+					// Aspetto che il sistema vada in congestione..
+					org.openspcoop2.utils.Utilities.sleep(Long.parseLong(System.getProperty("congestion_delay")));
+				}
+				
+				logRateLimiting.info("["+i+"] Invocazione ...");
+				Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests);
+				
+				if(responses==null || responses.isEmpty() || responses.get(0)==null || responses.get(0).getHeader(Headers.RequestSuccesfulLimit)==null) {
+					logRateLimiting.info("["+i+"] la risposta non contiene l'header '"+Headers.RequestSuccesfulLimit+"' ; riprovo tra 2 secondi attendendo che le statistiche girano");
+					Utilities.sleep(2000);
+					continue;
+				}
+				
+				logRateLimiting.info("["+i+"] Verifico header ...");
+				for (var r: responses) {
+					Utils.checkXLimitHeader(logRateLimiting, Headers.RequestSuccesfulLimit,r.getHeader(Headers.RequestSuccesfulLimit), maxRequests);			
+					if ("true".equals(prop.getProperty("rl_check_limit_windows"))) {
+						Map<Integer,Integer> windowMap = Map.of(windowSize,maxRequests);							
+						Utils.checkXLimitWindows(r.getHeader(Headers.RequestSuccesfulLimit), maxRequests, windowMap);
+					}
+					assertTrue(Integer.valueOf(r.getHeader(Headers.RequestSuccesfulReset)) <= windowSize);			
+					assertEquals(429, r.getResultHTTPOperation());
+					
+					Element element = Utils.buildXmlElement(r.getContent());
+					Utils.matchLimitExceededSoap(element);
+					
+					assertEquals("0", r.getHeader(Headers.RequestSuccesfulRemaining));
+					assertEquals(HeaderValues.LimitExceeded, r.getHeader(Headers.GovWayTransactionErrorType));
+					assertEquals(HeaderValues.ReturnCodeTooManyRequests, r.getHeader(Headers.ReturnCode));
+					assertNotEquals(null, r.getHeader(Headers.RetryAfter));
+				}	
+				ok = true;
+				break;
+			}finally {
+				if(executor!=null) {
+					try {
+						executor.shutdown();
+						executor.awaitTermination(20, TimeUnit.SECONDS);
+					} catch (InterruptedException e) {
+						logRateLimiting.error("Le richieste hanno impiegato più di venti secondi!");
+						throw new RuntimeException(e);
+					}
+				}
+			}
+			
+		}
+		
+		assertTrue(ok);
+				
+	}
 
+	private static ThreadPoolExecutor congestionRequest(HttpRequest congestionRequest) {
+		int count = sogliaCongestione;
+		ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(count);
+
+		for (int i = 0; i < count; i++) {
+			executor.execute(() -> {
+				try {
+					logRateLimiting.info(congestionRequest.getMethod() + " " + congestionRequest.getUrl());
+					 HttpResponse r = HttpUtilities.httpInvoke(congestionRequest);
+					 assertEquals(200, r.getResultHTTPOperation());
+					logRateLimiting.info("Richiesta effettuata..");
+				} catch (UtilsException e) {
+					e.printStackTrace();
+					throw new RuntimeException(e);
+				}
+			});
+		}
+		
+		return executor;
+	}
 
 	
 	/** 
@@ -487,8 +551,8 @@ public class SoapTest extends ConfigLoader {
 		List<Map<String, Object>> events = EventiUtils.getNotificheEventi(dataSpedizione);		
 		logRateLimiting.info(events.toString());
 		
-		assertEquals(true, EventiUtils.findEventCongestioneViolata(events));
-		assertEquals(true, EventiUtils.findEventCongestioneRisolta(events));
+		assertEquals(true, EventiUtils.findEventCongestioneViolata(events, logRateLimiting));
+		assertEquals(true, EventiUtils.findEventCongestioneRisolta(events, logRateLimiting));
 		
 		boolean sogliaViolata =  events.stream()
 				.anyMatch( ev -> {
@@ -530,7 +594,7 @@ public class SoapTest extends ConfigLoader {
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, sogliaCongestione+1);
 		
-		EventiUtils.checkEventiCongestioneAttiva(dataSpedizione, responses);		
+		EventiUtils.checkEventiCongestioneAttiva(dataSpedizione, responses, logRateLimiting);		
 	}
 	
 	
@@ -562,7 +626,7 @@ public class SoapTest extends ConfigLoader {
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, sogliaRichiesteSimultanee+1);
 		
-		EventiUtils.checkEventiCongestioneAttivaConViolazioneRL(idServizio, dataSpedizione, Optional.of("RichiesteSimultanee"), responses);
+		EventiUtils.checkEventiCongestioneAttivaConViolazioneRL(idServizio, dataSpedizione, Optional.of("RichiesteSimultanee"), responses, logRateLimiting);
 	}
 	
 

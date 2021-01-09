@@ -445,7 +445,7 @@ public class SoapTest extends ConfigLoader {
 		
 		responses.forEach(r -> { 			
 				assertTrue( Integer.valueOf(r.getHeader(Headers.RateLimitReset)) != null);
-				Utils.checkXLimitHeader(r.getHeader(Headers.RateLimitLimit), maxRequests);
+				Utils.checkXLimitHeader(logRateLimiting, Headers.RateLimitLimit, r.getHeader(Headers.RateLimitLimit), maxRequests);
 				
 				
 				if ("true".equals(prop.getProperty("rl_check_limit_windows"))) {

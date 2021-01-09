@@ -374,7 +374,7 @@ public class RestTest extends ConfigLoader {
 		
 		responses.forEach( r -> {
 			
-			Utils.checkXLimitHeader(r.getHeader(Headers.FailedLimit), maxRequests);			
+			Utils.checkXLimitHeader(logRateLimiting, Headers.FailedLimit, r.getHeader(Headers.FailedLimit), maxRequests);			
 			if ("true".equals(prop.getProperty("rl_check_limit_windows"))) {
 				Map<Integer,Integer> windowMap = Map.of(windowSize,maxRequests);							
 				Utils.checkXLimitWindows(r.getHeader(Headers.FailedLimit), maxRequests, windowMap);
@@ -391,7 +391,7 @@ public class RestTest extends ConfigLoader {
 		JsonPathExpressionEngine jsonPath = new JsonPathExpressionEngine();
 		
 		for (var r: responses) {
-			Utils.checkXLimitHeader(r.getHeader(Headers.FailedLimit), maxRequests);			
+			Utils.checkXLimitHeader(logRateLimiting, Headers.FailedLimit, r.getHeader(Headers.FailedLimit), maxRequests);			
 			if ("true".equals(prop.getProperty("rl_check_limit_windows"))) {
 				Map<Integer,Integer> windowMap = Map.of(windowSize,maxRequests);							
 				Utils.checkXLimitWindows(r.getHeader(Headers.FailedLimit), maxRequests, windowMap);

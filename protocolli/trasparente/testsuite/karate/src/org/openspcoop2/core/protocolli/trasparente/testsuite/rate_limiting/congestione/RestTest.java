@@ -21,11 +21,13 @@
 package org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.congestione;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Vector;
 import java.util.concurrent.Executors;
@@ -35,15 +37,21 @@ import java.util.function.BiConsumer;
 
 import org.junit.Test;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.ConfigLoader;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.HeaderValues;
+import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Headers;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.TipoServizio;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils;
 import org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.Utils.PolicyAlias;
+import org.openspcoop2.utils.Utilities;
 import org.openspcoop2.utils.UtilsException;
+import org.openspcoop2.utils.json.JsonPathExpressionEngine;
 import org.openspcoop2.utils.transport.http.HttpRequest;
 import org.openspcoop2.utils.transport.http.HttpRequestMethod;
 import org.openspcoop2.utils.transport.http.HttpResponse;
 import org.openspcoop2.utils.transport.http.HttpUtilities;
 import org.openspcoop2.utils.transport.http.HttpUtilsException;
+
+import net.minidev.json.JSONObject;
 
 public class RestTest extends ConfigLoader {
 
@@ -110,12 +118,12 @@ public class RestTest extends ConfigLoader {
 	
 	@Test
 	public void rateLimitingInPresenzaDegradoECongestioneErogazione() {
-		rateLimitingInPresenzaDegradoECongestione(TipoServizio.EROGAZIONE, "InPresenzaDegradoECongestioneRest", 4000);
+		rateLimitingInPresenzaDegradoECongestione(TipoServizio.EROGAZIONE, "InPresenzaDegradoECongestioneRest", 4500);
 	}
 	
 	@Test
 	public void rateLimitingInPresenzaDegradoECongestioneFruizione() {
-		rateLimitingInPresenzaDegradoECongestione(TipoServizio.FRUIZIONE, "InPresenzaDegradoECongestioneRest", 4000);
+		rateLimitingInPresenzaDegradoECongestione(TipoServizio.FRUIZIONE, "InPresenzaDegradoECongestioneRest", 4500);
 	}
 
 	
@@ -267,13 +275,12 @@ public class RestTest extends ConfigLoader {
 		// rilevato.
 		Utils.waitForDbStats();
 		
-		// Faccio le ulteriori richieste per far scattare la policy
-		Vector<HttpResponse> blockedResponsesErogazione = Utils.makeParallelRequests(requestErogazione, maxRequests);
-		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkFailedRequests(blockedResponsesErogazione, windowSize, maxRequests);
+		// Faccio le ulteriori richieste per far scattare la policy sulla erogazione
+		makeParallelRequests_and_checkFailedRequests(requestErogazione, windowSize, maxRequests, null);
 		logRateLimiting.info(Utils.getPolicy(idPolicyErogazione));
 		
-		Vector<HttpResponse> blockedResponsesFruizione = Utils.makeParallelRequests(requestFruizione, maxRequests);
-		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkFailedRequests(blockedResponsesFruizione, windowSize, maxRequests);
+		// Faccio le ulteriori richieste per far scattare la policy sulla fruizione
+		makeParallelRequests_and_checkFailedRequests(requestFruizione, windowSize, maxRequests, null);
 		logRateLimiting.info(Utils.getPolicy(idPolicyFruizione));
 	}
 	
@@ -330,6 +337,99 @@ public class RestTest extends ConfigLoader {
 		congestionRequest.setMethod(HttpRequestMethod.GET);
 		congestionRequest.setUrl(url);
 		
+		// faccio n richieste che devono essere tutte bloccate
+		//Vector<HttpResponse> blockedResponses = Utils.makeParallelRequests(request, maxRequests);
+		//org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkFailedRequests(blockedResponses, windowSize, maxRequests);
+		makeParallelRequests_and_checkFailedRequests(request, windowSize, maxRequests, congestionRequest);
+		
+		logRateLimiting.info(Utils.getPolicy(idPolicy));
+		
+		// TODO: Adesso testare che una volta passato il degrado, con la sola 
+		//	congestione le richieste non vengono bloccate.
+	}
+	
+	private static void makeParallelRequests_and_checkFailedRequests(HttpRequest request, int windowSize, int maxRequests, HttpRequest congestionRequest) {
+		
+		JsonPathExpressionEngine jsonPath = new JsonPathExpressionEngine();
+		
+		// Siccome le policy hanno un applicabilita con degrado sono sull'intervallo statistico corrente, potrebbe succedere che nel momento in cui avviene la richiesta, 
+		// il timer ha eliminato le informazioni statistiche sulla data corrente per aggiornarle.
+		// Questo provoca che il tempo di risposta è 0 o basso poichè non considera i test effettuati
+		// Il test in caso di fallimento verrà quindi ripetuto tre volete prima di assumere che sia fallito.
+		// Si spera che in queste tre volte non si rientri nel caso limite.
+		// A regime non ha senso fare una policy sull'intervallo statistico basato sul'intervallo corrente con finestra uguale a 1.
+		// Lo si è fatto solo per motivi di test.
+		
+		boolean ok = false;
+		
+		for (int i = 0; i < 3; i++) {
+						
+			ThreadPoolExecutor executor = null;
+			try {
+				if(congestionRequest!=null) {
+					// faccio richieste per attivare la congestione
+					logRateLimiting.info("["+i+"] Faccio andare in congestione il sistema ...");
+					executor = congestionRequest(congestionRequest);
+					// Aspetto che il sistema vada in congestione..
+					org.openspcoop2.utils.Utilities.sleep(Long.parseLong(System.getProperty("congestion_delay")));
+				}
+			
+				logRateLimiting.info("["+i+"] Invocazione ...");
+				Vector<HttpResponse> responses = Utils.makeParallelRequests(request, maxRequests);
+				
+				if(responses==null || responses.isEmpty() || responses.get(0)==null || responses.get(0).getHeader(Headers.RequestSuccesfulLimit)==null) {
+					logRateLimiting.info("["+i+"] la risposta non contiene l'header '"+Headers.RequestSuccesfulLimit+"' ; riprovo tra 2 secondi attendendo che le statistiche girano");
+					Utilities.sleep(2000);
+					continue;
+				}
+				
+				logRateLimiting.info("["+i+"] Verifico header ...");
+			
+				for (var r: responses) {
+					Utils.checkXLimitHeader(logRateLimiting, Headers.RequestSuccesfulLimit, r.getHeader(Headers.RequestSuccesfulLimit), maxRequests);			
+					if ("true".equals(prop.getProperty("rl_check_limit_windows"))) {
+						Map<Integer,Integer> windowMap = Map.of(windowSize,maxRequests);							
+						Utils.checkXLimitWindows(r.getHeader(Headers.RequestSuccesfulLimit), maxRequests, windowMap);
+					}
+					assertTrue(Integer.valueOf(r.getHeader(Headers.RequestSuccesfulReset)) <= windowSize);
+					assertEquals(429, r.getResultHTTPOperation());
+					
+					try {
+						JSONObject jsonResp = JsonPathExpressionEngine.getJSONObject(new String(r.getContent()));
+						
+						assertEquals("https://govway.org/handling-errors/429/LimitExceeded.html", jsonPath.getStringMatchPattern(jsonResp, "$.type").get(0));
+						assertEquals("LimitExceeded", jsonPath.getStringMatchPattern(jsonResp, "$.title").get(0));
+						assertEquals(429, jsonPath.getNumberMatchPattern(jsonResp, "$.status").get(0));
+						assertNotEquals(null, jsonPath.getStringMatchPattern(jsonResp, "$.govway_id").get(0));	
+						assertEquals("Limit exceeded detected", jsonPath.getStringMatchPattern(jsonResp, "$.detail").get(0));
+						
+						assertEquals("0", r.getHeader(Headers.RequestSuccesfulRemaining));
+						assertEquals(HeaderValues.LimitExceeded, r.getHeader(Headers.GovWayTransactionErrorType));
+						assertEquals(HeaderValues.ReturnCodeTooManyRequests, r.getHeader(Headers.ReturnCode));
+						assertNotEquals(null, r.getHeader(Headers.RetryAfter));
+					} catch (Exception e) {
+						throw new RuntimeException(e);
+					}
+				}
+				ok = true;
+				break;
+			}finally {
+				if(executor!=null) {
+					try {
+						executor.shutdown();
+						executor.awaitTermination(20, TimeUnit.SECONDS);
+					} catch (InterruptedException e) {
+						logRateLimiting.error("Le richieste hanno impiegato più di venti secondi!");
+						throw new RuntimeException(e);
+					}
+				}
+			}
+		}
+
+		assertTrue(ok);
+	}
+
+	private static ThreadPoolExecutor congestionRequest(HttpRequest congestionRequest) {
 		int count = sogliaCongestione;
 		ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(count);
 
@@ -347,28 +447,9 @@ public class RestTest extends ConfigLoader {
 			});
 		}
 		
-		// Aspetto che il sistema vada in congestione..
-		org.openspcoop2.utils.Utilities.sleep(Long.parseLong(System.getProperty("congestion_delay")));
-		
-		Vector<HttpResponse> blockedResponses = Utils.makeParallelRequests(request, maxRequests);
-		
-		org.openspcoop2.core.protocolli.trasparente.testsuite.rate_limiting.numero_richieste_completate_con_successo.RestTest.checkFailedRequests(blockedResponses, windowSize, maxRequests);
-		
-		logRateLimiting.info(Utils.getPolicy(idPolicy));
-		
-		try {
-			executor.shutdown();
-			executor.awaitTermination(20, TimeUnit.SECONDS);
-		} catch (InterruptedException e) {
-			logRateLimiting.error("Le richieste hanno impiegato più di venti secondi!");
-			throw new RuntimeException(e);
-		}
-		
-		// TODO: Adesso testare che una volta passato il degrado, con la sola 
-		//	congestione le richieste non vengono bloccate.
+		return executor;
 	}
 	
-
 	
 	/** 
 	 * 	Qui si testa la generazione dell'evento di congestione e del successivo evento
@@ -428,7 +509,7 @@ public class RestTest extends ConfigLoader {
 		
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, sogliaRichiesteSimultanee+1);
 		
-		EventiUtils.checkEventiCongestioneAttivaConViolazioneRL(idErogazione, dataSpedizione, Optional.empty(), responses);
+		EventiUtils.checkEventiCongestioneAttivaConViolazioneRL(idErogazione, dataSpedizione, Optional.empty(), responses, logRateLimiting);
 	}
 	
 	
@@ -450,7 +531,7 @@ public class RestTest extends ConfigLoader {
 		Vector<HttpResponse> responses = Utils.makeParallelRequests(request, sogliaCongestione+1);
 		
 		assertEquals(sogliaCongestione+1, responses.stream().filter(r -> r.getResultHTTPOperation() == 200).count());
-		EventiUtils.checkEventiCongestioneAttiva(dataSpedizione, responses);
+		EventiUtils.checkEventiCongestioneAttiva(dataSpedizione, responses, logRateLimiting);
 	
 	}
 }

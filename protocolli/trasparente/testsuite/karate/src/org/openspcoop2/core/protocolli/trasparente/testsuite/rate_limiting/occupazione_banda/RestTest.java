@@ -278,7 +278,7 @@ public class RestTest extends ConfigLoader {
 		
 		responses.forEach(r -> { 			
 				assertNotEquals(null,Integer.valueOf(r.getHeader(Headers.BandWidthQuotaReset)));
-				Utils.checkXLimitHeader(r.getHeader(Headers.BandWidthQuotaLimit), maxKb);
+				Utils.checkXLimitHeader(logRateLimiting, Headers.BandWidthQuotaLimit, r.getHeader(Headers.BandWidthQuotaLimit), maxKb);
 				
 				if ("true".equals(prop.getProperty("rl_check_limit_windows"))) {
 					Map<Integer,Integer> windowMap = Map.of(windowSize,maxKb);							

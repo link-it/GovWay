@@ -193,7 +193,7 @@ public class RestTest extends ConfigLoader {
 				
 		responses.forEach(r -> { 			
 				assertNotEquals(null,Integer.valueOf(r.getHeader(Headers.RateLimitTimeResponseQuotaReset)));
-				Utils.checkXLimitHeader(r.getHeader(Headers.RateLimitTimeResponseQuotaLimit), maxSeconds);
+				Utils.checkXLimitHeader(logRateLimiting, Headers.RateLimitTimeResponseQuotaLimit, r.getHeader(Headers.RateLimitTimeResponseQuotaLimit), maxSeconds);
 				
 				if ("true".equals(prop.getProperty("rl_check_limit_windows"))) {
 					Map<Integer,Integer> windowMap = Map.of(windowSize,maxSeconds);							

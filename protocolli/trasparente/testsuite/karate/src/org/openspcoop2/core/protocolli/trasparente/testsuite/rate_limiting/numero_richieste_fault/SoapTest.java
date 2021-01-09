@@ -387,7 +387,7 @@ public class SoapTest extends ConfigLoader {
 		
 		
 		for (var r: responses) {
-			Utils.checkXLimitHeader(r.getHeader(Headers.FaultLimit), maxRequests);			
+			Utils.checkXLimitHeader(logRateLimiting, Headers.FaultLimit, r.getHeader(Headers.FaultLimit), maxRequests);			
 			if ("true".equals(prop.getProperty("rl_check_limit_windows"))) {
 				Map<Integer,Integer> windowMap = Map.of(windowSize,maxRequests);							
 				Utils.checkXLimitWindows(r.getHeader(Headers.FaultLimit), maxRequests, windowMap);
@@ -413,7 +413,7 @@ public class SoapTest extends ConfigLoader {
 		// sia effettivamente un fault.
 		for (var r: responses){
 			
-			Utils.checkXLimitHeader(r.getHeader(Headers.FaultLimit), maxRequests);			
+			Utils.checkXLimitHeader(logRateLimiting, Headers.FaultLimit, r.getHeader(Headers.FaultLimit), maxRequests);			
 			if ("true".equals(prop.getProperty("rl_check_limit_windows"))) {
 				Map<Integer,Integer> windowMap = Map.of(windowSize,maxRequests);							
 				Utils.checkXLimitWindows(r.getHeader(Headers.FaultLimit), maxRequests, windowMap);
